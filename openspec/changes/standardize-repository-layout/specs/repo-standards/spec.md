@@ -142,56 +142,46 @@ not what continuous integration installs.
 - **THEN** that tool is removed from `.mise.toml`, which still exists and still
   pins what remains
 
-### Requirement: Tools whose output is checked are pinned
+### Requirement: Every path provisions the same tool version
 
-Every path that provisions a tool whose output a check compares against a
-committed file SHALL pin that tool's version. `latest`, and an unversioned setup
-action, SHALL NOT be used for such a tool.
+A repository provisions its tools twice — `.mise.toml` for local work, and setup
+actions in its workflows. Both SHALL resolve to the same version.
 
-A floating version makes the toolchain an untracked input to the check. The
-check compares committed bytes against bytes the tool generates, so a release
-that changes the tool's output turns the check red with no commit touching the
-repository.
+Where something maintains the version automatically, both paths SHALL pin it and
+that mechanism SHALL move both. Where nothing does, both paths SHALL track the
+latest release, so they move together.
 
-A repository provisions tools twice — `.mise.toml` for local work and setup
-actions in its workflows — and the requirement binds both. Pinning one leaves
-the other floating, which does not prevent the failure and additionally lets
-local and CI disagree about whether the repository passes.
+A version pinned in one path and floating in the other SHALL NOT be used. It
+guarantees divergence at the next release, and the divergence surfaces as a
+check failing on a file nobody edited.
 
-Dependabot raises these pins, so versions are still maintained — as a change
-with a pull request behind it, rather than silently at the next run.
+#### Scenario: Nothing automates the version
 
-#### Scenario: A formatter release changes its output
+- **WHEN** a tool's version is not maintained by any update mechanism, as
+  `.mise.toml` is not watched by Dependabot
+- **THEN** both paths track the latest release, because a pin nothing bumps is a
+  pin that only one side keeps
 
-- **WHEN** a formatter that a check runs in check mode is released with altered
-  formatting
-- **THEN** the pin holds the old version until a pull request raises it, rather
-  than every branch failing at once
+#### Scenario: An update mechanism covers the tool
 
-#### Scenario: A tool's output is never compared
+- **WHEN** a tool's version is maintained automatically, as action and module
+  versions are
+- **THEN** both paths pin it, and that mechanism raises both
 
-- **WHEN** a tool only provisions or runs things, and no check compares its
-  output against a committed file
-- **THEN** it may float, because a release cannot invalidate a committed file
+#### Scenario: A release changes the tool's output
 
-#### Scenario: Pinning is inconsistent across repositories
+- **WHEN** a formatter release reformats files a check compares against
+  committed bytes
+- **THEN** the check fails in continuous integration and locally alike, and the
+  committed files are reformatted once — rather than one side passing and the
+  other failing
 
-- **WHEN** language runtimes are pinned but the tools that format and lint float
-- **THEN** the tools are pinned too, because those are the ones whose output is
-  compared
+#### Scenario: A tool is invoked but not declared
 
-#### Scenario: Local and CI provision the same tool separately
-
-- **WHEN** a repository declares a tool in `.mise.toml` and its workflows
-  install that tool with a setup action
-- **THEN** both declare the same pinned version, so a contributor running the
-  check locally gets the result CI will report
-
-#### Scenario: A check passes in one place and fails in the other
-
-- **WHEN** a formatter check fails locally but the same commit passes in CI
-- **THEN** the two are provisioning different versions, and the fix is to pin
-  both rather than to change the committed file to satisfy whichever ran last
+- **WHEN** a repository runs its checks through a tool it does not declare in
+  `.mise.toml`
+- **THEN** that is a defect: the version comes from whatever the developer has
+  installed, and no path can be said to match
 
 ### Requirement: A repository no longer in use is archived
 

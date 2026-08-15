@@ -62,11 +62,9 @@ No workflow in any repository uses mise; all seven provision tools twice.
   version CI installs writes the bare form, and each rejects the other
 - [ ] 5.1a Record which version `extractions/setup-just` installs, and declare
   that version, so `mise install` and CI agree
-- [ ] 5.2 `specs`, `osapi-justfiles` — pin `just` and `uv` in `.mise.toml`
-- [ ] 5.3 All repositories using bun for formatting — pin `bun` in `.mise.toml`
-  and in `oven-sh/setup-bun`
-- [ ] 5.4 Reconcile `.mise.toml` and workflow versions so both provision the
-  same version of each checked tool
+- [ ] 5.2 Confirm `.mise.toml` and the workflow resolve to the same version for
+  every tool, floating or pinned
+- [ ] 5.3 Confirm no tool is pinned in one path and floating in the other
 - [x] 5.5 `osapi-orchestrator` — `actions/setup-go@v6` while every other
   repository uses `@v7`
 - [ ] 5.6 Confirm Dependabot raises each new pin, in both locations
