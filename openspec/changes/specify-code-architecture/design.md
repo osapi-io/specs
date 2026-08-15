@@ -213,13 +213,20 @@ Four of the five measure 100% once `.coverignore` is applied. `osapi` does not:
 
 `osapi` is 9 uncovered statements short across 7 functions. It was recorded here
 as 100% because `go tool cover -func` rounds its `total:` line to one decimal
-place, so 99.9359% prints as `100.0%`. The gate read that string, which made it
-blind at exactly the margin it exists to police — it would have passed `osapi`
-while Codecov, computing exactly, failed it at 99.94%.
+place, so 99.9359% prints as `100.0%`.
 
-The check therefore computes from the profile's own statement counts. A gate
-that reads a rounded display is not a gate; it is a gate with a tolerance nobody
-chose.
+The check keeps reading that rounded figure. An earlier revision computed from
+the profile's statement counts instead, on the reasoning that a gate reading a
+rounded display has a tolerance nobody chose. That was rejected: the tolerance
+is about 0.05%, it is bounded and knowable, and declaring a target below 100%
+makes it explicit. Buying the last two decimal places costs arithmetic in a
+shared recipe that every repository runs on every commit, and a shared module is
+the worst place to put logic that has to be right.
+
+What the rounding does mean is that `osapi` cannot be gated at 100% and be
+honest about it — `-func` would report `100.0%` and pass. Hence the 99.9%
+target: it states the level actually held, and the 9 statements are tracked to
+be covered rather than rounded away.
 
 The raw column is why the gate has to read the filtered profile and nothing
 else. Four of the five would fail a 100% gate applied to the raw number, and
