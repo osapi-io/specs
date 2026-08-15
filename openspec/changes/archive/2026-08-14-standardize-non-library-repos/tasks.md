@@ -7,14 +7,14 @@
 
 ## 2. Convert
 
-- [ ] 2.1 `osapi` — add `delete-merged-branch-config.yml`
+- [x] 2.1 `osapi` — add `delete-merged-branch-config.yml`
 - [x] 2.2 `osapi-justfiles` — add `.mise.toml` pinning `just` and `uv`
-- [ ] 2.3 `osapi-ui` — create `.github`: workflows for its toolchain,
+- [x] 2.3 `osapi-ui` — create `.github`: workflows for its toolchain,
   dependabot, labeler, repos.json
 
 ## 3. Verification
 
-- [ ] 3.1 Confirm every repository has the four management files
-- [ ] 3.2 Confirm every repository runs checks on pull requests
-- [ ] 3.3 Confirm no repository carries configuration for a toolchain it does
+- [x] 3.1 Confirm every repository has the four management files
+- [x] 3.2 Confirm every repository runs checks on pull requests
+- [x] 3.3 Confirm no repository carries configuration for a toolchain it does
   not use
