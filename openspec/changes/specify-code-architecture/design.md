@@ -299,3 +299,15 @@ its own rounding does not report a failure the coverage does not have.
 *Alternative considered:* raise `precision` so rounding cannot bite. It moves
 the boundary rather than removing it, and produces coverage numbers to more
 decimal places than anyone reads.
+
+### Covering osapi's last statements is a separate change
+
+An earlier task list carried "cover the 9 uncovered statements, then raise both
+declarations to 100". That is a forward reference: archiving verifies every task
+is checked, so a task describing work this change does not do would block it
+from ever archiving.
+
+The requirement already permits a repository to hold a target below the
+organization-wide one at the level it currently meets, and requires that target
+to be raised rather than treated as settled. `osapi` at 99.9% satisfies it. The
+9 statements are work for a change of their own.

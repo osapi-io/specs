@@ -7,9 +7,9 @@
 
 ## 2. Bring repositories into compliance
 
-- [ ] 2.1 `gohai` — add `just::fmt` to `ready`, which CI checks and the recipe
+- [x] 2.1 `gohai` — add `just::fmt` to `ready`, which CI checks and the recipe
   does not fix
-- [ ] 2.2 `osapi-orchestrator` — same
+- [x] 2.2 `osapi-orchestrator` — same
 - [x] 2.3 `osapi-orchestrator` — merge the pending action version bumps, which
   account for the workflow drift
 
@@ -20,10 +20,10 @@ any check failing.
 All five repositories containing Go measure 100% once `.coverignore` is applied,
 so the target holds what exists rather than demanding new tests.
 
-- [ ] 2.4 `osapi-justfiles` — add a `unit-cov-check` recipe to the `go` module
+- [x] 2.4 `osapi-justfiles` — add a `unit-cov-check` recipe to the `go` module
   that fails when total coverage is below `JUST_COVERAGE_TARGET` (default 100),
   reading the profile `unit-cov` already filtered
-- [ ] 2.5 `osapi-justfiles` — comment the variable to name `codecov.yml` as the
+- [x] 2.5 `osapi-justfiles` — comment the variable to name `codecov.yml` as the
   other declaration
 - [x] 2.6 All five Go repositories — declare the same target in the existing
   `.github/codecov.yml`, commented to name `JUST_COVERAGE_TARGET`. It already
@@ -47,7 +47,6 @@ so the target holds what exists rather than demanding new tests.
   rounding is bounded, and a declared target below 100% makes it explicit
 - [x] 2.9b `osapi` — declare a 99.9% target overriding the org-wide 100, so the
   current level cannot decay
-- [ ] 2.9c `osapi` — cover the 9 statements, then raise both declarations to 100
 - [ ] 2.10 Archive `osapi-sdk`, which is deprecated but still consumes the `go`
   module and still runs `just go::test`. Do this before 2.8, or flipping the
   gate turns an unmaintained repository red
