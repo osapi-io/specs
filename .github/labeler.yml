@@ -1,0 +1,16 @@
+---
+github/action:
+  - changed-files:
+      - any-glob-to-any-file: ".github/**/*.yml"
+
+kind/docs:
+  - changed-files:
+      - any-glob-to-any-file: "*.md"
+
+kind/spec:
+  - changed-files:
+      - any-glob-to-any-file: "openspec/specs/**"
+
+kind/change:
+  - changed-files:
+      - any-glob-to-any-file: "openspec/changes/**"
