@@ -161,6 +161,19 @@ how `apply` and `archive` are conducted.
 Editing it changes how every future artifact is written, so treat it as a change
 of record rather than a quick tweak.
 
+### Finishing a change
+
+Artifacts are markdown, so they are subject to the same formatting checks as
+everything else here. Before opening a pull request, run:
+
+```bash
+just test
+```
+
+That runs what CI runs — markdown formatting, justfile lint, and
+`openspec validate --all --strict`. `just md-fmt` fixes formatting failures. A
+change that validates but is not formatted will still fail CI.
+
 ### Working across repositories
 
 This repository holds the agreement; the code lands elsewhere. When applying a
