@@ -44,15 +44,48 @@ structure for its type.
 - [ ] 4.3 `nats-server` (Go library)
 - [ ] 4.4 `osapi-orchestrator` (Go library, pending the open question on its
   type)
-- [ ] 4.5 `osapi` (main product; file layout only, README exempt)
+- [ ] 4.5 `osapi` (main product; file layout only, README exempt) — the only
+  repository with neither a root `CONTRIBUTING.md` nor `AGENTS.md`, a 917-line
+  `CLAUDE.md`, and three competing contributing documents:
+  `docs/CONTRIBUTING.md` (60 lines),
+  `docs/docs/sidebar/development/contributing.md` (109), and
+  `ui/docs/contributing.md`
 - [x] 4.6 `osapi-ui` — not converted; recorded as deprecated instead
 
-## 5. Verification
+## 5. Pin the tools whose output is checked
 
-- [ ] 5.1 Confirm every in-scope repository carries the required files
-- [ ] 5.2 Confirm no repository still contains `docs/contributing.md` or
+No workflow in any repository uses mise; all seven provision tools twice.
+
+- [ ] 5.1 All seven repositories — pin `just` in `extractions/setup-just`, which
+  is unversioned everywhere. `just` 1.45.0 reformats committed justfiles; CI
+  passes today only because its `just` is older than a local `mise install`
+- [ ] 5.2 `specs`, `osapi-justfiles` — pin `just` and `uv` in `.mise.toml`
+- [ ] 5.3 All repositories using bun for formatting — pin `bun` in `.mise.toml`
+  and in `oven-sh/setup-bun`
+- [ ] 5.4 Reconcile `.mise.toml` and workflow versions so both provision the
+  same version of each checked tool
+- [ ] 5.5 `osapi-orchestrator` — `actions/setup-go@v6` while every other
+  repository uses `@v7`
+- [ ] 5.6 Confirm Dependabot raises each new pin, in both locations
+
+## 6. Resolve the deprecated repositories
+
+- [ ] 6.1 `osapi-io-taskfiles` — record deprecation at the top of its README,
+  naming `osapi-justfiles` as the replacement
+- [ ] 6.2 Archive `osapi-sdk` on GitHub
+- [ ] 6.3 Archive `osapi-ui` on GitHub
+- [ ] 6.4 Archive `osapi-io-taskfiles` on GitHub
+
+## 7. Verification
+
+- [ ] 7.1 Confirm every in-scope repository carries the required files
+- [ ] 7.2 Confirm no repository still contains `docs/contributing.md` or
   `docs/development.md`
-- [ ] 5.3 Confirm no cross-repository link still points at the old paths
-- [ ] 5.4 Confirm each README uses only vocabulary sections, in order
-- [ ] 5.5 Confirm `LICENSE`, `AI_POLICY.md`, and `CODE_OF_CONDUCT.md` are
+- [ ] 7.3 Confirm no cross-repository link still points at the old paths
+- [ ] 7.4 Confirm each README uses only vocabulary sections, in order
+- [ ] 7.5 Confirm `LICENSE`, `AI_POLICY.md`, and `CODE_OF_CONDUCT.md` are
   byte-identical everywhere
+- [ ] 7.6 Confirm no `.mise.toml` and no workflow floats a tool whose output a
+  check compares
+- [ ] 7.7 Confirm `just test` locally and CI agree on every repository
+- [ ] 7.8 Confirm every deprecated repository is archived on GitHub
