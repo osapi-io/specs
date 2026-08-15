@@ -8,7 +8,7 @@ begins.
 - [ ] 1.2 `go`
 - [ ] 1.3 `bats`
 - [ ] 1.4 `docker`
-- [ ] 1.5 `react`
+- [x] 1.5 `react` — osapi-justfiles#44
 - [ ] 1.6 `docs` — ensure its paths do not overlap with `md`
 
 ## 2. Update consumers
@@ -19,7 +19,8 @@ Done immediately after the module each depends on converts, not batched.
 - [ ] 2.2 `gohai`
 - [ ] 2.3 `nats-client`
 - [ ] 2.4 `nats-server`
-- [ ] 2.5 `osapi`
+- [ ] 2.5 `osapi` — react done (osapi#436); still consumes `go`, `docs`, `just`,
+  `docker` as shims
 
 ## 3. Verification
 
