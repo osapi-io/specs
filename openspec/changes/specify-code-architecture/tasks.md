@@ -50,12 +50,6 @@ so the target holds what exists rather than demanding new tests.
 - [x] 2.10 Archive `osapi-sdk`, which is deprecated but still consumes the `go`
   module and still runs `just go::test`. Do this before 2.8, or flipping the
   gate turns an unmaintained repository red
-- [ ] 2.10a `osapi` — its `export JUST_COVERAGE_TARGET := "99.9"` does not reach
-  the `go` module. `env()` resolves against the process environment at parse
-  time, so a justfile export never arrives; osapi runs against the default 100
-  and passes only on rounding. Fixed when `go` becomes a flat module
-  (`converge-justfile-consumption` task 1.2), which lets the consumer declare
-  the variable directly
 - [ ] 2.11 All five — state in `CONTRIBUTING.md` that coverage is gated at 100%
   and name the recipe that checks it. The rule lives in the corpus; how to run
   it is contributor-facing
