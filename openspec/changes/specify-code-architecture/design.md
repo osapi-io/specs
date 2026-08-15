@@ -75,6 +75,33 @@ implementation detail that changes with the code.
 it can shift without review. The rule above says what to do when such guidance
 starts binding a second repository — at that point it becomes a capability.
 
+### Require the pre-commit recipe to be sufficient
+
+`gohai` and `osapi-orchestrator` run `just-lint` in CI but omit `just::fmt` from
+`ready`. A contributor runs the recipe the guide tells them to run, commits, and
+fails on formatting the recipe never touched. `nats-client` and `nats-server`
+include it.
+
+The rule is that `ready` is sufficient — not that it contains a particular list,
+which would go stale as checks change.
+
+*Alternative considered:* enumerate what `ready` must call. It would need
+updating every time a check is added, and would be wrong for a repository whose
+toolchain differs.
+
+### Treat action-version lag as drift, not variation
+
+Eight of ten workflows differ across the four libraries. Every one of those
+differences is `osapi-orchestrator` pinning older action versions, with six
+dependabot pull requests open against it. Only `release` differs for a real
+reason — `gohai` builds on macOS and uses a different token.
+
+Naming lag as non-conformance makes an unmerged queue visible as a standards
+problem rather than as housekeeping.
+
+*Alternative considered:* require workflows to be byte-identical. `release`
+legitimately differs, so the requirement would be false the day it landed.
+
 ## Risks / Trade-offs
 
 - **Nothing enforces the coverage target across repositories.** Each declares it
@@ -85,6 +112,10 @@ starts binding a second repository — at that point it becomes a capability.
   versions" is a moving target, and `go.mod` minimums already differ by patch
   version. → Stated as a policy rather than a pinned version, so it stays true
   as Go releases.
+
+- **"Differ only where the build requires it" is a judgment call.** A repository
+  could justify a difference that is really neglect. → The action-version
+  scenario names the common case explicitly.
 
 - **The boundary between corpus and repository docs is a judgment call.** →
   Stated as a test — does another repository have to obey it — rather than a

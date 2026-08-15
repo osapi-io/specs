@@ -66,6 +66,43 @@ A repository that publishes a binary SHALL use goreleaser, configured in
 - **WHEN** a repository produces no distributable artifact
 - **THEN** it carries no release configuration
 
+### Requirement: The pre-commit recipe fixes everything CI checks
+
+A repository's `ready` recipe SHALL address every check its continuous
+integration runs. A contributor who runs it and commits SHALL NOT then fail on
+something the recipe could have fixed.
+
+#### Scenario: CI checks a format the recipe does not fix
+
+- **WHEN** continuous integration verifies the formatting of a file type
+- **THEN** `ready` formats that file type, so running it before committing is
+  sufficient
+
+#### Scenario: A new check is added to CI
+
+- **WHEN** a check is added to continuous integration
+- **THEN** `ready` is extended in the same change, or the check is one nothing
+  local can fix
+
+### Requirement: Continuous integration is consistent by type
+
+Repositories of the same type SHALL run the same set of workflows, and those
+workflows SHALL differ only where the repository's build genuinely requires it.
+
+Action versions falling behind is drift, not variation.
+
+#### Scenario: A workflow differs only by action version
+
+- **WHEN** one repository's workflow pins older action versions than another's
+- **THEN** that is a repository behind on updates rather than a deliberate
+  difference, and it is brought forward
+
+#### Scenario: A build genuinely requires different infrastructure
+
+- **WHEN** a repository must build on a different runner, or needs different
+  credentials, than its siblings
+- **THEN** its workflow differs in those respects and matches in all others
+
 ### Requirement: Repository-specific engineering guidance stays local
 
 Guidance that binds a single repository — how its collectors are written, how
