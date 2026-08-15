@@ -24,9 +24,21 @@
   "Architecture Principles"; leave its remaining 550 descriptive lines in place
 - [ ] 3.3 `gohai` — propose a capability from the collector done-definition and
   `docs/methodology.md`'s decision order and field-naming ladder
-- [ ] 3.4 Leave each source document in place as a pointer to the capability
-- [ ] 3.5 `osapi` — leave `architecture.md`, `system-architecture.md`, and
-  `ui.md` in the repository; they describe packages, not requirements
+- [ ] 3.4 `osapi` — propose capabilities from `CLAUDE.md`'s seven MANDATORY rule
+  blocks: cross-layer consistency, provider idempotency, broadcast response
+  shape, HTTP verb separation, OpenAPI validation, SDK method naming, and the Go
+  code standards (signatures, `types.go`, test-file naming, mocking)
+- [ ] 3.5 `osapi` — propose a capability from `docs/sidebar/sdk/guidelines.md`;
+  "never expose generated types" and "JSON tags required" bind every consumer of
+  `pkg/sdk`, including `osapi-orchestrator`
+- [ ] 3.6 `osapi` — resolve the three-way duplication of branching, commit
+  messages, linting, and test conventions across `CLAUDE.md`, `development.md`,
+  and `testing.md` before the root `CONTRIBUTING.md` is written, so the
+  conversion has one source to draw from
+- [ ] 3.7 Leave each source document in place as a pointer to the capability
+- [ ] 3.8 `osapi` — leave `architecture.md`, `system-architecture.md`, `ui.md`,
+  and the eight-step "Adding a New API Domain" walkthrough in the repository;
+  they describe packages and procedure, not requirements
 
 ## 4. Remove planning documents from repositories
 

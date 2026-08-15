@@ -129,3 +129,35 @@ No document is moved into the corpus.
 - `gohai`'s `adding-a-collector.md` and `ocsf-validation.md` are how-to guides
   that `CONTRIBUTING.md` points at. Is that the right split, or should short
   guides live in `CONTRIBUTING.md` directly?
+
+### osapi's CLAUDE.md is the largest mixed document
+
+Its 917 lines contain both kinds in alternating blocks. Seven sections are
+labelled MANDATORY and read as requirements: every domain must appear in all the
+same places as an existing one; provider mutations must be idempotent with a
+stated truth table; every node-targeted operation must support broadcast and
+return `hostname` and `error` on each result; mutable domains must separate
+`POST` from `PUT`; every endpoint taking user input must carry validation tags,
+a handler call, a 400 response, and RBAC wiring tests; SDK methods must not
+stutter; all function signatures must be multi-line.
+
+Interleaved with them is procedure — an eight-step walkthrough for adding a
+domain, with file layouts and code samples — and description of what the
+packages currently contain. The procedure and the description stay; the rules do
+not, because they decide whether a contribution is accepted and nothing outside
+this file records them.
+
+Three of the rules bind repositories that cannot see the file. The SDK
+guidelines govern `pkg/sdk`'s public surface, and `osapi-orchestrator` is a
+consumer of it — the document even instructs consumers not to import `gen`,
+which is an instruction to a different repository.
+
+The same 917 lines also restate branching, commit messages, linting, and test
+conventions that `development.md` and `testing.md` already state, in three
+places with no pointer between them. That has to be resolved before the root
+`CONTRIBUTING.md` is written, or the conversion picks one of three and silently
+drops the others.
+
+*Alternative considered:* convert `CLAUDE.md` to a pointer first and sort the
+content afterwards. The conversion is what forces the decision about each block,
+so deferring it means writing a `CONTRIBUTING.md` that has to be rewritten.
