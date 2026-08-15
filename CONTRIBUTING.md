@@ -99,17 +99,18 @@ openspec/
 
 ### Changes and specs are different things
 
-`openspec/specs/` is the corpus — the current description of how osapi-io
-behaves. It is the thing that survives. Nothing is written there by hand.
+`openspec/specs/` is the corpus — the standing answer to what is true about
+osapi-io right now. It is always present-tense. It never records that something
+used to be different.
 
 `openspec/changes/` holds work in flight. A change contains **deltas**:
 requirements marked `## ADDED`, `## MODIFIED`, or `## REMOVED`, describing how
-the corpus should differ once the work lands. When a change completes, its
-deltas are merged into `specs/` and the change moves to
-`openspec/changes/archive/`.
+the corpus should differ once the work lands.
 
-So the flow is always the same: nothing enters the corpus without first being a
-reviewed change.
+**You never write a spec.** There is no command that creates one and no template
+to fill in. You write deltas inside a change, and `/opsx:archive` generates or
+rewrites the spec file from them. Editing `specs/` by hand produces something
+the next archive will overwrite or orphan.
 
 ```
 propose ──> changes/<name>/    proposal, spec deltas, design, tasks
@@ -117,6 +118,24 @@ apply   ──> target repo        implementation, tasks checked off
 sync    ──> specs/             deltas merged into the corpus
 archive ──> changes/archive/   the change, preserved with its design
 ```
+
+The comparison to git is close enough to be useful: a change is a commit —
+motivation, diff, plan. A spec is the working tree — just the current state. You
+do not read the commit log to find out what a file contains.
+
+### When to archive
+
+Archive a change as soon as its tasks are complete. A finished change left
+unarchived means the corpus does not reflect work that is already done.
+
+A task list must therefore contain only this change's own work. Do not add a
+task for follow-up work in another change: the archive step verifies every task
+is checked, so a forward reference blocks the change from ever archiving.
+
+An archived change keeps its proposal, design, and tasks under
+`openspec/changes/archive/`. Only the spec deltas move into `specs/`, which is
+why design reasoning belongs in `design.md` — the archive is where anyone looks
+to find out why the corpus says what it says.
 
 ### What each artifact is for
 
