@@ -90,15 +90,24 @@ pins the tools it actually uses — but every repository has one, so that
 across every repository. They state organization-wide policy, so a repository
 holding a variant states policy that is not the organization's.
 
-`LICENSE` SHALL read `Copyright (c) 2026 John Dewey`. `AI_POLICY.md` SHALL refer
-to the organization, not the individual repository. `CODE_OF_CONDUCT.md` SHALL
+`LICENSE` SHALL read `Copyright (c) 2026 John Dewey`. `CODE_OF_CONDUCT.md` SHALL
 name a working enforcement contact.
+
+`AI_POLICY.md` SHALL refer to the organization as `osapi-io`. It SHALL NOT use
+the name of any individual repository, and SHALL NOT use `OSAPI`, which is the
+name of a repository and reads as that product rather than the organization.
 
 #### Scenario: Policy changes
 
 - **WHEN** the AI usage policy is amended
 - **THEN** the same file content lands in every repository, with no repository
   carrying a reworded version
+
+#### Scenario: Policy is read in a repository that is not the product
+
+- **WHEN** a contributor reads the AI policy in `gohai` or `nats-client`
+- **THEN** it names `osapi-io`, so it is clear the policy is the organization's
+  and not one repository's
 
 #### Scenario: Reader checks the code of conduct
 
