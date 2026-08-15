@@ -36,7 +36,7 @@ Everything below is provisioned by `mise install` (see [Setup](#setup)):
 
 - **[just]** — Task runner. `just test` runs every check CI runs.
 
-- **[uv]** — Python package runner. `just md::fmt` formats markdown with
+- **[uv]** — Python package runner. `just md-fmt` formats markdown with
   [mdformat] via `uvx`; nothing is installed into the repo.
 
 - **[OpenSpec]** — The CLI driving the change workflow. Installed globally
@@ -95,8 +95,93 @@ openspec/
     └── archive/        # completed changes, by date
 ```
 
-Project-wide context for agents — tech stack, conventions, domain notes —
-belongs in `openspec/config.yaml`, not repeated in each proposal.
+## The operating model
+
+### Changes and specs are different things
+
+`openspec/specs/` is the corpus — the current description of how osapi-io
+behaves. It is the thing that survives. Nothing is written there by hand.
+
+`openspec/changes/` holds work in flight. A change contains **deltas**:
+requirements marked `## ADDED`, `## MODIFIED`, or `## REMOVED`, describing how
+the corpus should differ once the work lands. When a change completes, its
+deltas are merged into `specs/` and the change moves to
+`openspec/changes/archive/`.
+
+So the flow is always the same: nothing enters the corpus without first being a
+reviewed change.
+
+```
+propose ──> changes/<name>/    proposal, spec deltas, design, tasks
+apply   ──> target repo        implementation, tasks checked off
+sync    ──> specs/             deltas merged into the corpus
+archive ──> changes/archive/   the change, preserved with its design
+```
+
+### What each artifact is for
+
+| Artifact                     | Answers                    | Ends up                  |
+| ---------------------------- | -------------------------- | ------------------------ |
+| `proposal.md`                | Why, and what changes      | Archived with the change |
+| `specs/<capability>/spec.md` | What must be true          | Merged into `specs/`     |
+| `design.md`                  | How, and why not otherwise | Archived with the change |
+| `tasks.md`                   | What to do, in order       | Archived with the change |
+
+Only spec deltas reach the corpus. Design reasoning stays with its change —
+which is why `design.md` should record the alternatives you rejected and the
+failure that motivated a decision. The archive is the design history.
+
+### Capabilities
+
+A capability is a subject that changes for one reason, and it owns a directory
+under `specs/`. Pick the smallest one that covers the behavior. Prefer a flat
+layout; introduce a nesting level only once several capabilities share it.
+
+Because implementation lives elsewhere, capabilities here are usually
+cross-repo: a requirement about shared tooling or repository layout binds every
+repository the proposal names in its **Impact** section.
+
+### When something needs a change
+
+Open a change when the behavior of osapi-io changes — new capability, altered
+requirement, a migration that consuming repositories must follow.
+
+Do not open a change for work that alters no requirement: fixing a typo,
+correcting a broken link, or reformatting. Those are ordinary pull requests. A
+change with no spec delta must set `skip_specs: true`, and inventing a
+requirement to satisfy validation is worse than not having one.
+
+### The house rules live in config.yaml
+
+`openspec/config.yaml` is the constitution. Its `context` and `rules` are
+injected into every artifact an agent generates, so conventions belong there
+rather than being restated in each proposal. `operations` carries guidance for
+how `apply` and `archive` are conducted.
+
+Editing it changes how every future artifact is written, so treat it as a change
+of record rather than a quick tweak.
+
+### Finishing a change
+
+Artifacts are markdown, so they are subject to the same formatting checks as
+everything else here. Before opening a pull request, run:
+
+```bash
+just test
+```
+
+That runs what CI runs — markdown formatting, justfile lint, and
+`openspec validate --all --strict`. `just md-fmt` fixes formatting failures. A
+change that validates but is not formatted will still fail CI.
+
+### Working across repositories
+
+This repository holds the agreement; the code lands elsewhere. When applying a
+change, implementation goes to the target repository and the task list here is
+checked off as it lands — not in a batch at the end. If reality diverges from
+the spec while implementing, update the change rather than quietly building
+something else, then `/opsx:sync` so the corpus reflects what was actually
+built.
 
 ## Command reference
 
@@ -151,7 +236,7 @@ Conventions:
   pieces, split it — each gets its own change directory and its own PR.
 
 Markdown files are formatted with [mdformat] and wrapped at 80 characters. Run
-`just md::fmt` to format, or `just test` to check everything CI checks.
+`just md-fmt` to format, or `just test` to check everything CI checks.
 
 ## Branching
 
