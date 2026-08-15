@@ -108,9 +108,9 @@ wanted at all.
 1. `osapi` renames its module to `github.com/osapi-io/osapi` and updates its own
    imports — roughly 1,077 Go files plus 47 documentation and configuration
    references.
-1. `osapi` merges and publishes, so the new path resolves.
-1. `osapi-orchestrator` updates its `require` and its 53 importing files.
-1. `gohai`'s README is corrected to describe the relationship it has rather than
+2. `osapi` merges and publishes, so the new path resolves.
+3. `osapi-orchestrator` updates its `require` and its 53 importing files.
+4. `gohai`'s README is corrected to describe the relationship it has rather than
    the one intended.
 
 Rollback for step 1 is reverting the rename; consumers pinned to the old

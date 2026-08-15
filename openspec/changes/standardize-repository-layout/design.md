@@ -186,9 +186,9 @@ filled with filler.
 1. Convert `osapi-justfiles` first: consolidate `docs/contributing.md` and
    `docs/development.md` into root `CONTRIBUTING.md`, add `AGENTS.md`, reduce
    `CLAUDE.md` to a pointer, add the missing `.mise.toml`.
-1. Convert the remaining repositories one at a time, in whatever order suits the
+2. Convert the remaining repositories one at a time, in whatever order suits the
    work already happening in them.
-1. Apply the README structure per type as each repository is converted.
+3. Apply the README structure per type as each repository is converted.
 
 `specs` already conforms and is the reference for the file layout. Rollback for
 any repository is restoring the previous files from history.

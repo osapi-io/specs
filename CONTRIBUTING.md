@@ -256,9 +256,9 @@ This happens often and it is not a failure; it is the point of applying. What
 matters is what you do next:
 
 1. Stop implementing. Do not fix the code and the requirement together.
-1. Open a PR correcting the requirement, and say what applying revealed.
-1. Wait for it to merge.
-1. Resume, against the corrected requirement.
+2. Open a PR correcting the requirement, and say what applying revealed.
+3. Wait for it to merge.
+4. Resume, against the corrected requirement.
 
 Correcting both at once produces a requirement written to match code that
 already exists, which is the failure the whole workflow is arranged to prevent.

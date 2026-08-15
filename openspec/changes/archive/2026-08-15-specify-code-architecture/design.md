@@ -237,12 +237,12 @@ The design that must hold:
 
 1. **One exclusion list.** `.coverignore` is applied by `unit-cov` before
    anything reads the profile, so no second list exists to disagree with it.
-1. **One profile.** The local check and the upload read the same filtered file,
+2. **One profile.** The local check and the upload read the same filtered file,
    so both report the same number for the same commit.
-1. **One invocation.** `just test` runs the gate, and CI runs `just test`. There
+3. **One invocation.** `just test` runs the gate, and CI runs `just test`. There
    is no separate CI coverage step that could diverge from what a contributor
    runs locally.
-1. **One target per repository**, declared in the shared module's default and in
+4. **One target per repository**, declared in the shared module's default and in
    that repository's `codecov.yml`, each commented to name the other.
 
 Point 3 is the one most easily lost. A coverage step added directly to a

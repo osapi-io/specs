@@ -20,11 +20,11 @@ A change moves through four stages, each a slash command in Claude Code:
 1. **Propose** — `/opsx:propose "add a health endpoint"` opens a change under
    `openspec/changes/`, containing the proposal, the requirements it adds or
    alters, a design, and a task breakdown.
-1. **Review** — the proposal is reviewed as a pull request here. Scope,
+2. **Review** — the proposal is reviewed as a pull request here. Scope,
    requirements, and design are settled before anything is built.
-1. **Implement** — `/opsx:apply` works the task list. The code lands in the
+3. **Implement** — `/opsx:apply` works the task list. The code lands in the
    target repo; this repo records what was agreed and what is done.
-1. **Archive** — `/opsx:archive` files the completed change under
+4. **Archive** — `/opsx:archive` files the completed change under
    `openspec/changes/archive/`.
 
 What survives is `openspec/specs/` — the current description of how osapi-io

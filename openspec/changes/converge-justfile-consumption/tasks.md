@@ -34,13 +34,13 @@ Converting a consumer is not finished when its recipes run. Each one covers:
 
 1. Justfile — swap `mod?` for `import?`, rename call sites, declare or reassign
    the module's variables
-1. Workflows — rename call sites, and provision the tool the new module needs
-1. Delete the configuration of any tool the change removes, including lockfiles
-1. `.mise.toml` — drop tools no longer used, add tools now used
-1. `CONTRIBUTING.md` — name the tools actually in use, in prerequisites and in
+2. Workflows — rename call sites, and provision the tool the new module needs
+3. Delete the configuration of any tool the change removes, including lockfiles
+4. `.mise.toml` — drop tools no longer used, add tools now used
+5. `CONTRIBUTING.md` — name the tools actually in use, in prerequisites and in
    the commands it shows. A guide naming a removed tool is a defect under
    `correct-documentation-drift`
-1. Confirm every reference link in the files touched resolves to a definition
+6. Confirm every reference link in the files touched resolves to a definition
 
 Steps 5 and 6 were missed on `gohai` and caught in review: its guide still
 described Prettier via Bun and listed `just docs::fmt`, and four references had
