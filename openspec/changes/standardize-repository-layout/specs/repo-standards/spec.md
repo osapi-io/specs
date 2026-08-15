@@ -72,6 +72,27 @@ Every repository SHALL contain `README.md`, `LICENSE`, `AI_POLICY.md`,
 - **WHEN** a repository is checked against the standard
 - **THEN** the absence of any of those files is a defect
 
+### Requirement: Boilerplate files are byte-identical
+
+`LICENSE`, `AI_POLICY.md`, and `CODE_OF_CONDUCT.md` SHALL be byte-identical
+across every repository. They state organization-wide policy, so a repository
+holding a variant states policy that is not the organization's.
+
+`LICENSE` SHALL read `Copyright (c) 2026 John Dewey`. `AI_POLICY.md` SHALL refer
+to the organization, not the individual repository. `CODE_OF_CONDUCT.md` SHALL
+name a working enforcement contact.
+
+#### Scenario: Policy changes
+
+- **WHEN** the AI usage policy is amended
+- **THEN** the same file content lands in every repository, with no repository
+  carrying a reworded version
+
+#### Scenario: Reader checks the code of conduct
+
+- **WHEN** a contributor wants to report a violation
+- **THEN** the document names a contact they can actually reach
+
 ### Requirement: Contributing documentation location
 
 Contributing documentation SHALL live in a single `CONTRIBUTING.md` at the
