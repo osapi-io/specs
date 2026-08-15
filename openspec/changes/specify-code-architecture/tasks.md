@@ -17,17 +17,31 @@ Verification 3.1 failed: no repository declares a coverage target. The shared
 `go.just` reports gaps but never exits non-zero, so coverage can fall without
 any check failing.
 
-- [ ] 2.4 `osapi` — declare the 100% target in coverage configuration
-- [ ] 2.5 `gohai` — same
-- [ ] 2.6 `osapi-orchestrator` — same
-- [ ] 2.7 `nats-client` — same
-- [ ] 2.8 `nats-server` — same
-- [ ] 2.9 Confirm the declared target fails a build when coverage drops, rather
-  than only reporting it
+All four measured libraries are already at 100% once `.coverignore` is applied,
+so the target holds what exists rather than demanding new tests.
+
+- [ ] 2.4 `osapi-justfiles` — add a `unit-cov-check` recipe to the `go` module
+  that fails when total coverage is below `JUST_COVERAGE_TARGET` (default 100),
+  reading the profile `unit-cov` already filtered
+- [ ] 2.5 `osapi-justfiles` — comment the variable to name `codecov.yml` as the
+  other declaration
+- [ ] 2.6 All five Go repositories — add `codecov.yml` declaring the same
+  target, commented to name `JUST_COVERAGE_TARGET`
+- [ ] 2.7 All five — name the filtered profile explicitly in the codecov upload
+  step, which currently passes no file and relies on auto-discovery
+- [ ] 2.8 All five — add `unit-cov-check` to `test`, so CI and `just test` fail
+  together
+- [ ] 2.9 `osapi` — measure coverage; it was not measured with the others
+- [ ] 2.10 All five — state in `CONTRIBUTING.md` that coverage is gated at 100%
+  and name the recipe that checks it. The rule lives in the corpus; how to run
+  it is contributor-facing
+- [ ] 2.11 Confirm the check fails a build when coverage drops, rather than only
+  reporting it
 
 ## 3. Verification
 
 - [ ] 3.1 Confirm every Go repository declares the coverage target
+- [ ] 3.6 Confirm both declarations state the same number
 - [ ] 3.2 Confirm every repository publishing a binary configures goreleaser
 - [ ] 3.3 Confirm no repository carries a top-level directory outside the
   documented set
