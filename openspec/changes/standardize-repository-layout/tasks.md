@@ -71,10 +71,12 @@ No workflow in any repository uses mise; all seven provision tools twice.
 ## 6. Resolve the deprecated repositories
 
 - [ ] 6.1 `osapi-io-taskfiles` — record deprecation at the top of its README,
-  naming `osapi-justfiles` as the replacement
-- [ ] 6.2 Archive `osapi-sdk` on GitHub
-- [ ] 6.3 Archive `osapi-ui` on GitHub
-- [ ] 6.4 Archive `osapi-io-taskfiles` on GitHub
+  naming `osapi-justfiles` as the replacement. Blocked: the repository is now
+  archived and cannot be pushed to. Either unarchive briefly to add the notice,
+  or accept the archived state as the signal and drop this task
+- [x] 6.2 Archive `osapi-sdk` on GitHub
+- [x] 6.3 Archive `osapi-ui` on GitHub
+- [x] 6.4 Archive `osapi-io-taskfiles` on GitHub
 
 ## 6a. Correct the react module override
 
