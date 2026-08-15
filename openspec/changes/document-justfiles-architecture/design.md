@@ -64,6 +64,17 @@ definition wins with no error.
 Prefixing also reads better at the call site: `just md-fmt-check` over
 `just md::fmt-check`.
 
+*Alternative considered:* keep `mod?` purely for its namespacing. That brings
+back the working-directory shim, which is the defect being removed. Namespacing
+is not worth reintroducing a failure mode that makes modules unusable in some
+repositories.
+
+*Alternative considered:* prefix recipes but leave variables unprefixed, on the
+grounds that variables are internal. They are not — `import` is textual, so a
+module variable named `wrap` silently overwrites, or is overwritten by, any
+other `wrap` in scope. The failure is silent and produces wrong output rather
+than an error.
+
 *Trade-off:* namespacing came free with `mod?`; with `import?` it is a naming
 discipline that must be maintained by convention.
 
@@ -93,6 +104,18 @@ This produced a check that passed locally and failed in CI with
 
 Modules therefore pin the runtime as well, and the runner downloads it when
 absent. The pin is overridable by environment variable for debugging.
+
+*Alternative considered:* pin the tool but let the runtime float, and require
+consuming repositories to provide a new enough one. That pushes an invisible
+requirement onto every consumer and onto CI, where the runtime is whatever the
+runner image ships. The failure it produces is the one already observed —
+passing locally, failing in CI, with an error that names a flag rather than a
+runtime.
+
+*Alternative considered:* avoid the runtime-dependent flag entirely and filter
+paths before invoking the tool. That works, but re-implements the tool's own
+path handling in shell for every module that needs it, and the filtering logic
+then has to be maintained per module.
 
 ### Formatters must not overlap
 
