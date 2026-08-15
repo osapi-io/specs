@@ -102,6 +102,56 @@ rather than by repository, since nothing in the repository can state it.
   integration rather than between repositories
 - **THEN** the module reads it with `env()` and ships a default
 
+### Requirement: A module is named for what it manages
+
+A module SHALL be named for the thing it manages, not for the directory it
+happens to sit in.
+
+The module managing a Docusaurus site SHALL be named `docusaurus`. `docs` names
+a location, and a repository can hold documentation without a site.
+
+#### Scenario: A module's subject is a specific tool
+
+- **WHEN** a module wraps one tool's build, serve, and deploy commands
+- **THEN** it is named for that tool, so a reader knows whether the repository
+  needs it
+
+### Requirement: Each markdown formatter owns a path
+
+Exactly one formatter SHALL be responsible for any given markdown file.
+
+The `docusaurus` module SHALL own its site directory entirely — building,
+serving, deploying, and formatting it — because that content includes MDX and
+component syntax that a plain markdown formatter cannot parse.
+
+The `md` module SHALL own markdown outside that directory, and SHALL exclude it.
+
+Both SHALL take the path as configuration, so a repository states where its site
+lives rather than inheriting a convention.
+
+#### Scenario: A repository has a site and other markdown
+
+- **WHEN** a repository publishes a Docusaurus site and also carries a README,
+  contributing guide, and reference documents outside it
+- **THEN** `docusaurus` formats the site directory and `md` formats everything
+  else, with the site directory excluded from `md`
+
+#### Scenario: A repository has no site
+
+- **WHEN** a repository publishes no documentation site
+- **THEN** it takes `md` alone, and formats all its markdown with it
+
+#### Scenario: Both formatters cover one file
+
+- **WHEN** a file falls inside both formatters' paths
+- **THEN** that is a defect: they produce different output and each reports the
+  other's as incorrectly formatted
+
+#### Scenario: A site lives somewhere unexpected
+
+- **WHEN** a repository's site is not at the conventional path
+- **THEN** it sets the path on both modules, rather than either assuming it
+
 ### Requirement: A module with no consumers is removed
 
 A module that no repository fetches SHALL be removed rather than maintained.
