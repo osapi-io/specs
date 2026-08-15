@@ -311,3 +311,30 @@ The requirement already permits a repository to hold a target below the
 organization-wide one at the level it currently meets, and requires that target
 to be raised rather than treated as settled. `osapi` at 99.9% satisfies it. The
 9 statements are work for a change of their own.
+
+### osapi's shortfall is unreachable code, not missing tests
+
+All nine uncovered statements are guards that cannot currently execute. Six are
+defense-in-depth `validation.Struct()` calls on request bodies whose fields all
+use `omitempty`, so validation cannot fail. One is an error return commented
+"not coverable: gopsutil always succeeds on a running system". The rest are the
+same shape.
+
+osapi's own guidance requires them: *"When validation calls cannot currently
+fail, keep the call but add a comment explaining why. This guards against future
+field additions breaking validation silently."* The code is following its own
+rule, and the rule is a good one — the guard is there for the change that has
+not been made yet.
+
+So 99.9% is not a waypoint on the way to 100%. Reaching 100% would mean either
+making the guards reachable, which removes the thing they guard against, or
+building seams that force them to run, which the same guidance forbids. The
+requirement therefore distinguishes a target lowered for untested code, which is
+debt to be repaid, from one lowered for unreachable code, which is not.
+
+*Alternative considered:* exclude these lines through `.coverignore`. They are
+single statements inside otherwise-covered functions, so excluding them means
+excluding the function and losing the coverage signal for everything else in it.
+
+*Alternative considered:* drop the guards and gate at 100%. That trades a real
+protection against silent validation failure for a round number.

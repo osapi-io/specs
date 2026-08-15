@@ -54,9 +54,15 @@ profile. Rounding to one decimal place admits about 0.05% of tolerance, which is
 small enough that a regression worth catching is still caught, and a target
 below 100% makes the tolerance explicit rather than hidden.
 
-A repository MAY declare a target below the organization-wide one where it does
-not yet meet it. That target SHALL be the level the repository currently holds,
-so it cannot decay, and SHALL be raised rather than treated as settled.
+A repository MAY declare a target below the organization-wide one. That target
+SHALL be the level the repository currently holds, so it cannot decay.
+
+Where the shortfall is untested code, the target SHALL be raised as that code is
+covered. Where it is code that cannot be reached — a guard kept against a future
+change that would otherwise fail silently, or an error branch the underlying
+library never returns — the lower target is the correct one and SHALL NOT be
+treated as debt. Making such code reachable to satisfy a number defeats the
+reason it exists.
 
 #### Scenario: Coverage falls below target
 
@@ -70,6 +76,14 @@ so it cannot decay, and SHALL be raised rather than treated as settled.
 - **THEN** the check does not fail, and that is accepted: the tolerance is
   bounded and known, and the alternative is arithmetic in a shared recipe every
   repository runs
+
+#### Scenario: Coverage is short only by unreachable guards
+
+- **WHEN** every uncovered statement is a deliberate guard that cannot currently
+  execute, and each says so
+- **THEN** the repository declares the level it holds rather than adding tests
+  that force the guard to run, because a guard exercised by a seam built for it
+  no longer guards anything
 
 #### Scenario: The two declarations disagree
 
