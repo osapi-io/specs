@@ -246,6 +246,28 @@ The plan is now agreed. `specs/` is unchanged; the change is in flight.
 Work the task list. Implementation lands in the target repository, in that
 repository's own PR. Tick tasks off here as they land.
 
+Do not start this step until the proposal PR is merged. A branch is not an
+agreement, and implementation written against an unmerged proposal is
+implementation written against your own opinion.
+
+**When applying shows the requirement is wrong — stop.**
+
+This happens often and it is not a failure; it is the point of applying. What
+matters is what you do next:
+
+1. Stop implementing. Do not fix the code and the requirement together.
+1. Open a PR correcting the requirement, and say what applying revealed.
+1. Wait for it to merge.
+1. Resume, against the corrected requirement.
+
+Correcting both at once produces a requirement written to match code that
+already exists, which is the failure the whole workflow is arranged to prevent.
+It also hides the correction inside an implementation diff, where nobody reviews
+it as a change of rule.
+
+A requirement that turns out to be wrong is worth more than one that was never
+tested — but only if it is corrected in the open.
+
 **4. Archive**
 
 ```bash

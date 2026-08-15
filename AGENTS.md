@@ -39,6 +39,15 @@ See @CONTRIBUTING.md under "When you find something".
 the same response, even when the request asks you to build or fix something.
 Wait for an explicit instruction to apply.
 
+Applying waits for the proposal PR to **merge**, not to exist. An open branch is
+not an agreement.
+
+If applying shows the requirement is wrong, stop and correct the requirement in
+its own PR, then wait for that to merge before resuming. Do not change the
+requirement and the code in one response: it produces a rule written to describe
+code that already exists, and buries the rule change where nobody reviews it.
+See @CONTRIBUTING.md under "Running a change".
+
 ## Writing artifacts
 
 Read `openspec/config.yaml` before generating any artifact. Its `context` and
