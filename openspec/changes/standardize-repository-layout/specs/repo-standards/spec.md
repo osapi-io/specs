@@ -84,18 +84,35 @@ pins the tools it actually uses — but every repository has one, so that
 - **THEN** that tool is removed from `.mise.toml`, which still exists and still
   pins what remains
 
-### Requirement: Boilerplate files are byte-identical
+### Requirement: Boilerplate files are standardized
 
-`LICENSE`, `AI_POLICY.md`, and `CODE_OF_CONDUCT.md` SHALL be byte-identical
-across every repository. They state organization-wide policy, so a repository
-holding a variant states policy that is not the organization's.
+`AI_POLICY.md` and `CODE_OF_CONDUCT.md` SHALL be byte-identical across every
+repository. They state organization-wide policy, so a repository holding a
+variant states policy that is not the organization's.
 
-`LICENSE` SHALL read `Copyright (c) 2026 John Dewey`. `CODE_OF_CONDUCT.md` SHALL
-name a working enforcement contact.
+`CODE_OF_CONDUCT.md` SHALL name a working enforcement contact.
+
+`LICENSE` SHALL be identical across every repository **except** its copyright
+year, which SHALL be the year that repository was created. The copyright holder
+SHALL be `John Dewey` in every repository.
+
+A repository SHALL NOT express the year as a range.
 
 `AI_POLICY.md` SHALL refer to the organization as `osapi-io`. It SHALL NOT use
 the name of any individual repository, and SHALL NOT use `OSAPI`, which is the
 name of a repository and reads as that product rather than the organization.
+
+#### Scenario: Repositories created in different years
+
+- **WHEN** one repository was created in 2024 and another in 2026
+- **THEN** their `LICENSE` files differ only on the copyright year, and each
+  states the year that repository was created
+
+#### Scenario: A repository is modified years later
+
+- **WHEN** a repository created in 2024 is still being changed in 2026
+- **THEN** its copyright year remains 2024, and is not updated or expressed as a
+  range
 
 #### Scenario: Policy changes
 
