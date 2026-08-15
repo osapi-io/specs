@@ -10,7 +10,7 @@
 One pull request per library, satisfying this capability and `repo-standards`
 together so each repository is touched once.
 
-- [ ] 2.1 `gohai` — add `CODE_OF_CONDUCT.md`, add the mocks coverage exclusion
+- [ ] 2.1 `gohai` — add the mocks coverage exclusion
 - [ ] 2.2 `nats-client` — add `.worktrees/` to `.gitignore`, add the `generate`
   recipe
 - [ ] 2.3 `nats-server` — add `.worktrees/` to `.gitignore`, add the `generate`

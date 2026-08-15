@@ -8,7 +8,7 @@
 ## 2. Convert
 
 - [ ] 2.1 `osapi` — add `delete-merged-branch-config.yml`
-- [ ] 2.2 `osapi-justfiles` — add `.mise.toml` pinning `just` and `uv`
+- [x] 2.2 `osapi-justfiles` — add `.mise.toml` pinning `just` and `uv`
 - [ ] 2.3 `osapi-ui` — create `.github`: workflows for its toolchain,
   dependabot, labeler, repos.json
 
