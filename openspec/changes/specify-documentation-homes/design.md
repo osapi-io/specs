@@ -117,7 +117,7 @@ mean empty directories in both.
 
 1. Each repository gains a `docs/README.md` index. `osapi` is exempt — its site
    navigation is the index.
-1. `osapi` and `osapi-orchestrator` remove `docs/plans/`. The documents remain
+2. `osapi` and `osapi-orchestrator` remove `docs/plans/`. The documents remain
    in git history.
 
 No document is moved into the corpus.

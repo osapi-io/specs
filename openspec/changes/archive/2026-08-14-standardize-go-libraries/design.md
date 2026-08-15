@@ -113,9 +113,9 @@ One pull request per library, each satisfying this capability and
 `repo-standards` together so a repository is touched once:
 
 1. `gohai` — `CODE_OF_CONDUCT.md`, mocks coverage exclusion.
-1. `nats-client` — `.worktrees/`, `generate` recipe.
-1. `nats-server` — `.worktrees/`, `generate` recipe.
-1. `osapi-orchestrator` — `CODE_OF_CONDUCT.md`, `go reference` badge, mocks
+2. `nats-client` — `.worktrees/`, `generate` recipe.
+3. `nats-server` — `.worktrees/`, `generate` recipe.
+4. `osapi-orchestrator` — `CODE_OF_CONDUCT.md`, `go reference` badge, mocks
    exclusion, stop ignoring `docs/bun.lock`.
 
 ## Open Questions

@@ -92,11 +92,11 @@ adopt one is a question for whoever adds its first mock.
 
 1. `nats-client`, `nats-server` — `deps` installs `go.uber.org/mock/mockgen`;
    documentation names it.
-1. `gohai` — remove the claim about `osapi`, point plans at a directory that
+2. `gohai` — remove the claim about `osapi`, point plans at a directory that
    exists or drop the reference, remove `schemas/all-fields.txt`.
-1. `nats-client`, `nats-server` — point plans at a directory that exists or drop
+3. `nats-client`, `nats-server` — point plans at a directory that exists or drop
    the reference.
-1. `osapi-orchestrator` — state that it uses no mocking library, or adopt one.
+4. `osapi-orchestrator` — state that it uses no mocking library, or adopt one.
 
 ## Open Questions
 

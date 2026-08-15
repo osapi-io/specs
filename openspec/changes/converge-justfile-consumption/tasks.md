@@ -30,8 +30,24 @@ repository.
 
 Done immediately after the module each depends on converts, not batched.
 
+Converting a consumer is not finished when its recipes run. Each one covers:
+
+1. Justfile — swap `mod?` for `import?`, rename call sites, declare or reassign
+   the module's variables
+2. Workflows — rename call sites, and provision the tool the new module needs
+3. Delete the configuration of any tool the change removes, including lockfiles
+4. `.mise.toml` — drop tools no longer used, add tools now used
+5. `CONTRIBUTING.md` — name the tools actually in use, in prerequisites and in
+   the commands it shows. A guide naming a removed tool is a defect under
+   `correct-documentation-drift`
+6. Confirm every reference link in the files touched resolves to a definition
+
+Steps 5 and 6 were missed on `gohai` and caught in review: its guide still
+described Prettier via Bun and listed `just docs::fmt`, and four references had
+no definition so they rendered as literal text.
+
 - [ ] 2.1 `specs` — `just` module
-- [ ] 2.2 `gohai`
+- [ ] 2.2 `gohai` — gohai#150
 - [ ] 2.3 `nats-client`
 - [ ] 2.4 `nats-server`
 - [ ] 2.5 `osapi` — react done (osapi#436); still consumes `go`, `docs`, `just`,
@@ -39,7 +55,13 @@ Done immediately after the module each depends on converts, not batched.
 
 ## 3. Verification
 
+- [ ] 3.0 Confirm no `CONTRIBUTING.md` names a tool its repository does not
+  install, and that every reference link in it resolves
+
 - [ ] 3.1 Confirm no `.mod.just` file remains
+
 - [ ] 3.2 Confirm no repository invokes a `::` namespaced recipe
+
 - [ ] 3.3 Confirm every consuming repository's lint job passes
+
 - [ ] 3.4 Confirm the root README contains no inline module sections

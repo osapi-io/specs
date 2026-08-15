@@ -98,8 +98,8 @@ that only adds files is how a documentation repository ends up with a
 ## Migration Plan
 
 1. `osapi` — add `delete-merged-branch-config.yml`.
-1. `osapi-justfiles` — add `.mise.toml` pinning `just` and `uv`.
-1. `osapi-ui` — create `.github` from scratch. Substantial, and last.
+2. `osapi-justfiles` — add `.mise.toml` pinning `just` and `uv`.
+3. `osapi-ui` — create `.github` from scratch. Substantial, and last.
 
 `specs` already conforms.
 
