@@ -56,9 +56,12 @@ structure for its type.
 
 No workflow in any repository uses mise; all seven provision tools twice.
 
-- [ ] 5.1 All seven repositories — pin `just` in `extractions/setup-just`, which
-  is unversioned everywhere. `just` 1.45.0 reformats committed justfiles; CI
-  passes today only because its `just` is older than a local `mise install`
+- [ ] 5.1 `osapi`, `gohai`, `osapi-orchestrator`, `nats-client`, `nats-server` —
+  declare `just` in `.mise.toml`. None does, so it comes from the developer's
+  system: Homebrew's 1.45.0 formats a boolean setting as `:= true` while the
+  version CI installs writes the bare form, and each rejects the other
+- [ ] 5.1a Record which version `extractions/setup-just` installs, and declare
+  that version, so `mise install` and CI agree
 - [ ] 5.2 `specs`, `osapi-justfiles` — pin `just` and `uv` in `.mise.toml`
 - [ ] 5.3 All repositories using bun for formatting — pin `bun` in `.mise.toml`
   and in `oven-sh/setup-bun`

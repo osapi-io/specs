@@ -272,3 +272,29 @@ nothing to override and nothing to track.
 *Alternative considered:* have the fetch write the override after downloading.
 That keeps a per-repository value in a fetch recipe instead of a tracked file,
 and still leaves the module unable to serve a consumer with a different layout.
+
+### The task runner is a tool like any other
+
+Five repositories run every check through `just` and none declares it in
+`.mise.toml`: `osapi`, `gohai`, `osapi-orchestrator`, `nats-client`,
+`nats-server`. `specs` and `osapi-justfiles` do, and they are the two that never
+diverged from continuous integration.
+
+Where it is undeclared, `mise` has nothing to resolve and the shell falls
+through to whatever is installed — Homebrew's 1.45.0 here. Continuous
+integration installs its own through a setup action. The two are not the same
+version, and they disagree about formatting: 1.45 writes a boolean setting as
+`set allow-duplicate-variables := true`, a newer one writes
+`set allow-duplicate-variables`, and each rejects the other's form. A justfile
+formatted locally then fails the check in continuous integration, on a file
+nobody touched.
+
+This was diagnosed twice as a policy question — whether to pin versions or float
+them — before the actual cause turned out to be that the tool was never declared
+at all. Pinning a version in a file that does not mention the tool would have
+changed nothing.
+
+*Alternative considered:* leave it undeclared and require developers to install
+a matching version. It is a convention with nothing enforcing it, and the
+failure it produces looks like a formatting error rather than a version
+mismatch.
