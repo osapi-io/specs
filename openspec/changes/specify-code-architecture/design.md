@@ -191,3 +191,43 @@ does not own — placement is one subject, and one capability owns it.
 *Alternative considered:* keep both and scope this one to engineering guidance
 specifically. Two requirements about where things live, differing in the test
 they apply, is how a reader ends up able to justify either answer.
+
+### One gate, five repositories, one number
+
+Coverage binds every repository containing Go code. That is five: `osapi`,
+`gohai`, `nats-client`, `nats-server`, and `osapi-orchestrator`. The other
+repositories in the organization — `specs`, `osapi-justfiles` — contain no Go
+and are unaffected. `osapi-sdk` still consumes the shared `go` module and still
+runs `just go::test`, but it is deprecated; archiving it is what stops it being
+a consumer, not the fact that its README says so.
+
+All five measure 100% once `.coverignore` is applied:
+
+| Repository           | Raw    | After `.coverignore` |
+| -------------------- | ------ | -------------------- |
+| `osapi`              | 43.6%  | 100.0%               |
+| `gohai`              | 96.5%  | 100.0%               |
+| `nats-client`        | 17.3%  | 100.0%               |
+| `nats-server`        | 50.0%  | 100.0%               |
+| `osapi-orchestrator` | 100.0% | 100.0%               |
+
+The raw column is why the gate has to read the filtered profile and nothing
+else. Four of the five would fail a 100% gate applied to the raw number, and
+`nats-client` would fail by 83 points — not because it is under-tested, but
+because the raw profile counts generated code, examples, and `main.go`.
+
+The design that must hold:
+
+1. **One exclusion list.** `.coverignore` is applied by `unit-cov` before
+   anything reads the profile, so no second list exists to disagree with it.
+1. **One profile.** The local check and the upload read the same filtered file,
+   so both report the same number for the same commit.
+1. **One invocation.** `just test` runs the gate, and CI runs `just test`. There
+   is no separate CI coverage step that could diverge from what a contributor
+   runs locally.
+1. **One target per repository**, declared in the shared module's default and in
+   that repository's `codecov.yml`, each commented to name the other.
+
+Point 3 is the one most easily lost. A coverage step added directly to a
+workflow would pass or fail on its own terms, and the local recipe would stop
+predicting CI — the same defect being fixed for `just::fmt`, reintroduced.
