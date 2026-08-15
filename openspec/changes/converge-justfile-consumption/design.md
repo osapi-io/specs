@@ -82,37 +82,39 @@ update every consuming repository before starting the next module.
   remove both the stale-cache failure and the broken window during conversion.
   Recorded on the `justfiles` capability and unanswered.
 
-### Running a recipe by name has to work
+### Modules ship defaults; consumers override them
 
-Three properties were wanted at once: a developer can run `just react-fmt-check`
-directly, no repository carries an extra configuration file, and the repository
-owning the modules can lint each module on its own. just makes at most two of
-them available, because it resolves a variable when it parses the file.
+`set allow-duplicate-variables := true` is just's mechanism for overriding a
+variable an import defined, and it is what this design uses. Every property
+wanted holds at once:
 
-- The consuming justfile declares the variable. Running the recipe by name
-  works. The module cannot be parsed alone.
-- The module defines the variable and the consumer exports an override. The
-  module parses alone. Running the recipe by name silently uses the default,
-  because `export` populates the environment of recipes rather than of the parse
-  — so `just test` and `just react-fmt-check` disagree.
-- The consumer commits a dotenv file. Everything works, at the cost of a second
-  file holding a value the justfile could state.
+|                                             |                             |
+| ------------------------------------------- | --------------------------- |
+| `just go-cov-check` run by name             | uses the repository's value |
+| `just test`, reaching it as a child process | same value                  |
+| `just go_coverage_target=95 go-cov-check`   | 95                          |
+| module lints on its own                     | passes                      |
+| consuming justfile lints                    | passes                      |
 
-Running a recipe by name is what a developer does, and a command that means two
-different things depending on how it was reached is worse than a module that
-needs its consumer present to parse. So the consumer declares, and the two
-modules that take consumer configuration are excluded by name from the owning
-repository's per-file check.
+Earlier revisions of this design forbade the setting, on the grounds that it
+suspends the duplicate-definition check for the whole file. That reasoning cost
+more than it saved. Every alternative tried in its place failed on something
+real:
 
-That exclusion is a real cost and worth stating plainly: `go/go.just` and
-`react/react.just` are not format-checked. What protects them is that six
-repositories load them on every run, so an error surfaces immediately and
-everywhere rather than quietly.
+- **The consumer declares the variable and the module does not.** The module
+  then references something it does not define, so the repository publishing it
+  cannot parse or lint the file at all.
+- **The module reads `env()` and the consumer exports it.** `export` reaches
+  child processes but not the parse of its own file, so `just react-fmt-check`
+  used the default while `just test` used the repository's value.
+- **A committed dotenv file.** Works, and puts a value in a second file when the
+  justfile could state it.
+- **Excluding the affected modules from the format check.** Exempts the files
+  most worth checking.
+- **Format-checking them through a generated harness that supplies the
+  variables.** Works, and is machinery to avoid a one-line setting.
 
-*Alternative considered:* the consuming justfile wraps each module recipe it
-uses, so the name resolves locally. It is a wrapper per recipe per repository,
-maintained by hand, to restore behaviour the recipe already had.
-
-*Alternative considered:* `set allow-duplicate-variables`, letting the module
-ship a default the consumer reassigns. It suspends the duplicate check for every
-variable in the file to serve one.
+What the setting actually gives up is narrow: inside a justfile that sets it, an
+accidental duplicate assignment no longer errors. In a file whose purpose is to
+import modules and override their defaults, that is close to free — and it is
+the only thing that makes a recipe behave the same however it is invoked.

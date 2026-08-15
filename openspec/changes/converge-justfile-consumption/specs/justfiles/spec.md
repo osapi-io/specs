@@ -39,72 +39,68 @@ repository contains.
 - **THEN** it takes that path as configuration rather than as a working
   directory set by a shim
 
-### Requirement: A consuming justfile declares module configuration
+### Requirement: A module defines its defaults, a consumer overrides them
 
-A justfile SHALL NOT use `set allow-duplicate-variables`.
+A module SHALL define every variable it references, with a default, so that it
+parses and lints on its own.
 
-Where a module's behaviour varies per repository, the module SHALL reference the
-variable and the consuming justfile SHALL declare it. The module SHALL NOT
-define it, because just rejects a variable with two definitions and the consumer
-could then not set its own value.
+A consuming justfile that needs a different value SHALL set
+`set allow-duplicate-variables := true` and assign the variable again. The later
+assignment wins.
 
-A recipe SHALL work when invoked by name. Someone running
-`just <module>-<recipe>` SHALL get the same result as running it through a
-recipe that depends on it.
-
-An `export` in the consuming justfile SHALL NOT be used for this. It does not
-reach the parse of the file it appears in, so a recipe invoked by name falls
-back to the module's default while the same recipe invoked through another
-recipe — a child process — gets the exported value. Two answers for one command
-is worse than either.
+The assignment SHALL be a plain variable, not an environment variable. A
+variable assigned in the consuming justfile is in scope when just parses it, so
+a recipe behaves the same whether it is run by name, reached through another
+recipe, or overridden on the command line.
 
 #### Scenario: A developer runs a module recipe by name
 
 - **WHEN** someone runs `just react-fmt-check` rather than `just test`
-- **THEN** it uses the repository's configured value, because the consuming
-  justfile declares it and that declaration is in scope when just parses
+- **THEN** it uses the repository's value, because the assignment is in scope
+  when just parses the justfile
 
-#### Scenario: A module needs a per-repository value
+#### Scenario: A repository is content with the defaults
 
-- **WHEN** a module's recipes depend on a path or threshold that differs between
-  repositories
-- **THEN** the module references the variable and each consuming justfile
-  declares it
+- **WHEN** a repository's values match every module default
+- **THEN** it assigns nothing and does not set `allow-duplicate-variables`
 
-#### Scenario: A consumer omits a required declaration
+#### Scenario: A value is needed for one invocation
 
-- **WHEN** a consuming justfile imports a module without declaring a variable it
-  references
-- **THEN** it fails at parse time, rather than running against a value nobody
-  chose
+- **WHEN** someone wants a different value for a single run
+- **THEN** they override it on the command line, as
+  `just <name>=<value> <recipe>`
 
-#### Scenario: A value is the same everywhere
+#### Scenario: The module is checked on its own
 
-- **WHEN** a variable never varies between repositories, such as a tool version
-  or an output directory
-- **THEN** the module defines it with an `env()` default and no consumer
-  declares anything
+- **WHEN** the repository publishing the modules lints each file individually
+- **THEN** every module parses, because each defines what it references, and
+  none is excluded from the check
 
-### Requirement: Modules taking consumer configuration are exempt from standalone linting
+### Requirement: Overriding uses assignment, not the environment
 
-A module that references a variable its consumer declares SHALL be excluded from
-the owning repository's per-file justfile check.
+A consuming justfile SHALL NOT configure a module by exporting an environment
+variable that the module reads with `env()`.
 
-Such a module cannot be parsed alone, so the check reports an undefined variable
-rather than a formatting fault. The exclusion SHALL be explicit and SHALL name
-the modules it covers, so that it is visible rather than inferred.
+`export` does not reach the parse of the file it appears in, but does reach
+child processes. A module recipe invoked by name would use the default while the
+same recipe reached through another recipe used the exported value — one command
+with two answers, depending on how it was called.
 
-#### Scenario: The owning repository lints its justfiles
+A module MAY read `env()` for a value that genuinely varies by environment
+rather than by repository, since nothing in the repository can state it.
 
-- **WHEN** the repository publishing the modules runs its per-file check
-- **THEN** modules taking consumer configuration are skipped by name, and every
-  other justfile in the repository is checked
+#### Scenario: An export is proposed for a per-repository value
 
-#### Scenario: A skipped module is malformed
+- **WHEN** someone proposes `export JUST_X := "y"` in a consuming justfile to
+  configure a module
+- **THEN** it is declined, because the value would apply only when the recipe is
+  reached as a child process
 
-- **WHEN** a module that is skipped by the format check contains an error
-- **THEN** it surfaces the first time any consuming repository loads it, which
-  is on the next run of that repository's checks
+#### Scenario: A value belongs to the environment
+
+- **WHEN** a value differs between a developer machine and continuous
+  integration rather than between repositories
+- **THEN** the module reads it with `env()` and ships a default
 
 ### Requirement: Module variables are namespaced
 
