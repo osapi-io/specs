@@ -139,3 +139,55 @@ None. Every requirement records what is already true in every repository.
   deliberately and has not been revisited.
 - Should patch-level Go versions be aligned, or is the major-version policy
   enough?
+
+### Accept two declarations of the target, and say so
+
+The target has to be readable by two things that cannot read each other: the
+coverage service, which evaluates a pull request server-side, and the local
+recipe, which has to fail before anyone pushes. Deriving one from the other
+means the justfile parses YAML, which is a parser in a shell recipe for the sake
+of one integer.
+
+So the number is written twice, and each site carries a comment naming the
+other. This is a real duplication and it can drift; the mitigation is that it is
+one integer, changed rarely, with a verification task that compares them.
+
+*Alternative considered:* have the local recipe read the target out of
+`codecov.yml`. One source, no drift — but it puts YAML parsing in a shared
+justfile module used by every repository, and breaks if the service's config
+schema changes.
+
+*Alternative considered:* gate only in the service. That is the gap already
+being closed for `just::fmt` — a recipe that passes locally while CI fails.
+
+### Exclusions are defined once, applied before upload
+
+`.coverignore` is the single exclusion list, and `unit-cov` strips those files
+from the profile before anything else reads it. The coverage service therefore
+needs no exclusion list of its own: the files never reach it.
+
+This matters more than it looks. `nats-client` measures 17.3% on the raw profile
+and 100% after `.coverignore`. Whichever profile the service uploads decides the
+number, and the two answers are 83 points apart for the same commit. Today the
+service auto-discovers and happens to find the filtered profile — the workflow
+passes no file to it. That is an accident that currently works, so the workflow
+names the profile explicitly.
+
+*Alternative considered:* keep `.coverignore` for the local number and add a
+matching `ignore:` list to the service config. Two exclusion lists in two
+syntaxes, drifting silently, with an 83-point gap available when they disagree.
+
+### Placement belongs to the documentation capability, not this one
+
+An earlier draft of this change carried a requirement that the corpus hold only
+what binds more than one repository. The `documentation` capability states the
+opposite: what decides placement is whether text is a requirement or a
+description, and a rule binding one repository is still a rule.
+
+Both would have archived into the corpus asserting contradictory things about
+the same decision. This change drops its version rather than restating a rule it
+does not own — placement is one subject, and one capability owns it.
+
+*Alternative considered:* keep both and scope this one to engineering guidance
+specifically. Two requirements about where things live, differing in the test
+they apply, is how a reader ends up able to justify either answer.

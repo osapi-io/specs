@@ -35,15 +35,45 @@ command-line interface has no `cmd/`; a library with nothing private has no
 ### Requirement: Coverage target
 
 A repository containing Go code SHALL target 100% test coverage, and SHALL
-declare that target in its coverage configuration.
+declare that target both in its coverage service configuration and in the recipe
+that checks coverage locally. The two declarations SHALL state the same number,
+and each SHALL carry a comment naming the other.
+
+What is excluded from coverage SHALL be defined in exactly one place. The
+excluded files SHALL be removed from the coverage profile before it is uploaded,
+so the local check and the coverage service measure the same set rather than
+each applying their own exclusions.
 
 Generated code SHALL be excluded rather than counted or waived.
+
+A coverage check SHALL fail when coverage is below the target. Reporting the
+number without failing does not satisfy this requirement.
 
 #### Scenario: Coverage falls below target
 
 - **WHEN** a change lowers coverage below the declared target
-- **THEN** the coverage check reports it, rather than the target being adjusted
-  to accommodate the change
+- **THEN** the check fails, rather than the target being adjusted to accommodate
+  the change
+
+#### Scenario: The two declarations disagree
+
+- **WHEN** one declaration is raised or lowered and the other is not
+- **THEN** that is a defect, and the comment in each names the other so whoever
+  edits one knows to edit both
+
+#### Scenario: An exclusion is added
+
+- **WHEN** a file is added to the exclusion list
+- **THEN** it disappears from both the local number and the service's number,
+  because both read a profile the exclusions were already applied to
+
+#### Scenario: The uploaded profile is chosen automatically
+
+- **WHEN** a coverage service discovers coverage files itself rather than being
+  given one
+- **THEN** the workflow names the filtered profile explicitly, because
+  discovering an unfiltered profile reports a different number for the same
+  commit
 
 ### Requirement: Supported Go versions
 
@@ -111,23 +141,3 @@ backlog of unmerged bumps is how repositories that should match stop matching.
 - **WHEN** a repository must build on a different runner, or needs different
   credentials, than its siblings
 - **THEN** its workflow differs in those respects and matches in all others
-
-### Requirement: Repository-specific engineering guidance stays local
-
-Guidance that binds a single repository — how its collectors are written, how
-its operations are constructed, which upstream library a component wraps — SHALL
-live in that repository, not in the specification corpus.
-
-The corpus SHALL hold only what binds more than one repository.
-
-#### Scenario: One repository documents its own methodology
-
-- **WHEN** a repository has a methodology governing how its components are
-  implemented
-- **THEN** it lives in that repository's `docs/`, next to the code it governs
-
-#### Scenario: A convention spreads to a second repository
-
-- **WHEN** guidance that was specific to one repository begins binding another
-- **THEN** it becomes a capability in the corpus, and the repositories point at
-  it rather than each restating it
