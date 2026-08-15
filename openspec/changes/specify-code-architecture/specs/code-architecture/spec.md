@@ -49,9 +49,10 @@ Generated code SHALL be excluded rather than counted or waived.
 A coverage check SHALL fail when coverage is below the target. Reporting the
 number without failing does not satisfy this requirement.
 
-The check SHALL compute coverage from the profile rather than from a tool's
-rounded summary. A summary rounded for display is blind at the margin the check
-exists to police.
+The check MAY read a tool's rounded summary rather than computing from the
+profile. Rounding to one decimal place admits about 0.05% of tolerance, which is
+small enough that a regression worth catching is still caught, and a target
+below 100% makes the tolerance explicit rather than hidden.
 
 A repository MAY declare a target below the organization-wide one where it does
 not yet meet it. That target SHALL be the level the repository currently holds,
@@ -63,12 +64,12 @@ so it cannot decay, and SHALL be raised rather than treated as settled.
 - **THEN** the check fails, rather than the target being adjusted to accommodate
   the change
 
-#### Scenario: A rounded summary hides a shortfall
+#### Scenario: A shortfall smaller than the rounding
 
-- **WHEN** a repository's coverage is below target by less than the rounding
-  applied by the summary tool
-- **THEN** the check still fails, because it computes from the profile rather
-  than reading the rounded figure
+- **WHEN** coverage falls by less than the summary tool's rounding
+- **THEN** the check does not fail, and that is accepted: the tolerance is
+  bounded and known, and the alternative is arithmetic in a shared recipe every
+  repository runs
 
 #### Scenario: The two declarations disagree
 

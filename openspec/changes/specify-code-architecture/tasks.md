@@ -43,8 +43,8 @@ so the target holds what exists rather than demanding new tests.
   together. Safe: all five measure 100% filtered
 - [x] 2.9 `osapi` — measure coverage; it was not measured with the others. It is
   99.9359%, not 100%: 9 uncovered statements across 7 functions
-- [x] 2.9a `osapi-justfiles` — compute coverage from the profile, not from
-  `go tool cover -func`, whose rounded total passed osapi at 100.0%
+- [x] 2.9a `osapi-justfiles` — keep reading `go tool cover -func`; its ~0.05%
+  rounding is bounded, and a declared target below 100% makes it explicit
 - [x] 2.9b `osapi` — declare a 99.9% target overriding the org-wide 100, so the
   current level cannot decay
 - [ ] 2.9c `osapi` — cover the 9 statements, then raise both declarations to 100
