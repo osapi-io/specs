@@ -13,6 +13,18 @@
 - [ ] 2.3 `osapi-orchestrator` — merge the pending action version bumps, which
   account for the workflow drift
 
+Verification 3.1 failed: no repository declares a coverage target. The shared
+`go.just` reports gaps but never exits non-zero, so coverage can fall without
+any check failing.
+
+- [ ] 2.4 `osapi` — declare the 100% target in coverage configuration
+- [ ] 2.5 `gohai` — same
+- [ ] 2.6 `osapi-orchestrator` — same
+- [ ] 2.7 `nats-client` — same
+- [ ] 2.8 `nats-server` — same
+- [ ] 2.9 Confirm the declared target fails a build when coverage drops, rather
+  than only reporting it
+
 ## 3. Verification
 
 - [ ] 3.1 Confirm every Go repository declares the coverage target
