@@ -143,3 +143,36 @@ README, or the next person's time reading them.
 *Alternative considered:* fix `docker` and keep it, since image publishing is
 plausible future work. Its recipes are two lines wrapping `docker build` and
 `docker push`; if that need returns it is cheaper to write than to have carried.
+
+### Split docs and md by path, not by activity
+
+`docs.just` does two unrelated things: it runs a Docusaurus site — build, start,
+serve, deploy, generate — and it formats markdown with prettier. Four
+repositories fetch it only for `docs::fmt`, and `md` exists to format markdown.
+
+The obvious split was by activity: `docs` builds the site, `md` formats
+everything. That breaks on content. `osapi`'s site contains `.mdx` files and
+component syntax — `<DocCardList />`, `import` statements — which mdformat
+cannot parse and would mangle. Prettier can, because Docusaurus is a prettier
+ecosystem.
+
+So the boundary is the path. `docusaurus` owns its site directory completely,
+including formatting it, because the tooling that builds that content is also
+the tooling that can format it. `md` owns everything else and excludes that
+directory. Each file has exactly one formatter, and neither module needs to know
+what the other does beyond where it stops.
+
+The rename follows from that: `docs` names a location, and a repository can hold
+documentation without a site. `docusaurus` names the thing the module manages,
+so a reader can tell whether their repository needs it.
+
+Both take the path as configuration. A repository states where its site lives,
+and the exclusion in `md` uses the same value.
+
+*Alternative considered:* have `md` format the site too, with prettier dropped
+entirely. It would reformat every `.md` in the site and cannot handle the `.mdx`
+files at all.
+
+*Alternative considered:* keep formatting in `docs` and have `md` used only by
+repositories without a site. Every repository here has a site, so `md` would
+have no consumers but `specs`.

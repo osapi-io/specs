@@ -18,9 +18,13 @@ repository.
   `dockerfile` default is `Dockerfile.local`, which `osapi` does not have —
   evidence it has not run in a long time. Drop `osapi`'s `mod? docker` line
 - [x] 1.5 `react` — osapi-justfiles#44
-- [ ] 1.6 `docs` — rename `host` and `port` with the module prefix, and ensure
-  its paths do not overlap with `md`. These two may keep `env()`: a dev server
-  port varies by machine, not by repository
+- [ ] 1.6 `docs` → `docusaurus` — rename the module for what it manages, prefix
+  its recipes and variables, and give it the site path as configuration. It
+  keeps its formatting recipes: the site contains MDX and component syntax that
+  mdformat cannot parse
+- [ ] 1.6a `md` — exclude the site directory, taken as configuration rather than
+  assumed
+- [ ] 1.6b Confirm no markdown file falls inside both formatters' paths
 
 ## 2. Update consumers
 
