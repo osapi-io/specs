@@ -176,3 +176,26 @@ files at all.
 *Alternative considered:* keep formatting in `docs` and have `md` used only by
 repositories without a site. Every repository here has a site, so `md` would
 have no consumers but `specs`.
+
+### Converting a consumer is more than its recipes
+
+`gohai` was the first library moved from prettier to `md`, and the module swap
+was the easy part. What review caught afterwards was everything the swap
+implied: `CONTRIBUTING.md` still told contributors that markdown is formatted
+with Prettier via Bun and showed `just docs::fmt`, both of which the same change
+had removed.
+
+That is not a new rule — `correct-documentation-drift` already requires
+documentation to name the tools a repository installs. It was missed because the
+task list said "update consumers" and left what that means to whoever was doing
+it.
+
+So the task list now enumerates it: justfile, workflows, deleted configuration,
+`.mise.toml`, the contributing guide, and the reference links in whatever was
+touched. Six steps, of which two are documentation and were the two skipped.
+
+The same pass turned up that `gohai`'s guide had four references with no
+definition, left over from the earlier `development.md` to `CONTRIBUTING.md`
+conversion. Those rendered as literal text and had done for some time. Checking
+them is now part of converting a consumer, because a change that rewrites a
+guide is the moment its links are read.
