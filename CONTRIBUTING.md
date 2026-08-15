@@ -180,28 +180,6 @@ how `apply` and `archive` are conducted.
 Editing it changes how every future artifact is written, so treat it as a change
 of record rather than a quick tweak.
 
-### Finishing a change
-
-Artifacts are markdown, so they are subject to the same formatting checks as
-everything else here. Before opening a pull request, run:
-
-```bash
-just test
-```
-
-That runs what CI runs — markdown formatting, justfile lint, and
-`openspec validate --all --strict`. `just md-fmt` fixes formatting failures. A
-change that validates but is not formatted will still fail CI.
-
-Two things [mdformat] rewrites silently, so write them correctly the first time:
-
-- GitHub alert syntax (`> [!WARNING]`) is reflowed into a plain blockquote and
-  stops rendering as a callout. Use bold text instead.
-- Link definitions are lowercased and sorted.
-
-`.claude/` is excluded from formatting, because `openspec update` regenerates
-those files and would revert any changes.
-
 ### Working across repositories
 
 This repository holds the agreement; the code lands elsewhere. When applying a
@@ -303,6 +281,28 @@ Conventions:
 
 Markdown files are formatted with [mdformat] and wrapped at 80 characters. Run
 `just md-fmt` to format, or `just test` to check everything CI checks.
+
+## Before committing
+
+Artifacts are markdown, so they are subject to the same formatting checks as
+everything else here. Before opening a pull request, run:
+
+```bash
+just test
+```
+
+That runs what CI runs — markdown formatting, justfile lint, and
+`openspec validate --all --strict`. `just md-fmt` fixes formatting failures. A
+change that validates but is not formatted will still fail CI.
+
+Two things [mdformat] rewrites silently, so write them correctly the first time:
+
+- GitHub alert syntax (`> [!WARNING]`) is reflowed into a plain blockquote and
+  stops rendering as a callout. Use bold text instead.
+- Link definitions are lowercased and sorted.
+
+`.claude/` is excluded from formatting, because `openspec update` regenerates
+those files and would revert any changes.
 
 ## Branching
 

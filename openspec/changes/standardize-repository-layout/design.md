@@ -109,6 +109,55 @@ what it is.
 exceptions. A rule that requires rewriting the product's front page to satisfy a
 consistency argument is optimizing the wrong thing.
 
+### Record the classification in the spec, not the proposal
+
+The type definitions alone do not tell anyone what type a given repository is.
+Naming the repositories only in the proposal would leave the corpus saying
+"every repository SHALL be one of four types" while the answer for any specific
+repository lived in an archived document nobody reads to settle a question.
+
+The classification is therefore a requirement. It goes stale when a repository
+is added, and that staleness is the point — adding one becomes a change to this
+capability rather than a judgment call.
+
+*Alternative considered:* derive the type from the repository's contents. Two of
+the four types are indistinguishable by contents — `osapi-justfiles` and `specs`
+both hold markdown and a justfile — and `osapi` is a Go repository that is
+deliberately not a Go library.
+
+### Fix the CONTRIBUTING section names, not its whole shape
+
+Converting the first repository produced two sections with the same purpose
+under different names: `Before committing` in one repository and
+`Finishing a change` in the other. That is the same drift the README vocabulary
+requirement exists to prevent, reproduced one file over, because the standard
+covered READMEs and stopped there.
+
+The fix is a fixed opening and closing, with a free middle. The opening and
+closing are the same questions for every repository — what do I install, what do
+I run, how do I name a branch. The middle is where repositories genuinely
+differ.
+
+*Alternative considered:* prescribe the whole document. A `specs` contributor
+needs the change workflow explained; an `osapi-justfiles` contributor needs
+recipe conventions. Neither section belongs in the other repository.
+
+*Alternative considered:* leave `CONTRIBUTING.md` unstructured, since its
+content varies. That is what produced the drift being fixed.
+
+### Leave AGENTS.md unstructured, deliberately
+
+The two `AGENTS.md` files written so far share no headings, and that is correct:
+one documents a planning boundary, the other warns that a shared recipe cannot
+be tested locally. Neither applies to the other repository.
+
+Stating explicitly that no structure is required makes this a decision rather
+than an oversight, and stops a future reader from "fixing" it.
+
+*Alternative considered:* require the same skeleton as `CONTRIBUTING`. It would
+produce empty sections in every repository, which is how sections come to be
+filled with filler.
+
 ## Risks / Trade-offs
 
 - **Eight repositories change at once, or drift while converting.** → Convert
@@ -123,6 +172,10 @@ consistency argument is optimizing the wrong thing.
 - **A fixed vocabulary can be wrong for a repository nobody anticipated.** →
   Types are extensible; adding one is a change to this capability rather than an
   exception buried in a README.
+
+- **The classification goes stale silently.** A repository added without a
+  change to this capability is unclassified, and nothing detects it. → Worth a
+  check that every repository in the organization appears in the table.
 
 - **`osapi-ui` and `osapi-sdk` are effectively undocumented.** Both have 20-line
   READMEs. → `osapi-sdk` is deprecated and out of scope; `osapi-ui` needs
