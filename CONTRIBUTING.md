@@ -228,6 +228,9 @@ Merges the deltas into `specs/` and moves the change to
 
 Archiving refuses to run while any task is unchecked.
 
+It writes the spec file itself, and does not format it. Run `just md-fmt`
+afterwards or the formatting check fails on a file you did not hand-write.
+
 ### Shortcut for documentation-only changes
 
 When the artifacts *are* the work — recording an architecture that already

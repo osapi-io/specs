@@ -1,6 +1,7 @@
 # go-library-standards Specification
 
 ## Purpose
+
 Defines the configuration files a Go library carries, which of them must match
 across libraries and which may vary, so that a difference between two libraries
 is a recorded decision rather than an artifact of who edited what last.
