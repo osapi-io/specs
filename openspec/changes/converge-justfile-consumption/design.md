@@ -82,41 +82,37 @@ update every consuming repository before starting the next module.
   remove both the stale-cache failure and the broken window during conversion.
   Recorded on the `justfiles` capability and unanswered.
 
-### A module must lint on its own, and export is how a consumer configures it
+### Running a recipe by name has to work
 
-The first attempt had the module reference a variable and the consuming justfile
-declare it. It ran correctly and was wrong: `go/go.just` and `react/react.just`
-no longer parsed alone, so `osapi-justfiles` could not lint the files it owns.
-`just --fmt --check` reported `Variable go_coverage_target not defined` — a
-design fault surfacing as a formatting error. Consumers were unaffected
-throughout, because they exclude fetched modules from linting.
+Three properties were wanted at once: a developer can run `just react-fmt-check`
+directly, no repository carries an extra configuration file, and the repository
+owning the modules can lint each module on its own. just makes at most two of
+them available, because it resolves a variable when it parses the file.
 
-The mechanism that resolves it is `export`, which behaves differently than it
-first appears. It does not reach the parse of the file it appears in — which is
-why `export JUST_COVERAGE_TARGET := "99.9"` in osapi's justfile seemed to do
-nothing. It does reach child processes, and a consuming justfile invokes module
-recipes as child processes rather than as dependencies, so the export lands
-exactly where the module is parsed.
+- The consuming justfile declares the variable. Running the recipe by name
+  works. The module cannot be parsed alone.
+- The module defines the variable and the consumer exports an override. The
+  module parses alone. Running the recipe by name silently uses the default,
+  because `export` populates the environment of recipes rather than of the parse
+  — so `just test` and `just react-fmt-check` disagree.
+- The consumer commits a dotenv file. Everything works, at the cost of a second
+  file holding a value the justfile could state.
 
-The module therefore keeps `env("JUST_COVERAGE_TARGET", "100")` and parses
-alone; the consumer exports the variable and gets its own value.
+Running a recipe by name is what a developer does, and a command that means two
+different things depending on how it was reached is worse than a module that
+needs its consumer present to parse. So the consumer declares, and the two
+modules that take consumer configuration are excluded by name from the owning
+repository's per-file check.
 
-The repository that owns the modules sets nothing either. An earlier revision of
-this design had `osapi-justfiles` export the variables in its root justfile, on
-the reasoning that its lint should check modules with real values. That was left
-over from when modules could not parse without them. Once each module defines
-its own default, the exports restate the defaults in a second place — and there
-are eleven such variables across the three flat modules, so setting two of them
-would be arbitrary and setting all eleven would be duplication.
+That exclusion is a real cost and worth stating plainly: `go/go.just` and
+`react/react.just` are not format-checked. What protects them is that six
+repositories load them on every run, so an error surfaces immediately and
+everywhere rather than quietly.
 
-A `JUST_*` variable is set by exactly one kind of repository: one whose value
-differs from the default.
+*Alternative considered:* the consuming justfile wraps each module recipe it
+uses, so the name resolves locally. It is a wrapper per recipe per repository,
+maintained by hand, to restore behaviour the recipe already had.
 
-*Alternative considered:* `set allow-duplicate-variables` and reassignment in
-the consumer. It suspends the duplicate check for every variable in the file.
-
-*Alternative considered:* a committed dotenv file per repository. It works and
-adds a second file to look in for a value the justfile could state.
-
-*Alternative considered:* exempt the two modules from the owning repository's
-lint. It exempts the files most worth checking.
+*Alternative considered:* `set allow-duplicate-variables`, letting the module
+ship a default the consumer reassigns. It suspends the duplicate check for every
+variable in the file to serve one.

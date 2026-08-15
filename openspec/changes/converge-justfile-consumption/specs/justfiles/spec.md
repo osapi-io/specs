@@ -39,61 +39,72 @@ repository contains.
 - **THEN** it takes that path as configuration rather than as a working
   directory set by a shim
 
-### Requirement: A module is self-contained
+### Requirement: A consuming justfile declares module configuration
 
 A justfile SHALL NOT use `set allow-duplicate-variables`.
 
-A module SHALL define every variable it references, so that it parses and lints
-on its own. A module SHALL NOT reference a variable it expects its consumer to
-declare.
+Where a module's behaviour varies per repository, the module SHALL reference the
+variable and the consuming justfile SHALL declare it. The module SHALL NOT
+define it, because just rejects a variable with two definitions and the consumer
+could then not set its own value.
 
-A variable whose value may differ between repositories SHALL read `env()` with a
-default. A consuming repository SHALL override it by exporting the corresponding
-environment variable in its justfile.
+A recipe SHALL work when invoked by name. Someone running
+`just <module>-<recipe>` SHALL get the same result as running it through a
+recipe that depends on it.
 
-An `export` does not reach the parse of the file it appears in, so a consumer
-cannot use it to change a variable in a module it imports directly. It does
-reach child processes, and a consuming justfile invokes module recipes as child
-processes — which is where the override takes effect.
+An `export` in the consuming justfile SHALL NOT be used for this. It does not
+reach the parse of the file it appears in, so a recipe invoked by name falls
+back to the module's default while the same recipe invoked through another
+recipe — a child process — gets the exported value. Two answers for one command
+is worse than either.
 
-#### Scenario: A module is checked on its own
+#### Scenario: A developer runs a module recipe by name
 
-- **WHEN** a repository lints each of its justfiles individually
-- **THEN** every module parses, because none depends on a variable defined
-  elsewhere
+- **WHEN** someone runs `just react-fmt-check` rather than `just test`
+- **THEN** it uses the repository's configured value, because the consuming
+  justfile declares it and that declaration is in scope when just parses
 
-#### Scenario: A repository needs a different value
+#### Scenario: A module needs a per-repository value
 
-- **WHEN** a repository's application is not at the root, or its coverage target
-  differs
-- **THEN** its justfile exports the environment variable, and the module keeps
-  its default for every other repository
+- **WHEN** a module's recipes depend on a path or threshold that differs between
+  repositories
+- **THEN** the module references the variable and each consuming justfile
+  declares it
 
-#### Scenario: Overriding by reassignment is proposed
+#### Scenario: A consumer omits a required declaration
 
-- **WHEN** someone proposes assigning the variable again in the consuming
-  justfile
-- **THEN** it is declined: just rejects a variable with two definitions, and
-  `set allow-duplicate-variables` suspends that check for the whole file to
-  serve one variable
+- **WHEN** a consuming justfile imports a module without declaring a variable it
+  references
+- **THEN** it fails at parse time, rather than running against a value nobody
+  chose
 
-#### Scenario: A value is computed rather than configured
+#### Scenario: A value is the same everywhere
 
-- **WHEN** a variable is derived at run time, such as the repository root or the
-  package list
-- **THEN** it needs no environment variable, because no repository sets it
+- **WHEN** a variable never varies between repositories, such as a tool version
+  or an output directory
+- **THEN** the module defines it with an `env()` default and no consumer
+  declares anything
 
-#### Scenario: A repository is content with the defaults
+### Requirement: Modules taking consumer configuration are exempt from standalone linting
 
-- **WHEN** a repository's values match every module default
-- **THEN** it sets nothing, and carries no configuration for those modules at
-  all
+A module that references a variable its consumer declares SHALL be excluded from
+the owning repository's per-file justfile check.
 
-#### Scenario: The repository owning the modules lints them
+Such a module cannot be parsed alone, so the check reports an undefined variable
+rather than a formatting fault. The exclusion SHALL be explicit and SHALL name
+the modules it covers, so that it is visible rather than inferred.
 
-- **WHEN** the repository that publishes the modules runs its own checks
-- **THEN** it sets nothing either, because a module that defines its own
-  defaults parses with no value supplied — which is what makes it lintable
+#### Scenario: The owning repository lints its justfiles
+
+- **WHEN** the repository publishing the modules runs its per-file check
+- **THEN** modules taking consumer configuration are skipped by name, and every
+  other justfile in the repository is checked
+
+#### Scenario: A skipped module is malformed
+
+- **WHEN** a module that is skipped by the format check contains an error
+- **THEN** it surfaces the first time any consuming repository loads it, which
+  is on the next run of that repository's checks
 
 ### Requirement: Module variables are namespaced
 
