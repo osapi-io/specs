@@ -65,12 +65,24 @@ Adding a repository, or changing one's type, is a change to this capability.
 ### Requirement: Files every repository carries
 
 Every repository SHALL contain `README.md`, `LICENSE`, `AI_POLICY.md`,
-`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `AGENTS.md`, and `CLAUDE.md`.
+`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `AGENTS.md`, `CLAUDE.md`, and
+`.mise.toml`.
+
+`.mise.toml` SHALL be committed, never ignored. Its contents vary — a repository
+pins the tools it actually uses — but every repository has one, so that
+`mise install` provisions a working environment.
 
 #### Scenario: Auditing a repository
 
 - **WHEN** a repository is checked against the standard
 - **THEN** the absence of any of those files is a defect
+
+#### Scenario: Repository no longer needs a tool
+
+- **WHEN** a repository stops using a tool, such as dropping bun after moving
+  its markdown formatting to mdformat
+- **THEN** that tool is removed from `.mise.toml`, which still exists and still
+  pins what remains
 
 ### Requirement: Boilerplate files are byte-identical
 
