@@ -101,9 +101,16 @@ exactly where the module is parsed.
 The module therefore keeps `env("JUST_COVERAGE_TARGET", "100")` and parses
 alone; the consumer exports the variable and gets its own value.
 
-The same applies to the repository that owns the modules. `osapi-justfiles`
-exports the variables in its root justfile, so its own lint checks each module
-with a real value rather than skipping it.
+The repository that owns the modules sets nothing either. An earlier revision of
+this design had `osapi-justfiles` export the variables in its root justfile, on
+the reasoning that its lint should check modules with real values. That was left
+over from when modules could not parse without them. Once each module defines
+its own default, the exports restate the defaults in a second place — and there
+are eleven such variables across the three flat modules, so setting two of them
+would be arbitrary and setting all eleven would be duplication.
+
+A `JUST_*` variable is set by exactly one kind of repository: one whose value
+differs from the default.
 
 *Alternative considered:* `set allow-duplicate-variables` and reassignment in
 the consumer. It suspends the duplicate check for every variable in the file.

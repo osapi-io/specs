@@ -83,11 +83,17 @@ processes — which is where the override takes effect.
   package list
 - **THEN** it needs no environment variable, because no repository sets it
 
+#### Scenario: A repository is content with the defaults
+
+- **WHEN** a repository's values match every module default
+- **THEN** it sets nothing, and carries no configuration for those modules at
+  all
+
 #### Scenario: The repository owning the modules lints them
 
 - **WHEN** the repository that publishes the modules runs its own checks
-- **THEN** it exports the same variables in its root justfile, so each module is
-  checked with a real value rather than excluded
+- **THEN** it sets nothing either, because a module that defines its own
+  defaults parses with no value supplied — which is what makes it lintable
 
 ### Requirement: Module variables are namespaced
 
