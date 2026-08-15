@@ -278,6 +278,20 @@ removed from tracking as well.
 - **THEN** the fetched copy is ignored rather than committed, so it cannot drift
   from its source
 
+#### Scenario: A fetched file is committed because it was modified
+
+- **WHEN** a file that looks fetched is tracked, and its content differs from
+  what the fetch retrieves
+- **THEN** it is a deliberate override, not a stray, and removing it breaks the
+  build. The shared module is changed to take the differing value as
+  configuration, and only then is the local copy removed
+
+#### Scenario: Deciding whether a tracked file is stray
+
+- **WHEN** a file is proposed for removal from tracking
+- **THEN** its content is read first. A path that matches a generated or fetched
+  location is not sufficient evidence that nothing depends on the committed copy
+
 #### Scenario: The file is already tracked
 
 - **WHEN** an ignore rule is added for a file that is already committed

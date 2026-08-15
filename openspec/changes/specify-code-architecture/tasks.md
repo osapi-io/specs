@@ -41,7 +41,13 @@ so the target holds what exists rather than demanding new tests.
 - [ ] 2.8 `osapi-justfiles` — point `go::test` at `unit-cov-check` instead of
   `unit-cov`, so all five gate through one line and CI and `just test` fail
   together. Safe: all five measure 100% filtered
-- [x] 2.9 `osapi` — measure coverage; it was not measured with the others
+- [x] 2.9 `osapi` — measure coverage; it was not measured with the others. It is
+  99.9359%, not 100%: 9 uncovered statements across 7 functions
+- [x] 2.9a `osapi-justfiles` — compute coverage from the profile, not from
+  `go tool cover -func`, whose rounded total passed osapi at 100.0%
+- [x] 2.9b `osapi` — declare a 99.9% target overriding the org-wide 100, so the
+  current level cannot decay
+- [ ] 2.9c `osapi` — cover the 9 statements, then raise both declarations to 100
 - [ ] 2.10 Archive `osapi-sdk`, which is deprecated but still consumes the `go`
   module and still runs `just go::test`. Do this before 2.8, or flipping the
   gate turns an unmaintained repository red
