@@ -189,6 +189,15 @@ the spec while implementing, update the change rather than quietly building
 something else, then `/opsx:sync` so the corpus reflects what was actually
 built.
 
+## Read the corpus first
+
+`openspec/specs/` is the standing answer to what is true about osapi-io. Read
+the capabilities that bind the repository you are working in before you start —
+`repo-standards` binds every repository, and the classification records which
+others apply by type.
+
+This is what makes the next question answerable.
+
 ## When you find something
 
 Most work starts by noticing a problem rather than by deciding to write a

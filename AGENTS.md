@@ -13,6 +13,15 @@ Follow it rather than improvising: propose, merge, apply, archive — each step
 its own pull request, except documentation-only changes where propose and
 archive belong in one.
 
+## Read the corpus first
+
+Before starting work in any repository, read `openspec/specs/` for the
+capabilities that bind it. `openspec/specs/repo-standards/` binds every
+repository; the rest bind by type, recorded in the classification.
+
+Requirements are not advice. A repository that does not satisfy one is
+non-conformant, and work that leaves it that way is unfinished.
+
 ## When you find something
 
 Before editing any repository, answer: **which requirement authorizes this?**
