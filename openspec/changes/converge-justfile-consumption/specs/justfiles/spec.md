@@ -1,4 +1,18 @@
-## MODIFIED Requirements
+## REMOVED Requirements
+
+### Requirement: Two consumption styles are in use
+
+**Reason**: This change converges every module on one style, so a requirement
+permitting two is withdrawn rather than revised. Its premise — that shim-based
+and flat modules are both legitimate — is what the change removes.
+
+**Migration**: Every shim-based module is converted to a single imported recipe
+file, and its consumers switch from `mod?` to `import?`. Recipes previously
+invoked as `just <module>::<recipe>` are invoked as `just <module>-<recipe>`.
+Modules needing a specific subdirectory take it as configuration instead of
+inheriting it from a shim's working directory.
+
+## ADDED Requirements
 
 ### Requirement: Import-based consumption
 
