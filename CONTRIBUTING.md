@@ -174,6 +174,15 @@ That runs what CI runs — markdown formatting, justfile lint, and
 `openspec validate --all --strict`. `just md-fmt` fixes formatting failures. A
 change that validates but is not formatted will still fail CI.
 
+Two things [mdformat] rewrites silently, so write them correctly the first time:
+
+- GitHub alert syntax (`> [!WARNING]`) is reflowed into a plain blockquote and
+  stops rendering as a callout. Use bold text instead.
+- Link definitions are lowercased and sorted.
+
+`.claude/` is excluded from formatting, because `openspec update` regenerates
+those files and would revert any changes.
+
 ### Working across repositories
 
 This repository holds the agreement; the code lands elsewhere. When applying a
