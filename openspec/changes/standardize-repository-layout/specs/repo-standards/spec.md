@@ -117,10 +117,23 @@ Every repository SHALL contain `README.md`, `LICENSE`, `AI_POLICY.md`,
 pins the tools it actually uses — but every repository has one, so that
 `mise install` provisions a working environment.
 
+A tool a repository invokes SHALL be declared there, including the task runner
+itself. A tool that is not declared is supplied by whatever the developer
+happens to have installed, which is not the same thing across machines and is
+not what continuous integration installs.
+
 #### Scenario: Auditing a repository
 
 - **WHEN** a repository is checked against the standard
 - **THEN** the absence of any of those files is a defect
+
+#### Scenario: The task runner is not declared
+
+- **WHEN** a repository runs every check through a task runner but does not
+  declare it
+- **THEN** that is a defect: the version comes from the developer's system, and
+  a formatter check can pass locally and fail in continuous integration on the
+  same file
 
 #### Scenario: Repository no longer needs a tool
 
