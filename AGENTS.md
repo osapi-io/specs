@@ -13,6 +13,17 @@ Follow it rather than improvising: propose, merge, apply, archive — each step
 its own pull request, except documentation-only changes where propose and
 archive belong in one.
 
+## When you find something
+
+Before editing any repository, answer: **which requirement authorizes this?**
+
+If a requirement covers it, the fix is compliance work — cite the requirement in
+the pull request. If none does, propose the change first. Do not fix it and
+write the requirement afterwards; that produces a corpus that describes what
+already happened rather than what was agreed.
+
+See @CONTRIBUTING.md under "When you find something".
+
 ## Planning boundary
 
 `/opsx:propose` produces planning artifacts and then stops. Do not edit code in

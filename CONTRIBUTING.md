@@ -189,6 +189,26 @@ the spec while implementing, update the change rather than quietly building
 something else, then `/opsx:sync` so the corpus reflects what was actually
 built.
 
+## When you find something
+
+Most work starts by noticing a problem rather than by deciding to write a
+change. What you do next depends on one question:
+
+**Does a requirement already cover it?**
+
+- **Yes** — fixing it is compliance work. Open an ordinary pull request against
+  the repository, and cite the requirement it satisfies.
+- **No** — propose first. The fix is the second step, not the first.
+
+The temptation is to fix it immediately, because fixing feels like progress and
+the change process feels like overhead. That is exactly how the corpus falls
+behind reality: the work lands, the requirement is written afterwards to
+describe what was already done, and nothing was ever actually agreed.
+
+If a fix is urgent, do it — then open the change and say in it that the work
+preceded the requirement. Skipping the change entirely is what leaves the next
+person with a rule that exists only in someone's memory.
+
 ## Running a change
 
 `main` is protected, so each step below is its own pull request.
