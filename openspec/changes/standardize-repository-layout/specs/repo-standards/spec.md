@@ -255,6 +255,35 @@ name of a repository and reads as that product rather than the organization.
 - **WHEN** a contributor wants to report a violation
 - **THEN** the document names a contact they can actually reach
 
+### Requirement: Only source is tracked
+
+A repository SHALL track only its source, its configuration, and its
+documentation. It SHALL NOT track command output, generated artifacts fetched at
+build time, or data describing a particular machine.
+
+Where such a file has already been committed, adding it to `.gitignore` is not
+sufficient — `.gitignore` suppresses only untracked files, so the file SHALL be
+removed from tracking as well.
+
+#### Scenario: Command output is redirected to a file
+
+- **WHEN** a contributor redirects a command's output to a file inside the
+  repository
+- **THEN** it is not committed, because it describes the machine it ran on
+  rather than the project
+
+#### Scenario: Fetched build-time file
+
+- **WHEN** a repository fetches shared configuration at build time
+- **THEN** the fetched copy is ignored rather than committed, so it cannot drift
+  from its source
+
+#### Scenario: The file is already tracked
+
+- **WHEN** an ignore rule is added for a file that is already committed
+- **THEN** the file is also removed from tracking, because the rule alone has no
+  effect on it
+
 ### Requirement: Contributing documentation location
 
 Contributing documentation SHALL live in a single `CONTRIBUTING.md` at the
