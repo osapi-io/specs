@@ -8,15 +8,17 @@ repository can be created without imitating an arbitrary existing one.
 
 ### Requirement: Repository types
 
-Every repository SHALL be one of four types, and its type SHALL determine its
+Every repository SHALL be one of five types, and its type SHALL determine its
 README structure.
 
-- **Go library** — a package other repositories import, optionally with a CLI
-  wrapping it.
+- **Go library** — a package other repositories import. A library MAY ship a CLI
+  that wraps it; the library is the product and the CLI is a convenience, so it
+  remains this type.
 - **Main product** — the deployable service the organization exists to build.
 - **Utility** — shared assets consumed by other repositories rather than
   imported as code.
 - **Documentation** — specifications and design records.
+- **UI** — a user interface, run or embedded rather than imported.
 
 #### Scenario: Classifying a new repository
 
@@ -28,6 +30,37 @@ README structure.
 
 - **WHEN** a reader opens a utility repository's README
 - **THEN** it explains how to consume the assets, not how to import a package
+
+### Requirement: Repository classification
+
+Every repository SHALL have a recorded type. The classification is:
+
+| Repository           | Type          |
+| -------------------- | ------------- |
+| `gohai`              | Go library    |
+| `nats-client`        | Go library    |
+| `nats-server`        | Go library    |
+| `osapi-orchestrator` | Go library    |
+| `osapi`              | Main product  |
+| `osapi-justfiles`    | Utility       |
+| `specs`              | Documentation |
+| `osapi-ui`           | UI            |
+
+`osapi-sdk` and `osapi-io-taskfiles` are deprecated and outside this capability.
+Adding a repository, or changing one's type, is a change to this capability.
+
+#### Scenario: Determining which structure applies
+
+- **WHEN** a contributor needs to know which README structure `gohai` must
+  follow
+- **THEN** the classification records it as a Go library, without inferring it
+  from the repository's contents
+
+#### Scenario: A repository is added
+
+- **WHEN** a new repository is created
+- **THEN** it is added to the classification, rather than left to be classified
+  by whoever next edits it
 
 ### Requirement: Files every repository carries
 
@@ -58,6 +91,54 @@ development documents.
 - **WHEN** a contributor opens a new issue or pull request
 - **THEN** GitHub links the repository's contributing guide, because it is at
   the location GitHub recognizes
+
+### Requirement: CONTRIBUTING structure
+
+`CONTRIBUTING.md` SHALL open and close with a fixed set of sections, in this
+order, with repository-specific sections placed between them:
+
+| Section                 | Position | Content                                 |
+| ----------------------- | -------- | --------------------------------------- |
+| `## Before you start`   | opening  | Code of Conduct, checking existing work |
+| `## Prerequisites`      | opening  | Tools a contributor installs            |
+| *(repository-specific)* | middle   | Setup, conventions, workflow            |
+| `## Before committing`  | closing  | The command that runs what CI runs      |
+| `## Branching`          | closing  | Branch naming                           |
+| `## Commit messages`    | closing  | Commit conventions                      |
+| `## Submitting a PR`    | closing  | Pull request expectations               |
+| `## AI usage`           | closing  | Pointer to `AI_POLICY.md`               |
+| `## FAQ`                | closing  | Where to get help                       |
+
+Section names SHALL be taken from this table rather than reworded. The middle
+varies by repository, because what a contributor needs to know differs.
+
+#### Scenario: Two repositories describe the pre-commit check
+
+- **WHEN** two repositories document the command a contributor runs before
+  committing
+- **THEN** both name that section `## Before committing`, not one using
+  `Before committing` and the other `Finishing a change`
+
+#### Scenario: A repository has domain-specific conventions
+
+- **WHEN** a repository has conventions that apply only to it, such as how its
+  recipes are written
+- **THEN** those appear as a middle section, leaving the opening and closing
+  sections in place
+
+### Requirement: Agent guidance has no prescribed structure
+
+`AGENTS.md` SHALL NOT have a required section structure. Its content is whatever
+is specific to that repository and to agents, and forcing a common skeleton
+would produce empty sections.
+
+It SHALL, however, open by directing the reader to `CONTRIBUTING.md`.
+
+#### Scenario: Two repositories need different agent guidance
+
+- **WHEN** one repository needs a planning boundary documented and another needs
+  a warning that its artifacts cannot be tested locally
+- **THEN** each states only what applies to it, with no shared headings required
 
 ### Requirement: Agent guidance is tool-neutral
 
@@ -120,6 +201,10 @@ A **utility** README SHALL contain `Usage`, `Documentation`, `Contributing`, and
 
 A **documentation** README SHALL contain `Usage`, `Documentation`,
 `Contributing`, and `License`.
+
+A **UI** README SHALL contain `Usage`, `Documentation`, `Contributing`, and
+`License`. A UI is run or embedded rather than obtained as a package, so it has
+no `Install` section.
 
 The **main product** README is exempt from this requirement. It serves as the
 organization's landing page rather than describing a consumable artifact.
