@@ -99,6 +99,12 @@ reason — `gohai` builds on macOS and uses a different token.
 Naming lag as non-conformance makes an unmerged queue visible as a standards
 problem rather than as housekeeping.
 
+The requirement deliberately names no version. Dependabot bumps these
+continuously, so "the workflows pin v7" would be false by the next bump — and
+the repositories that are behind today will be behind on different versions
+tomorrow. The durable statement is that the queue is kept moving, not that any
+particular version is current.
+
 *Alternative considered:* require workflows to be byte-identical. `release`
 legitimately differs, so the requirement would be false the day it landed.
 

@@ -89,13 +89,22 @@ something the recipe could have fixed.
 Repositories of the same type SHALL run the same set of workflows, and those
 workflows SHALL differ only where the repository's build genuinely requires it.
 
-Action versions falling behind is drift, not variation.
+Action and dependency versions are maintained by Dependabot. This capability
+SHALL NOT name a version, because the current one changes without anyone
+deciding it. What a repository SHALL do is keep its update queue moving — a
+backlog of unmerged bumps is how repositories that should match stop matching.
 
-#### Scenario: A workflow differs only by action version
+#### Scenario: Repositories differ only by dependency version
 
-- **WHEN** one repository's workflow pins older action versions than another's
-- **THEN** that is a repository behind on updates rather than a deliberate
-  difference, and it is brought forward
+- **WHEN** one repository's workflows pin older versions than another's
+- **THEN** the difference is an unmerged update queue rather than a deliberate
+  choice, and the queue is worked rather than the difference documented
+
+#### Scenario: A version is proposed as a requirement
+
+- **WHEN** someone proposes recording a specific action or module version here
+- **THEN** it is declined, because Dependabot moves it and the corpus would be
+  wrong by the next bump
 
 #### Scenario: A build genuinely requires different infrastructure
 
