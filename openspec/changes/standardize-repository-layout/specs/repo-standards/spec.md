@@ -176,6 +176,14 @@ development documents.
 - **WHEN** a contributor wants to know how to build and test a repository
 - **THEN** the instructions are in `CONTRIBUTING.md` at the root
 
+#### Scenario: Repository publishes a documentation site
+
+- **WHEN** a repository publishes a documentation site that already contains
+  contributing or development pages
+- **THEN** the root `CONTRIBUTING.md` becomes the single source, and the site's
+  page is reduced to a pointer to it rather than being deleted or kept as a
+  second copy
+
 #### Scenario: GitHub surfaces the guide
 
 - **WHEN** a contributor opens a new issue or pull request
