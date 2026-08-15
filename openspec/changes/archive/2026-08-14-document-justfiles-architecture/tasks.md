@@ -7,11 +7,3 @@
 - [x] 1.3 Record the two consumption styles and the shim failure mode as
   scenarios rather than as commentary
 - [x] 1.4 Record the decisions and their rejected alternatives in design.md
-
-## 2. Follow-up
-
-Converging on a single consumption style modifies the consumption requirement
-recorded here, changes six modules, and breaks every consuming repository as it
-lands. It is tracked as its own change.
-
-- [ ] 2.1 Open a change to converge on one consumption style

@@ -6,6 +6,13 @@ Read @CONTRIBUTING.md first. It covers the workflow, the operating model,
 formatting, and every convention — all of which apply to agents exactly as they
 apply to people. This file carries only what is specific to agents.
 
+## Running a change
+
+The procedure, with commands, is in @CONTRIBUTING.md under "Running a change".
+Follow it rather than improvising: propose, merge, apply, archive — each step
+its own pull request, except documentation-only changes where propose and
+archive belong in one.
+
 ## Planning boundary
 
 `/opsx:propose` produces planning artifacts and then stops. Do not edit code in

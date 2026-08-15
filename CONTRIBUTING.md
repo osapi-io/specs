@@ -99,17 +99,18 @@ openspec/
 
 ### Changes and specs are different things
 
-`openspec/specs/` is the corpus — the current description of how osapi-io
-behaves. It is the thing that survives. Nothing is written there by hand.
+`openspec/specs/` is the corpus — the standing answer to what is true about
+osapi-io right now. It is always present-tense. It never records that something
+used to be different.
 
 `openspec/changes/` holds work in flight. A change contains **deltas**:
 requirements marked `## ADDED`, `## MODIFIED`, or `## REMOVED`, describing how
-the corpus should differ once the work lands. When a change completes, its
-deltas are merged into `specs/` and the change moves to
-`openspec/changes/archive/`.
+the corpus should differ once the work lands.
 
-So the flow is always the same: nothing enters the corpus without first being a
-reviewed change.
+**You never write a spec.** There is no command that creates one and no template
+to fill in. You write deltas inside a change, and `/opsx:archive` generates or
+rewrites the spec file from them. Editing `specs/` by hand produces something
+the next archive will overwrite or orphan.
 
 ```
 propose ──> changes/<name>/    proposal, spec deltas, design, tasks
@@ -117,6 +118,24 @@ apply   ──> target repo        implementation, tasks checked off
 sync    ──> specs/             deltas merged into the corpus
 archive ──> changes/archive/   the change, preserved with its design
 ```
+
+The comparison to git is close enough to be useful: a change is a commit —
+motivation, diff, plan. A spec is the working tree — just the current state. You
+do not read the commit log to find out what a file contains.
+
+### When to archive
+
+Archive a change as soon as its tasks are complete. A finished change left
+unarchived means the corpus does not reflect work that is already done.
+
+A task list must therefore contain only this change's own work. Do not add a
+task for follow-up work in another change: the archive step verifies every task
+is checked, so a forward reference blocks the change from ever archiving.
+
+An archived change keeps its proposal, design, and tasks under
+`openspec/changes/archive/`. Only the spec deltas move into `specs/`, which is
+why design reasoning belongs in `design.md` — the archive is where anyone looks
+to find out why the corpus says what it says.
 
 ### What each artifact is for
 
@@ -192,28 +211,66 @@ the spec while implementing, update the change rather than quietly building
 something else, then `/opsx:sync` so the corpus reflects what was actually
 built.
 
-## Command reference
+## Running a change
 
-The [README](README.md) describes the propose → review → implement → archive
-flow. These are the commands that drive it:
+`main` is protected, so each step below is its own pull request.
 
-| Command         | What it does                                                  |
-| --------------- | ------------------------------------------------------------- |
-| `/opsx:explore` | Think through options before committing to an approach        |
-| `/opsx:propose` | Create a change — proposal, specs, design, and task breakdown |
-| `/opsx:apply`   | Work the task list, checking items off as they land           |
-| `/opsx:update`  | Revise an in-flight change                                    |
-| `/opsx:sync`    | Reconcile specs with what was actually built                  |
-| `/opsx:archive` | Move a completed change into the archive                      |
+**1. Propose**
+
+```bash
+/opsx:propose "converge shared justfiles on one consumption style"
+```
+
+Creates `openspec/changes/<name>/` with a proposal, spec deltas, a design, and
+tasks. Nothing else happens — this step never edits code.
+
+Branch, commit, open a PR. What gets reviewed is the plan.
+
+**2. Merge the proposal PR**
+
+The plan is now agreed. `specs/` is unchanged; the change is in flight.
+
+**3. Apply**
+
+```bash
+/opsx:apply
+```
+
+Work the task list. Implementation lands in the target repository, in that
+repository's own PR. Tick tasks off here as they land.
+
+**4. Archive**
+
+```bash
+/opsx:archive
+```
+
+Merges the deltas into `specs/` and moves the change to
+`openspec/changes/archive/`. Branch, commit, open a PR.
+
+Archiving refuses to run while any task is unchecked.
+
+### Shortcut for documentation-only changes
+
+When the artifacts *are* the work — recording an architecture that already
+exists — steps 1 and 4 belong in the **same** PR. Splitting them only creates a
+window where the corpus is knowingly incomplete. Run `/opsx:propose`, then
+`/opsx:archive`, then open one PR containing both the change and the resulting
+`specs/` update.
+
+### Other commands
+
+| Command         | When                                         |
+| --------------- | -------------------------------------------- |
+| `/opsx:explore` | Before proposing, to weigh approaches        |
+| `/opsx:update`  | Revise a change that is still in flight      |
+| `/opsx:sync`    | Update `specs/` without archiving the change |
 
 Refresh the generated agent wiring after a CLI upgrade:
 
 ```bash
 openspec update
 ```
-
-A spec that describes something never built is worse than no spec — always
-`/opsx:sync` before archiving.
 
 ## Writing requirements
 
