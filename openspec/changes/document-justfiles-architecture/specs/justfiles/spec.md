@@ -1,64 +1,62 @@
 ## Purpose
 
-Defines how shared `just` recipes are structured, consumed, named, versioned,
-and documented, so that every osapi-io repository wires up the same tooling in
-the same way and a new module can be written without guessing.
+Records how shared `just` recipes are distributed, consumed, named, and
+documented across osapi-io today, including the two consumption styles currently
+in use, so that the architecture is written down before it is changed.
 
 ## ADDED Requirements
 
-### Requirement: Module directory layout
+### Requirement: Recipes are distributed as fetched files
 
-Each shared module SHALL live in its own directory containing its recipe file
-and a README documenting it. The recipe file SHALL be named after the module so
-that filenames remain unique when modules are flattened into a single directory
-by downstream packaging.
+Shared recipes SHALL be distributed as individual files fetched over HTTP into a
+gitignored directory in the consuming repository. A consuming repository SHALL
+declare what it fetches, so the set of shared recipes it depends on is visible
+in its own justfile.
 
-#### Scenario: Adding a new module
+Fetches SHALL resolve against the default branch; there is no version handshake
+between a module and its consumers.
 
-- **WHEN** a new shared module named `foo` is added
-- **THEN** it is created as `foo/foo.just` with a companion `foo/README.md`
+#### Scenario: Consumer obtains shared recipes
 
-#### Scenario: Two modules packaged together
+- **WHEN** a repository runs its `fetch` recipe
+- **THEN** the shared files it names are downloaded into `.just/remote/`, which
+  is excluded from version control
 
-- **WHEN** modules are collected into one flat directory for distribution
-- **THEN** no two module recipe files collide by name
+#### Scenario: A module changes upstream
 
-### Requirement: Import-based consumption
+- **WHEN** a module is modified upstream
+- **THEN** consuming repositories receive the change on their next fetch,
+  without declaring a version
 
-Modules SHALL be consumed with `import?` rather than `mod?`, and SHALL NOT
-require a shim file that sets a working directory. Recipes SHALL execute from
-the directory of the justfile that imports them.
+### Requirement: Two consumption styles are in use
 
-A module SHALL be usable by a repository regardless of which subdirectories that
-repository happens to contain.
+A module SHALL be consumed in one of two styles, and SHALL be internally
+consistent in the style it uses.
 
-#### Scenario: Repository without a docs directory
+A **shim-based** module ships two files: a recipe file and a `.mod.just` shim
+that sets a working directory and imports it. Its recipes are namespaced by
+module, and they execute from the directory the shim names.
 
-- **WHEN** a repository with no `docs/` directory imports a module
-- **THEN** the module loads and its recipes run successfully
+A **flat** module ships one file, consumed by import. Its recipes and variables
+are prefixed with the module name, and they execute from the directory of the
+justfile that imports them.
 
-#### Scenario: Fetching a module
+#### Scenario: Fetching a shim-based module
 
-- **WHEN** a consuming repository fetches a module
-- **THEN** exactly one file is retrieved for that module, with no companion shim
-  file required
+- **WHEN** a repository consumes the `go` module
+- **THEN** it fetches both `go.mod.just` and `go.just`, and invokes recipes as
+  `just go::fmt`
 
-### Requirement: Prefixed recipe names
+#### Scenario: Fetching a flat module
 
-Recipes exported by a module SHALL be prefixed with the module name and
-separated by hyphens. Because imported recipes share a single namespace with the
-consuming justfile, module-level variables SHALL also be prefixed.
+- **WHEN** a repository consumes the `md` module
+- **THEN** it fetches a single file, and invokes recipes as `just md-fmt`
 
-#### Scenario: Invoking a module recipe
+#### Scenario: Shim target is missing
 
-- **WHEN** a consumer runs the format check from module `md`
-- **THEN** the recipe is invoked as `just md-fmt-check`
-
-#### Scenario: Two modules defining the same concept
-
-- **WHEN** modules `md` and `just` both provide formatting recipes
-- **THEN** they expose `md-fmt` and `just-fmt` respectively, and neither shadows
-  the other
+- **WHEN** a repository consumes a shim-based module whose shim names a
+  directory that repository does not contain
+- **THEN** the module fails to load and its recipes cannot be run
 
 ### Requirement: Environment variable naming
 
@@ -66,52 +64,40 @@ Every environment variable a module reads SHALL be prefixed with `JUST_`.
 
 #### Scenario: Module exposes a configurable value
 
-- **WHEN** module `md` allows the line wrap width to be overridden
+- **WHEN** the `md` module allows its line wrap width to be overridden
 - **THEN** the variable is named `JUST_MDFORMAT_WRAP`
 
-### Requirement: Pinned tool versions
+### Requirement: Recipe filenames are globally unique
 
-A module that invokes an external tool SHALL pin that tool's version. Where the
-tool's available options depend on its language runtime, the module SHALL pin
-the runtime version as well.
+Recipe filenames SHALL be unique across all modules, because distribution
+flattens every module's recipe file into a single directory.
 
-#### Scenario: Runtime affects available flags
+#### Scenario: Modules collected for distribution
 
-- **WHEN** a tool's command-line flag exists only on a newer language runtime
-- **THEN** the module pins the runtime so the flag is present on every machine
-  and in CI
+- **WHEN** every module's recipe file is packaged into one flat directory
+- **THEN** no two files collide by name
 
-#### Scenario: Upstream releases a new tool version
+### Requirement: Every module is documented
 
-- **WHEN** the tool publishes a new release
-- **THEN** consuming repositories are unaffected until the pin is changed
-
-### Requirement: Self-documenting modules
-
-Each module's README SHALL document its recipes, its requirements, what it
-excludes, and every environment variable it reads. The repository root README
-SHALL index the modules and link to them rather than documenting them inline.
+Each module SHALL document its recipes and every environment variable it reads.
+Documentation SHALL live either in the repository root README or in a README
+beside the module, and the root README SHALL make every module discoverable.
 
 #### Scenario: Reading a module's documentation
 
-- **WHEN** a developer wants to know what a module does
-- **THEN** the module's own README lists its recipes and environment variables
+- **WHEN** a developer wants to know which recipes a module provides
+- **THEN** the root README either documents them or links to the module's own
+  README
 
-#### Scenario: Adding a module to the index
+### Requirement: Formatters do not operate on the same paths
 
-- **WHEN** a new module is added
-- **THEN** the root README gains a row linking to it, and does not restate its
-  recipe table
+Where two modules format the same file type with different tools, they SHALL NOT
+be configured to operate on the same paths, and a module that scans an entire
+repository SHALL provide a way to exclude paths another module owns.
 
-### Requirement: Non-overlapping formatters
-
-Two modules that format the same file type SHALL NOT be configured to operate on
-the same paths, and each SHALL provide a means of excluding paths owned by
-another.
-
-#### Scenario: Repository uses two formatters
+#### Scenario: Repository uses two markdown formatters
 
 - **WHEN** a repository formats root markdown with one module and a
   documentation site with another
-- **THEN** the paths handled by each are disjoint, and neither reformats the
+- **THEN** the paths each handles are disjoint, and neither reformats the
   other's files

@@ -1,35 +1,36 @@
 ## Why
 
 `osapi-justfiles` is consumed by every repository in the organization, but its
-design has never been written down. The result is drift: two different module
-consumption styles, env vars that follow the stated convention in seven cases
-and ignore it in two, and modules whose documentation lives in a root README
-that grows without bound. New modules are written by copying whichever existing
-module the author looked at first.
+architecture has never been written down. Nothing records how a module is
+distributed, how a consumer wires it up, or which conventions are deliberate, so
+every change to it is a judgment call and new modules are written by copying
+whichever existing module the author looked at first.
 
-Nothing records which of those patterns is intentional, so every change is a
-judgment call and inconsistency compounds.
+The absence has already produced drift. Two consumption styles are in use.
+Environment variables followed the stated `JUST_` convention in seven cases and
+ignored it in two until recently. One module documents itself; the rest are
+documented in a root README that grows with each addition.
+
+Writing the architecture down is a prerequisite for changing it deliberately.
 
 ## What Changes
 
-- Establish the `justfiles` capability describing how shared recipes are
-  structured, consumed, named, and documented.
-- Adopt directory-per-module as the required layout: each module owns a
-  directory containing its recipe file and a README that documents it. The root
-  README indexes them rather than documenting them inline.
-- Adopt `import?` with flat, prefixed recipe names as the required consumption
-  style, replacing `mod?` with `::` namespacing. This removes the `.mod.just`
-  shim and its `set working-directory`, which made modules fail outright in
-  repositories lacking the directory the shim pointed at.
-- Require the `JUST_` prefix on every environment variable, matching the
-  convention already stated in `CLAUDE.md`.
-- Require that a module pin the versions of any tool it invokes, including the
-  language runtime where tool behavior depends on it.
-- **BREAKING** Migrate the five modules still using `mod?` (`go`, `bats`,
-  `docs`, `docker`, `react`). Consuming repositories must update their `fetch`
-  recipes and call sites.
+- Establish the `justfiles` capability, recording how shared recipes are
+  distributed, consumed, named, and documented as of today.
+- Record that two consumption styles are in use: six modules ship a `.mod.just`
+  shim with namespaced recipes, and one module (`md`) ships a single file
+  consumed by import with flat prefixed recipes.
+- Record the constraints that hold across every module: the `JUST_` prefix on
+  environment variables, globally unique recipe filenames, discoverable
+  documentation, and non-overlapping formatters.
+- Record the known failure mode of the shim-based style, where a module cannot
+  load at all in a repository lacking the directory its shim names.
 
-Documenting how each consuming repository wires these modules up is out of
+Nothing is migrated by this change, and no module changes. Converging on a
+single consumption style is a separate change, so that the architecture is
+recorded before it is altered rather than after.
+
+Documenting how each consuming repository wires these modules up is also out of
 scope; that belongs to a later capability once those repositories are themselves
 documented.
 
@@ -37,8 +38,8 @@ documented.
 
 ### New Capabilities
 
-- `justfiles`: how shared just recipes are structured, consumed, named,
-  versioned, and documented across osapi-io.
+- `justfiles`: how shared just recipes are distributed, consumed, named, and
+  documented across osapi-io.
 
 ### Modified Capabilities
 
@@ -46,10 +47,7 @@ None. This is the first capability in the corpus.
 
 ## Impact
 
-- `osapi-justfiles`: five modules move into directories and convert to flat
-  recipes; each gains a README; the root README becomes an index.
+- `osapi-justfiles`: no code change. This change records what is already there.
 - Consuming repositories (`osapi`, `gohai`, `nats-client`, `nats-server`,
-  `specs`): `fetch` recipes and call sites change. Their `just-lint` job fails
-  until updated, since the old `.mod.just` URLs stop resolving.
-- `md` and `just` already follow the target design and serve as the reference
-  implementations.
+  `specs`): no change. They are affected only by the migration change that
+  follows.
