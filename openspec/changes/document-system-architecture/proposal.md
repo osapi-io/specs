@@ -19,7 +19,7 @@ of the dependency graph found three claims that no longer hold:
 
 ## What Changes
 
-- Establish the `system-architecture` capability, recording the dependency graph
+- Establish the `module-dependencies` capability, recording the dependency graph
   and how dependencies are declared.
 - Require a module path to match its repository location.
 - Require documentation describing a dependency to match what `go.mod` declares.
@@ -28,7 +28,7 @@ of the dependency graph found three claims that no longer hold:
 
 ### New Capabilities
 
-- `system-architecture`: how osapi-io repositories depend on one another, and
+- `module-dependencies`: how osapi-io repositories depend on one another, and
   how those dependencies are declared.
 
 ### Modified Capabilities

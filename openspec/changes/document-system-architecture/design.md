@@ -41,6 +41,20 @@ location a reader would try does not resolve.
 
 ## Decisions
 
+### Name the capability `module-dependencies`
+
+An earlier draft called it `system-architecture`. That name is already taken:
+`osapi` publishes `docs/sidebar/architecture/system-architecture.md`, which maps
+its packages, layers, and request path. This capability is about neither — it
+covers Go module paths and how repositories declare dependencies on one another.
+
+Two documents named for the same thing, describing different things, is how a
+reader ends up reading the wrong one.
+
+*Alternative considered:* keep the name and rename osapi's document. The
+document is correct about its own subject, and it is published on a site with
+existing links.
+
 ### Require module path to match repository location
 
 `go get github.com/osapi-io/osapi` fails today. A reader who finds the

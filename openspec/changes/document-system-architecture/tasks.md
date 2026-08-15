@@ -1,7 +1,7 @@
 ## 1. Record the architecture
 
 - [x] 1.1 Map the dependency graph and how each dependency is declared
-- [x] 1.2 Write the `system-architecture` capability
+- [x] 1.2 Write the `module-dependencies` capability
 - [x] 1.3 Record the decisions and their rejected alternatives in design.md
 
 ## 2. Correct the module path
