@@ -26,9 +26,11 @@ A Go module SHALL declare a path matching the repository that holds it.
 A repository SHALL depend on another by a released or pinned version in
 `go.mod`.
 
-A repository SHALL NOT contain a `replace` directive. No repository contains one
-today, and the documentation that described `replace` as the linking mechanism
-was wrong.
+A `replace` directive MAY be used locally while developing against an unreleased
+change in a sibling repository. It SHALL NOT be merged.
+
+No repository contains one today, and the documentation that described `replace`
+as the linking mechanism was wrong.
 
 #### Scenario: Consumer builds without the sibling checked out
 
@@ -36,12 +38,18 @@ was wrong.
   repositories
 - **THEN** the build resolves every dependency from the module proxy
 
-#### Scenario: Local development against an unreleased change
+#### Scenario: Developing against an unreleased sibling change
 
-- **WHEN** a developer needs to build against an unreleased change in a sibling
-  repository
-- **THEN** they use a local workspace or a temporary pin rather than committing
-  a `replace` directive
+- **WHEN** a developer adds a `replace` directive to test against a sibling
+  repository's unmerged branch
+- **THEN** it is removed and the dependency repinned to the released version
+  before the change is merged
+
+#### Scenario: The sibling change merges first
+
+- **WHEN** the sibling change is merged and published
+- **THEN** the dependent repository pins the new version, and the `replace`
+  directive that stood in for it is gone
 
 ### Requirement: Documented relationships match declared ones
 
