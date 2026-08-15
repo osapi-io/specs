@@ -50,19 +50,22 @@ so the target holds what exists rather than demanding new tests.
 - [x] 2.10 Archive `osapi-sdk`, which is deprecated but still consumes the `go`
   module and still runs `just go::test`. Do this before 2.8, or flipping the
   gate turns an unmaintained repository red
-- [ ] 2.11 All five — state in `CONTRIBUTING.md` that coverage is gated at 100%
+- [x] 2.11 All five — state in `CONTRIBUTING.md` that coverage is gated at 100%
   and name the recipe that checks it. The rule lives in the corpus; how to run
   it is contributor-facing
-- [ ] 2.12 Confirm the check fails a build when coverage drops, rather than only
+- [x] 2.12 Confirm the check fails a build when coverage drops, rather than only
   reporting it
 
 ## 3. Verification
 
-- [ ] 3.1 Confirm every Go repository declares the coverage target
-- [ ] 3.6 Confirm both declarations state the same number
-- [ ] 3.2 Confirm every repository publishing a binary configures goreleaser
-- [ ] 3.3 Confirm no repository carries a top-level directory outside the
+- [x] 3.1 Confirm every Go repository declares the coverage target
+- [ ] 3.6 Confirm both declarations state the same number. Fails: `osapi`
+  declares 99.9% in `codecov.yml` but its justfile export never reaches the shim
+  `go` module, so the effective local target is 100. Unblocked by
+  `converge-justfile-consumption` task 1.2
+- [x] 3.2 Confirm every repository publishing a binary configures goreleaser
+- [x] 3.3 Confirm no repository carries a top-level directory outside the
   documented set
-- [ ] 3.4 Confirm `ready` addresses every check CI runs, in every repository
-- [ ] 3.5 Confirm workflows of the same type differ only where the build
+- [x] 3.4 Confirm `ready` addresses every check CI runs, in every repository
+- [x] 3.5 Confirm workflows of the same type differ only where the build
   requires it
