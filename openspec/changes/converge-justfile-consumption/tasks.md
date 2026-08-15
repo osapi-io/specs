@@ -1,21 +1,23 @@
 ## 1. Convert the modules
 
-Each module: directory, README, flat prefixed recipes, shim deleted, inline
-section removed from the root README. Consumers updated before the next module
-begins.
+Each module: directory, README, flat prefixed recipes, **prefixed variables with
+plain defaults**, shim deleted, inline section removed from the root README.
+Consumers updated before the next module begins.
+
+A variable that varies by repository is a plain assignment a consumer reassigns.
+`env()` is kept only where the value varies by environment rather than by
+repository.
 
 - [ ] 1.1 `just` — conversion already written as osapi-justfiles#39
-- [ ] 1.2 `go` — also fixes osapi's coverage target: its justfile
-  `export JUST_COVERAGE_TARGET` never reaches the shim module, so osapi runs
-  against the default 100. A flat module with
-  `set allow-duplicate-variables := true` lets the consumer override the default
-  directly
+- [x] 1.2 `go` — osapi-justfiles#46
 - [ ] 1.3 `bats`
 - [ ] 1.4 `docker` — rename `image_name`, `image_tag`, `dockerfile` with the
-  module prefix; unprefixed names collide in a shared scope
+  module prefix and make them plain assignments; unprefixed names collide in a
+  shared scope
 - [x] 1.5 `react` — osapi-justfiles#44
 - [ ] 1.6 `docs` — rename `host` and `port` with the module prefix, and ensure
-  its paths do not overlap with `md`
+  its paths do not overlap with `md`. These two may keep `env()`: a dev server
+  port varies by machine, not by repository
 
 ## 2. Update consumers
 
