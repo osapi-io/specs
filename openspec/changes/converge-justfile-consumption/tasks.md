@@ -13,6 +13,8 @@ begins.
 - [ ] 1.3 `bats`
 - [ ] 1.4 `docker`
 - [x] 1.5 `react` — osapi-justfiles#44
+- [ ] 1.5a `react`, `go` — restore `env()` defaults so both lint standalone, and
+  move consumer overrides to a dotenv file
 - [ ] 1.6 `docs` — ensure its paths do not overlap with `md`
 
 ## 2. Update consumers

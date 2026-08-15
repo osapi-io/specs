@@ -81,3 +81,43 @@ update every consuming repository before starting the next module.
 - Should the fetch pin a tag or commit rather than the default branch? It would
   remove both the stale-cache failure and the broken window during conversion.
   Recorded on the `justfiles` capability and unanswered.
+
+### A module must lint on its own
+
+The first attempt at per-repository configuration had the module reference a
+variable and the consuming justfile declare it. It worked at runtime and was
+wrong: `go/go.just` and `react/react.just` no longer parsed on their own, so
+`osapi-justfiles` could not lint the files it owns. `just --fmt --check`
+reported `Variable go_coverage_target not defined` — a design fault surfacing as
+a formatting error.
+
+That was missed because the repository's own lint passed in CI and failed
+locally. CI installs just through an unpinned setup action; the version it
+resolved does not reject undefined variables during a format check, and just
+1.45 does. The same commit was green in one place and red in the other.
+
+The mechanism that keeps modules self-contained is `set dotenv-load`. A dotenv
+file is read before variables are evaluated, so `env()` sees it — which `export`
+in a justfile never achieves, because `export` populates the environment of
+recipes rather than of the parse.
+
+```just
+set dotenv-load := true
+set dotenv-filename := '.justenv'
+
+import? '.just/remote/go.just'
+```
+
+```
+.justenv:  JUST_COVERAGE_TARGET=99.9
+```
+
+The module keeps `go_coverage_target := env("JUST_COVERAGE_TARGET", "100")`, so
+it parses alone, lints alone, and needs no consumer cooperation to be checked.
+
+*Alternative considered:* `set allow-duplicate-variables := true` and let the
+consumer reassign. It suspends the duplicate check for every variable in the
+file to serve one.
+
+*Alternative considered:* exclude modules that need consumer variables from the
+owning repository's lint. It exempts exactly the files most likely to be wrong.

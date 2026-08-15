@@ -39,60 +39,53 @@ repository contains.
 - **THEN** it takes that path as configuration rather than as a working
   directory set by a shim
 
-### Requirement: A consumer declares what it configures
+### Requirement: A module is self-contained
 
 A justfile SHALL NOT use `set allow-duplicate-variables`.
 
-Where a module's behaviour varies per consuming repository, the module SHALL
-reference the variable without defining it, and the consuming justfile SHALL
-declare it. A module SHALL NOT ship a default for such a variable.
+A module SHALL define every variable it references, with a default, so that it
+parses and lints on its own. A module SHALL NOT reference a variable it expects
+its consumer to declare.
 
-A flat import shares one scope, so a module default cannot be overridden — just
-rejects a variable with two definitions. `set allow-duplicate-variables` would
-permit it, at the cost of disabling that check for every variable in the file.
-Requiring the declaration instead keeps the check and makes the value visible in
-the repository it applies to.
+A consuming repository SHALL override a default by setting the corresponding
+environment variable in a committed dotenv file, loaded with `set dotenv-load`.
+`env()` resolves against the process environment when just parses the file, and
+a dotenv file is loaded before that — so the override reaches the module, while
+an `export` in the consuming justfile does not.
 
-A module MAY read `env()` for values that vary by environment rather than by
-repository, since those are set where there is no justfile to edit.
+#### Scenario: A module is checked on its own
 
-#### Scenario: A module needs a per-repository value
+- **WHEN** a repository lints each of its justfiles individually
+- **THEN** every module parses, because none depends on a variable defined
+  somewhere else
 
-- **WHEN** a module's recipes depend on a path or threshold that differs between
-  repositories
-- **THEN** the module references the variable and each consuming justfile
-  declares it
+#### Scenario: A repository needs a different value
 
-#### Scenario: A consumer omits a required declaration
-
-- **WHEN** a consuming justfile imports a module without declaring a variable
-  that module references
-- **THEN** it fails at parse time, rather than running against a default nobody
-  chose
+- **WHEN** a repository's application lives somewhere other than the default, or
+  its coverage target differs
+- **THEN** it sets the variable in its dotenv file, and the module keeps its
+  default for every other repository
 
 #### Scenario: Overriding a module default is proposed
 
-- **WHEN** someone proposes shipping a default in a module and letting consumers
-  override it
-- **THEN** it is declined, because the override requires
-  `set allow-duplicate-variables`, which suspends the duplicate check for the
-  whole justfile to serve one variable
+- **WHEN** someone proposes assigning the variable again in the consuming
+  justfile
+- **THEN** it is declined: just rejects a variable with two definitions, and
+  `set allow-duplicate-variables` suspends that check for the whole file to
+  serve one variable
 
-#### Scenario: A value varies by environment, not by repository
+#### Scenario: No dotenv file is present
 
-- **WHEN** a value differs between a developer machine and continuous
-  integration rather than between repositories
-- **THEN** the module reads it with `env()` and ships a default, because there
-  is no justfile to edit in that environment
+- **WHEN** a repository needs no overrides
+- **THEN** it carries no dotenv file and every module uses its default
 
 ### Requirement: Fetched files are not linted
 
 A repository's justfile checks SHALL exclude the directory holding fetched
 modules, at every depth.
 
-A module that references a variable its consumer declares cannot be parsed on
-its own, so a per-file check reports an undefined variable rather than a
-formatting fault. The files are also not the consuming repository's to correct.
+Fetched files are not the consuming repository's to correct, and a fault in one
+is fixed upstream rather than locally.
 
 #### Scenario: A repository fetches modules into a subdirectory
 
@@ -100,8 +93,8 @@ formatting fault. The files are also not the consuming repository's to correct.
   application directory
 - **THEN** those files are excluded from linting as well as the ones at the root
 
-#### Scenario: A fetched module fails a standalone parse
+#### Scenario: A fetched module is malformed
 
-- **WHEN** a lint pass parses a fetched module by itself and reports an
-  undefined variable
-- **THEN** the exclusion is the fix, not a change to the module
+- **WHEN** a lint pass would fail on a fetched module
+- **THEN** the exclusion keeps the consuming repository green and the module is
+  corrected upstream, where the repository that owns it lints it
