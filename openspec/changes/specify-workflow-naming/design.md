@@ -28,3 +28,18 @@ does not say which formatter objected, and the two cannot be re-run separately.
 *Alternative considered:* one workflow with two clearly named steps. It reads
 well in the log and badly in the check list, which is where a failure is first
 seen.
+
+### Workflows for one subject read as a set
+
+`osapi` has three workflows for its documentation site: lint, build, and deploy.
+Renaming only the lint left `Docusaurus Lint` beside `Docs Build` and
+`Deploy to GitHub Pages` — three names for one subject, none wrong on its own.
+
+Nothing in the requirement forced the other two to change, because each states
+what it does. But a reader scanning the check list sees three unrelated-looking
+jobs where there is one subject, and someone adding a fourth has no name to
+follow.
+
+*Alternative considered:* leave them, since neither is misleading. That is true
+and is why this needed a rule rather than a defect report — the requirement now
+says workflows covering one subject name it the same way.

@@ -26,6 +26,13 @@ subject that failed.
   it
 - **THEN** each has its own workflow, so a failed check names which
 
+#### Scenario: Several workflows cover one subject
+
+- **WHEN** a repository has more than one workflow for the same subject, such as
+  building, deploying, and linting a documentation site
+- **THEN** all of them name that subject the same way, so they read as a set
+  rather than as unrelated jobs
+
 #### Scenario: Two repositories check the same thing
 
 - **WHEN** two repositories run the same check
