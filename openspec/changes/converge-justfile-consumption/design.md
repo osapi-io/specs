@@ -81,3 +81,42 @@ update every consuming repository before starting the next module.
 - Should the fetch pin a tag or commit rather than the default branch? It would
   remove both the stale-cache failure and the broken window during conversion.
   Recorded on the `justfiles` capability and unanswered.
+
+### A module must lint on its own, and export is how a consumer configures it
+
+The first attempt had the module reference a variable and the consuming justfile
+declare it. It ran correctly and was wrong: `go/go.just` and `react/react.just`
+no longer parsed alone, so `osapi-justfiles` could not lint the files it owns.
+`just --fmt --check` reported `Variable go_coverage_target not defined` — a
+design fault surfacing as a formatting error. Consumers were unaffected
+throughout, because they exclude fetched modules from linting.
+
+The mechanism that resolves it is `export`, which behaves differently than it
+first appears. It does not reach the parse of the file it appears in — which is
+why `export JUST_COVERAGE_TARGET := "99.9"` in osapi's justfile seemed to do
+nothing. It does reach child processes, and a consuming justfile invokes module
+recipes as child processes rather than as dependencies, so the export lands
+exactly where the module is parsed.
+
+The module therefore keeps `env("JUST_COVERAGE_TARGET", "100")` and parses
+alone; the consumer exports the variable and gets its own value.
+
+The repository that owns the modules sets nothing either. An earlier revision of
+this design had `osapi-justfiles` export the variables in its root justfile, on
+the reasoning that its lint should check modules with real values. That was left
+over from when modules could not parse without them. Once each module defines
+its own default, the exports restate the defaults in a second place — and there
+are eleven such variables across the three flat modules, so setting two of them
+would be arbitrary and setting all eleven would be duplication.
+
+A `JUST_*` variable is set by exactly one kind of repository: one whose value
+differs from the default.
+
+*Alternative considered:* `set allow-duplicate-variables` and reassignment in
+the consumer. It suspends the duplicate check for every variable in the file.
+
+*Alternative considered:* a committed dotenv file per repository. It works and
+adds a second file to look in for a value the justfile could state.
+
+*Alternative considered:* exempt the two modules from the owning repository's
+lint. It exempts the files most worth checking.

@@ -11,9 +11,11 @@ begins.
   `set allow-duplicate-variables := true` lets the consumer override the default
   directly
 - [ ] 1.3 `bats`
-- [ ] 1.4 `docker`
+- [ ] 1.4 `docker` — rename `image_name`, `image_tag`, `dockerfile` with the
+  module prefix; unprefixed names collide in a shared scope
 - [x] 1.5 `react` — osapi-justfiles#44
-- [ ] 1.6 `docs` — ensure its paths do not overlap with `md`
+- [ ] 1.6 `docs` — rename `host` and `port` with the module prefix, and ensure
+  its paths do not overlap with `md`
 
 ## 2. Update consumers
 

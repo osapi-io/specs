@@ -39,51 +39,82 @@ repository contains.
 - **THEN** it takes that path as configuration rather than as a working
   directory set by a shim
 
-### Requirement: A consumer declares what it configures
+### Requirement: A module is self-contained
 
 A justfile SHALL NOT use `set allow-duplicate-variables`.
 
-Where a module's behaviour varies per consuming repository, the module SHALL
-reference the variable without defining it, and the consuming justfile SHALL
-declare it. A module SHALL NOT ship a default for such a variable.
+A module SHALL define every variable it references, so that it parses and lints
+on its own. A module SHALL NOT reference a variable it expects its consumer to
+declare.
 
-A flat import shares one scope, so a module default cannot be overridden — just
-rejects a variable with two definitions. `set allow-duplicate-variables` would
-permit it, at the cost of disabling that check for every variable in the file.
-Requiring the declaration instead keeps the check and makes the value visible in
-the repository it applies to.
+A variable whose value may differ between repositories SHALL read `env()` with a
+default. A consuming repository SHALL override it by exporting the corresponding
+environment variable in its justfile.
 
-A module MAY read `env()` for values that vary by environment rather than by
-repository, since those are set where there is no justfile to edit.
+An `export` does not reach the parse of the file it appears in, so a consumer
+cannot use it to change a variable in a module it imports directly. It does
+reach child processes, and a consuming justfile invokes module recipes as child
+processes — which is where the override takes effect.
 
-#### Scenario: A module needs a per-repository value
+#### Scenario: A module is checked on its own
 
-- **WHEN** a module's recipes depend on a path or threshold that differs between
-  repositories
-- **THEN** the module references the variable and each consuming justfile
-  declares it
+- **WHEN** a repository lints each of its justfiles individually
+- **THEN** every module parses, because none depends on a variable defined
+  elsewhere
 
-#### Scenario: A consumer omits a required declaration
+#### Scenario: A repository needs a different value
 
-- **WHEN** a consuming justfile imports a module without declaring a variable
-  that module references
-- **THEN** it fails at parse time, rather than running against a default nobody
-  chose
+- **WHEN** a repository's application is not at the root, or its coverage target
+  differs
+- **THEN** its justfile exports the environment variable, and the module keeps
+  its default for every other repository
 
-#### Scenario: Overriding a module default is proposed
+#### Scenario: Overriding by reassignment is proposed
 
-- **WHEN** someone proposes shipping a default in a module and letting consumers
-  override it
-- **THEN** it is declined, because the override requires
-  `set allow-duplicate-variables`, which suspends the duplicate check for the
-  whole justfile to serve one variable
+- **WHEN** someone proposes assigning the variable again in the consuming
+  justfile
+- **THEN** it is declined: just rejects a variable with two definitions, and
+  `set allow-duplicate-variables` suspends that check for the whole file to
+  serve one variable
 
-#### Scenario: A value varies by environment, not by repository
+#### Scenario: A value is computed rather than configured
 
-- **WHEN** a value differs between a developer machine and continuous
-  integration rather than between repositories
-- **THEN** the module reads it with `env()` and ships a default, because there
-  is no justfile to edit in that environment
+- **WHEN** a variable is derived at run time, such as the repository root or the
+  package list
+- **THEN** it needs no environment variable, because no repository sets it
+
+#### Scenario: A repository is content with the defaults
+
+- **WHEN** a repository's values match every module default
+- **THEN** it sets nothing, and carries no configuration for those modules at
+  all
+
+#### Scenario: The repository owning the modules lints them
+
+- **WHEN** the repository that publishes the modules runs its own checks
+- **THEN** it sets nothing either, because a module that defines its own
+  defaults parses with no value supplied — which is what makes it lintable
+
+### Requirement: Module variables are namespaced
+
+A module's variables SHALL be prefixed with the module's name.
+
+A flat import shares one scope with the consuming justfile and every other
+imported module, so an unprefixed name is a collision waiting for the second
+module that wants it.
+
+#### Scenario: Two modules want the same name
+
+- **WHEN** more than one module needs a variable for a host, a port, or an image
+  name
+- **THEN** each prefixes it with its own module name, and both can be imported
+  together
+
+#### Scenario: A module is converted
+
+- **WHEN** a shim-based module becomes flat
+- **THEN** its variables are renamed with the module prefix in the same change,
+  because the shim previously scoped them and the import does not
 
 ### Requirement: Fetched files are not linted
 
