@@ -249,3 +249,26 @@ arrives at a superseded repository needs to be sent somewhere, not just warned.
 
 *Alternative considered:* delete them. Archiving keeps the history and the
 inbound links working, at no cost.
+
+### A modified fetched file is an override, not a stray
+
+`osapi` tracked `.just/remote/react.mod.just`, a path that looks exactly like a
+fetched artifact, and it was removed on that basis. The build broke: the module
+is a three-line shim whose only content is a working directory, upstream points
+it at the repository root, and `osapi`'s React application lives in `ui/`. Its
+first line said so — "Local override: run react recipes in the ui/ directory."
+
+The rule this change states is right; the evidence for applying it was the path
+rather than the content. A committed copy that differs from what the fetch
+returns is a fork someone made deliberately, and removing it removes the reason
+it was committed.
+
+It is still a defect. It is a different defect: a shared module carrying a value
+that varies per consumer, which forces the consumer to fork the file to change
+one string. The fix is for the module to take the directory as configuration —
+which `converge-justfile-consumption` already requires — after which there is
+nothing to override and nothing to track.
+
+*Alternative considered:* have the fetch write the override after downloading.
+That keeps a per-repository value in a fetch recipe instead of a tracked file,
+and still leaves the module unable to serve a consumer with a different layout.

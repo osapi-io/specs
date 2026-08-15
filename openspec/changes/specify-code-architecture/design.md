@@ -201,15 +201,25 @@ and are unaffected. `osapi-sdk` still consumes the shared `go` module and still
 runs `just go::test`, but it is deprecated; archiving it is what stops it being
 a consumer, not the fact that its README says so.
 
-All five measure 100% once `.coverignore` is applied:
+Four of the five measure 100% once `.coverignore` is applied. `osapi` does not:
 
 | Repository           | Raw    | After `.coverignore` |
 | -------------------- | ------ | -------------------- |
-| `osapi`              | 43.6%  | 100.0%               |
+| `osapi`              | 43.6%  | 99.9359%             |
 | `gohai`              | 96.5%  | 100.0%               |
 | `nats-client`        | 17.3%  | 100.0%               |
 | `nats-server`        | 50.0%  | 100.0%               |
 | `osapi-orchestrator` | 100.0% | 100.0%               |
+
+`osapi` is 9 uncovered statements short across 7 functions. It was recorded here
+as 100% because `go tool cover -func` rounds its `total:` line to one decimal
+place, so 99.9359% prints as `100.0%`. The gate read that string, which made it
+blind at exactly the margin it exists to police — it would have passed `osapi`
+while Codecov, computing exactly, failed it at 99.94%.
+
+The check therefore computes from the profile's own statement counts. A gate
+that reads a rounded display is not a gate; it is a gate with a tolerance nobody
+chose.
 
 The raw column is why the gate has to read the filtered profile and nothing
 else. Four of the five would fail a 100% gate applied to the raw number, and

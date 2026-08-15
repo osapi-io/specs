@@ -76,6 +76,13 @@ No workflow in any repository uses mise; all seven provision tools twice.
 - [ ] 6.3 Archive `osapi-ui` on GitHub
 - [ ] 6.4 Archive `osapi-io-taskfiles` on GitHub
 
+## 6a. Correct the react module override
+
+- [ ] 6a.1 `osapi-justfiles` — make the `react` module take its directory as
+  configuration instead of a shim setting a working directory
+- [ ] 6a.2 `osapi` — drop the tracked `.just/remote/react.mod.just` and its
+  `.gitignore` exception once the module is configurable
+
 ## 7. Verification
 
 - [ ] 7.1 Confirm every in-scope repository carries the required files
@@ -89,3 +96,5 @@ No workflow in any repository uses mise; all seven provision tools twice.
   check compares
 - [ ] 7.7 Confirm `just test` locally and CI agree on every repository
 - [ ] 7.8 Confirm every deprecated repository is archived on GitHub
+- [ ] 7.9 Confirm no tracked file was removed on the basis of its path without
+  its content being read
