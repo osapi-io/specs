@@ -231,3 +231,54 @@ The design that must hold:
 Point 3 is the one most easily lost. A coverage step added directly to a
 workflow would pass or fail on its own terms, and the local recipe would stop
 predicting CI — the same defect being fixed for `just::fmt`, reintroduced.
+
+### The second exclusion list was already there
+
+The survey behind this change looked for coverage configuration at each
+repository root and found none, which is how it concluded no repository declared
+a target. Every repository had one at `.github/codecov.yml`, byte-identical
+across all five, carrying its own `ignore:` list of `**/mocks/*.go` and
+`**/*.gen.go`.
+
+So the two-lists-that-can-drift problem this design set out to prevent already
+existed, and the two lists had already drifted.
+
+`.coverignore` differs per repository, correctly — `nats-client` excludes
+`/mocks/` and `connect_wrapper.go`, `gohai` excludes `/cmd/`, `/examples/`,
+`/gen/` and `main.go`. Each names what that repository actually has. The Codecov
+list was byte-identical across all five and named neither set: one blanket
+`**/mocks/*.go` and `**/*.gen.go` matching no repository's real exclusions.
+
+It produced no discrepancy only because it was inert. `nats-client`'s raw
+profile carries 400 lines from `pkg/client/mocks/*.gen.go`; `.coverignore`
+strips every one before upload, so Codecov was excluding files it was never
+sent. An exclusion that does nothing is still a second declaration of what is
+excluded, and the first person to add a pattern to one and not the other gets
+two different numbers.
+
+The list is removed rather than reconciled, because reconciling would keep two
+lists in agreement by hand — which is the failure this requirement exists to
+rule out.
+
+*Alternative considered:* keep it as defense in depth, in case a mock ever
+reaches the profile. Defense in depth against your own exclusion list is a way
+of saying you do not know which one is authoritative.
+
+### A threshold absorbs rounding, not regression
+
+Codecov rounds to two places and rounds down, so a change in statement count can
+render a genuine 100% as 99.99%. At `threshold: 0%` that fails the status on an
+artifact rather than on a regression, and the failure is indistinguishable from
+a real one — which is how a team learns to ignore the check.
+
+The threshold is therefore kept at 0.05%, the value the file already carried,
+and applied to patch as well as project.
+
+This does not weaken the gate, because the gate is not Codecov. `unit-cov-check`
+compares integers against `JUST_COVERAGE_TARGET` and fails `just test` locally
+and in CI. Codecov's status is the second opinion, and the tolerance exists so
+its own rounding does not report a failure the coverage does not have.
+
+*Alternative considered:* raise `precision` so rounding cannot bite. It moves
+the boundary rather than removing it, and produces coverage numbers to more
+decimal places than anyone reads.

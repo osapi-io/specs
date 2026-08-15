@@ -25,10 +25,19 @@ so the target holds what exists rather than demanding new tests.
   reading the profile `unit-cov` already filtered
 - [ ] 2.5 `osapi-justfiles` — comment the variable to name `codecov.yml` as the
   other declaration
-- [ ] 2.6 All five Go repositories — add `codecov.yml` declaring the same
-  target, commented to name `JUST_COVERAGE_TARGET`
-- [ ] 2.7 All five — name the filtered profile explicitly in the codecov upload
-  step, which currently passes no file and relies on auto-discovery
+- [x] 2.6 All five Go repositories — declare the same target in the existing
+  `.github/codecov.yml`, commented to name `JUST_COVERAGE_TARGET`. It already
+  declared a patch target; it lacked a project target, so Codecov compared
+  against the base commit rather than 100%
+- [x] 2.6a All five — remove that file's `ignore:` list. It was byte-identical
+  across all five while `.coverignore` differs per repository, so it named
+  neither repository's real exclusions. Inert, because `.coverignore` strips
+  those files before upload — `nats-client` has 400 such lines — but a second
+  declaration of what is excluded
+- [x] 2.6b All five — keep `threshold: 0.05%`. At 0% Codecov's own rounding
+  fails the status on an artifact; the exact check is `unit-cov-check`
+- [x] 2.7 All five — name the filtered profile explicitly in the codecov upload
+  step, which passed no file and relied on auto-discovery
 - [ ] 2.8 `osapi-justfiles` — point `go::test` at `unit-cov-check` instead of
   `unit-cov`, so all five gate through one line and CI and `just test` fail
   together. Safe: all five measure 100% filtered
