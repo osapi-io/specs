@@ -62,6 +62,37 @@ Adding a repository, or changing one's type, is a change to this capability.
 - **THEN** it is added to the classification, rather than left to be classified
   by whoever next edits it
 
+### Requirement: Each fact is stated once
+
+A fact SHALL be stated in exactly one file — the one that owns it — and every
+other file that needs it SHALL point there rather than restating it.
+
+Ownership follows audience: anything that applies to any contributor belongs in
+`CONTRIBUTING.md`; anything specific to agents belongs in `AGENTS.md`; the
+README orients a reader and links onward.
+
+A file SHALL NOT summarize another file's content beyond what is needed to say
+where to look.
+
+#### Scenario: A convention applies to everyone
+
+- **WHEN** a convention applies to both people and agents, such as the command
+  to run before opening a pull request
+- **THEN** it is stated in `CONTRIBUTING.md`, and `AGENTS.md` points there
+  rather than repeating it
+
+#### Scenario: The same instruction appears twice
+
+- **WHEN** setup instructions appear in both the README and `CONTRIBUTING.md`
+- **THEN** the README's copy is replaced by a pointer, because the two will
+  otherwise drift and a reader cannot tell which is current
+
+#### Scenario: A new file is added
+
+- **WHEN** a repository adds a file that overlaps an existing one
+- **THEN** the overlapping content moves to whichever file owns that audience,
+  and the other points to it
+
 ### Requirement: Files every repository carries
 
 Every repository SHALL contain `README.md`, `LICENSE`, `AI_POLICY.md`,
