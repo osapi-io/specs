@@ -43,3 +43,26 @@ follow.
 *Alternative considered:* leave them, since neither is misleading. That is true
 and is why this needed a rule rather than a defect report — the requirement now
 says workflows covering one subject name it the same way.
+
+### Naming form is part of the same consistency work
+
+An earlier reading of this change treated the remaining odd names as style
+rather than substance, and left them: `Mark stale issues and pull requests` in
+sentence case, `Deploy to GitHub Pages` naming a hosting service,
+`Conventional Commits` naming a standard rather than the subject.
+
+That reading was inconsistent with everything else agreed here. `LICENSE` is
+byte-identical across repositories, `AI_POLICY.md` word-identical,
+`CONTRIBUTING.md` sections fixed by name and order, module variables prefixed to
+a pattern. Workflow names are the same kind of thing: a reader moving between
+repositories should not have to work out whether two differently-worded checks
+are the same check.
+
+So the form is specified — kebab-case files, title-case names, both naming the
+same subject. It rules out three things seen in practice: a sentence, a
+destination in place of a subject, and a standard in place of a subject.
+
+*Alternative considered:* require the `name` to be the title-case rendering of
+the file name. It reads badly where a file abbreviates —`dep-review.yml` would
+become `Dep Review` rather than `Dependency Review`. The `name` may spell out
+what the file shortens, as long as both name the same subject.
