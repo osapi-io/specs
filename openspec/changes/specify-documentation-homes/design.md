@@ -44,38 +44,50 @@ created to hold.
 
 ## Decisions
 
-### Only design records move
+### Sort by what a document does, not where it sits
 
-The distinction is whether a document states what SHALL be true or describes
-what is. A collector document listing 40 fields and their OCSF mappings
+The distinction is whether a document constrains a future decision or reports a
+present one. A collector document listing 40 fields and their OCSF mappings
 describes implementation; rewriting it as requirements would produce 40
 requirements nobody would read and that would need editing with every field
-change.
+change. A done-definition listing the eleven conditions a collector must meet
+before it is accepted decides whether work is merged, and belongs in the corpus.
 
-A design record — proposal, alternatives, decision — is the corpus's entire
-purpose. That is the only category that moves.
+Applying the test per document rather than per directory matters, because the
+directories are already mixed. `osapi`'s `docs/sidebar/architecture/` holds six
+documents: `principles.md` and `api-guidelines.md` are entirely normative,
+`job-architecture.md` opens with principles and then describes 550 lines of
+current implementation, and the other three are package maps. Moving the
+directory whole is wrong in either direction.
+
+*Alternative considered:* use "binds more than one repository" as the test. It
+sorts `principles.md` correctly, because the SDK and UI are generated as a
+consequence of it. But it sends gohai's collector methodology to the repository
+purely because gohai is its only consumer — even though it is the rule a
+collector is rejected for violating. A rule binding one repository is still a
+rule.
 
 *Alternative considered:* move all documentation into the corpus so everything
 is reviewed through the change process. It would put 189 reference documents
 behind a proposal workflow and separate them from the code they describe.
 
-*Alternative considered:* leave design records in repositories and let the
-corpus hold only cross-repository standards. That is close to the current state,
-and it is why 76 planning documents exist alongside a change archive holding the
-same kind of thing.
+### Delete the existing planning documents
 
-### Leave existing planning documents in place
+`osapi` has 70 planning documents and `osapi-orchestrator` has 6, spanning
+February onward. They duplicate what the change archive is for, they are never
+updated once the work lands, and a reader facing both cannot tell which is
+current. Several already describe work that was then done differently.
 
-`osapi` has 70 planning documents spanning February onward, 1.2 MB. They record
-what was planned and, in some cases, what was then done differently. Migrating
-them into changes would mean inventing proposals, tasks, and completion states
-that were never written.
+They remain in git history, so nothing is lost that was ever authoritative.
+Before removal, they are read once for reasoning worth lifting into a change.
 
-*Alternative considered:* migrate them. The result would be an archive of
-fabricated changes, which is worse than a repository containing its own history.
+*Alternative considered:* leave them as historical record. This was the original
+decision here, and it was wrong: it preserves two homes for the same kind of
+document, which is the problem this change exists to fix.
 
-*Alternative considered:* delete them. They are the only record of decisions
-made before this repository existed.
+*Alternative considered:* migrate them into the archive. The result would be an
+archive of fabricated changes — proposals, tasks, and completion states that
+were never written.
 
 ### Require an index, not a structure
 

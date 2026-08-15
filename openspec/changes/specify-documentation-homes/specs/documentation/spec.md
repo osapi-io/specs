@@ -15,6 +15,9 @@ user-facing documentation for what it does.
 It SHALL NOT hold requirements binding other repositories. Those are
 capabilities in the corpus.
 
+The test SHALL be applied to each document, not to the directory holding it. A
+directory may contain documents of both kinds.
+
 #### Scenario: Reference material for a component
 
 - **WHEN** a repository contains many components of the same kind, each with its
@@ -35,14 +38,76 @@ capabilities in the corpus.
 - **THEN** it becomes a capability in the corpus, and the repositories point at
   it
 
+#### Scenario: One directory holds documents of both kinds
+
+- **WHEN** a directory contains both a document stating cross-repository
+  constraints and a document describing local packages
+- **THEN** each is placed by what it says, and the directory is not moved whole
+
+### Requirement: Requirements live in the corpus, descriptions in the repository
+
+Documentation SHALL be placed by what it does. Text that constrains a future
+decision — a rule work is held to, a principle that must be followed, a
+condition for accepting a change — is a requirement and SHALL be a capability in
+the corpus. Text that reports what the code currently is SHALL stay in the
+repository that holds the code.
+
+The number of repositories a requirement binds SHALL NOT determine where it
+lives. A rule binding one repository is still a rule, and the corpus is where
+rules are kept.
+
+#### Scenario: A rule decides whether work is accepted
+
+- **WHEN** a document lists conditions that must hold before a contribution is
+  complete, and work not meeting them is sent back
+- **THEN** those conditions are a capability in the corpus, because they are
+  requirements regardless of how many repositories they bind
+
+#### Scenario: A design principle produced code elsewhere
+
+- **WHEN** a principle recorded in one repository is the reason a second
+  repository's client is generated rather than hand-written
+- **THEN** the principle is a capability in the corpus, because a change to it
+  is a change to both repositories
+
+#### Scenario: An interface contract has consumers
+
+- **WHEN** a repository documents the rules its API surface follows, and other
+  repositories are built against that surface
+- **THEN** those rules are a capability in the corpus, so a consumer can be held
+  to them
+
+#### Scenario: A document mixes requirements with description
+
+- **WHEN** a document opens with the principles a subsystem follows and then
+  describes how that subsystem is currently built
+- **THEN** the principles move to the corpus and the description stays in the
+  repository
+
+#### Scenario: Describing what the code currently does
+
+- **WHEN** a document maps packages, layers, or request paths inside one
+  repository
+- **THEN** it stays in that repository, because rewriting it as requirements
+  produces a corpus that goes stale on every refactor
+
+#### Scenario: A walkthrough implements a rule held in the corpus
+
+- **WHEN** a repository documents the steps for doing work the corpus has
+  requirements about
+- **THEN** the walkthrough stays in the repository and points at the capability,
+  rather than restating the rules where they can drift
+
 ### Requirement: Design records live in the corpus
 
 A design record — what is being built, why, what alternatives were rejected —
 SHALL be a change in the specification corpus, not a document in a repository's
 `docs/`.
 
-Planning documents already committed to a repository are historical and SHALL be
-left in place. A repository SHALL NOT add new ones.
+A repository SHALL NOT contain planning documents. Keeping them in a repository
+was a mistake: they duplicate what the corpus archive holds, they are never
+updated once the work lands, and a reader cannot tell which of the two places is
+current. Existing ones are removed; git history retains them.
 
 #### Scenario: New work is designed
 
