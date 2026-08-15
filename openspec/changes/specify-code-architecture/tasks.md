@@ -29,9 +29,12 @@ so the target holds what exists rather than demanding new tests.
   target, commented to name `JUST_COVERAGE_TARGET`
 - [ ] 2.7 All five — name the filtered profile explicitly in the codecov upload
   step, which currently passes no file and relies on auto-discovery
-- [ ] 2.8 All five — add `unit-cov-check` to `test`, so CI and `just test` fail
-  together
-- [ ] 2.9 `osapi` — measure coverage; it was not measured with the others
+- [ ] 2.8 `osapi-justfiles` — point `go::test` at `unit-cov-check` instead of
+  `unit-cov`, so all five gate through one line and CI and `just test` fail
+  together. Safe: all five measure 100% filtered
+- [ ] 2.12 Archive `osapi-sdk`, which is deprecated but still consumes the `go`
+  module and still runs `just go::test`
+- [x] 2.9 `osapi` — measure coverage; it was not measured with the others
 - [ ] 2.10 All five — state in `CONTRIBUTING.md` that coverage is gated at 100%
   and name the recipe that checks it. The rule lives in the corpus; how to run
   it is contributor-facing
