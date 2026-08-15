@@ -24,14 +24,24 @@ A Go module SHALL declare a path matching the repository that holds it.
 ### Requirement: Dependencies are declared by version
 
 A repository SHALL depend on another by a released or pinned version in
-`go.mod`. It SHALL NOT use a `replace` directive pointing outside its own module
-for a dependency that consumers also resolve.
+`go.mod`.
+
+A repository SHALL NOT contain a `replace` directive. No repository contains one
+today, and the documentation that described `replace` as the linking mechanism
+was wrong.
 
 #### Scenario: Consumer builds without the sibling checked out
 
 - **WHEN** a repository is built by someone who has not cloned its sibling
   repositories
 - **THEN** the build resolves every dependency from the module proxy
+
+#### Scenario: Local development against an unreleased change
+
+- **WHEN** a developer needs to build against an unreleased change in a sibling
+  repository
+- **THEN** they use a local workspace or a temporary pin rather than committing
+  a `replace` directive
 
 ### Requirement: Documented relationships match declared ones
 
