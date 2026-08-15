@@ -44,9 +44,15 @@ Every repository SHALL have a recorded type. The classification is:
 | `osapi`              | Main product  |
 | `osapi-justfiles`    | Utility       |
 | `specs`              | Documentation |
-| `osapi-ui`           | UI            |
 
-`osapi-sdk` and `osapi-io-taskfiles` are deprecated and outside this capability.
+`osapi-sdk`, `osapi-ui`, and `osapi-io-taskfiles` are deprecated and outside
+this capability. A deprecated repository states so at the top of its README;
+`osapi-sdk` and `osapi-ui` both record that their contents moved into `osapi`.
+
+The **UI** type currently has no members. It is retained because a standalone
+user interface repository may exist again, and a type with no members is cheaper
+than reconstructing one later.
+
 Adding a repository, or changing one's type, is a change to this capability.
 
 #### Scenario: Determining which structure applies
@@ -55,6 +61,13 @@ Adding a repository, or changing one's type, is a change to this capability.
   follow
 - **THEN** the classification records it as a Go library, without inferring it
   from the repository's contents
+
+#### Scenario: A repository is deprecated
+
+- **WHEN** a repository's README states it is deprecated and its contents have
+  moved elsewhere
+- **THEN** it is recorded as deprecated and this capability stops binding it,
+  regardless of whether it has been archived
 
 #### Scenario: A repository is added
 

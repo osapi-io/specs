@@ -45,7 +45,7 @@ structure for its type.
 - [ ] 4.4 `osapi-orchestrator` (Go library, pending the open question on its
   type)
 - [ ] 4.5 `osapi` (main product; file layout only, README exempt)
-- [ ] 4.6 `osapi-ui` (needs README content written, not only restructured)
+- [x] 4.6 `osapi-ui` — not converted; recorded as deprecated instead
 
 ## 5. Verification
 
