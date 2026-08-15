@@ -10,10 +10,13 @@ repository.
 
 - [ ] 1.1 `just` — conversion already written as osapi-justfiles#39
 - [x] 1.2 `go` — osapi-justfiles#46
-- [ ] 1.3 `bats`
-- [ ] 1.4 `docker` — rename `image_name`, `image_tag`, `dockerfile` with the
-  module prefix and make them plain assignments; unprefixed names collide in a
-  shared scope
+- [ ] 1.3 `bats` — remove instead of converting. Nothing fetches it, no `.bats`
+  file exists in the organization, and it appears only as an example in the root
+  README
+- [ ] 1.4 `docker` — remove instead of converting. Only `osapi` loads it and
+  nothing invokes its recipes; images are published by goreleaser. Its
+  `dockerfile` default is `Dockerfile.local`, which `osapi` does not have —
+  evidence it has not run in a long time. Drop `osapi`'s `mod? docker` line
 - [x] 1.5 `react` — osapi-justfiles#44
 - [ ] 1.6 `docs` — rename `host` and `port` with the module prefix, and ensure
   its paths do not overlap with `md`. These two may keep `env()`: a dev server
