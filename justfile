@@ -1,5 +1,6 @@
 # Shared recipes are imported flat and prefixed (md-fmt, md-fmt-check).
 # import? tolerates the files being absent so `just fetch` works on a fresh clone.
+
 import? '.just/remote/md.just'
 
 mod? just '.just/remote/just.mod.just'
