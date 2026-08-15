@@ -10,7 +10,7 @@
 - [ ] 2.1 `gohai` — add `just::fmt` to `ready`, which CI checks and the recipe
   does not fix
 - [ ] 2.2 `osapi-orchestrator` — same
-- [ ] 2.3 `osapi-orchestrator` — merge the pending action version bumps, which
+- [x] 2.3 `osapi-orchestrator` — merge the pending action version bumps, which
   account for the workflow drift
 
 ## 3. Verification
