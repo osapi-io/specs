@@ -64,7 +64,7 @@ No workflow in any repository uses mise; all seven provision tools twice.
   and in `oven-sh/setup-bun`
 - [ ] 5.4 Reconcile `.mise.toml` and workflow versions so both provision the
   same version of each checked tool
-- [ ] 5.5 `osapi-orchestrator` — `actions/setup-go@v6` while every other
+- [x] 5.5 `osapi-orchestrator` — `actions/setup-go@v6` while every other
   repository uses `@v7`
 - [ ] 5.6 Confirm Dependabot raises each new pin, in both locations
 
