@@ -77,3 +77,28 @@ still resolves does not establish that what it once held is still there.
   file
 - **THEN** that file states the rule, rather than having handed it off to
   another file
+
+### Requirement: A counted claim matches what it counts
+
+Documentation stating how many of something exists SHALL match the code. A
+document SHALL NOT state a count it does not derive, and a table enumerating
+items SHALL contain only items of the kind it names.
+
+#### Scenario: A count is stated in prose
+
+- **WHEN** documentation says how many fields carry a particular tag
+- **THEN** the number matches the code, or the prose describes the set without
+  counting it
+
+#### Scenario: A table mixes two kinds of row
+
+- **WHEN** a table listing one kind of item contains rows pasted from a table
+  above it
+- **THEN** the foreign rows are removed, because a reader cannot tell which rows
+  belong
+
+#### Scenario: The set grows
+
+- **WHEN** an item of the counted kind is added
+- **THEN** the count is updated in the same change, or the prose is rewritten so
+  no count needs maintaining
