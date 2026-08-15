@@ -5,7 +5,7 @@ recipe contents, and the claims made in documentation — found that documentati
 describing tooling has drifted from what the tooling does, in the same way
 documentation describing dependencies had.
 
-`system-architecture` requires documented dependencies to match `go.mod`. The
+`module-dependencies` requires documented dependencies to match `go.mod`. The
 same failure appears in tooling, planning, and generated artifacts, where no
 requirement covers it:
 
@@ -23,7 +23,7 @@ requirement covers it:
 
 ## What Changes
 
-- Extend `system-architecture` so documentation describing tooling is held to
+- Extend `module-dependencies` so documentation describing tooling is held to
   the same standard as documentation describing dependencies.
 - Correct the drifted claims and remove the orphaned artifact.
 - Fix the `deps` recipes installing a deprecated tool.
@@ -32,7 +32,7 @@ requirement covers it:
 
 ### Modified Capabilities
 
-- `system-architecture`: the requirement covering documented relationships is
+- `module-dependencies`: the requirement covering documented relationships is
   broadened to cover tooling and directories, not only module dependencies.
 
 ## Impact

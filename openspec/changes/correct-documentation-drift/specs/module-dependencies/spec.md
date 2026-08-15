@@ -42,3 +42,38 @@ without anyone editing the file that states them.
   repository uses
 - **THEN** the claim is removed, because nothing updates it when that repository
   changes
+
+## ADDED Requirements
+
+### Requirement: A cross-reference resolves to what it names
+
+A reference naming where content lives SHALL resolve to that content. Moving
+content SHALL include repointing every reference to it, in the same change.
+
+A reference SHALL be checked against the content, not the path. A path that
+still resolves does not establish that what it once held is still there.
+
+#### Scenario: Content moves out of a file that remains
+
+- **WHEN** a document's content is moved to another file, and the original file
+  is kept as a pointer
+- **THEN** references into the original are repointed, because the file still
+  resolves while the section it named no longer exists
+
+#### Scenario: A reference names a section anchor
+
+- **WHEN** documentation links to a heading in another file
+- **THEN** that heading exists in that file
+
+#### Scenario: A symbol is cited by location
+
+- **WHEN** documentation tells a reader which file defines a function
+- **THEN** the function is defined there, and a refactor that moves it updates
+  the citation
+
+#### Scenario: A reference attributes a rule to a file
+
+- **WHEN** documentation justifies a decision as following a rule "per" a named
+  file
+- **THEN** that file states the rule, rather than having handed it off to
+  another file

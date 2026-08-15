@@ -55,7 +55,7 @@ document.
 
 ### Extend the existing requirement rather than add a new one
 
-`system-architecture` already requires documented dependencies to match
+`module-dependencies` already requires documented dependencies to match
 `go.mod`. Tooling, directories, and libraries are the same failure with a
 different object: a claim nothing checks, which drifts because nothing breaks
 when it does.
@@ -107,3 +107,18 @@ adopt one is a question for whoever adds its first mock.
   `osapi-orchestrator` has `operations/` and `features/`, `nats-*` have a single
   directory named after the package, `osapi` has a Docusaurus site. None has a
   `docs/README.md` index.
+
+### Check references against content, not paths
+
+The first pass verified that referenced paths resolve. Every reference in gohai
+passed, because `CLAUDE.md` still exists — it was reduced to a seven-line
+pointer, not deleted. Two links target a heading inside it that moved to
+`CONTRIBUTING.md`, and two collector documents justify field decisions "per
+CLAUDE.md" for a rule that file no longer states.
+
+The check has to be against the content. A reference is a claim about where
+something is, and a path that resolves does not verify the claim.
+
+*Alternative considered:* delete `CLAUDE.md` in the repositories that reduced it
+to a pointer, so stale references fail loudly. Claude Code loads that file by
+name; removing it removes the pointer's purpose.
