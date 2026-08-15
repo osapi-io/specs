@@ -118,3 +118,28 @@ What the setting actually gives up is narrow: inside a justfile that sets it, an
 accidental duplicate assignment no longer errors. In a file whose purpose is to
 import modules and override their defaults, that is close to free — and it is
 the only thing that makes a recipe behave the same however it is invoked.
+
+### Two modules had no consumers
+
+Scoping the remaining conversions turned up that half of them are dead.
+
+`bats` is fetched by no repository, and no `.bats` file exists anywhere in the
+organization. It appears only in the root README, as an example of consuming a
+module.
+
+`docker` is loaded by `osapi` and nothing invokes its recipes; images are
+published by goreleaser. Its `dockerfile` variable defaults to
+`Dockerfile.local`, and `osapi` has `Dockerfile` and `Dockerfile.dev` — so the
+one repository that loads it could not have run it successfully.
+
+Converting them would apply the same care as a live module to code nothing runs,
+and would leave two more files that every consumer fetches. Removing them leaves
+`converge` with two real conversions, `docs` and `just`.
+
+*Alternative considered:* convert them for consistency, so every module has the
+same shape. Consistency across modules nobody runs is not worth the fetch, the
+README, or the next person's time reading them.
+
+*Alternative considered:* fix `docker` and keep it, since image publishing is
+plausible future work. Its recipes are two lines wrapping `docker build` and
+`docker push`; if that need returns it is cheaper to write than to have carried.

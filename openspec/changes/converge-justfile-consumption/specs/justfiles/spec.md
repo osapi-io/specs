@@ -102,6 +102,36 @@ rather than by repository, since nothing in the repository can state it.
   integration rather than between repositories
 - **THEN** the module reads it with `env()` and ships a default
 
+### Requirement: A module with no consumers is removed
+
+A module that no repository fetches SHALL be removed rather than maintained.
+
+Converting an unused module spends care on code nothing runs, and leaving it
+present implies it works. A module whose defaults name files that do not exist
+in any consumer has not been exercised, and its state is not evidence that it
+would work if it were.
+
+Removal SHALL include the module's files, its section in the root README, and
+any `mod?` or `import?` line that loads it without invoking it.
+
+#### Scenario: A module has no consumers
+
+- **WHEN** no repository fetches a module, and nothing invokes its recipes
+- **THEN** it is removed, rather than converted or left in place
+
+#### Scenario: A module is loaded but never invoked
+
+- **WHEN** a repository loads a module and calls none of its recipes
+- **THEN** the loading line is removed with the module, because loading it was
+  not use
+
+#### Scenario: The capability it covered is provided another way
+
+- **WHEN** the work a module did is now done by a different tool, such as image
+  publishing moving to a release tool
+- **THEN** the module is removed rather than kept as an alternative path nobody
+  takes
+
 ### Requirement: Module variables are namespaced
 
 A module's variables SHALL be prefixed with the module's name.
