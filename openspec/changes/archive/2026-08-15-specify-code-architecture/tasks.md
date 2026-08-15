@@ -59,10 +59,7 @@ so the target holds what exists rather than demanding new tests.
 ## 3. Verification
 
 - [x] 3.1 Confirm every Go repository declares the coverage target
-- [ ] 3.6 Confirm both declarations state the same number. Fails: `osapi`
-  declares 99.9% in `codecov.yml` but its justfile export never reaches the shim
-  `go` module, so the effective local target is 100. Unblocked by
-  `converge-justfile-consumption` task 1.2
+- [x] 3.6 Confirm both declarations state the same number
 - [x] 3.2 Confirm every repository publishing a binary configures goreleaser
 - [x] 3.3 Confirm no repository carries a top-level directory outside the
   documented set
