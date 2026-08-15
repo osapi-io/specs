@@ -211,28 +211,66 @@ the spec while implementing, update the change rather than quietly building
 something else, then `/opsx:sync` so the corpus reflects what was actually
 built.
 
-## Command reference
+## Running a change
 
-The [README](README.md) describes the propose → review → implement → archive
-flow. These are the commands that drive it:
+`main` is protected, so each step below is its own pull request.
 
-| Command         | What it does                                                  |
-| --------------- | ------------------------------------------------------------- |
-| `/opsx:explore` | Think through options before committing to an approach        |
-| `/opsx:propose` | Create a change — proposal, specs, design, and task breakdown |
-| `/opsx:apply`   | Work the task list, checking items off as they land           |
-| `/opsx:update`  | Revise an in-flight change                                    |
-| `/opsx:sync`    | Reconcile specs with what was actually built                  |
-| `/opsx:archive` | Move a completed change into the archive                      |
+**1. Propose**
+
+```bash
+/opsx:propose "converge shared justfiles on one consumption style"
+```
+
+Creates `openspec/changes/<name>/` with a proposal, spec deltas, a design, and
+tasks. Nothing else happens — this step never edits code.
+
+Branch, commit, open a PR. What gets reviewed is the plan.
+
+**2. Merge the proposal PR**
+
+The plan is now agreed. `specs/` is unchanged; the change is in flight.
+
+**3. Apply**
+
+```bash
+/opsx:apply
+```
+
+Work the task list. Implementation lands in the target repository, in that
+repository's own PR. Tick tasks off here as they land.
+
+**4. Archive**
+
+```bash
+/opsx:archive
+```
+
+Merges the deltas into `specs/` and moves the change to
+`openspec/changes/archive/`. Branch, commit, open a PR.
+
+Archiving refuses to run while any task is unchecked.
+
+### Shortcut for documentation-only changes
+
+When the artifacts *are* the work — recording an architecture that already
+exists — steps 1 and 4 belong in the **same** PR. Splitting them only creates a
+window where the corpus is knowingly incomplete. Run `/opsx:propose`, then
+`/opsx:archive`, then open one PR containing both the change and the resulting
+`specs/` update.
+
+### Other commands
+
+| Command         | When                                         |
+| --------------- | -------------------------------------------- |
+| `/opsx:explore` | Before proposing, to weigh approaches        |
+| `/opsx:update`  | Revise a change that is still in flight      |
+| `/opsx:sync`    | Update `specs/` without archiving the change |
 
 Refresh the generated agent wiring after a CLI upgrade:
 
 ```bash
 openspec update
 ```
-
-A spec that describes something never built is worse than no spec — always
-`/opsx:sync` before archiving.
 
 ## Writing requirements
 
