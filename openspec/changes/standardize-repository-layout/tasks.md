@@ -27,12 +27,12 @@ a conversion pull request is only that repository's own work.
 - [x] 3.1 Establish the canonical copies in `osapi-justfiles` — `osapi-io`
   wording, 2026 John Dewey, enforcement contact filled in
 - [x] 3.2 `specs`
-- [ ] 3.3 `gohai`
-- [ ] 3.4 `nats-client`
-- [ ] 3.5 `nats-server`
-- [ ] 3.6 `osapi`
-- [ ] 3.7 `osapi-orchestrator`
-- [ ] 3.8 `osapi-ui`
+- [x] 3.3 `gohai`
+- [x] 3.4 `nats-client`
+- [x] 3.5 `nats-server`
+- [x] 3.6 `osapi`
+- [x] 3.7 `osapi-orchestrator`
+- [x] 3.8 `osapi-ui`
 
 ## 4. Convert the remaining repositories
 
