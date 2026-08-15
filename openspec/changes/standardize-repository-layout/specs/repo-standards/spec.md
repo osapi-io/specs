@@ -131,15 +131,21 @@ pins the tools it actually uses — but every repository has one, so that
 
 ### Requirement: Tools whose output is checked are pinned
 
-`.mise.toml` SHALL pin a version for every tool whose output a check compares
-against a committed file. `latest` SHALL NOT be used for such a tool.
+Every path that provisions a tool whose output a check compares against a
+committed file SHALL pin that tool's version. `latest`, and an unversioned setup
+action, SHALL NOT be used for such a tool.
 
-A floating version makes the toolchain an untracked input to CI. The check
-compares committed bytes against bytes the tool generates, so a release that
-changes the tool's output turns CI red with no commit touching the repository,
-across every branch and on the default branch at once.
+A floating version makes the toolchain an untracked input to the check. The
+check compares committed bytes against bytes the tool generates, so a release
+that changes the tool's output turns the check red with no commit touching the
+repository.
 
-Dependabot raises these pins, so the version is still maintained — as a change
+A repository provisions tools twice — `.mise.toml` for local work and setup
+actions in its workflows — and the requirement binds both. Pinning one leaves
+the other floating, which does not prevent the failure and additionally lets
+local and CI disagree about whether the repository passes.
+
+Dependabot raises these pins, so versions are still maintained — as a change
 with a pull request behind it, rather than silently at the next run.
 
 #### Scenario: A formatter release changes its output
@@ -160,6 +166,19 @@ with a pull request behind it, rather than silently at the next run.
 - **WHEN** language runtimes are pinned but the tools that format and lint float
 - **THEN** the tools are pinned too, because those are the ones whose output is
   compared
+
+#### Scenario: Local and CI provision the same tool separately
+
+- **WHEN** a repository declares a tool in `.mise.toml` and its workflows
+  install that tool with a setup action
+- **THEN** both declare the same pinned version, so a contributor running the
+  check locally gets the result CI will report
+
+#### Scenario: A check passes in one place and fails in the other
+
+- **WHEN** a formatter check fails locally but the same commit passes in CI
+- **THEN** the two are provisioning different versions, and the fix is to pin
+  both rather than to change the committed file to satisfy whichever ran last
 
 ### Requirement: A repository no longer in use is archived
 

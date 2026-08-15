@@ -54,11 +54,19 @@ structure for its type.
 
 ## 5. Pin the tools whose output is checked
 
-- [ ] 5.1 `specs`, `osapi-justfiles` — pin `just`; 1.45.0 reformats committed
-  justfiles, and `main` fails `just test` under it today
-- [ ] 5.2 `specs`, `osapi-justfiles` — pin `uv`
-- [ ] 5.3 All repositories using bun for formatting — pin `bun`
-- [ ] 5.4 Confirm Dependabot raises each new pin
+No workflow in any repository uses mise; all seven provision tools twice.
+
+- [ ] 5.1 All seven repositories — pin `just` in `extractions/setup-just`, which
+  is unversioned everywhere. `just` 1.45.0 reformats committed justfiles; CI
+  passes today only because its `just` is older than a local `mise install`
+- [ ] 5.2 `specs`, `osapi-justfiles` — pin `just` and `uv` in `.mise.toml`
+- [ ] 5.3 All repositories using bun for formatting — pin `bun` in `.mise.toml`
+  and in `oven-sh/setup-bun`
+- [ ] 5.4 Reconcile `.mise.toml` and workflow versions so both provision the
+  same version of each checked tool
+- [ ] 5.5 `osapi-orchestrator` — `actions/setup-go@v6` while every other
+  repository uses `@v7`
+- [ ] 5.6 Confirm Dependabot raises each new pin, in both locations
 
 ## 6. Resolve the deprecated repositories
 
@@ -77,5 +85,7 @@ structure for its type.
 - [ ] 7.4 Confirm each README uses only vocabulary sections, in order
 - [ ] 7.5 Confirm `LICENSE`, `AI_POLICY.md`, and `CODE_OF_CONDUCT.md` are
   byte-identical everywhere
-- [ ] 7.6 Confirm no `.mise.toml` floats a tool whose output a check compares
-- [ ] 7.7 Confirm every deprecated repository is archived on GitHub
+- [ ] 7.6 Confirm no `.mise.toml` and no workflow floats a tool whose output a
+  check compares
+- [ ] 7.7 Confirm `just test` locally and CI agree on every repository
+- [ ] 7.8 Confirm every deprecated repository is archived on GitHub
