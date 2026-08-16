@@ -60,24 +60,28 @@ missing.
 Rejected — consistency in what a rule permits is not the same as consistency in
 what a repository does, and the second is not worth a dependency.
 
-### `export_test.go` is constrained by what it may expose
+### `export_test.go` constrains the purpose, not the mechanism
 
-The restrictive form came from `gohai`, where aliases exposing unexported
-functions had produced tests that re-covered paths the caller's own test already
-exercised, and pinned intermediate steps so they could not be changed without
-rewriting tests.
+The first draft of this requirement banned exposing an alias to an unexported
+function, allowing only setter functions. That was wrong, and applying it is
+what showed why: ten such aliases exist across `gohai` and `osapi`, and the
+pattern is idiomatic Go. Twenty-two standard library packages use it —
+`net/http` alone exports `DefaultUserAgent`, `NewLoggingConn`, `ExportServeFile`
+and more this way.
 
-The reasoning is not specific to collectors. An alias makes an internal step
-directly callable, and a directly callable step attracts a test. The requirement
-therefore applies organization-wide.
+The rule came from `gohai`, where aliases had produced tests that re-covered
+paths the caller's own test already exercised. That concern is real, but it is a
+concern about what the test does, not about how the symbol was exposed. Banning
+the mechanism outlawed an idiom in order to prevent a misuse of it.
 
-It constrains what such a file may contain rather than requiring one to exist,
-so the two repositories that do not use the pattern are unaffected, and the two
-that use it heavily cannot use it to introduce test-only seams.
+The requirement now names the misuse: a test SHALL NOT use an exported alias to
+re-cover behavior the caller's test already reaches. Exposing a pure helper with
+its own contract — `BytesToString`, `ParseOffset` — is exactly what the pattern
+is for, and a scenario says so.
 
-*Alternative considered:* leave it to `gohai`, since only two repositories use
-the file. Rejected — a rule stated only where it was learned is a rule the next
-repository discovers by making the same mistake.
+*Alternative considered:* keep the ban and remove the ten aliases. Rejected —
+that would have rewritten eleven working call sites to satisfy a rule the
+language's own standard library does not follow.
 
 ### The reason is stated with the rule
 
