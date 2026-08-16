@@ -31,7 +31,7 @@
   in `CONTRIBUTING.md` and `CLAUDE.md` is a seven-line pointer
 - [x] 4.2 `gohai` — `docs/collectors/kernel.md` and `docs/collectors/memory.md`
   justify decisions "per CLAUDE.md"; name the file that states the rule
-- [ ] 4.3 `osapi` — `CLAUDE.md` says `printKV` and `printStyledTable` are in
+- [x] 4.3 `osapi` — `CLAUDE.md` says `printKV` and `printStyledTable` are in
   `cmd/ui.go`; they are in `internal/cli/ui.go` and `cmd/ui.go` does not exist
 
 ## 5. Repair broken links
@@ -49,18 +49,18 @@ remove with that directory.
   which do not exist
 - [x] 5.3 `gohai` — `docs/collectors/load.md` links to
   `../features/dependencies.md`, which does not exist
-- [ ] 5.4 `osapi` — `docs/docs/sidebar/intro.md` prefixes four links with
+- [x] 5.4 `osapi` — `docs/docs/sidebar/intro.md` prefixes four links with
   `sidebar/`, resolving to `sidebar/sidebar/`
 - [x] 5.5 `osapi-orchestrator` — three operation pages link to
   `../file/upload.md`; the file is at `operations/files/file/upload.md`
 
 ## 6. Correct claims contradicted by the code
 
-- [ ] 6.1 `osapi` — `CLAUDE.md` states `nats-client` and `nats-server` are
+- [x] 6.1 `osapi` — `CLAUDE.md` states `nats-client` and `nats-server` are
   "linked via `replace` in `go.mod`". `go.mod` declares no `replace` directive
-- [ ] 6.2 `osapi` — `docs/docs/sidebar/usage/configuration.md` states two config
+- [x] 6.2 `osapi` — `docs/docs/sidebar/usage/configuration.md` states two config
   fields carry a `required` tag; `internal/config/types.go` has seven
-- [ ] 6.3 `osapi` — the same page's "Required Fields" table lists four rows, two
+- [x] 6.3 `osapi` — the same page's "Required Fields" table lists four rows, two
   of which are environment variables pasted from the table above it
 
 ## 7. Remove the orphaned artifact
@@ -71,15 +71,15 @@ remove with that directory.
 
 ## 8. Verification
 
-- [ ] 8.1 Confirm no documentation names a library the repository does not
+- [x] 8.1 Confirm no documentation names a library the repository does not
   declare
-- [ ] 8.2 Confirm no documentation points at a directory that does not exist
-- [ ] 8.3 Confirm no repository describes another repository's tooling
-- [ ] 8.4 Confirm every heading anchor referenced across files resolves
-- [ ] 8.5 Confirm no reference cites `CLAUDE.md` for content that moved to
+- [x] 8.2 Confirm no documentation points at a directory that does not exist
+- [x] 8.3 Confirm no repository describes another repository's tooling
+- [x] 8.4 Confirm every heading anchor referenced across files resolves
+- [x] 8.5 Confirm no reference cites `CLAUDE.md` for content that moved to
   `CONTRIBUTING.md`
-- [ ] 8.6 Confirm every relative link across the documentation resolves
-- [ ] 8.7 Confirm no documented count contradicts the code it describes
+- [x] 8.6 Confirm every relative link across the documentation resolves
+- [x] 8.7 Confirm no documented count contradicts the code it describes
 
 ## 9. Found while applying
 
