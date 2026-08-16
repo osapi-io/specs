@@ -7,9 +7,11 @@
 ## 2. Point each repository at the capability
 
 - [x] 2.1 `gohai` — `CONTRIBUTING.md` keeps its collector-specific conventions
+  and drops the shared ones (osapi-io/gohai#163)
 - [x] 2.2 `nats-client` — `CONTRIBUTING.md`
 - [x] 2.3 `nats-server` — `CONTRIBUTING.md`
 - [x] 2.4 `osapi-orchestrator` — `CONTRIBUTING.md`
+  (osapi-io/osapi-orchestrator#76)
 - [x] 2.5 `osapi` — `CLAUDE.md` dropped `Code Standards`, and the conventions
   duplicated into `development.md` and `testing.md` now resolve to the root
   `CONTRIBUTING.md`, which points at this capability rather than restating it
@@ -35,11 +37,14 @@
   files exist (32 in `gohai`, 32 in `osapi`, 1 in `osapi-orchestrator`), and the
   requirement turns on what each exposure is *for*, which no search can decide.
   This needs a file-by-file audit
-- [ ] 3.6 Confirm no shared convention is stated in two places. `nats-client`
+- [x] 3.6 Confirm no shared convention is stated in two places. `nats-client`
   and `nats-server` point at the capability without restating it, and `osapi`
-  now does the same. `gohai` and `osapi-orchestrator` point at it *and* restate
-  it — `osapi-orchestrator` under `Function Signatures`, `Testing`,
-  `Go Patterns`, and `Linting`; `gohai` under `Function Signatures`. Both say
-  the specification wins where they disagree, which acknowledges the duplication
-  rather than removing it. Resolving this means deleting the restatements, which
-  reverses a deliberate choice recorded when those repositories were converted
+  now does the same. `gohai` and `osapi-orchestrator` pointed at it *and*
+  restated it — `osapi-orchestrator` under `Function Signatures`, `Testing`,
+  `Go Patterns`, and `Linting`; `gohai` under `Function Signatures` and its test
+  conventions. Both closed with "the specification wins where they disagree",
+  which acknowledges the duplication rather than removing it. Their conversions
+  under tasks 2.1 and 2.4 did half of what the design's migration calls for:
+  they added the pointer and kept the copy. The copies are now dropped
+  (osapi-io/gohai#163, osapi-io/osapi-orchestrator#76), leaving each repository
+  stating only what is its own
