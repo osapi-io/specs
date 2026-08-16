@@ -94,44 +94,41 @@ asked to follow a rule it does not carry.
 
 ### State the rule where it binds
 
-- [ ] 5.4 Add the mocking convention to the shared `Code standards` section in
+- [x] 5.4 Add the mocking convention to the shared `Code standards` section in
   all five Go repositories: the `mocks` package, the `go tool` directive, the
-  `*.gen.go` destination, and the three exceptions. Verified by the section
-  hashing identically in all five
+  `*.gen.go` destination, and the three exceptions. The section hashes
+  identically in all five. A second pass added the unexported case, and a third
+  removed a duplicate: `Test file conventions` had carried its own sentence on
+  generated mocks, so the rule was stated twice in one file
 
 ### Fix the implementations
 
-- [ ] 5.5 `gohai` — replace `fakeCollector`, `errCollector`, `cycleCollector`,
-  and `failingCollector` with a generated `collector.Collector` mock and a
-  constructor that configures it, so the roughly fifty call sites stay readable
-- [ ] 5.6 `gohai` — move `internal/executor/gen/` to `internal/executor/mocks/`
-  and invoke the generator through `go tool` rather than `go run`
-- [ ] 5.7 `osapi-orchestrator` — replace `mockRenderer` with a generated mock.
-  It records eight call flags and the tests assert `s.True(m.planStartCalled)`
-  and its siblings, which proves something was called rather than that it was
-  called correctly. Not a sibling `mocks` package: `renderer` is unexported and
-  its methods take types from the package, so a sibling would import the package
-  while the package's own tests import the sibling. Generated in-place and
-  scoped to tests instead
-- [ ] 5.8 `osapi` — `captureStore` becomes a generated mock. It was recorded as
-  relying on the unjoinable-goroutine exception, and the goroutine is real, but
-  checking how the test copes with it found seven `time.Sleep(50ms)` calls. A
-  generated mock closes a channel from `DoAndReturn`, so the test joins the
-  write instead of waiting out a guess: generated and deterministic, where the
-  exception was protecting neither
-- [ ] 5.8a `osapi` — `mockPKISigner` becomes a generated mock whose return
-  handler calls `ed25519.Sign`, so the test keeps verifying a real signature
-  against a real key. It had been recorded as staying hand-written under the
-  real-implementation exception; that exception was written without noticing a
-  generated mock can delegate to real behavior, which left renaming the double
-  as the only remedy — dodging the rule rather than meeting it
-- [ ] 5.8b Confirm no double claims an exception it does not need. The
-  exceptions exist for cases where generating buys nothing, not as somewhere to
-  put a double that is inconvenient to convert
-- [ ] 5.9 Confirm no hand-written struct satisfies an interface this
-  organization defines, that every generated mock sits in a `mocks` package
-  beside the code it mocks, and that each remaining hand-written double names
-  which exception it relies on
+- [x] 5.5 `gohai` — the four `collector.Collector` doubles replaced by a
+  generated mock and constructors, keeping 26 call sites as short as the struct
+  literals (osapi-io/gohai#168). One value was carried across wrong and put back
+  in osapi-io/gohai#169
+- [x] 5.6 `gohai` — `internal/executor/gen/` moved to `internal/executor/mocks/`
+  and the generator invoked through `go tool`. The rename is why `.coverignore`
+  gained `/mocks/`: the directory was excluded as `/gen/`, which is why the
+  mocks were there (osapi-io/gohai#168)
+- [x] 5.7 `osapi-orchestrator` — `mockRenderer` replaced by a generated mock
+  (osapi-io/osapi-orchestrator#82). Generated in-place rather than in a sibling
+  package, because `renderer` is unexported and its methods take types the
+  package declares
+- [x] 5.8 `osapi` — `captureStore` replaced by the generated `MockStore`, which
+  closes a channel from its write handler so the test waits on the call rather
+  than on `time.Sleep`. Seven sleeps removed, and the excluded paths gained a
+  `Times(0)` assertion where they previously slept and found nothing
+  (osapi-io/osapi#455)
+- [x] 5.8a `osapi` — `mockPKISigner` replaced by a generated mock delegating to
+  `ed25519.Sign`, so the test still verifies a real signature
+  (osapi-io/osapi#455)
+- [x] 5.9 Confirm no hand-written struct satisfies an interface this
+  organization defines. A scan of every test struct carrying two or more methods
+  across the five Go repositories finds none. What remains is generated, or
+  stands in for a standard library interface — `net.Conn`, `fs.File`,
+  `io.Writer`, `slog.Handler` — or is not a double at all. Each now says which
+  it is; `slog.Handler` was the last unlabelled one (osapi-io/nats-server#98)
 
 ## 6. Verification
 
@@ -147,10 +144,14 @@ asked to follow a rule it does not carry.
   difference in wording would mean a difference in rule. Verified by hashing
   each block: `Code standards` and `Test file conventions` each hash the same in
   all five repositories
-- [ ] 6.4 Confirm every rule removed from `go-code-standards` is stated in all
-  five repositories or enforced by a tool, and that none was dropped
-- [ ] 6.5 Confirm `go-code-standards` retains only requirements no tool reports
-  on
+- [x] 6.4 Confirm every rule removed from `go-code-standards` is stated in all
+  five repositories or enforced by a tool, and that none was dropped. Signature
+  layout, file naming, suite naming, table-driven cases, and the
+  `export_test.go` pattern are in the shared `Code standards` section;
+  `gofumpt`, `golines`, `goimports`, and `golangci-lint` enforce the rest
+- [x] 6.5 Confirm `go-code-standards` retains only requirements no tool reports
+  on. Two remain: a double the test asserts against is generated, and a test
+  does not re-cover behavior through an exported alias. No linter checks either
 - [x] 6.6 Confirm `specify-go-code-standards` tasks 2.2, 2.3, 2.4, and 3.6 are
   reconciled with this change rather than left describing the pointer-only
   destination it replaces. 2.2, 2.3, and 2.4 are checked against the
