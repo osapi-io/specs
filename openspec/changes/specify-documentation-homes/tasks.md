@@ -22,8 +22,22 @@
 
 - [ ] 3.1 `osapi` — propose a capability from `docs/sidebar/architecture/`:
   `principles.md` (8 constraints) and `api-guidelines.md` (6 API rules)
-- [ ] 3.2 `osapi` — propose a capability from `job-architecture.md`'s
-  "Architecture Principles"; leave its remaining 550 descriptive lines in place
+- [ ] 3.2 `osapi` — propose a `job-routing` capability from
+  `job-architecture.md`. Its requirements are spread through the document, not
+  confined to "Architecture Principles": the semantic routing rules that decide
+  whether an operation reaches `jobs.query` or `jobs.modify`, the target types
+  (`_all`, `_any`, hostname, label selector), hierarchical label prefix
+  matching, and the five-label limit with its consumer arithmetic
+- [ ] 3.2a `osapi` — the routing rule has already drifted. It classifies
+  `.get`/`.query`/`.read`/`.status`/`.do` and
+  `.update`/`.set`/`.create`/`.delete`/`.execute`, while the code uses twenty
+  suffixes: `.list` appears ten times and is not classified at all, nor are
+  `stop`, `start`, `signal`, `shutdown`, `restart`, `remove`, `reboot`,
+  `install`, `enable`, or `disable`. `.read` and `.set` are documented and
+  unused. Establish the real rule before writing it as a requirement
+- [ ] 3.2b `osapi` — leave the descriptive remainder of `job-architecture.md` in
+  place: job states, the append-only status design, package layout, and the
+  performance notes describe what the code is
 - [ ] 3.3 `gohai` — propose a capability from the collector done-definition and
   `docs/methodology.md`'s decision order and field-naming ladder
 - [ ] 3.4 `osapi` — propose capabilities from `CLAUDE.md`'s seven MANDATORY rule

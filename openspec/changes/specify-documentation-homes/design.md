@@ -187,3 +187,46 @@ rule still in force.
 *Alternative considered:* keep the plan that records it. Rejected — a planning
 document is not where a binding rule belongs, and keeping one file to preserve
 one sentence reintroduces the directory this change removes.
+
+## An architecture document is not one genre
+
+`osapi` holds three documents named for architecture, and they are three
+different things:
+
+| Document                 | Contains                                                    | Reader                            |
+| ------------------------ | ----------------------------------------------------------- | --------------------------------- |
+| `architecture.md`        | the three processes, deployment models, how a request flows | someone new, or an operator       |
+| `system-architecture.md` | component map, entry points, layers, dependencies           | a contributor navigating the code |
+| `job-architecture.md`    | routing rules, label limits, job states, package layout     | someone building an operation     |
+
+Only the third governs how new work is built, and it does so from sections
+scattered through 561 lines rather than from the block named "Architecture
+Principles".
+
+No other repository has a document like these. This is not an organization-wide
+category with a naming problem; it is one repository's documents sharing a word.
+
+### The routing rule proves why extraction matters
+
+`job-architecture.md` states that an operation reaches `jobs.query` or
+`jobs.modify` according to its suffix, and lists ten suffixes. The code uses
+twenty. `.list` appears ten times and the rule does not classify it. Ten more
+verbs — `stop`, `start`, `signal`, `shutdown`, `restart`, `remove`, `reboot`,
+`install`, `enable`, `disable` — are unanticipated. Two documented suffixes are
+unused.
+
+Nothing enforces the rule: the caller chooses `Query` or `Modify` directly. So
+the code outgrew the document, and because a description is not checked against
+anything, no one found out. A requirement with scenarios would have failed when
+`.list` appeared.
+
+This is the case for decomposing an architecture document into capabilities
+stated as the argument would not have made it: not that requirements belong in
+the corpus on principle, but that a rule nobody checks stops being true and
+keeps being read.
+
+*Alternative considered:* rename the three documents first, so their names match
+their genres. Rejected for now — renaming before extraction relabels documents
+that still contain requirements, and these are site routes, so the rename costs
+external links. It belongs after, when what remains is unambiguously
+description.
