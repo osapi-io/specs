@@ -60,29 +60,40 @@ osapi-io/osapi-orchestrator#77, and osapi-io/osapi#452.
 
 ## 5. Resolve the mocks finding
 
-A full scan replaced the original count of three. Sixteen of the structs it
-turned up are testify suites rather than doubles, five stand in for stdlib
-interfaces, and one is a real channel helper. Five are genuine violations, and
-two need the requirement to say something it did not.
+Applying this section disproved the requirement it was applying.
+`Mocks are generated` said a hand-written double "drifts from its interface
+silently" while a generated one breaks at compile time. Adding a method to
+`collector.Collector` was measured against both: each stopped satisfying it, and
+each reported the same error at the point it was used, because Go checks
+interface satisfaction structurally at every assignment.
 
-- [x] 5.0 Widen `Mocks are generated` for the two cases applying exposed: a
-  recorder for a dependency called from a goroutine the test cannot join, and a
-  double for a stdlib interface. Both were being met in the code and forbidden
-  by the requirement
-- [ ] 5.1 `osapi` — record `mockPKISigner` as a real implementation and
-  `captureStore` as a permitted recorder, rather than converting either.
-  `captureStore` already states its reason where it is defined, which is what
-  the widened requirement asks for
-- [ ] 5.2 `gohai` — replace the four hand-written `collector.Collector` doubles
-  with generated mocks: `fakeCollector` and `errCollector` in
-  `internal/collector`, `cycleCollector` and `failingCollector` in `pkg/gohai`.
-  The repository already declares `go.uber.org/mock` and generates a mock for
-  `executor.Executor`, so this follows an established pattern rather than
-  introducing one
-- [ ] 5.3 `osapi-orchestrator` — replace `mockRenderer` with a generated mock
-- [ ] 5.4 Confirm no hand-written double remains for an interface the
-  organization owns, and that each permitted double states which carve-out it
-  relies on
+The line that does hold is whether a test asserts on the interaction. A double
+the test asserts against is generated; a double that only returns values is
+written by hand. That is already how these repositories behave —
+`executor.Executor` is mocked because tests check the arguments a command
+received, and the collector doubles are stubs because nothing is asserted about
+how they are called.
+
+- [x] 5.0 Widen the requirement for a recorder on an unjoinable goroutine and
+  for stdlib interfaces. Both were being met in the code and forbidden by the
+  requirement
+- [x] 5.1 Replace `Mocks are generated` with
+  `A double that asserts on interaction is generated`, recording the measurement
+  that disproved it
+- [x] 5.2 `gohai` — no change. `fakeCollector`, `errCollector`,
+  `cycleCollector`, and `failingCollector` return fixed values and assert
+  nothing, so they are stubs. Converting them would have replaced four struct
+  literals with expectations that assert nothing, across roughly fifty call
+  sites
+- [x] 5.3 `osapi` — no change. `mockPKISigner` signs with a real generated
+  ed25519 key pair, and `captureStore` records writes the audit middleware
+  dispatches after the response is sent, stating that reason where it is defined
+- [ ] 5.4 `osapi-orchestrator` — replace `mockRenderer` with a generated mock.
+  It records eight call flags and the tests assert `s.True(m.planStartCalled)`
+  and its siblings, which is hand-rolled interaction assertion: it proves
+  something was called, not that it was called correctly
+- [ ] 5.5 Confirm no double records calls by hand for a test to assert on, and
+  that each hand-written stub only returns values
 
 ## 6. Verification
 
