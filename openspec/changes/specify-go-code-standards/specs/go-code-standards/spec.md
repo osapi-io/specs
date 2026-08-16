@@ -108,21 +108,21 @@ server — is not required to introduce mocking.
 - **THEN** it uses a generated mock or a real implementation, rather than a
   struct written to satisfy the interface
 
-### Requirement: Test-only seams stay out of production code
+### Requirement: A test does not duplicate coverage through an internal seam
 
 Where a test needs access to an unexported symbol, the package MAY provide an
-`export_test.go` exposing it. That file SHALL expose setters that replace a
-value and return a function restoring it.
+`export_test.go` exposing it — by alias or by setter. The file carries the
+`_test.go` suffix, so nothing it declares ships in the built package.
 
-It SHALL NOT expose an alias to an unexported function. An alias makes an
-internal step directly callable, which invites a test that exercises it in
-isolation — duplicating coverage the caller's own test already provides, and
-pinning an implementation detail so it cannot be changed without rewriting
-tests.
+What the exposure is for matters more than its form. An exported alias SHALL NOT
+be used to test an internal step whose behavior the caller's own test already
+covers. Such a test adds no coverage and pins an implementation detail, so
+changing how the caller reaches its result means rewriting tests that were never
+about the result.
 
-A seam SHALL be placed at the boundary with a dependency, not partway through
-the code under test, so that the logic between the entry point and the boundary
-runs in every case.
+A seam replacing a dependency SHALL be placed at the boundary with that
+dependency, not partway through the code under test, so the logic between the
+entry point and the boundary runs in every case.
 
 #### Scenario: A test needs to force an error from a dependency
 
@@ -130,11 +130,17 @@ runs in every case.
 - **THEN** it replaces that call at the boundary, and the code between the entry
   point and the boundary executes
 
-#### Scenario: An internal step looks worth testing directly
+#### Scenario: An internal step is exported for a test
 
-- **WHEN** an unexported function seems to warrant its own test
-- **THEN** it is covered through the exported surface that calls it, rather than
-  exposed to be called directly
+- **WHEN** an unexported function is exposed through `export_test.go`
+- **THEN** the test exercises behavior the caller's test does not already reach,
+  rather than re-covering the same path through a shorter route
+
+#### Scenario: An unexported helper is pure and self-contained
+
+- **WHEN** an unexported function has its own contract, independent of the
+  callers that use it
+- **THEN** exposing and testing it directly is appropriate
 
 ### Requirement: Style baseline
 
