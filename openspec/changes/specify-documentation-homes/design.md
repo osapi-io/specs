@@ -253,9 +253,18 @@ its own description.
 
 It will never fully match it. Package maps and request flows stay in the
 repositories, because writing them as requirements produces a corpus that goes
-stale on every refactor — a decision this capability already records. So the
-README is corrected to say what the corpus is: the rules the software is held
-to, with the reasoning in the archive.
+stale on every refactor — a decision this capability already records.
+
+The README is left as it stands. "The current description of how osapi-io
+behaves" is what OpenSpec's own model says `specs/` holds, so the sentence
+states the destination correctly and the gap is in the corpus rather than in the
+claim. Rewriting it to describe forty-five process rules would have recorded a
+temporary state as the permanent intent.
+
+*Alternative considered:* correct the README to say the corpus holds rules. That
+was the first draft of this task, and it was wrong. A README that describes what
+a directory currently contains, rather than what it is for, stops being true the
+moment the next capability lands.
 
 ### An entry point, before there are twenty capabilities
 

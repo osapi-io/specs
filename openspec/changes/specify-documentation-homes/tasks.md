@@ -75,9 +75,13 @@
 
 - [ ] 4a.1 `specs` — write the corpus entry point naming every capability and
   what it covers
-- [ ] 4a.2 `specs` — correct the README, which calls `openspec/specs/` "the
-  current description of how osapi-io behaves". It holds rules; five of its six
-  capabilities govern how work is done rather than how the software behaves
+- [ ] 4a.2 `specs` — leave the README's description of `openspec/specs/` as "the
+  current description of how osapi-io behaves". That is what OpenSpec's own
+  model says the directory holds, so the sentence states the destination
+  correctly. The corpus has not arrived: five of its six capabilities govern how
+  work is done, because every change so far has been repository standardization.
+  Closing that gap is the behavior capabilities queued in section 3, not a
+  smaller claim in the README
 - [ ] 4a.3 `specs` — confirm each capability's `## Purpose` states what it
   governs, rather than restating its first requirement
 
