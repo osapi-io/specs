@@ -5,13 +5,14 @@
 
 ## 2. Apply to each repository
 
-- [ ] 2.1 `osapi`
-- [ ] 2.2 `gohai`
-- [ ] 2.3 `nats-client`
-- [ ] 2.4 `nats-server`
-- [ ] 2.5 `osapi-orchestrator`
-- [ ] 2.6 `specs`
-- [ ] 2.7 `osapi-justfiles`
+- [ ] 2.1 `osapi` — blocked: it has no `AGENTS.md`, pending its CONTRIBUTING
+  conversion (`standardize-repository-layout` task 4.5)
+- [x] 2.2 `gohai`
+- [x] 2.3 `nats-client`
+- [x] 2.4 `nats-server`
+- [x] 2.5 `osapi-orchestrator`
+- [x] 2.6 `specs`
+- [x] 2.7 `osapi-justfiles`
 
 ## 3. Verification
 
