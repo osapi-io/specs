@@ -122,3 +122,36 @@ pseudo-version continue to resolve until they move.
   rename breaks it without warning.
 - Should `gohai` be consumed by `osapi`, as its README describes? That is a
   design question, not a documentation one, and is out of scope here.
+
+## Correction: `replace` was specified as a single thing
+
+The requirement first stated that a `replace` directive may be used locally but
+never merged, and that no repository contained one. Applying it found thirteen,
+merged, across four repositories:
+
+| Repository           | Directives | Target                  |
+| -------------------- | ---------- | ----------------------- |
+| `nats-client`        | 5          | its own repository root |
+| `nats-server`        | 4          | its own repository root |
+| `osapi`              | 2          | its own repository root |
+| `osapi-orchestrator` | 2          | its own repository root |
+
+Every one belongs to a nested example module pointing at the repository that
+holds it. None crosses a repository boundary.
+
+The requirement had collapsed two unrelated uses of the same keyword. A
+`replace` reaching into a sibling repository stands in for a version that should
+be pinned, and leaks a developer's local layout into a merged tree. A `replace`
+reaching into its own repository root is how a nested module refers to the
+source beside it — remove it and the example silently compiles against whatever
+version the proxy last published, which is the failure the pattern exists to
+prevent.
+
+The corrected requirement distinguishes them by direction rather than by
+mechanism.
+
+*Alternative considered:* exempt example modules by path convention, keying the
+rule to a directory named `examples/`. Rejected — the property that matters is
+whether the directive crosses a repository boundary, and a rule written against
+a directory name would miss a nested tool module and would not survive anyone
+choosing a different name.

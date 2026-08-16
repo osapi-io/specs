@@ -20,11 +20,13 @@ Sequenced: `osapi` renames and publishes before `osapi-orchestrator` moves.
 - [ ] 3.1 `gohai` — describe the consumer relationship it has, not the one
   intended
 - [ ] 3.2 Confirm no repository documents a `replace`-based linkage
-- [ ] 3.3 Confirm no `go.mod` contains a `replace` directive
+- [ ] 3.3 Confirm no `go.mod` contains a `replace` directive pointing outside
+  its own repository
 
 ## 4. Verification
 
 - [ ] 4.1 Confirm every module path matches its repository location
-- [ ] 4.2 Confirm no `replace` directive points outside its own module
+- [ ] 4.2 Confirm every `replace` directive points within the repository that
+  holds it
 - [ ] 4.3 Confirm every documented dependency appears in the corresponding
   `go.mod`

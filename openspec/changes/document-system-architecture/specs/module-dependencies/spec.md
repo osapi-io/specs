@@ -23,20 +23,35 @@ A Go module SHALL declare a path matching the repository that holds it.
 
 ### Requirement: Dependencies are declared by version
 
-A repository SHALL depend on another by a released or pinned version in
-`go.mod`.
+A repository SHALL depend on another repository by a released or pinned version
+in `go.mod`.
 
-A `replace` directive MAY be used locally while developing against an unreleased
-change in a sibling repository. It SHALL NOT be merged.
+A `replace` directive pointing outside the repository that holds it MAY be used
+locally while developing against an unreleased change in a sibling repository.
+It SHALL NOT be merged.
 
-No repository contains one today, and the documentation that described `replace`
-as the linking mechanism was wrong.
+A `replace` directive pointing within the repository that holds it is a
+different thing and SHALL be merged. A nested module — an example or tool module
+under a repository that already declares its own — resolves its parent through
+`replace` so it compiles against the working tree rather than a published
+version. Without it the example cannot demonstrate the code it ships beside.
+
+The distinction is direction, not mechanism: a `replace` crossing a repository
+boundary substitutes for a version that should be pinned; one staying inside it
+is how a nested module refers to its own repository.
 
 #### Scenario: Consumer builds without the sibling checked out
 
 - **WHEN** a repository is built by someone who has not cloned its sibling
   repositories
 - **THEN** the build resolves every dependency from the module proxy
+
+#### Scenario: An example module ships beside the code it demonstrates
+
+- **WHEN** a repository carries a nested example module
+- **THEN** that module declares a `replace` pointing at its own repository root,
+  and it is merged, because the example must build against the source it sits
+  next to
 
 #### Scenario: Developing against an unreleased sibling change
 
