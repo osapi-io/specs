@@ -48,7 +48,9 @@ rules:
       lost. A decision with no alternative is an assertion.
     - Prefer recording the real failure that motivated a decision over an
       abstract argument for it.
-    - Risks use the form [Risk] -> Mitigation.
+    - "Each risk states the risk in bold, then an arrow, then what mitigates
+      it. **The risk.** → The mitigation. Avoid square brackets; the markdown
+      formatter escapes them as link references."
   tasks:
     - Each task is verifiable — state what would prove it done.
     - Order by dependency. A task that breaks consumers is immediately
