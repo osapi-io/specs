@@ -81,7 +81,6 @@ bun install -g @fission-ai/openspec@latest    # the OpenSpec CLI
 Verify:
 
 ```bash
-openspec --version
 just test        # runs every check CI runs
 ```
 
@@ -222,33 +221,69 @@ person with a rule that exists only in someone's memory.
 
 `main` is protected, so each step below is its own pull request.
 
-**1. Propose**
+### Invoke the skill, never the CLI
 
-```bash
-/opsx:propose "converge shared justfiles on one consumption style"
-```
+Every step is a skill. A person types its slash command; an agent invokes the
+skill by name. **Never drive `openspec` by hand** — the CLI is what the skill
+runs, not what you run.
+
+| Step    | You type        | An agent invokes          | For                                       |
+| ------- | --------------- | ------------------------- | ----------------------------------------- |
+| Explore | `/opsx:explore` | `openspec-explore`        | Thinking before there is a change to make |
+| Propose | `/opsx:propose` | `openspec-propose`        | Turning a decision into artifacts         |
+| Apply   | `/opsx:apply`   | `openspec-apply-change`   | Working the task list                     |
+| Update  | `/opsx:update`  | `openspec-update-change`  | Revising a change still in flight         |
+| Sync    | `/opsx:sync`    | `openspec-sync-specs`     | Merging deltas without archiving          |
+| Archive | `/opsx:archive` | `openspec-archive-change` | Filing a finished change                  |
+
+Both forms carry the same instructions. Assembling the steps yourself skips the
+guards that live between them, and a change built that way can pass every check
+and still be wrong.
+
+An agent only reaches these when the session's project root holds them. This
+repository does; a session rooted at a parent directory sees nothing unless they
+are linked there or installed under `~/.claude/skills/`.
+
+### 1. Explore, when the shape is not settled
+
+Explore is a stance, not a step you owe anyone. It reads code, argues
+approaches, and draws diagrams. It will not write code, and it captures
+artifacts only when you ask.
+
+Skip it when you already know what you are proposing.
+
+### 2. Propose
 
 Creates `openspec/changes/<name>/` with a proposal, spec deltas, a design, and
-tasks. Nothing else happens — this step never edits code.
+tasks — each written to a template, against rules, in dependency order.
+
+Then it **stops**. Proposing never edits code, and the request that triggered it
+does not authorize implementation, however it was phrased.
 
 Branch, commit, open a PR. What gets reviewed is the plan.
 
-**2. Merge the proposal PR**
+### 3. Merge the proposal PR
 
 The plan is now agreed. `specs/` is unchanged; the change is in flight.
 
-**3. Apply**
+Do not start applying before this. A branch is not an agreement, and
+implementation written against an unmerged proposal is implementation written
+against your own opinion.
 
-```bash
-/opsx:apply
-```
+### 4. Apply
 
-Work the task list. Implementation lands in the target repository, in that
-repository's own PR. Tick tasks off here as they land.
+Works the task list. Implementation lands in the target repository, in that
+repository's own PR. Tick each task off here as it lands, not in a batch.
 
-Do not start this step until the proposal PR is merged. A branch is not an
-agreement, and implementation written against an unmerged proposal is
-implementation written against your own opinion.
+Three rules it holds you to:
+
+- **A task is checked only when its behavior is fully implemented.** Not
+  partially, not deferred, not "done except for one repository".
+- **Scope beyond the task is surfaced, not absorbed.** If a task turns out to
+  need more than the spec describes, or you find yourself narrowing it to fit,
+  stop and say so.
+- **A blocker pauses the work.** Unclear task, design issue, error — report and
+  wait rather than guessing.
 
 **When applying shows the requirement is wrong — stop.**
 
@@ -268,83 +303,56 @@ it as a change of rule.
 A requirement that turns out to be wrong is worth more than one that was never
 tested — but only if it is corrected in the open.
 
-**4. Archive**
-
-```bash
-/opsx:archive
-```
+### 5. Archive
 
 Merges the deltas into `specs/` and moves the change to
 `openspec/changes/archive/`. Branch, commit, open a PR.
 
-Before merging, archiving compares each delta against the spec it targets and
-reports what would be added, modified, removed, or renamed. Read that summary. A
-`MODIFIED` delta whose requirement heading does not exist in the corpus is
-reported here and nowhere else — `openspec validate --strict` passes it.
+Before merging anything it compares each delta against the spec it targets and
+reports what would be added, modified, removed, or renamed. **Read that
+summary.** A `MODIFIED` delta whose requirement heading does not exist in the
+corpus is reported there and nowhere else — `just validate` passes it, because
+validation checks that a change is well formed, not that its deltas have
+somewhere to land.
+
+The merge itself is a considered one: a `MODIFIED` delta updates the parts it
+names and preserves the scenarios it does not mention. That is why it is worth
+letting the skill do it.
 
 Unchecked tasks produce a warning and a confirmation prompt rather than a
-refusal. Skipping the prompts also skips the sync assessment above.
+refusal. Suppressing the prompts suppresses the comparison above with them.
 
-It writes the spec file itself, and does not format it. Run `just md-fmt`
+Archiving writes the spec file and does not format it. Run `just md-fmt`
 afterwards or the formatting check fails on a file you did not hand-write.
+
+### Sync, when the corpus should move before the change is done
+
+Sync merges deltas into `specs/` without archiving. Reach for it when
+implementation has diverged from the plan and the corpus should reflect what was
+actually built, before the change is finished.
+
+### Update, when the plan itself changes
+
+Update revises a change's artifacts and keeps them coherent with each other. It
+never edits code. Use it when a decision lands mid-flight, rather than editing
+one artifact and leaving the others describing something else.
 
 ### Shortcut for documentation-only changes
 
 When the artifacts *are* the work — recording an architecture that already
-exists — steps 1 and 4 belong in the **same** PR. Splitting them only creates a
-window where the corpus is knowingly incomplete. Run `/opsx:propose`, then
-`/opsx:archive`, then open one PR containing both the change and the resulting
-`specs/` update.
-
-### Other commands
-
-| Command         | When                                         |
-| --------------- | -------------------------------------------- |
-| `/opsx:explore` | Before proposing, to weigh approaches        |
-| `/opsx:update`  | Revise a change that is still in flight      |
-| `/opsx:sync`    | Update `specs/` without archiving the change |
-
-### Use the skill, not the CLI
-
-Every step of the workflow is invoked through a skill, or through its slash
-command. **Do not drive `openspec` by hand.**
-
-| Step    | A person types  | An agent invokes          |
-| ------- | --------------- | ------------------------- |
-| Explore | `/opsx:explore` | `openspec-explore`        |
-| Propose | `/opsx:propose` | `openspec-propose`        |
-| Apply   | `/opsx:apply`   | `openspec-apply-change`   |
-| Sync    | `/opsx:sync`    | `openspec-sync-specs`     |
-| Update  | `/opsx:update`  | `openspec-update-change`  |
-| Archive | `/opsx:archive` | `openspec-archive-change` |
-
-The two forms carry the same instructions and differ only in who can reach them:
-a person types a slash command, an agent invokes a skill.
-
-The skill runs the `openspec` CLI for you, and which commands it runs is not the
-point — the workflow around them is. Driving the CLI directly skips that
-workflow, and with it the sync assessment before archiving, the planning
-boundary that keeps implementation out of the turn that produced the plan, and
-the per-artifact rules below. A change assembled by hand can validate and still
-not conform.
-
-An agent reaches these skills only when the session's project root holds them.
-This repository does. A session rooted at a parent directory will not, unless
-they are linked into that root or installed under `~/.claude/skills/`.
+exists — propose and archive belong in the **same** PR. Splitting them only
+creates a window where the corpus is knowingly incomplete.
 
 ### Each artifact has a template and rules
 
-The schema defines four artifacts and constrains each one. Retrieve what it
-expects:
+The schema defines four artifacts and constrains each one. The propose skill
+retrieves the template, the rules, and the artifacts to read first, then writes
+each file to them — that is most of what it is doing, and most of what is lost
+by assembling a change yourself.
 
-```bash
-openspec instructions <proposal|specs|design|tasks> --change <name>
-```
-
-That prints the template to fill in, the rules the artifact is held to, and the
-completed artifacts to read first. The rules are not advisory and are not
-checked by `openspec validate`, which verifies structure rather than
-conformance. Among them:
+The rules are not advisory, and `just validate` does not enforce them: it checks
+that a change is structurally well formed, not that its artifacts follow the
+schema. Among them:
 
 - A requirement states one behavior. If it needs "and" to describe itself, it is
   two requirements.
@@ -355,12 +363,6 @@ conformance. Among them:
 
 Writing an artifact without reading these produces something that validates and
 still does not conform.
-
-Refresh the generated agent wiring after a CLI upgrade:
-
-```bash
-openspec update
-```
 
 ## Writing requirements
 
@@ -404,8 +406,8 @@ just test
 ```
 
 That runs what CI runs — markdown formatting, justfile lint, and
-`openspec validate --all --strict`. `just md-fmt` fixes formatting failures. A
-change that validates but is not formatted will still fail CI.
+`just validate`. `just md-fmt` fixes formatting failures. A change that
+validates but is not formatted will still fail CI.
 
 Two things [mdformat] rewrites silently, so write them correctly the first time:
 
@@ -413,8 +415,8 @@ Two things [mdformat] rewrites silently, so write them correctly the first time:
   stops rendering as a callout. Use bold text instead.
 - Link definitions are lowercased and sorted.
 
-`.claude/` is excluded from formatting, because `openspec update` regenerates
-those files and would revert any changes.
+`.claude/` is excluded from formatting. Those files are generated, and
+regenerating them would revert anything written there by hand.
 
 ## Branching
 

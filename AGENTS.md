@@ -24,10 +24,26 @@ treating the failure as real.
 
 ## Running a change
 
-The procedure, with commands, is in @CONTRIBUTING.md under "Running a change".
-Follow it rather than improvising: propose, merge, apply, archive — each step
-its own pull request, except documentation-only changes where propose and
-archive belong in one.
+Invoke the skill for every step. Never drive the `openspec` CLI yourself, and
+never assemble a change by hand — the CLI is what the skill runs, and the guards
+live in the workflow around it.
+
+| Step    | Skill                     |
+| ------- | ------------------------- |
+| Explore | `openspec-explore`        |
+| Propose | `openspec-propose`        |
+| Apply   | `openspec-apply-change`   |
+| Update  | `openspec-update-change`  |
+| Sync    | `openspec-sync-specs`     |
+| Archive | `openspec-archive-change` |
+
+The `/opsx:*` slash commands in @CONTRIBUTING.md are the same instructions in
+the form a person types. You cannot type them; invoke the skill instead.
+
+The procedure is in @CONTRIBUTING.md under "Running a change". Follow it rather
+than improvising: propose, merge, apply, archive — each step its own pull
+request, except documentation-only changes where propose and archive belong in
+one.
 
 ## Read the corpus first
 
@@ -51,8 +67,8 @@ See @CONTRIBUTING.md under "When you find something".
 
 ## Planning boundary
 
-`/opsx:propose` produces planning artifacts and then stops. Do not edit code in
-the same response, even when the request asks you to build or fix something.
+`openspec-propose` produces planning artifacts and then stops. Do not edit code
+in the same response, even when the request asks you to build or fix something.
 Wait for an explicit instruction to apply.
 
 Applying waits for the proposal PR to **merge**, not to exist. An open branch is
@@ -66,9 +82,20 @@ See @CONTRIBUTING.md under "Running a change".
 
 ## Writing artifacts
 
-Read `openspec/config.yaml` before generating any artifact. Its `context` and
-`rules` are injected into every generation — apply them as constraints, and do
-not copy them into the output.
+Do not write an artifact yourself. The propose skill retrieves each one's
+template, its rules, and the artifacts to read first, then writes to them in
+dependency order. Assembling one by hand produces something that validates and
+does not conform — `just validate` checks structure, not conformance.
 
-Follow the artifact build order from `openspec status`, not the order the
-templates happen to appear in.
+`openspec/config.yaml` carries project context and per-artifact rules that are
+injected into every generation. Apply them as constraints; never copy them into
+the output.
+
+## Applying a change
+
+- A task is checked only when its behavior is fully implemented — not partially,
+  not deferred, not done in some repositories and not others.
+- Scope beyond the task is surfaced, not absorbed. If a task needs more than the
+  spec describes, or you are narrowing it to fit, stop and say so.
+- A blocker pauses the work. Unclear task, design issue, error — report it and
+  wait rather than guessing.
