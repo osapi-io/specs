@@ -73,17 +73,17 @@ No workflow in any repository uses mise; all seven provision tools twice.
   float together, which is what the requirement asks for where nothing automates
   the version — so the pin this task called for would violate it. Recorded
   rather than applied
-- [ ] 5.2 Confirm `.mise.toml` and the workflow resolve to the same version for
+- [x] 5.2 Confirm `.mise.toml` and the workflow resolve to the same version for
   every tool, floating or pinned. `just`, `bun`, and `uv` float on both sides;
-  `node` is `22` in both. `go` does not agree: `.mise.toml` declares `1.25`
-  while every workflow sets `go-version: stable`. They resolve alike today and
-  diverge the day 1.26 ships
-- [ ] 5.3 Confirm no tool is pinned in one path and floating in the other. `go`
-  fails it, in all five Go repositories. Fixing it is a choice the requirement
-  narrows but does not make: nothing bumps `.mise.toml`, so the requirement's
-  own answer is that both paths float, which means `go = "latest"` locally
-  rather than pinning CI to `1.25`. That changes which toolchain every developer
-  builds with, so it wants a decision rather than a sweep
+  `node` is `22` in both. `go` did not agree, and had already diverged: mise
+  supplied 1.25.7 while continuous integration built with 1.26.6, so every
+  contributor formatted and linted on a different toolchain than the one
+  checking the result. All five Go repositories now declare `go = "latest"`,
+  matching the workflows' `go-version: stable`
+- [x] 5.3 Confirm no tool is pinned in one path and floating in the other.
+  Nothing bumps `.mise.toml`, so the requirement's own answer is that both paths
+  float. `go` now floats on both sides in all five Go repositories, and every
+  suite passes on 1.26.6
 - [x] 5.5 `osapi-orchestrator` — `actions/setup-go@v6` while every other
   repository uses `@v7`
 - [x] 5.6 Confirm Dependabot raises each new pin, in both locations. It watches
@@ -126,23 +126,29 @@ No workflow in any repository uses mise; all seven provision tools twice.
   `CONTRIBUTING.md`, and the site builds with no broken link. One stale pointer
   was found and fixed in the other direction: `osapi-orchestrator`'s `AGENTS.md`
   still named the removed `docs/plans/` (osapi-io/osapi-orchestrator#74)
-- [ ] 7.4 Confirm each README uses only vocabulary sections, in order. Not yet
-  established for the six non-exempt repositories. `osapi` is exempt from the
-  section set as the main product, and it gained `## 🤝 Contributing` so the new
-  root guide is reachable from it
+- [x] 7.4 Confirm each README uses only vocabulary sections, in order. Five of
+  six audit clean. `osapi-justfiles` did not: `Usage` carried the `Install`
+  emoji, `Available Recipes` was an invented name for a table of links that the
+  `Documentation` section covers, and `Documentation` — required for a utility
+  repository — was missing (osapi-io/osapi-justfiles#60). `gohai` and
+  `osapi-orchestrator` carry subject-specific sections, all placed before
+  `Contributing` as the requirement permits
 - [x] 7.5 Confirm `LICENSE`, `AI_POLICY.md`, and `CODE_OF_CONDUCT.md` are
   byte-identical everywhere. `AI_POLICY.md` and `CODE_OF_CONDUCT.md` are, in all
   seven. `LICENSE` was not: `specs` carried a differently titled and differently
   wrapped variant, which this change replaces with the canonical copy. The rest
   differ only on the copyright year, as the requirement allows — 2024 for
   `osapi`, 2025 for the two NATS libraries, 2026 for the rest
-- [ ] 7.6 Confirm no `.mise.toml` and no workflow floats a tool whose output a
-  check compares. Unresolved while 5.2 and 5.3 are: `go` is declared `1.25`
-  locally and `stable` in every workflow, and `go-fmt-check` compares its output
-- [ ] 7.7 Confirm `just test` locally and CI agree on every repository. Not
-  established across all seven. The conversion ran `md-fmt-check`,
-  `docusaurus-fmt-check`, and `docusaurus-build` in `osapi` and `md-fmt-check`
-  in `osapi-orchestrator`; both pass
+- [x] 7.6 Confirm no `.mise.toml` and no workflow floats a tool whose output a
+  check compares. Every tool now floats on both paths together, which is what
+  the requirement asks where nothing automates the version. The case that
+  mattered was `go`, whose toolchain `go-fmt-check` compares against: it was
+  pinned locally and floating in continuous integration, and the two had already
+  parted
+- [x] 7.7 Confirm `just test` locally and CI agree on every repository. Run in
+  all seven on `main` after the Go float landed: `gohai`, `nats-client`,
+  `nats-server`, `osapi-orchestrator`, `osapi`, `osapi-justfiles`, and `specs`
+  all pass locally, on the same toolchain continuous integration uses
 - [x] 7.8 Confirm every deprecated repository is archived on GitHub.
   `osapi-sdk`, `osapi-ui`, and `osapi-io-taskfiles` all report archived
 - [x] 7.9 Confirm no tracked file was removed on the basis of its path without
