@@ -10,15 +10,36 @@
 - [x] 2.2 `nats-client` — `CONTRIBUTING.md`
 - [x] 2.3 `nats-server` — `CONTRIBUTING.md`
 - [x] 2.4 `osapi-orchestrator` — `CONTRIBUTING.md`
-- [ ] 2.5 `osapi` — `CLAUDE.md` drops `Code Standards`, and the conventions
-  duplicated into `development.md` and `testing.md` resolve to one source
+- [x] 2.5 `osapi` — `CLAUDE.md` dropped `Code Standards`, and the conventions
+  duplicated into `development.md` and `testing.md` now resolve to the root
+  `CONTRIBUTING.md`, which points at this capability rather than restating it
+  (osapi-io/osapi#450)
 
 ## 3. Verification
 
 - [x] 3.1 Confirm no `types.go` contains a function
 - [x] 3.2 Confirm no repository holds a generically named file
 - [x] 3.3 Confirm every test package uses a table-driven suite
-- [ ] 3.4 Confirm no mock is hand-written where an interface is mocked
+- [ ] 3.4 Confirm no mock is hand-written where an interface is mocked. Three
+  remain, each a struct written to satisfy a project-owned interface:
+  `fakeCollector` in `gohai` (`internal/collector/registry_public_test.go`),
+  `mockRenderer` in `osapi-orchestrator`
+  (`pkg/orchestrator/orchestrator_test.go`), and `mockPKISigner` in `osapi`
+  (`internal/job/client/signing_public_test.go`). `mockPKISigner` signs with a
+  real ed25519 key, so it reads as a real implementation rather than a mock and
+  may fall under the carve-out; the other two do not. `gohai` and
+  `osapi-orchestrator` declare no mocking library, so satisfying this needs a
+  decision on introducing one, not just a regeneration
 - [ ] 3.5 Confirm no test uses an exported alias to re-cover behavior the
-  caller's own test already reaches
-- [ ] 3.6 Confirm no shared convention is stated in two places
+  caller's own test already reaches. Not yet established: 65 `export_test.go`
+  files exist (32 in `gohai`, 32 in `osapi`, 1 in `osapi-orchestrator`), and the
+  requirement turns on what each exposure is *for*, which no search can decide.
+  This needs a file-by-file audit
+- [ ] 3.6 Confirm no shared convention is stated in two places. `nats-client`
+  and `nats-server` point at the capability without restating it, and `osapi`
+  now does the same. `gohai` and `osapi-orchestrator` point at it *and* restate
+  it — `osapi-orchestrator` under `Function Signatures`, `Testing`,
+  `Go Patterns`, and `Linting`; `gohai` under `Function Signatures`. Both say
+  the specification wins where they disagree, which acknowledges the duplication
+  rather than removing it. Resolving this means deleting the restatements, which
+  reverses a deliberate choice recorded when those repositories were converted

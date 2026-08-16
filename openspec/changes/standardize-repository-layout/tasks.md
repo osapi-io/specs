@@ -44,12 +44,16 @@ structure for its type.
 - [x] 4.3 `nats-server` (Go library)
 - [x] 4.4 `osapi-orchestrator` (Go library, pending the open question on its
   type)
-- [ ] 4.5 `osapi` (main product; file layout only, README exempt) — the only
-  repository with neither a root `CONTRIBUTING.md` nor `AGENTS.md`, a 917-line
-  `CLAUDE.md`, and three competing contributing documents:
-  `docs/CONTRIBUTING.md` (60 lines),
-  `docs/docs/sidebar/development/contributing.md` (109), and
-  `ui/docs/contributing.md`
+- [x] 4.5 `osapi` (main product; file layout only, README exempt) — converted in
+  osapi-io/osapi#450. The 917-line `CLAUDE.md` split by audience: contributor
+  conventions to a root `CONTRIBUTING.md`, agent-specific guidance to
+  `AGENTS.md`, and the nine-step domain walkthrough to its own site page.
+  `CLAUDE.md` is now a pointer. Of the three competing contributing documents,
+  `docs/CONTRIBUTING.md` and `ui/docs/contributing.md` were removed and
+  `docs/docs/sidebar/development/contributing.md` reduced to a pointer.
+  `ui/docs/architecture.md` was kept: it holds a UI-primitives table, a `Text`
+  variant reference, and a hooks table the site's `ui.md` does not, so removing
+  it would lose content. Folding it in belongs to `specify-documentation-homes`
 - [x] 4.6 `osapi-ui` — not converted; recorded as deprecated instead
 - [x] 4.7 `specs` (documentation) — its `CODE_OF_CONDUCT.md` named no
   enforcement contact, leaving no way to report a violation, and its `LICENSE`
@@ -59,48 +63,90 @@ structure for its type.
 
 No workflow in any repository uses mise; all seven provision tools twice.
 
-- [ ] 5.1 `osapi`, `gohai`, `osapi-orchestrator`, `nats-client`, `nats-server` —
-  declare `just` in `.mise.toml`. None does, so it comes from the developer's
-  system: Homebrew's 1.45.0 formats a boolean setting as `:= true` while the
-  version CI installs writes the bare form, and each rejects the other
-- [ ] 5.1a Record which version `extractions/setup-just` installs, and declare
-  that version, so `mise install` and CI agree
+- [x] 5.1 `osapi`, `gohai`, `osapi-orchestrator`, `nats-client`, `nats-server` —
+  all five now declare `just` in `.mise.toml`, so it no longer comes from the
+  developer's system. `osapi` was also invoking `uv` through `uvx` without
+  declaring it (osapi-io/osapi#450)
+- [x] 5.1a Record which version `extractions/setup-just` installs. No workflow
+  in any repository passes `just-version`, so the action installs the latest
+  release, and every `.mise.toml` declares `just = "latest"`. Both paths already
+  float together, which is what the requirement asks for where nothing automates
+  the version — so the pin this task called for would violate it. Recorded
+  rather than applied
 - [ ] 5.2 Confirm `.mise.toml` and the workflow resolve to the same version for
-  every tool, floating or pinned
-- [ ] 5.3 Confirm no tool is pinned in one path and floating in the other
+  every tool, floating or pinned. `just`, `bun`, and `uv` float on both sides;
+  `node` is `22` in both. `go` does not agree: `.mise.toml` declares `1.25`
+  while every workflow sets `go-version: stable`. They resolve alike today and
+  diverge the day 1.26 ships
+- [ ] 5.3 Confirm no tool is pinned in one path and floating in the other. `go`
+  fails it, in all five Go repositories. Fixing it is a choice the requirement
+  narrows but does not make: nothing bumps `.mise.toml`, so the requirement's
+  own answer is that both paths float, which means `go = "latest"` locally
+  rather than pinning CI to `1.25`. That changes which toolchain every developer
+  builds with, so it wants a decision rather than a sweep
 - [x] 5.5 `osapi-orchestrator` — `actions/setup-go@v6` while every other
   repository uses `@v7`
-- [ ] 5.6 Confirm Dependabot raises each new pin, in both locations
+- [x] 5.6 Confirm Dependabot raises each new pin, in both locations. It watches
+  `github-actions` in all seven repositories and `gomod` in the five Go ones. It
+  does not watch `.mise.toml`, and no ecosystem exists that would — which is why
+  the tools declared there float rather than pin
 
 ## 6. Resolve the deprecated repositories
 
-- [ ] 6.1 `osapi-io-taskfiles` — record deprecation at the top of its README,
-  naming `osapi-justfiles` as the replacement. Blocked: the repository is now
-  archived and cannot be pushed to. Either unarchive briefly to add the notice,
-  or accept the archived state as the signal and drop this task
+- [x] 6.1 `osapi-io-taskfiles` — dropped. The task was to record deprecation at
+  the top of its README, but the repository is archived and cannot be pushed to.
+  Of the two ways out the task offered, the archived state is accepted as the
+  signal: GitHub already marks it read-only and labels it archived, which is the
+  half of the requirement that changes what a reader sees. Unarchiving a
+  repository nothing consumes, to add a sentence, and re-archiving it buys a
+  line of prose at the cost of disturbing the signal that is already correct
 - [x] 6.2 Archive `osapi-sdk` on GitHub
 - [x] 6.3 Archive `osapi-ui` on GitHub
 - [x] 6.4 Archive `osapi-io-taskfiles` on GitHub
 
 ## 6a. Correct the react module override
 
-- [ ] 6a.1 `osapi-justfiles` — make the `react` module take its directory as
-  configuration instead of a shim setting a working directory
-- [ ] 6a.2 `osapi` — drop the tracked `.just/remote/react.mod.just` and its
-  `.gitignore` exception once the module is configurable
+- [x] 6a.1 `osapi-justfiles` — the `react` module takes `react_dir` as
+  configuration and fails at parse time when a consumer omits it, rather than
+  relying on a shim to set a working directory
+- [x] 6a.2 `osapi` — `.just/remote/react.mod.just` is gone and nothing under
+  `.just/` is tracked; `.gitignore` ignores `.just/remote/*` with no exception.
+  The root justfile sets `react_dir := "ui"` directly
 
 ## 7. Verification
 
-- [ ] 7.1 Confirm every in-scope repository carries the required files
-- [ ] 7.2 Confirm no repository still contains `docs/contributing.md` or
-  `docs/development.md`
-- [ ] 7.3 Confirm no cross-repository link still points at the old paths
-- [ ] 7.4 Confirm each README uses only vocabulary sections, in order
-- [ ] 7.5 Confirm `LICENSE`, `AI_POLICY.md`, and `CODE_OF_CONDUCT.md` are
-  byte-identical everywhere
+- [x] 7.1 Confirm every in-scope repository carries the required files. All
+  seven carry `README.md`, `LICENSE`, `AI_POLICY.md`, `CODE_OF_CONDUCT.md`,
+  `CONTRIBUTING.md`, `AGENTS.md`, `CLAUDE.md`, and `.mise.toml`
+- [x] 7.2 Confirm no repository still contains `docs/contributing.md` or
+  `docs/development.md`. None does. `osapi` was the last, and its two remaining
+  copies under `ui/docs/` went with the conversion (osapi-io/osapi#450)
+- [x] 7.3 Confirm no cross-repository link still points at the old paths. The
+  inbound links in `osapi`'s two architecture pages now point at the root
+  `CONTRIBUTING.md`, and the site builds with no broken link. One stale pointer
+  was found and fixed in the other direction: `osapi-orchestrator`'s `AGENTS.md`
+  still named the removed `docs/plans/` (osapi-io/osapi-orchestrator#74)
+- [ ] 7.4 Confirm each README uses only vocabulary sections, in order. Not yet
+  established for the six non-exempt repositories. `osapi` is exempt from the
+  section set as the main product, and it gained `## 🤝 Contributing` so the new
+  root guide is reachable from it
+- [x] 7.5 Confirm `LICENSE`, `AI_POLICY.md`, and `CODE_OF_CONDUCT.md` are
+  byte-identical everywhere. `AI_POLICY.md` and `CODE_OF_CONDUCT.md` are, in all
+  seven. `LICENSE` was not: `specs` carried a differently titled and differently
+  wrapped variant, which this change replaces with the canonical copy. The rest
+  differ only on the copyright year, as the requirement allows — 2024 for
+  `osapi`, 2025 for the two NATS libraries, 2026 for the rest
 - [ ] 7.6 Confirm no `.mise.toml` and no workflow floats a tool whose output a
-  check compares
-- [ ] 7.7 Confirm `just test` locally and CI agree on every repository
-- [ ] 7.8 Confirm every deprecated repository is archived on GitHub
-- [ ] 7.9 Confirm no tracked file was removed on the basis of its path without
-  its content being read
+  check compares. Unresolved while 5.2 and 5.3 are: `go` is declared `1.25`
+  locally and `stable` in every workflow, and `go-fmt-check` compares its output
+- [ ] 7.7 Confirm `just test` locally and CI agree on every repository. Not
+  established across all seven. The conversion ran `md-fmt-check`,
+  `docusaurus-fmt-check`, and `docusaurus-build` in `osapi` and `md-fmt-check`
+  in `osapi-orchestrator`; both pass
+- [x] 7.8 Confirm every deprecated repository is archived on GitHub.
+  `osapi-sdk`, `osapi-ui`, and `osapi-io-taskfiles` all report archived
+- [x] 7.9 Confirm no tracked file was removed on the basis of its path without
+  its content being read. Every file removed in osapi-io/osapi#450 was read
+  first, and that is what kept `ui/docs/architecture.md`: its path matched the
+  stale osapi-ui leftovers beside it, but its contents hold a component
+  reference the site does not carry
