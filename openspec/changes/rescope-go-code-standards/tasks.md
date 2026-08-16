@@ -1,73 +1,82 @@
 ## 1. Record the rescope
 
-- [x] 1.1 Establish what each requirement is: policy no tool reports on,
-  something a tool already enforces, or a convention a reader applies
-- [x] 1.2 Write the `go-code-standards` delta removing the five formatting
-  requirements and widening `Mocks are generated` to exclude a double that
-  carries a real implementation
-- [x] 1.3 Write the `shared-contributor-documentation` capability
-- [x] 1.4 Record the decisions and their rejected alternatives in design.md
+- [x] 1.1 Survey the five Go repositories' `CONTRIBUTING.md` headings and
+  establish where they disagree
+- [x] 1.2 Establish what each `go-code-standards` requirement is: policy no tool
+  reports on, something a tool already enforces, or a convention a reader
+  applies
+- [x] 1.3 Write the `repo-standards` delta fixing the middle sections, requiring
+  sentence-case headings, requiring a repository to state its conventions in
+  full, and stopping prose from restating what a tool enforces
+- [x] 1.4 Write the `go-code-standards` delta removing the five formatting
+  requirements and widening `Mocks are generated`
+- [x] 1.5 Record the decisions and their rejected alternatives in design.md
+- [x] 1.6 `specs` — sync `repo-standards` into `openspec/specs/`. It was not
+  there, so this change's delta had nothing to land on and the repositories
+  citing it pointed at a capability the corpus did not hold. Merged from the
+  `standardize-repository-layout` and `specify-agent-tool-invocation` deltas: 16
+  requirements, 44 scenarios, `openspec validate --specs` passing
 
-## 2. Establish the shared fragment
+## 2. Write the shared sections once
 
-Nothing is removed from a repository until the fragment that replaces it exists
-and can be fetched.
+- [ ] 2.1 Draft the shared `Code standards` text — `Function signatures`,
+  `File naming`, `Go patterns` — with the worked examples that left the
+  capability. Verified by the draft covering every rule this change removes from
+  `go-code-standards`
+- [ ] 2.2 Draft the shared `Testing` text — `Test file conventions`, suite
+  naming, table-driven cases, and the `export_test.go` pattern
+- [ ] 2.3 Confirm the draft states no rule that `.golangci.yml` or a formatter
+  already enforces, naming the configuration instead
 
-- [ ] 2.1 `osapi-justfiles` — write the shared Go conventions fragment: file
-  naming, `types.go` for types only, test file naming, table-driven suites,
-  suite naming, the `export_test.go` pattern, and worked signature examples.
-  Verified by the fragment containing every rule removed from
-  `go-code-standards` by this change
-- [ ] 2.2 `osapi-justfiles` — add the recipe that fetches it, following the
-  pattern the `justfiles` capability records for recipes. Verified by a fresh
-  checkout of a consumer producing the file
-- [ ] 2.3 Confirm the fetched path is ignored rather than committed in every
-  consumer, and that no formatter or linter runs against it
+## 3. Apply to each repository
 
-## 3. Return the conventions to each repository
+One pull request per repository, each landing the same shared text under the
+same headings in the same order.
 
-One repository per pull request, each fetching the fragment and stating its own
-conventions beside it.
-
-- [ ] 3.1 `gohai` — restore the shared conventions via the fragment. It is on
-  `main` with them removed (osapi-io/gohai#163), so it goes first
-- [ ] 3.2 `osapi-orchestrator` — supersede the held removal
-  (osapi-io/osapi-orchestrator#76) with the fragment, and close it
-- [ ] 3.3 `osapi` — replace the pointer in its root `CONTRIBUTING.md`
-  (osapi-io/osapi#450) with the fragment
-- [ ] 3.4 `nats-client` — replace its restated copy with the fragment
-- [ ] 3.5 `nats-server` — replace its restated copy with the fragment
+- [ ] 3.1 `gohai` — restore the shared conventions, move `Go patterns` out from
+  under `Testing`, and rename `Package Structure` to `Project structure`. It is
+  on `main` with the conventions removed, so it goes first
+- [ ] 3.2 `osapi-orchestrator` — supersede and close the held removal
+  (osapi-io/osapi-orchestrator#76), and fold `Project Structure` and
+  `Package Structure` into one `Project structure`
+- [ ] 3.3 `nats-client` — move `Function signatures` and `Go patterns` from
+  `Code style` to `Code standards`
+- [ ] 3.4 `nats-server` — the same
+- [ ] 3.5 `osapi` — replace the pointer with the shared text, keeping its own
+  `Logging`, `Lifecycle`, and `Filesystem access` sections
+- [ ] 3.6 Move every repository-specific section after `Testing`, and convert
+  every heading to sentence case
 
 ## 4. Let the configuration speak for what it enforces
 
-- [ ] 4.1 Remove the hand-maintained linter list from every repository's
-  contributor documentation, naming `.golangci.yml` instead. Verified by no
-  repository's prose enumerating linters
-- [ ] 4.2 Confirm the removed lists were wrong in the same way everywhere —
-  `goimports` named as a linter, `unused` omitted — so the reason for removing
-  them is recorded rather than asserted
+- [ ] 4.1 Remove the hand-maintained linter list from all five repositories,
+  naming `.golangci.yml` instead. Verified by no repository enumerating linters
+  in prose
+- [ ] 4.2 Record that the removed lists were wrong in the same way everywhere —
+  `goimports` named as a linter, `unused` omitted — so the reason is evidenced
+  rather than asserted
 
 ## 5. Resolve the mocks finding
 
 - [ ] 5.1 `osapi` — record `mockPKISigner` as a real implementation under the
-  widened requirement, rather than converting it. It signs with a generated
-  ed25519 key pair, and a generated mock would replace that with a canned return
+  widened requirement rather than converting it
 - [ ] 5.2 `gohai` — replace `fakeCollector` with a generated mock, or state why
-  the collector interface is better served by a real implementation
+  a real implementation serves the collector interface better
 - [ ] 5.3 `osapi-orchestrator` — replace `mockRenderer` with a generated mock,
-  and correct `CONTRIBUTING.md`, which says the repository declares no mocking
+  and correct `CONTRIBUTING.md`, which claims the repository declares no mocking
   library while hand-rolling one
 
 ## 6. Verification
 
-- [ ] 6.1 Confirm every rule removed from `go-code-standards` is stated in the
-  fragment or enforced by a tool, and that none was dropped
-- [ ] 6.2 Confirm each of the five repositories holds the conventions on disk,
-  readable without fetching another repository
-- [ ] 6.3 Confirm no convention is stated both in the fragment and in a
-  repository's own section
-- [ ] 6.4 Confirm `go-code-standards` retains only requirements no tool reports
+- [ ] 6.1 Confirm the five `CONTRIBUTING.md` files carry the same `##` headings,
+  in the same order, up to their repository-specific sections
+- [ ] 6.2 Confirm every heading in all five is sentence case
+- [ ] 6.3 Confirm the shared sections are byte-identical across the five, so a
+  difference in wording would mean a difference in rule
+- [ ] 6.4 Confirm every rule removed from `go-code-standards` is stated in all
+  five repositories or enforced by a tool, and that none was dropped
+- [ ] 6.5 Confirm `go-code-standards` retains only requirements no tool reports
   on
-- [ ] 6.5 Confirm `specify-go-code-standards` tasks 2.2, 2.3, 2.4, and 3.6 are
+- [ ] 6.6 Confirm `specify-go-code-standards` tasks 2.2, 2.3, 2.4, and 3.6 are
   reconciled with this change rather than left describing the pointer-only
   destination it replaces
