@@ -8,23 +8,23 @@ A variable that varies by repository is a plain assignment a consumer reassigns.
 `env()` is kept only where the value varies by environment rather than by
 repository.
 
-- [ ] 1.1 `just` — conversion already written as osapi-justfiles#39
+- [x] 1.1 `just` — conversion already written as osapi-justfiles#39
 - [x] 1.2 `go` — osapi-justfiles#46
-- [ ] 1.3 `bats` — remove instead of converting. Nothing fetches it, no `.bats`
+- [x] 1.3 `bats` — remove instead of converting. Nothing fetches it, no `.bats`
   file exists in the organization, and it appears only as an example in the root
   README
-- [ ] 1.4 `docker` — remove instead of converting. Only `osapi` loads it and
+- [x] 1.4 `docker` — remove instead of converting. Only `osapi` loads it and
   nothing invokes its recipes; images are published by goreleaser. Its
   `dockerfile` default is `Dockerfile.local`, which `osapi` does not have —
   evidence it has not run in a long time. Drop `osapi`'s `mod? docker` line
 - [x] 1.5 `react` — osapi-justfiles#44
-- [ ] 1.6 `docs` → `docusaurus` — rename the module for what it manages, prefix
+- [x] 1.6 `docs` → `docusaurus` — rename the module for what it manages, prefix
   its recipes and variables, and give it the site path as configuration. It
   keeps its formatting recipes: the site contains MDX and component syntax that
   mdformat cannot parse
-- [ ] 1.6a `md` — exclude the site directory, taken as configuration rather than
+- [x] 1.6a `md` — exclude the site directory, taken as configuration rather than
   assumed
-- [ ] 1.6b Confirm no markdown file falls inside both formatters' paths
+- [x] 1.6b Confirm no markdown file falls inside both formatters' paths
 
 ## 2. Update consumers
 
@@ -46,22 +46,22 @@ Steps 5 and 6 were missed on `gohai` and caught in review: its guide still
 described Prettier via Bun and listed `just docs::fmt`, and four references had
 no definition so they rendered as literal text.
 
-- [ ] 2.1 `specs` — `just` module
-- [ ] 2.2 `gohai` — gohai#150
-- [ ] 2.3 `nats-client`
-- [ ] 2.4 `nats-server`
-- [ ] 2.5 `osapi` — react done (osapi#436); still consumes `go`, `docs`, `just`,
+- [x] 2.1 `specs` — `just` module
+- [x] 2.2 `gohai` — gohai#150
+- [x] 2.3 `nats-client`
+- [x] 2.4 `nats-server`
+- [x] 2.5 `osapi` — react done (osapi#436); still consumes `go`, `docs`, `just`,
   `docker` as shims
 
 ## 3. Verification
 
-- [ ] 3.0 Confirm no `CONTRIBUTING.md` names a tool its repository does not
+- [x] 3.0 Confirm no `CONTRIBUTING.md` names a tool its repository does not
   install, and that every reference link in it resolves
 
-- [ ] 3.1 Confirm no `.mod.just` file remains
+- [x] 3.1 Confirm no `.mod.just` file remains
 
-- [ ] 3.2 Confirm no repository invokes a `::` namespaced recipe
+- [x] 3.2 Confirm no repository invokes a `::` namespaced recipe
 
-- [ ] 3.3 Confirm every consuming repository's lint job passes
+- [x] 3.3 Confirm every consuming repository's lint job passes
 
-- [ ] 3.4 Confirm the root README contains no inline module sections
+- [x] 3.4 Confirm the root README contains no inline module sections

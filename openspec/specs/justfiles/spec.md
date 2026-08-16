@@ -30,36 +30,6 @@ between a module and its consumers.
 - **THEN** consuming repositories receive the change on their next fetch,
   without declaring a version
 
-### Requirement: Two consumption styles are in use
-
-A module SHALL be consumed in one of two styles, and SHALL be internally
-consistent in the style it uses.
-
-A **shim-based** module ships two files: a recipe file and a `.mod.just` shim
-that sets a working directory and imports it. Its recipes are namespaced by
-module, and they execute from the directory the shim names.
-
-A **flat** module ships one file, consumed by import. Its recipes and variables
-are prefixed with the module name, and they execute from the directory of the
-justfile that imports them.
-
-#### Scenario: Fetching a shim-based module
-
-- **WHEN** a repository consumes the `go` module
-- **THEN** it fetches both `go.mod.just` and `go.just`, and invokes recipes as
-  `just go::fmt`
-
-#### Scenario: Fetching a flat module
-
-- **WHEN** a repository consumes the `md` module
-- **THEN** it fetches a single file, and invokes recipes as `just md-fmt`
-
-#### Scenario: Shim target is missing
-
-- **WHEN** a repository consumes a shim-based module whose shim names a
-  directory that repository does not contain
-- **THEN** the module fails to load and its recipes cannot be run
-
 ### Requirement: Environment variable naming
 
 Every environment variable a module reads SHALL be prefixed with `JUST_`.
@@ -103,3 +73,213 @@ repository SHALL provide a way to exclude paths another module owns.
   documentation site with another
 - **THEN** the paths each handles are disjoint, and neither reformats the
   other's files
+
+### Requirement: Import-based consumption
+
+Modules SHALL be consumed with `import?`, and SHALL NOT ship a shim file that
+sets a working directory. A module SHALL consist of a single recipe file.
+
+Recipes SHALL execute from the directory of the justfile that imports them, so a
+module is usable by a repository regardless of which subdirectories that
+repository contains.
+
+#### Scenario: Repository without a docs directory
+
+- **WHEN** a repository with no `docs/` directory imports a module
+- **THEN** the module loads and its recipes run successfully
+
+#### Scenario: Fetching a module
+
+- **WHEN** a consuming repository fetches a module
+- **THEN** exactly one file is retrieved for that module
+
+#### Scenario: A shim is proposed
+
+- **WHEN** a module needs to operate on a specific subdirectory
+- **THEN** it takes that path as configuration rather than as a working
+  directory set by a shim
+
+### Requirement: A module defines its defaults, a consumer overrides them
+
+A module SHALL define every variable it references, with a default, so that it
+parses and lints on its own.
+
+A consuming justfile that needs a different value SHALL set
+`set allow-duplicate-variables := true` and assign the variable again. The later
+assignment wins.
+
+The assignment SHALL be a plain variable, not an environment variable. A
+variable assigned in the consuming justfile is in scope when just parses it, so
+a recipe behaves the same whether it is run by name, reached through another
+recipe, or overridden on the command line.
+
+#### Scenario: A developer runs a module recipe by name
+
+- **WHEN** someone runs `just react-fmt-check` rather than `just test`
+- **THEN** it uses the repository's value, because the assignment is in scope
+  when just parses the justfile
+
+#### Scenario: A repository is content with the defaults
+
+- **WHEN** a repository's values match every module default
+- **THEN** it assigns nothing and does not set `allow-duplicate-variables`
+
+#### Scenario: A value is needed for one invocation
+
+- **WHEN** someone wants a different value for a single run
+- **THEN** they override it on the command line, as
+  `just <name>=<value> <recipe>`
+
+#### Scenario: The module is checked on its own
+
+- **WHEN** the repository publishing the modules lints each file individually
+- **THEN** every module parses, because each defines what it references, and
+  none is excluded from the check
+
+### Requirement: Overriding uses assignment, not the environment
+
+A consuming justfile SHALL NOT configure a module by exporting an environment
+variable that the module reads with `env()`.
+
+`export` does not reach the parse of the file it appears in, but does reach
+child processes. A module recipe invoked by name would use the default while the
+same recipe reached through another recipe used the exported value — one command
+with two answers, depending on how it was called.
+
+A module MAY read `env()` for a value that genuinely varies by environment
+rather than by repository, since nothing in the repository can state it.
+
+#### Scenario: An export is proposed for a per-repository value
+
+- **WHEN** someone proposes `export JUST_X := "y"` in a consuming justfile to
+  configure a module
+- **THEN** it is declined, because the value would apply only when the recipe is
+  reached as a child process
+
+#### Scenario: A value belongs to the environment
+
+- **WHEN** a value differs between a developer machine and continuous
+  integration rather than between repositories
+- **THEN** the module reads it with `env()` and ships a default
+
+### Requirement: A module is named for what it manages
+
+A module SHALL be named for the thing it manages, not for the directory it
+happens to sit in.
+
+The module managing a Docusaurus site SHALL be named `docusaurus`. `docs` names
+a location, and a repository can hold documentation without a site.
+
+#### Scenario: A module's subject is a specific tool
+
+- **WHEN** a module wraps one tool's build, serve, and deploy commands
+- **THEN** it is named for that tool, so a reader knows whether the repository
+  needs it
+
+### Requirement: Each markdown formatter owns a path
+
+Exactly one formatter SHALL be responsible for any given markdown file.
+
+The `docusaurus` module SHALL own its site directory entirely — building,
+serving, deploying, and formatting it — because that content includes MDX and
+component syntax that a plain markdown formatter cannot parse.
+
+The `md` module SHALL own markdown outside that directory, and SHALL exclude it.
+
+Both SHALL take the path as configuration, so a repository states where its site
+lives rather than inheriting a convention.
+
+#### Scenario: A repository has a site and other markdown
+
+- **WHEN** a repository publishes a Docusaurus site and also carries a README,
+  contributing guide, and reference documents outside it
+- **THEN** `docusaurus` formats the site directory and `md` formats everything
+  else, with the site directory excluded from `md`
+
+#### Scenario: A repository has no site
+
+- **WHEN** a repository publishes no documentation site
+- **THEN** it takes `md` alone, and formats all its markdown with it
+
+#### Scenario: Both formatters cover one file
+
+- **WHEN** a file falls inside both formatters' paths
+- **THEN** that is a defect: they produce different output and each reports the
+  other's as incorrectly formatted
+
+#### Scenario: A site lives somewhere unexpected
+
+- **WHEN** a repository's site is not at the conventional path
+- **THEN** it sets the path on both modules, rather than either assuming it
+
+### Requirement: A module with no consumers is removed
+
+A module that no repository fetches SHALL be removed rather than maintained.
+
+Converting an unused module spends care on code nothing runs, and leaving it
+present implies it works. A module whose defaults name files that do not exist
+in any consumer has not been exercised, and its state is not evidence that it
+would work if it were.
+
+Removal SHALL include the module's files, its section in the root README, and
+any `mod?` or `import?` line that loads it without invoking it.
+
+#### Scenario: A module has no consumers
+
+- **WHEN** no repository fetches a module, and nothing invokes its recipes
+- **THEN** it is removed, rather than converted or left in place
+
+#### Scenario: A module is loaded but never invoked
+
+- **WHEN** a repository loads a module and calls none of its recipes
+- **THEN** the loading line is removed with the module, because loading it was
+  not use
+
+#### Scenario: The capability it covered is provided another way
+
+- **WHEN** the work a module did is now done by a different tool, such as image
+  publishing moving to a release tool
+- **THEN** the module is removed rather than kept as an alternative path nobody
+  takes
+
+### Requirement: Module variables are namespaced
+
+A module's variables SHALL be prefixed with the module's name.
+
+A flat import shares one scope with the consuming justfile and every other
+imported module, so an unprefixed name is a collision waiting for the second
+module that wants it.
+
+#### Scenario: Two modules want the same name
+
+- **WHEN** more than one module needs a variable for a host, a port, or an image
+  name
+- **THEN** each prefixes it with its own module name, and both can be imported
+  together
+
+#### Scenario: A module is converted
+
+- **WHEN** a shim-based module becomes flat
+- **THEN** its variables are renamed with the module prefix in the same change,
+  because the shim previously scoped them and the import does not
+
+### Requirement: Fetched files are not linted
+
+A repository's justfile checks SHALL exclude the directory holding fetched
+modules, at every depth.
+
+A module that references a variable its consumer declares cannot be parsed on
+its own, so a per-file check reports an undefined variable rather than a
+formatting fault. The files are also not the consuming repository's to correct.
+
+#### Scenario: A repository fetches modules into a subdirectory
+
+- **WHEN** a repository fetches modules below its root, such as into a nested
+  application directory
+- **THEN** those files are excluded from linting as well as the ones at the root
+
+#### Scenario: A fetched module fails a standalone parse
+
+- **WHEN** a lint pass parses a fetched module by itself and reports an
+  undefined variable
+- **THEN** the exclusion is the fix, not a change to the module
