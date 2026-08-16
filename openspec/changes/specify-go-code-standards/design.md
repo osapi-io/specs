@@ -107,6 +107,8 @@ can be written.
 
 ## Open Questions
 
-- Should the suite naming convention (`{Name}PublicTestSuite`) be a requirement?
-  All five follow it, but it is a naming detail rather than a structural rule,
-  and the capability is already long.
+None. The suite naming convention was left open in the first draft and is now a
+requirement — applying the change is what settled it. Removing the convention
+from four repositories while the capability did not state it would have deleted
+a rule all five follow, which answered the question more clearly than the
+argument about whether the capability was already long enough.
