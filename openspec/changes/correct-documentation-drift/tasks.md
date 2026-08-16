@@ -107,17 +107,3 @@ Fixed under requirements this change already carries, but not enumerated above.
   per-module sections
 - [x] 9.9 `osapi-justfiles` — `AGENTS.md` points at a `docs/plans/` directory
   that does not exist
-
-### Deferred — no requirement covers it
-
-- [ ] 9.10 `gohai` — `docs/collectors/README.md`'s legend defines `✅` twice
-  ("implemented and tested" and "planned") and declares `⚠️` = partial, which no
-  row uses. A document contradicting itself is neither a broken reference nor a
-  miscount, so nothing in this change's spec reaches it. Needs its own change.
-
-### Left standing — a decision, not drift
-
-- [ ] 9.11 `gohai` says plans live in `docs/superpowers/`; `osapi`,
-  `nats-client`, `nats-server`, and `osapi-justfiles` say `docs/plans/`. Each
-  now states the directory is created on first use, which satisfies the
-  requirement. Choosing one location belongs to `standardize-repository-layout`.

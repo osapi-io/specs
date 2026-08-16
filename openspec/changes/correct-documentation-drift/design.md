@@ -122,3 +122,22 @@ something is, and a path that resolves does not verify the claim.
 *Alternative considered:* delete `CLAUDE.md` in the repositories that reduced it
 to a pointer, so stale references fail loudly. Claude Code loads that file by
 name; removing it removes the pointer's purpose.
+
+## Found, not covered
+
+Two findings surfaced while applying that no requirement in this change reaches.
+They are recorded here rather than as tasks: a task list carries only its own
+change's work, and a forward reference would block this change from archiving.
+
+**gohai's collector legend contradicts itself.** `docs/collectors/README.md`
+defines `✅` twice — "implemented and tested" and "planned" — and declares `⚠️` =
+partial, a state no row uses. The requirements here cover references that do not
+resolve and counts that do not match. A document that disagrees with itself is
+neither. The fix was written and reverted; it needs its own change.
+
+**Repositories disagree on where plans live.** `gohai` says `docs/superpowers/`;
+`osapi`, `nats-client`, `nats-server`, and `osapi-justfiles` say `docs/plans/`.
+Each now states the directory is created on first use, which satisfies "a path
+exists, or the documentation says it does not yet". Choosing one location is a
+standardization decision, and `repo-standards` deliberately does not impose a
+section structure on `AGENTS.md`, so no requirement covers it today.
