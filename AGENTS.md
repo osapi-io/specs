@@ -24,26 +24,12 @@ treating the failure as real.
 
 ## Running a change
 
-Invoke the skill for every step. Never drive the `openspec` CLI yourself, and
-never assemble a change by hand — the CLI is what the skill runs, and the guards
-live in the workflow around it.
+The workflow is in @CONTRIBUTING.md under "Running a change". Follow it rather
+than improvising.
 
-| Step    | Skill                     |
-| ------- | ------------------------- |
-| Explore | `openspec-explore`        |
-| Propose | `openspec-propose`        |
-| Apply   | `openspec-apply-change`   |
-| Update  | `openspec-update-change`  |
-| Sync    | `openspec-sync-specs`     |
-| Archive | `openspec-archive-change` |
-
-The `/opsx:*` slash commands in @CONTRIBUTING.md are the same instructions in
-the form a person types. You cannot type them; invoke the skill instead.
-
-The procedure is in @CONTRIBUTING.md under "Running a change". Follow it rather
-than improvising: propose, merge, apply, archive — each step its own pull
-request, except documentation-only changes where propose and archive belong in
-one.
+It names each step twice: a `/opsx:*` slash command a person types, and a skill
+an agent invokes. You cannot type a slash command — invoke the skill named for
+that step.
 
 ## Read the corpus first
 
@@ -82,20 +68,6 @@ See @CONTRIBUTING.md under "Running a change".
 
 ## Writing artifacts
 
-Do not write an artifact yourself. The propose skill retrieves each one's
-template, its rules, and the artifacts to read first, then writes to them in
-dependency order. Assembling one by hand produces something that validates and
-does not conform — `just validate` checks structure, not conformance.
-
-`openspec/config.yaml` carries project context and per-artifact rules that are
-injected into every generation. Apply them as constraints; never copy them into
-the output.
-
-## Applying a change
-
-- A task is checked only when its behavior is fully implemented — not partially,
-  not deferred, not done in some repositories and not others.
-- Scope beyond the task is surfaced, not absorbed. If a task needs more than the
-  spec describes, or you are narrowing it to fit, stop and say so.
-- A blocker pauses the work. Unclear task, design issue, error — report it and
-  wait rather than guessing.
+`openspec/config.yaml` carries project context and per-artifact rules injected
+into every generation. They are constraints on what you write — never copy them
+into the output.
