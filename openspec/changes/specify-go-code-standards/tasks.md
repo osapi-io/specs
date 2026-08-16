@@ -10,17 +10,25 @@ The capability has to exist in the corpus before a repository can rely on the
 pointer alone. It did not until task 2.0 synced it, so the four conversions
 below kept their local copy and the pointer led nowhere.
 
+Applying this section is what established that the destination was wrong. A
+pointer resolves across a repository boundary, over a network, for every reader,
+and `gohai` spent a period citing a capability the corpus did not hold.
+`rescope-go-code-standards` replaced it: each repository states the shared
+conventions in full, in the same words, and the corpus keeps only what no tool
+reports on.
+
 - [x] 2.0 `specs` — sync `go-code-standards` into `openspec/specs/` so the
   pointer resolves. Every repository named it as the source while it existed
   only inside this change, where a reader following the link would not find it
 - [x] 2.1 `gohai` — `CONTRIBUTING.md` keeps its collector-specific conventions
   and drops the shared ones (osapi-io/gohai#163)
-- [ ] 2.2 `nats-client` — `CONTRIBUTING.md` still restates `Function signatures`
-  and `Go patterns` under `Code style`
-- [ ] 2.3 `nats-server` — `CONTRIBUTING.md` still restates `Function signatures`
-  and `Go patterns` under `Code style`
-- [ ] 2.4 `osapi-orchestrator` — `CONTRIBUTING.md`
-  (osapi-io/osapi-orchestrator#76, open)
+- [x] 2.2 `nats-client` — `Function signatures` and `Go patterns` move from
+  `Code style` to `Code standards`, stated in full (osapi-io/nats-client#133)
+- [x] 2.3 `nats-server` — the same (osapi-io/nats-server#94)
+- [x] 2.4 `osapi-orchestrator` — stated in full, and the duplication between its
+  own `Code standards` and `Testing` sections resolved
+  (osapi-io/osapi-orchestrator#77). The removal-only pull request that preceded
+  it was closed unmerged
 - [x] 2.5 `osapi` — `CLAUDE.md` dropped `Code Standards`, and the conventions
   duplicated into `development.md` and `testing.md` now resolve to the root
   `CONTRIBUTING.md`, which points at this capability rather than restating it
@@ -46,12 +54,10 @@ below kept their local copy and the pointer led nowhere.
   files exist (32 in `gohai`, 32 in `osapi`, 1 in `osapi-orchestrator`), and the
   requirement turns on what each exposure is *for*, which no search can decide.
   This needs a file-by-file audit
-- [ ] 3.6 Confirm no shared convention is stated in two places. All four Go
-  libraries restated the capability rather than only pointing at it, each
-  closing with "the specification wins where they disagree" — which acknowledges
-  the duplication instead of removing it. Their conversions under tasks 2.1 to
-  2.4 did half of what design.md's migration asks: they added the pointer and
-  kept the copy. `osapi` points without restating (osapi-io/osapi#450), and
-  `gohai` now does too (osapi-io/gohai#163). `osapi-orchestrator` is in flight;
-  `nats-client` and `nats-server` restate under `Code style` as
-  `Function signatures` and `Go patterns`, and have no pull request yet
+- [x] 3.6 Confirm no shared convention is stated in two places. Superseded by
+  `rescope-go-code-standards`, which decided the opposite: a shared convention
+  is stated in every repository it binds, identically, because a repository has
+  to be readable on its own. What this task was aimed at — copies that disagree
+  — is now the thing `repo-standards` forbids and the standardization pull
+  requests removed. The five `Code standards` and `Test file conventions` blocks
+  hash identically

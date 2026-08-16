@@ -19,40 +19,42 @@
 
 ## 2. Write the shared sections once
 
-- [ ] 2.1 Draft the shared `Code standards` text — `Function signatures`,
+- [x] 2.1 Draft the shared `Code standards` text — `Function signatures`,
   `File naming`, `Go patterns` — with the worked examples that left the
   capability. Verified by the draft covering every rule this change removes from
   `go-code-standards`
-- [ ] 2.2 Draft the shared `Testing` text — `Test file conventions`, suite
+- [x] 2.2 Draft the shared `Testing` text — `Test file conventions`, suite
   naming, table-driven cases, and the `export_test.go` pattern
-- [ ] 2.3 Confirm the draft states no rule that `.golangci.yml` or a formatter
+- [x] 2.3 Confirm the draft states no rule that `.golangci.yml` or a formatter
   already enforces, naming the configuration instead
 
 ## 3. Apply to each repository
 
 One pull request per repository, each landing the same shared text under the
-same headings in the same order.
+same headings in the same order. Landed as osapi-io/gohai#164,
+osapi-io/nats-client#133, osapi-io/nats-server#94,
+osapi-io/osapi-orchestrator#77, and osapi-io/osapi#452.
 
-- [ ] 3.1 `gohai` — restore the shared conventions, move `Go patterns` out from
+- [x] 3.1 `gohai` — restore the shared conventions, move `Go patterns` out from
   under `Testing`, and rename `Package Structure` to `Project structure`. It is
   on `main` with the conventions removed, so it goes first
-- [ ] 3.2 `osapi-orchestrator` — supersede and close the held removal
+- [x] 3.2 `osapi-orchestrator` — supersede and close the held removal
   (osapi-io/osapi-orchestrator#76), and fold `Project Structure` and
   `Package Structure` into one `Project structure`
-- [ ] 3.3 `nats-client` — move `Function signatures` and `Go patterns` from
+- [x] 3.3 `nats-client` — move `Function signatures` and `Go patterns` from
   `Code style` to `Code standards`
-- [ ] 3.4 `nats-server` — the same
-- [ ] 3.5 `osapi` — replace the pointer with the shared text, keeping its own
+- [x] 3.4 `nats-server` — the same
+- [x] 3.5 `osapi` — replace the pointer with the shared text, keeping its own
   `Logging`, `Lifecycle`, and `Filesystem access` sections
-- [ ] 3.6 Move every repository-specific section after `Testing`, and convert
+- [x] 3.6 Move every repository-specific section after `Testing`, and convert
   every heading to sentence case
 
 ## 4. Let the configuration speak for what it enforces
 
-- [ ] 4.1 Remove the hand-maintained linter list from all five repositories,
+- [x] 4.1 Remove the hand-maintained linter list from all five repositories,
   naming `.golangci.yml` instead. Verified by no repository enumerating linters
   in prose
-- [ ] 4.2 Record that the removed lists were wrong in the same way everywhere —
+- [x] 4.2 Record that the removed lists were wrong in the same way everywhere —
   `goimports` named as a linter, `unused` omitted — so the reason is evidenced
   rather than asserted
 
@@ -68,15 +70,24 @@ same headings in the same order.
 
 ## 6. Verification
 
-- [ ] 6.1 Confirm the five `CONTRIBUTING.md` files carry the same `##` headings,
-  in the same order, up to their repository-specific sections
-- [ ] 6.2 Confirm every heading in all five is sentence case
-- [ ] 6.3 Confirm the shared sections are byte-identical across the five, so a
-  difference in wording would mean a difference in rule
+- [x] 6.1 Confirm the five `CONTRIBUTING.md` files carry the same `##` headings,
+  in the same order, up to their repository-specific sections. All five run
+  `Before you start`, `Prerequisites`, `Setup`, `Code style`, `Code standards`,
+  `Testing`. `gohai`, `osapi-orchestrator`, and `osapi` also carry
+  `Project structure`; the two NATS libraries omit it, which the requirement
+  permits where a repository has nothing to say under a middle section
+- [x] 6.2 Confirm every heading in all five is sentence case. The only remaining
+  capitalized pair is `### Claude Code`, a proper noun the requirement exempts
+- [x] 6.3 Confirm the shared sections are byte-identical across the five, so a
+  difference in wording would mean a difference in rule. Verified by hashing
+  each block: `Code standards` and `Test file conventions` each hash the same in
+  all five repositories
 - [ ] 6.4 Confirm every rule removed from `go-code-standards` is stated in all
   five repositories or enforced by a tool, and that none was dropped
 - [ ] 6.5 Confirm `go-code-standards` retains only requirements no tool reports
   on
-- [ ] 6.6 Confirm `specify-go-code-standards` tasks 2.2, 2.3, 2.4, and 3.6 are
+- [x] 6.6 Confirm `specify-go-code-standards` tasks 2.2, 2.3, 2.4, and 3.6 are
   reconciled with this change rather than left describing the pointer-only
-  destination it replaces
+  destination it replaces. 2.2, 2.3, and 2.4 are checked against the
+  standardization pull requests; 3.6 is recorded as superseded, since a shared
+  convention is now stated in every repository it binds rather than in one
