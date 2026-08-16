@@ -67,33 +67,56 @@ silently" while a generated one breaks at compile time. Adding a method to
 each reported the same error at the point it was used, because Go checks
 interface satisfaction structurally at every assignment.
 
-The line that does hold is whether a test asserts on the interaction. A double
-the test asserts against is generated; a double that only returns values is
-written by hand. That is already how these repositories behave —
-`executor.Executor` is mocked because tests check the arguments a command
-received, and the collector doubles are stubs because nothing is asserted about
-how they are called.
+Its replacement first drew the line at whether a test asserts on the
+interaction. That line requires judgment at every call site, produces a
+different answer per author, and leaves both forms in the codebase with no way
+to say which is right. The rule is now a bright line: a double for an interface
+this organization defines is generated, with three narrow exceptions where
+generating buys nothing.
+
+The order matters. The rule is recorded first, then stated in every repository
+it binds, and only then are the implementations changed — so no repository is
+asked to follow a rule it does not carry.
 
 - [x] 5.0 Widen the requirement for a recorder on an unjoinable goroutine and
   for stdlib interfaces. Both were being met in the code and forbidden by the
   requirement
-- [x] 5.1 Replace `Mocks are generated` with
-  `A double that asserts on interaction is generated`, recording the measurement
-  that disproved it
-- [x] 5.2 `gohai` — no change. `fakeCollector`, `errCollector`,
-  `cycleCollector`, and `failingCollector` return fixed values and assert
-  nothing, so they are stubs. Converting them would have replaced four struct
-  literals with expectations that assert nothing, across roughly fifty call
-  sites
-- [x] 5.3 `osapi` — no change. `mockPKISigner` signs with a real generated
+- [x] 5.1 Replace `Mocks are generated`, recording the measurement that
+  disproved it
+- [x] 5.2 Replace the interaction test with a bright line, and permit a
+  constructor returning a configured generated mock so that call sites stay as
+  short as the struct literals they replace
+- [x] 5.3 Specify where a generated mock lives. The corpus named the generator
+  but not the layout, and the layout had drifted: roughly forty sites use
+  `<package>/mocks/` invoked through `go tool`, while `gohai` uses
+  `internal/executor/gen/` invoked through `go run`. `gen` already means
+  API-generator output in about twenty-five `osapi` directories
+
+### State the rule where it binds
+
+- [ ] 5.4 Add the mocking convention to the shared `Code standards` section in
+  all five Go repositories: the `mocks` package, the `go tool` directive, the
+  `*.gen.go` destination, and the three exceptions. Verified by the section
+  hashing identically in all five
+
+### Fix the implementations
+
+- [ ] 5.5 `gohai` — replace `fakeCollector`, `errCollector`, `cycleCollector`,
+  and `failingCollector` with a generated `collector.Collector` mock and a
+  constructor that configures it, so the roughly fifty call sites stay readable
+- [ ] 5.6 `gohai` — move `internal/executor/gen/` to `internal/executor/mocks/`
+  and invoke the generator through `go tool` rather than `go run`
+- [ ] 5.7 `osapi-orchestrator` — replace `mockRenderer` with the generated
+  `MockRenderer` in `pkg/orchestrator/mocks/`. It records eight call flags and
+  the tests assert `s.True(m.planStartCalled)` and its siblings, which proves
+  something was called rather than that it was called correctly
+- [ ] 5.8 `osapi` — no change. `mockPKISigner` signs with a real generated
   ed25519 key pair, and `captureStore` records writes the audit middleware
   dispatches after the response is sent, stating that reason where it is defined
-- [ ] 5.4 `osapi-orchestrator` — replace `mockRenderer` with a generated mock.
-  It records eight call flags and the tests assert `s.True(m.planStartCalled)`
-  and its siblings, which is hand-rolled interaction assertion: it proves
-  something was called, not that it was called correctly
-- [ ] 5.5 Confirm no double records calls by hand for a test to assert on, and
-  that each hand-written stub only returns values
+- [ ] 5.9 Confirm no hand-written struct satisfies an interface this
+  organization defines, that every generated mock sits in a `mocks` package
+  beside the code it mocks, and that each remaining hand-written double names
+  which exception it relies on
 
 ## 6. Verification
 
