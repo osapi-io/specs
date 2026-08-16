@@ -21,6 +21,35 @@ A Go module SHALL declare a path matching the repository that holds it.
 - **THEN** its module path is updated to match, and consumers are updated in the
   same change
 
+### Requirement: A repository's declared home matches where it lives
+
+A repository SHALL NOT name an owner, project, or location other than its own.
+This covers every place the repository states where it lives — the module path,
+site deployment configuration, and links to the project's own issue tracker,
+discussions, or releases.
+
+A module path is checked by the toolchain and fails loudly when wrong. These
+other declarations fail quietly: the build passes, the site publishes, and the
+link resolves to somebody else's project.
+
+#### Scenario: A repository moves between owners
+
+- **WHEN** a repository moves to a different organization
+- **THEN** every declaration of where it lives is updated, not only the ones a
+  compiler checks
+
+#### Scenario: Site deployment names a different organization
+
+- **WHEN** a documentation site declares the organization it deploys under
+- **THEN** that organization is the one hosting it, rather than a former owner
+  the published URL contradicts
+
+#### Scenario: A link points at the author's other project
+
+- **WHEN** documentation links to the project's issue tracker, discussions, or
+  releases
+- **THEN** the link names this repository, not one it was copied from
+
 ### Requirement: Dependencies are declared by version
 
 A repository SHALL depend on another repository by a released or pinned version
