@@ -24,10 +24,12 @@ treating the failure as real.
 
 ## Running a change
 
-The procedure, with commands, is in @CONTRIBUTING.md under "Running a change".
-Follow it rather than improvising: propose, merge, apply, archive — each step
-its own pull request, except documentation-only changes where propose and
-archive belong in one.
+The workflow is in @CONTRIBUTING.md under "Running a change". Follow it rather
+than improvising.
+
+It names each step twice: a `/opsx:*` slash command a person types, and a skill
+an agent invokes. You cannot type a slash command — invoke the skill named for
+that step.
 
 ## Read the corpus first
 
@@ -51,8 +53,8 @@ See @CONTRIBUTING.md under "When you find something".
 
 ## Planning boundary
 
-`/opsx:propose` produces planning artifacts and then stops. Do not edit code in
-the same response, even when the request asks you to build or fix something.
+`openspec-propose` produces planning artifacts and then stops. Do not edit code
+in the same response, even when the request asks you to build or fix something.
 Wait for an explicit instruction to apply.
 
 Applying waits for the proposal PR to **merge**, not to exist. An open branch is
@@ -66,9 +68,6 @@ See @CONTRIBUTING.md under "Running a change".
 
 ## Writing artifacts
 
-Read `openspec/config.yaml` before generating any artifact. Its `context` and
-`rules` are injected into every generation — apply them as constraints, and do
-not copy them into the output.
-
-Follow the artifact build order from `openspec status`, not the order the
-templates happen to appear in.
+`openspec/config.yaml` carries project context and per-artifact rules injected
+into every generation. They are constraints on what you write — never copy them
+into the output.
