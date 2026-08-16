@@ -143,6 +143,52 @@ what each part covers.
   navigation
 - **THEN** that navigation is the index, and no second one is maintained
 
+### Requirement: The corpus has an entry point
+
+The corpus SHALL contain a document naming every capability and what each one
+covers, so a reader arriving without knowing which capability holds what can
+find their way in.
+
+That document SHALL state what the corpus is: the rules the organization's
+software is held to, and where the reasoning behind each rule is kept. It SHALL
+NOT describe the corpus as a description of how the software behaves, because
+descriptions of current behavior stay in the repositories that hold the code.
+
+#### Scenario: A reader arrives at the corpus
+
+- **WHEN** someone opens the corpus without knowing which capability governs the
+  work they are doing
+- **THEN** an entry point names each capability and what it covers, rather than
+  requiring every capability to be opened
+
+#### Scenario: A capability is added
+
+- **WHEN** a change adds a capability to the corpus
+- **THEN** the entry point names it, so the map does not fall behind what it
+  maps
+
+#### Scenario: A reader wants to know why a rule exists
+
+- **WHEN** a requirement's reasoning matters more than its wording
+- **THEN** the entry point says the reasoning is in the archived change that
+  introduced it, rather than leaving the archive to be discovered
+
+### Requirement: A capability says what it is for before it constrains
+
+A capability SHALL open by stating what it governs and why that ground needs
+governing.
+
+A reader who does not already know the domain SHALL be able to learn what the
+capability is about from that opening, without reconstructing it from the
+requirements below.
+
+#### Scenario: A capability is read by someone new to the domain
+
+- **WHEN** a contributor opens a capability governing a subsystem they have not
+  worked in
+- **THEN** its opening explains what the subsystem is for, so the requirements
+  that follow are read with the reason for them in view
+
 ### Requirement: Documentation organisation is the repository's own
 
 The names and shape of directories inside `docs/` SHALL be chosen by the

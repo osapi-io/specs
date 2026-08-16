@@ -230,3 +230,53 @@ their genres. Rejected for now — renaming before extraction relabels documents
 that still contain requirements, and these are site routes, so the rename costs
 external links. It belongs after, when what remains is unambiguously
 description.
+
+## The corpus promised something it does not hold
+
+The `specs` README says of `openspec/specs/`:
+
+> What survives is `openspec/specs/` — the current description of how osapi-io
+> behaves, kept honest by every change that passes through.
+
+It is not that. Of the six capabilities in the corpus, five govern how work is
+done — package layout, coverage targets, continuous integration, labels,
+justfile modules, module paths, ignore files, badges. Only `sdk-standards` says
+anything about how the software behaves. A reader could learn all forty-five
+requirements and know the linting rules without learning that osapi has three
+processes or what a provider is.
+
+The gap is an artifact of sequence rather than intent. Every change so far has
+been repository standardization, and standardization produces rules about
+process. The capabilities queued next — routing, API design, provider semantics,
+domain completeness — are about behavior, and the corpus will start to resemble
+its own description.
+
+It will never fully match it. Package maps and request flows stay in the
+repositories, because writing them as requirements produces a corpus that goes
+stale on every refactor — a decision this capability already records. So the
+README is corrected to say what the corpus is: the rules the software is held
+to, with the reasoning in the archive.
+
+### An entry point, before there are twenty capabilities
+
+`openspec/` holds six capability directories and eleven archived changes, and
+nothing that says where to start. That is survivable at six and is not at
+twenty.
+
+The requirement asks for a map rather than a summary: naming each capability and
+what it covers, saying what the corpus is, and pointing at the archive for
+reasoning. A summary would restate the requirements and drift from them; a map
+stays true as long as the names do.
+
+*Alternative considered:* generate the entry point from the capability files.
+Rejected — the useful part is the sentence explaining what a capability is for
+and when to reach for it, which is not derivable from a list of `SHALL`
+statements.
+
+### Purpose sections carry the orientation
+
+The second requirement follows from the same problem. A capability opening with
+its first requirement teaches a reader who already knows the domain and no one
+else. Asking the `## Purpose` to state what the capability governs, and why that
+ground needs governing, is what makes the corpus readable rather than only
+searchable.
