@@ -39,3 +39,19 @@ unlabelled.
 same way the others do. Consistency here is worth more than the slightly better
 reading of the current name, because a reader guessing a label name should be
 able to guess it.
+
+### What applying it found
+
+Two things the audit nearly missed, recorded because neither is visible from
+reading a labeler file.
+
+`kind/docs` matched `docs/**` and nothing else. Every `README.md`,
+`CONTRIBUTING.md`, `AGENTS.md` and `AI_POLICY.md` change was therefore
+unlabelled, in every repository — the documentation most often edited was the
+documentation least often labelled. It now matches `**/*.md` as well.
+
+`osapi-justfiles` holds a `Dockerfile`. The first pass of the audit assumed a
+repository of shared recipes would hold no container files and would have
+dropped `kind/docker` from it. Counting rather than assuming is what caught it,
+and is why the verification is written as a count of matching files rather than
+a review of the config.

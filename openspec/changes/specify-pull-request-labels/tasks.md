@@ -6,21 +6,23 @@
 
 ## 2. Agree the shared names
 
-- [ ] 2.1 Settle the label for justfiles — `kind/just`
-- [ ] 2.2 Settle the label for TypeScript — `kind/ts`
-- [ ] 2.3 Settle the label for container files — `kind/docker`
-- [ ] 2.4 Rename `github/action` to `kind/action`, and scope `kind/yaml` to
+- [x] 2.1 Settle the label for justfiles — `kind/just`
+- [x] 2.2 Settle the label for TypeScript — `kind/ts`
+- [x] 2.3 Settle the label for container files — `kind/docker`
+- [x] 2.4 Rename `github/action` to `kind/action`, and scope `kind/yaml` to
   exclude what it covers
+- [x] 2.5 Broaden `kind/docs` to `**/*.md`; it matched `docs/**` only, leaving
+  every README and contributing guide unlabelled
 
 ## 3. Apply to each repository
 
-- [ ] 3.1 `osapi` — add `kind/just`, `kind/ts`, `kind/docker`
-- [ ] 3.2 `gohai` — add `kind/just`
-- [ ] 3.3 `nats-client` — add `kind/just`
-- [ ] 3.4 `nats-server` — add `kind/just`
-- [ ] 3.5 `osapi-orchestrator` — add `kind/just`
-- [ ] 3.6 `specs` — add `kind/just`, remove `test/unit`
-- [ ] 3.7 `osapi-justfiles` — add `kind/just`, remove `kind/bats` and `kind/go`
+- [x] 3.1 `osapi` — add `kind/just`, `kind/ts`, `kind/docker`
+- [x] 3.2 `gohai` — add `kind/just`
+- [x] 3.3 `nats-client` — add `kind/just`
+- [x] 3.4 `nats-server` — add `kind/just`
+- [x] 3.5 `osapi-orchestrator` — add `kind/just`
+- [x] 3.6 `specs` — add `kind/just`, remove `test/unit`
+- [x] 3.7 `osapi-justfiles` — add `kind/just`, remove `kind/bats` and `kind/go`
 
 ## 4. Verification
 
