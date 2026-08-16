@@ -88,11 +88,23 @@ how they are called.
 - [x] 5.3 `osapi` — no change. `mockPKISigner` signs with a real generated
   ed25519 key pair, and `captureStore` records writes the audit middleware
   dispatches after the response is sent, stating that reason where it is defined
-- [ ] 5.4 `osapi-orchestrator` — replace `mockRenderer` with a generated mock.
-  It records eight call flags and the tests assert `s.True(m.planStartCalled)`
-  and its siblings, which is hand-rolled interaction assertion: it proves
-  something was called, not that it was called correctly
-- [ ] 5.5 Confirm no double records calls by hand for a test to assert on, and
+- [x] 5.4 Specify where a generated mock lives. The corpus named the generator
+  but not the layout, and the layout had drifted: roughly forty sites use
+  `<package>/mocks/` invoked through `go tool`, while `gohai` uses
+  `internal/executor/gen/` invoked through `go run`. `gen` already means
+  API-generator output in about twenty-five `osapi` directories, so the same
+  name meant two things depending on which repository was open
+- [ ] 5.5 `osapi-orchestrator` — replace `mockRenderer` with a generated mock in
+  `pkg/orchestrator/mocks/`. It records eight call flags and the tests assert
+  `s.True(m.planStartCalled)` and its siblings, which is hand-rolled interaction
+  assertion: it proves something was called, not that it was called correctly
+- [ ] 5.6 `gohai` — move `internal/executor/gen/` to `internal/executor/mocks/`
+  and invoke the generator through `go tool` rather than `go run`
+- [ ] 5.7 Add the generator directive to each repository's shared
+  `Code standards` section, so the worked form is stated where the other
+  conventions are
+- [ ] 5.8 Confirm every generated mock sits in a mocks package beside the code
+  it mocks, that no double records calls by hand for a test to assert on, and
   that each hand-written stub only returns values
 
 ## 6. Verification

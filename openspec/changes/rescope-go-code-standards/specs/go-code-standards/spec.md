@@ -60,6 +60,40 @@ behavior. The reason SHALL be stated where the double is defined.
 - **THEN** it implements the stdlib interface directly, because that interface
   does not move with the code under test
 
+### Requirement: A generated mock has one home
+
+A generated mock SHALL live in a package named for that purpose, beside the code
+whose interface it mocks, and SHALL be produced by a generator directive
+committed alongside it.
+
+The directive SHALL invoke the generator through the module's tool dependencies,
+so every contributor and every checkout runs the version the module records
+rather than whatever is installed.
+
+A directory name SHALL mean one thing across the organization. Where `gen`
+already holds the output of an API code generator, mocks SHALL NOT also be
+placed there: a reader who finds `gen/` should not have to open it to learn
+which kind of generated code it holds.
+
+#### Scenario: A contributor looks for a mock
+
+- **WHEN** a contributor needs the mock for an interface
+- **THEN** it is in a mocks package beside that interface, in every repository,
+  rather than in a location that varies by repository
+
+#### Scenario: Two kinds of generated code share a name
+
+- **WHEN** one repository generates API clients into `gen/` and another
+  generates mocks into `gen/`
+- **THEN** the mocks move, because the same directory name otherwise means two
+  different things depending on which repository is open
+
+#### Scenario: The generator is invoked
+
+- **WHEN** a directive regenerates a mock
+- **THEN** it resolves the generator from the module's tool dependencies, so the
+  output does not depend on what the person running it happens to have installed
+
 ## REMOVED Requirements
 
 ### Requirement: Mocks are generated
