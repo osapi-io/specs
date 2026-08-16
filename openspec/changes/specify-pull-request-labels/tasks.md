@@ -14,6 +14,16 @@
 - [x] 2.5 Broaden `kind/docs` to `**/*.md`; it matched `docs/**` only, leaving
   every README and contributing guide unlabelled
 
+## 2a. Settle the purpose labels
+
+- [ ] 2a.1 `kind/agents` — `AGENTS.md`, `CLAUDE.md`, `.claude/**`
+- [ ] 2a.2 `kind/contributing` — `CONTRIBUTING.md`
+- [ ] 2a.3 `kind/policy` — `AI_POLICY.md`, `CODE_OF_CONDUCT.md`, `LICENSE`
+- [ ] 2a.4 `kind/toolchain` — `.mise.toml`, `.golangci.yml`, `.goreleaser.yaml`,
+  `codecov.yml`, `.coverignore`, `.github/dependabot.yml`
+- [ ] 2a.5 Narrow `kind/docs` to `README.md` and `docs/**`, so it stops
+  swallowing the four above
+
 ## 3. Apply to each repository
 
 - [x] 3.1 `osapi` — add `kind/just`, `kind/ts`, `kind/docker`
@@ -30,3 +40,5 @@
 - [ ] 4.2 Confirm every kind of file a repository holds has a label
 - [ ] 4.3 Confirm the same kind carries the same label name in every repository
 - [ ] 4.4 Confirm no two labels match the same file as a matter of course
+- [ ] 4.5 Confirm every tracked file kind is matched by some label, including
+  files with no extension
