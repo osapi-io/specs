@@ -21,9 +21,10 @@ nothing:
 
 - A double standing in for a standard library interface — a connection, a file,
   a writer, a log handler. That interface does not move when our code does.
-- A double carrying a real implementation of the behavior under test, such as
-  signing with a genuinely generated key pair. Generating it would replace
-  working behavior with a scripted one.
+- A double whose real behavior cannot be reached from a generated mock. This is
+  narrower than it first appears: a generated mock can delegate to real behavior
+  from its return handler, so signing with a genuinely generated key pair is
+  generated like anything else, and the test keeps verifying a real signature.
 - A recorder for a dependency the code under test calls from a goroutine the
   test cannot join. A generated mock asserts call counts at a moment the test
   cannot establish, so it fails on scheduling rather than on behavior. The
@@ -55,6 +56,14 @@ nothing:
 - **THEN** it implements the stdlib interface directly, because that interface
   does not move with the code under test
 
+#### Scenario: A double needs to do the real work
+
+- **WHEN** a test needs its double to produce a genuine result, such as a real
+  signature the test then verifies
+- **THEN** the double is still generated, and its return handler calls the real
+  implementation, rather than a hand-written type being introduced to hold that
+  call
+
 #### Scenario: A dependency is called from an unjoinable goroutine
 
 - **WHEN** the code under test writes to a dependency from a goroutine the test
@@ -64,9 +73,20 @@ nothing:
 
 ### Requirement: A generated mock has one home
 
-A generated mock SHALL live in a package named for that purpose, beside the code
-whose interface it mocks, and SHALL be produced by a generator directive
-committed alongside it.
+A generated mock SHALL be produced by a generator directive committed alongside
+it, in a file that holds directives and no code. Generated output SHALL be named
+so that a reader can tell it is generated without opening it.
+
+A mock for an **exported** interface SHALL live in a package named for that
+purpose, beside the code whose interface it mocks.
+
+A mock for an **unexported** interface SHALL be generated into the package that
+declares it, and SHALL be scoped to tests so that it does not ship in the built
+package. A sibling package is not available: the mock must import the package to
+name the types in the interface, and the package's own tests must import the
+mock, which is a cycle the compiler rejects. Scoping matters beyond tidiness —
+an unscoped mock puts the mocking library into the dependency graph of every
+consumer of the package.
 
 The directive SHALL invoke the generator through the module's tool dependencies,
 so every contributor and every checkout runs the version the module records
@@ -79,9 +99,23 @@ which kind of generated code it holds.
 
 #### Scenario: A contributor looks for a mock
 
-- **WHEN** a contributor needs the mock for an interface
+- **WHEN** a contributor needs the mock for an exported interface
 - **THEN** it is in a mocks package beside that interface, in every repository,
   rather than in a location that varies by repository
+
+#### Scenario: The interface is unexported
+
+- **WHEN** a test needs a mock for an interface its own package declares
+  unexported
+- **THEN** the mock is generated into that package and scoped to tests, because
+  a sibling package would import the package under test while that package's
+  tests import the sibling
+
+#### Scenario: A generated file is read by someone who did not generate it
+
+- **WHEN** a contributor opens a file holding a generated mock
+- **THEN** its name says it is generated, so it is not mistaken for a
+  hand-written test or edited by hand
 
 #### Scenario: Two kinds of generated code share a name
 
