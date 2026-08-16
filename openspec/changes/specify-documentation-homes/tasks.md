@@ -35,6 +35,11 @@
   messages, linting, and test conventions across `CLAUDE.md`, `development.md`,
   and `testing.md` before the root `CONTRIBUTING.md` is written, so the
   conversion has one source to draw from
+- [ ] 3.9 `osapi` — capture "job creation goes through domain endpoints" as a
+  requirement. Removing `docs/plans/` deletes its only written record: the rule
+  still binds (the sole `post:` on the job API is `/api/job/{id}/retry`, an
+  action on an existing job) but is stated in no current document, so relocating
+  what `api-guidelines.md` and `job-architecture.md` say will not produce it
 - [ ] 3.7 Leave each source document in place as a pointer to the capability
 - [ ] 3.8 `osapi` — leave `architecture.md`, `system-architecture.md`, `ui.md`,
   and the eight-step "Adding a New API Domain" walkthrough in the repository;

@@ -161,3 +161,29 @@ drops the others.
 *Alternative considered:* convert `CLAUDE.md` to a pointer first and sort the
 content afterwards. The conversion is what forces the decision about each block,
 so deferring it means writing a `CONTRIBUTING.md` that has to be rewritten.
+
+## One rule was about to be deleted with its only record
+
+Reviewing the 76 planning documents before removal, as section 4 requires, found
+seventy that were implementation choreography for shipped work and six that
+carried decision rationale. Five of the six describe architecture that the
+repository still documents. One does not.
+
+The unified-domain-endpoint plan decided to remove `POST /job` and route all job
+creation through domain endpoints. The rule still binds — the only `post:`
+remaining on the job API is `/api/job/{id}/retry`, an action on an existing job
+rather than a way to create one — but no current document states it. Not
+`api-guidelines.md`, not `architecture.md`, not `CLAUDE.md`.
+
+That makes it invisible in a specific way: the rule is expressed as an endpoint
+that is *absent*, so nothing a reader opens will mention it, and a contributor
+adding a domain has no way to discover the constraint before violating it.
+
+Relocating what the architecture documents say would not have produced this
+requirement, because those documents do not say it. It needed its own task, or
+deleting the planning directory would have removed the last written record of a
+rule still in force.
+
+*Alternative considered:* keep the plan that records it. Rejected — a planning
+document is not where a binding rule belongs, and keeping one file to preserve
+one sentence reintroduces the directory this change removes.
