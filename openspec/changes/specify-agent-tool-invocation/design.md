@@ -28,3 +28,14 @@ The requirement names what the failure looks like: a check that fails for the
 agent and passes in continuous integration, on a file nobody edited. An
 instruction alone is easy to skip; a described symptom is recognisable when it
 happens, which is when the instruction is needed.
+
+### Applying it found two things
+
+`osapi` has no `AGENTS.md` at all. It is the only repository without one, which
+is already tracked as part of its contributing-guide conversion. The guidance
+lands there when that file exists.
+
+`osapi-justfiles` publishes the `md` module and did not consume it. Its eleven
+markdown files — the root README and every module's — were formatted by nothing,
+while every repository that fetches from it had them formatted. It now imports
+`md.just` like the rest.

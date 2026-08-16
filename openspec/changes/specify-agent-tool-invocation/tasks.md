@@ -5,7 +5,8 @@
 
 ## 2. Apply to each repository
 
-- [ ] 2.1 `osapi`
+- [ ] 2.1 `osapi` — blocked: it has no `AGENTS.md`, pending its CONTRIBUTING
+  conversion (`standardize-repository-layout` task 4.5)
 - [ ] 2.2 `gohai`
 - [ ] 2.3 `nats-client`
 - [ ] 2.4 `nats-server`
