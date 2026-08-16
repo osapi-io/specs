@@ -110,9 +110,19 @@ asked to follow a rule it does not carry.
   `MockRenderer` in `pkg/orchestrator/mocks/`. It records eight call flags and
   the tests assert `s.True(m.planStartCalled)` and its siblings, which proves
   something was called rather than that it was called correctly
-- [ ] 5.8 `osapi` — no change. `mockPKISigner` signs with a real generated
-  ed25519 key pair, and `captureStore` records writes the audit middleware
-  dispatches after the response is sent, stating that reason where it is defined
+- [ ] 5.8 `osapi` — `captureStore` becomes a generated mock. It was recorded as
+  relying on the unjoinable-goroutine exception, and the goroutine is real, but
+  checking how the test copes with it found seven `time.Sleep(50ms)` calls. A
+  generated mock closes a channel from `DoAndReturn`, so the test joins the
+  write instead of waiting out a guess: generated and deterministic, where the
+  exception was protecting neither
+- [ ] 5.8a `osapi` — rename `mockPKISigner`. It stays hand-written: the test
+  asserts `ed25519.Verify(signer.pubKey, payload, envelope.Signature)`, so a
+  scripted double returning canned bytes would make the assertion vacuous. It is
+  a real signer with a generated key pair, and only its name suggested otherwise
+- [ ] 5.8b Confirm no double claims an exception it does not need. The
+  exceptions exist for cases where generating buys nothing, not as somewhere to
+  put a double that is inconvenient to convert
 - [ ] 5.9 Confirm no hand-written struct satisfies an interface this
   organization defines, that every generated mock sits in a `mocks` package
   beside the code it mocks, and that each remaining hand-written double names
