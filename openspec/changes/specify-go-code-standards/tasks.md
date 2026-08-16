@@ -19,7 +19,6 @@
 - [x] 3.2 Confirm no repository holds a generically named file
 - [x] 3.3 Confirm every test package uses a table-driven suite
 - [ ] 3.4 Confirm no mock is hand-written where an interface is mocked
-- [ ] 3.5 Confirm no `export_test.go` exposes an alias to an unexported
-  function. Ten exist — four in `gohai`, which states the rule, and six in
-  `osapi`. Eleven call sites depend on them
+- [ ] 3.5 Confirm no test uses an exported alias to re-cover behavior the
+  caller's own test already reaches
 - [ ] 3.6 Confirm no shared convention is stated in two places
