@@ -277,7 +277,13 @@ tested — but only if it is corrected in the open.
 Merges the deltas into `specs/` and moves the change to
 `openspec/changes/archive/`. Branch, commit, open a PR.
 
-Archiving refuses to run while any task is unchecked.
+Before merging, archiving compares each delta against the spec it targets and
+reports what would be added, modified, removed, or renamed. Read that summary. A
+`MODIFIED` delta whose requirement heading does not exist in the corpus is
+reported here and nowhere else — `openspec validate --strict` passes it.
+
+Unchecked tasks produce a warning and a confirmation prompt rather than a
+refusal. Skipping the prompts also skips the sync assessment above.
 
 It writes the spec file itself, and does not format it. Run `just md-fmt`
 afterwards or the formatting check fails on a file you did not hand-write.
@@ -297,6 +303,58 @@ window where the corpus is knowingly incomplete. Run `/opsx:propose`, then
 | `/opsx:explore` | Before proposing, to weigh approaches        |
 | `/opsx:update`  | Revise a change that is still in flight      |
 | `/opsx:sync`    | Update `specs/` without archiving the change |
+
+### Use the skill, not the CLI
+
+Every step of the workflow is invoked through a skill, or through its slash
+command. **Do not drive `openspec` by hand.**
+
+| Step    | A person types  | An agent invokes          |
+| ------- | --------------- | ------------------------- |
+| Explore | `/opsx:explore` | `openspec-explore`        |
+| Propose | `/opsx:propose` | `openspec-propose`        |
+| Apply   | `/opsx:apply`   | `openspec-apply-change`   |
+| Sync    | `/opsx:sync`    | `openspec-sync-specs`     |
+| Update  | `/opsx:update`  | `openspec-update-change`  |
+| Archive | `/opsx:archive` | `openspec-archive-change` |
+
+The two forms carry the same instructions and differ only in who can reach them:
+a person types a slash command, an agent invokes a skill.
+
+The skill runs the `openspec` CLI for you, and which commands it runs is not the
+point — the workflow around them is. Driving the CLI directly skips that
+workflow, and with it the sync assessment before archiving, the planning
+boundary that keeps implementation out of the turn that produced the plan, and
+the per-artifact rules below. A change assembled by hand can validate and still
+not conform.
+
+An agent reaches these skills only when the session's project root holds them.
+This repository does. A session rooted at a parent directory will not, unless
+they are linked into that root or installed under `~/.claude/skills/`.
+
+### Each artifact has a template and rules
+
+The schema defines four artifacts and constrains each one. Retrieve what it
+expects:
+
+```bash
+openspec instructions <proposal|specs|design|tasks> --change <name>
+```
+
+That prints the template to fill in, the rules the artifact is held to, and the
+completed artifacts to read first. The rules are not advisory and are not
+checked by `openspec validate`, which verifies structure rather than
+conformance. Among them:
+
+- A requirement states one behavior. If it needs "and" to describe itself, it is
+  two requirements.
+- A requirement does not name a file, function, or library. Those belong in the
+  design.
+- Every decision in a design records an alternative considered and why it lost.
+- Risks in a design take the form `[Risk] -> Mitigation`.
+
+Writing an artifact without reading these produces something that validates and
+still does not conform.
 
 Refresh the generated agent wiring after a CLI upgrade:
 
