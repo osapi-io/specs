@@ -3,7 +3,7 @@
 
 import? '.just/remote/md.just'
 
-mod? just '.just/remote/just.mod.just'
+import? '.just/remote/just.just'
 
 # --- Fetch ---
 
@@ -11,8 +11,7 @@ mod? just '.just/remote/just.mod.just'
 fetch:
     mkdir -p .just/remote
     curl -sSfL https://raw.githubusercontent.com/osapi-io/osapi-justfiles/refs/heads/main/md/md.just -o .just/remote/md.just
-    curl -sSfL https://raw.githubusercontent.com/osapi-io/osapi-justfiles/refs/heads/main/just.mod.just -o .just/remote/just.mod.just
-    curl -sSfL https://raw.githubusercontent.com/osapi-io/osapi-justfiles/refs/heads/main/just.just -o .just/remote/just.just
+    curl -sSfL https://raw.githubusercontent.com/osapi-io/osapi-justfiles/refs/heads/main/just/just.just -o .just/remote/just.just
 
 # --- Specs ---
 
@@ -25,10 +24,10 @@ validate:
 # Run all checks
 test:
     just md-fmt-check
-    just just::fmt-check
+    just just-fmt-check
     just validate
 
 # Format and lint before committing
 ready:
     just md-fmt
-    just just::fmt
+    just just-fmt
