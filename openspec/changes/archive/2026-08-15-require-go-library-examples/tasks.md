@@ -7,10 +7,10 @@
 
 ## 2. Bring gohai into compliance
 
-- [ ] 2.1 Write examples under `examples/` covering distinct usage shapes
-- [ ] 2.2 Add the README `Examples` section linking them
-- [ ] 2.3 Confirm each example compiles
+- [x] 2.1 Write examples under `examples/` covering distinct usage shapes
+- [x] 2.2 Add the README `Examples` section linking them
+- [x] 2.3 Confirm each example compiles
 
 ## 3. Verification
 
-- [ ] 3.1 Confirm every Go library ships examples and links them from its README
+- [x] 3.1 Confirm every Go library ships examples and links them from its README
