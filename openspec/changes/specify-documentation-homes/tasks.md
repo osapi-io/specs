@@ -7,14 +7,16 @@
 
 ## 2. Index each repository's documentation
 
-- [ ] 2.1 `gohai` — `docs/README.md` covering collectors, methodology, and the
+- [x] 2.1 `gohai` — `docs/README.md` covering collectors, methodology, and the
   how-to guides
-- [ ] 2.2 `nats-client` — `docs/README.md`
-- [ ] 2.3 `nats-server` — `docs/README.md`
-- [ ] 2.4 `osapi-orchestrator` — `docs/README.md` covering operations and
+- [x] 2.2 `nats-client` — `docs/README.md`
+- [x] 2.3 `nats-server` — `docs/README.md`
+- [x] 2.4 `osapi-orchestrator` — `docs/README.md` covering operations and
   features
-- [ ] 2.5 `osapi` — exempt; its site navigation is the index. Confirm and record
-  the exemption
+- [x] 2.5 `osapi` — exempt; its site navigation is the index. Confirm and record
+  the exemption. Confirmed: the Docusaurus content root is `docs/docs/`, and
+  `sidebars.ts` is the navigation the requirement accepts in place of a second
+  index
 
 ## 3. Relocate requirements now held in repository documentation
 
@@ -47,15 +49,16 @@
 
 ## 4. Remove planning documents from repositories
 
-- [ ] 4.1 Review the 76 planning documents for reasoning worth lifting into a
+- [x] 4.1 Review the 76 planning documents for reasoning worth lifting into a
   change before removal
-- [ ] 4.2 `osapi` — remove `docs/plans/` (70 documents)
-- [ ] 4.3 `osapi-orchestrator` — remove `docs/plans/` (6 documents)
+- [x] 4.2 `osapi` — remove `docs/plans/` (70 documents)
+- [x] 4.3 `osapi-orchestrator` — remove `docs/plans/` (6 documents)
 - [ ] 4.4 Both — note in `CONTRIBUTING.md` that design records are changes in
-  the corpus
+  the corpus. Done for `osapi-orchestrator`; `osapi` has no root
+  `CONTRIBUTING.md` until `standardize-repository-layout` task 4.5 writes one
 
 ## 5. Verification
 
-- [ ] 5.1 Confirm every repository's documentation is indexed
-- [ ] 5.2 Confirm no repository contains a planning directory
+- [x] 5.1 Confirm every repository's documentation is indexed
+- [x] 5.2 Confirm no repository contains a planning directory
 - [ ] 5.3 Confirm no relocated requirement is stated in two places
