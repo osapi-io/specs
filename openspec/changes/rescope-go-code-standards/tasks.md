@@ -106,20 +106,25 @@ asked to follow a rule it does not carry.
   constructor that configures it, so the roughly fifty call sites stay readable
 - [ ] 5.6 `gohai` — move `internal/executor/gen/` to `internal/executor/mocks/`
   and invoke the generator through `go tool` rather than `go run`
-- [ ] 5.7 `osapi-orchestrator` — replace `mockRenderer` with the generated
-  `MockRenderer` in `pkg/orchestrator/mocks/`. It records eight call flags and
-  the tests assert `s.True(m.planStartCalled)` and its siblings, which proves
-  something was called rather than that it was called correctly
+- [ ] 5.7 `osapi-orchestrator` — replace `mockRenderer` with a generated mock.
+  It records eight call flags and the tests assert `s.True(m.planStartCalled)`
+  and its siblings, which proves something was called rather than that it was
+  called correctly. Not a sibling `mocks` package: `renderer` is unexported and
+  its methods take types from the package, so a sibling would import the package
+  while the package's own tests import the sibling. Generated in-place and
+  scoped to tests instead
 - [ ] 5.8 `osapi` — `captureStore` becomes a generated mock. It was recorded as
   relying on the unjoinable-goroutine exception, and the goroutine is real, but
   checking how the test copes with it found seven `time.Sleep(50ms)` calls. A
   generated mock closes a channel from `DoAndReturn`, so the test joins the
   write instead of waiting out a guess: generated and deterministic, where the
   exception was protecting neither
-- [ ] 5.8a `osapi` — rename `mockPKISigner`. It stays hand-written: the test
-  asserts `ed25519.Verify(signer.pubKey, payload, envelope.Signature)`, so a
-  scripted double returning canned bytes would make the assertion vacuous. It is
-  a real signer with a generated key pair, and only its name suggested otherwise
+- [ ] 5.8a `osapi` — `mockPKISigner` becomes a generated mock whose return
+  handler calls `ed25519.Sign`, so the test keeps verifying a real signature
+  against a real key. It had been recorded as staying hand-written under the
+  real-implementation exception; that exception was written without noticing a
+  generated mock can delegate to real behavior, which left renaming the double
+  as the only remedy — dodging the rule rather than meeting it
 - [ ] 5.8b Confirm no double claims an exception it does not need. The
   exceptions exist for cases where generating buys nothing, not as somewhere to
   put a double that is inconvenient to convert
