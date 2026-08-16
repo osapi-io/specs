@@ -47,10 +47,10 @@
 - [x] 3.5 `osapi` — propose a capability from `docs/sidebar/sdk/guidelines.md`;
   "never expose generated types" and "JSON tags required" bind every consumer of
   `pkg/sdk`, including `osapi-orchestrator`
-- [ ] 3.6 `osapi` — resolve the three-way duplication of branching, commit
-  messages, linting, and test conventions across `CLAUDE.md`, `development.md`,
-  and `testing.md` before the root `CONTRIBUTING.md` is written, so the
-  conversion has one source to draw from
+- [x] 3.6 `osapi` — the three-way duplication of branching, commit messages,
+  linting, and test conventions across `CLAUDE.md`, `development.md`, and
+  `testing.md` is resolved into the root `CONTRIBUTING.md`; the two site pages
+  are now pointers to it (osapi-io/osapi#450)
 - [ ] 3.9 `osapi` — capture "job creation goes through domain endpoints" as a
   requirement. Removing `docs/plans/` deletes its only written record: the rule
   still binds (the sole `post:` on the job API is `/api/job/{id}/retry`, an
@@ -67,9 +67,12 @@
   change before removal
 - [x] 4.2 `osapi` — remove `docs/plans/` (70 documents)
 - [x] 4.3 `osapi-orchestrator` — remove `docs/plans/` (6 documents)
-- [ ] 4.4 Both — note in `CONTRIBUTING.md` that design records are changes in
-  the corpus. Done for `osapi-orchestrator`; `osapi` has no root
-  `CONTRIBUTING.md` until `standardize-repository-layout` task 4.5 writes one
+- [x] 4.4 Both — `CONTRIBUTING.md` notes that design records are changes in the
+  corpus. `osapi-orchestrator` already did; `osapi`'s root `CONTRIBUTING.md` now
+  does (osapi-io/osapi#450). Applying this surfaced a stale pointer:
+  `osapi-orchestrator`'s `AGENTS.md` still sent readers to the `docs/plans/`
+  removed by task 4.3, contradicting its own `CONTRIBUTING.md`
+  (osapi-io/osapi-orchestrator#74)
 
 ## 4a. Make the corpus navigable
 
