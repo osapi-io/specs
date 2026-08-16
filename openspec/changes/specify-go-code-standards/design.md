@@ -95,11 +95,19 @@ enforced by authority.
 
 ## Risks / Trade-offs
 
-- **A repository may need an exception.** The requirements state conditions
-  rather than absolutes where a legitimate exception exists — mocking is the
-  worked example.
-- **These rules are testable only by reading code.** Nothing here is enforced by
-  a linter. That is a reason to write them down, not a reason not to.
+- **A repository legitimately needs an exception and becomes non-conformant.** →
+  Requirements state conditions rather than absolutes wherever a legitimate
+  exception exists; mocking is the worked example, since one repository mocks
+  nothing and declares no mocking library.
+
+- **Nothing enforces these rules, so a repository can drift without failing a
+  check.** → They are stated once where every repository can be held to them,
+  which is what makes drift reviewable. A rule no linter can check is a reason
+  to write it down, not a reason to leave it unwritten.
+
+- **A rule universal in practice today stops being universal.** → Each was
+  measured against every repository before being written, so a future exception
+  arrives as a change to the requirement rather than as silent non-conformance.
 
 ## Migration Plan
 
