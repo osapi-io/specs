@@ -16,13 +16,13 @@
 
 ## 3. Apply to each repository
 
-- [x] 3.1 `osapi` — add `kind/just`, `kind/ts`, `kind/docker`
-- [x] 3.2 `gohai` — add `kind/just`
-- [x] 3.3 `nats-client` — add `kind/just`
-- [x] 3.4 `nats-server` — add `kind/just`
-- [x] 3.5 `osapi-orchestrator` — add `kind/just`
-- [x] 3.6 `specs` — add `kind/just`, remove `test/unit`
-- [x] 3.7 `osapi-justfiles` — add `kind/just`, remove `kind/bats` and `kind/go`
+- [ ] 3.1 `osapi` — add `kind/just`, `kind/ts`, `kind/docker`
+- [ ] 3.2 `gohai` — add `kind/just`
+- [ ] 3.3 `nats-client` — add `kind/just`
+- [ ] 3.4 `nats-server` — add `kind/just`
+- [ ] 3.5 `osapi-orchestrator` — add `kind/just`
+- [ ] 3.6 `specs` — add `kind/just`, remove `test/unit`
+- [ ] 3.7 `osapi-justfiles` — add `kind/just`, remove `kind/bats` and `kind/go`
 
 ## 4. Verification
 
