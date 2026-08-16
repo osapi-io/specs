@@ -39,10 +39,10 @@ a conversion pull request is only that repository's own work.
 One repository per change, applying both the file layout and the README
 structure for its type.
 
-- [ ] 4.1 `gohai` (Go library)
-- [ ] 4.2 `nats-client` (Go library)
-- [ ] 4.3 `nats-server` (Go library)
-- [ ] 4.4 `osapi-orchestrator` (Go library, pending the open question on its
+- [x] 4.1 `gohai` (Go library)
+- [x] 4.2 `nats-client` (Go library)
+- [x] 4.3 `nats-server` (Go library)
+- [x] 4.4 `osapi-orchestrator` (Go library, pending the open question on its
   type)
 - [ ] 4.5 `osapi` (main product; file layout only, README exempt) — the only
   repository with neither a root `CONTRIBUTING.md` nor `AGENTS.md`, a 917-line
@@ -51,6 +51,9 @@ structure for its type.
   `docs/docs/sidebar/development/contributing.md` (109), and
   `ui/docs/contributing.md`
 - [x] 4.6 `osapi-ui` — not converted; recorded as deprecated instead
+- [x] 4.7 `specs` (documentation) — its `CODE_OF_CONDUCT.md` named no
+  enforcement contact, leaving no way to report a violation, and its `LICENSE`
+  named `OSAPI` as copyright holder rather than `John Dewey`
 
 ## 5. Pin the tools whose output is checked
 
