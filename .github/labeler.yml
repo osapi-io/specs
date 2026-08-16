@@ -1,11 +1,17 @@
 ---
-github/action:
+kind/action:
   - changed-files:
       - any-glob-to-any-file: ".github/**/*.yml"
 
 kind/docs:
   - changed-files:
-      - any-glob-to-any-file: "*.md"
+      - any-glob-to-any-file: "docs/**"
+      - any-glob-to-any-file: "**/*.md"
+
+kind/just:
+  - changed-files:
+      - any-glob-to-any-file: "**/justfile"
+      - any-glob-to-any-file: "**/*.just"
 
 kind/spec:
   - changed-files:
@@ -14,3 +20,8 @@ kind/spec:
 kind/change:
   - changed-files:
       - any-glob-to-any-file: "openspec/changes/**"
+
+kind/yaml:
+  - changed-files:
+      - any-glob-to-any-file: ["**/*.yaml", "**/*.yml"]
+        all-globs-to-all-files: "!.github/**"
