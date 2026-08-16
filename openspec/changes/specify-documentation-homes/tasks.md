@@ -71,8 +71,19 @@
   the corpus. Done for `osapi-orchestrator`; `osapi` has no root
   `CONTRIBUTING.md` until `standardize-repository-layout` task 4.5 writes one
 
+## 4a. Make the corpus navigable
+
+- [ ] 4a.1 `specs` — write the corpus entry point naming every capability and
+  what it covers
+- [ ] 4a.2 `specs` — correct the README, which calls `openspec/specs/` "the
+  current description of how osapi-io behaves". It holds rules; five of its six
+  capabilities govern how work is done rather than how the software behaves
+- [ ] 4a.3 `specs` — confirm each capability's `## Purpose` states what it
+  governs, rather than restating its first requirement
+
 ## 5. Verification
 
 - [x] 5.1 Confirm every repository's documentation is indexed
 - [x] 5.2 Confirm no repository contains a planning directory
 - [ ] 5.3 Confirm no relocated requirement is stated in two places
+- [ ] 5.4 Confirm the entry point names every capability in the corpus
