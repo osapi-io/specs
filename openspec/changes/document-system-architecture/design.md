@@ -155,3 +155,29 @@ rule to a directory named `examples/`. Rejected — the property that matters is
 whether the directive crosses a repository boundary, and a rule written against
 a directory name would miss a nested tool module and would not survive anyone
 choosing a different name.
+
+## The module path was not the only wrong home
+
+Renaming the module surfaced two more declarations naming `retr0h`, neither of
+them a module path and neither reachable by the requirement that governs one:
+
+- `docs/docusaurus.config.ts` sets `organizationName: 'retr0h'` three lines
+  below `url: 'https://osapi-io.github.io/'`. The file contradicts itself, and
+  the site publishes anyway.
+- `contributing.md` links Discussions to `retr0h/go-gilt` — not a former owner
+  of this repository, but a different project entirely, carried in by whatever
+  the file was copied from.
+
+A wrong module path fails loudly: the toolchain cannot resolve it. These fail
+quietly — the build passes, the site deploys, and the link lands on somebody
+else's project. That asymmetry is the reason to state the requirement in terms
+of where a repository says it lives rather than in terms of Go modules.
+
+Attribution is excluded. `@retr0h` as a document's author, `NOTE(retr0h)` in a
+comment, and the `retr0h` entry in `repos.json` branch protection all name a
+person, and a person does not move when a repository does.
+
+*Alternative considered:* fold these into `correct-documentation-drift` under "a
+cross-reference resolves to what it names". Rejected for the Docusaurus setting
+— a deployment config is not a cross-reference, and stretching that requirement
+to cover it would make it mean any wrong string anywhere.

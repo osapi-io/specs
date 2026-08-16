@@ -19,9 +19,17 @@ Sequenced: `osapi` renames and publishes before `osapi-orchestrator` moves.
 
 - [ ] 3.1 `gohai` — describe the consumer relationship it has, not the one
   intended
+
 - [ ] 3.2 Confirm no repository documents a `replace`-based linkage
+
 - [ ] 3.3 Confirm no `go.mod` contains a `replace` directive pointing outside
   its own repository
+
+- [ ] 3.4 `osapi` — `docs/docusaurus.config.ts` declares
+  `organizationName: 'retr0h'` three lines below `url: 'osapi-io.github.io'`
+
+- [ ] 3.5 `osapi` — `contributing.md` links Discussions to `retr0h/go-gilt`, a
+  different project
 
 ## 4. Verification
 
@@ -30,3 +38,5 @@ Sequenced: `osapi` renames and publishes before `osapi-orchestrator` moves.
   holds it
 - [ ] 4.3 Confirm every documented dependency appears in the corresponding
   `go.mod`
+- [ ] 4.4 Confirm no repository names an owner or project other than its own,
+  excluding attribution of a person
