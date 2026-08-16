@@ -18,6 +18,16 @@ A test double that carries a real implementation of the behavior under test,
 rather than a scripted response, is not a mock and is not bound by this
 requirement.
 
+A double standing in for a stdlib interface — a connection, a file, a writer, a
+log handler — is not bound either. Generating one buys nothing, because the
+interface it satisfies does not change when the code under test does.
+
+Where the code under test calls a dependency from a goroutine the test cannot
+join, a hand-written recorder is permitted, provided it records rather than
+scripts. A generated mock asserts call counts at a moment the test cannot
+establish, so it reports a failure that depends on scheduling rather than on
+behavior. The reason SHALL be stated where the double is defined.
+
 #### Scenario: An interface gains a method
 
 - **WHEN** a method is added to a mocked interface
@@ -36,6 +46,20 @@ requirement.
   with a real generated key pair
 - **THEN** it is a real implementation rather than a mock, and generating it
   would replace working behavior with a scripted one
+
+#### Scenario: A dependency is called from an unjoinable goroutine
+
+- **WHEN** the code under test writes to a dependency from a goroutine the test
+  cannot wait on, such as an audit write dispatched after the response is sent
+- **THEN** a recorder written by hand is permitted, and the reason is stated
+  where it is defined, because a generated mock would assert a call count the
+  test cannot pin down
+
+#### Scenario: The interface belongs to the standard library
+
+- **WHEN** a test needs to fail a read, a write, or a directory listing
+- **THEN** it may implement the stdlib interface directly, because that
+  interface does not move with the code under test
 
 ## REMOVED Requirements
 

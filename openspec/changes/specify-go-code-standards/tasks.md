@@ -39,16 +39,16 @@ reports on.
 - [x] 3.1 Confirm no `types.go` contains a function
 - [x] 3.2 Confirm no repository holds a generically named file
 - [x] 3.3 Confirm every test package uses a table-driven suite
-- [ ] 3.4 Confirm no mock is hand-written where an interface is mocked. Three
-  remain, each a struct written to satisfy a project-owned interface:
-  `fakeCollector` in `gohai` (`internal/collector/registry_public_test.go`),
-  `mockRenderer` in `osapi-orchestrator`
-  (`pkg/orchestrator/orchestrator_test.go`), and `mockPKISigner` in `osapi`
-  (`internal/job/client/signing_public_test.go`). `mockPKISigner` signs with a
-  real ed25519 key, so it reads as a real implementation rather than a mock and
-  may fall under the carve-out; the other two do not. `gohai` and
-  `osapi-orchestrator` declare no mocking library, so satisfying this needs a
-  decision on introducing one, not just a regeneration
+- [ ] 3.4 Confirm no mock is hand-written where an interface is mocked. The
+  original count of three came from a search for structs named `mock`, `fake`,
+  or `stub`, which missed every double named for what it does. A full scan of
+  test-file structs carrying two or more methods found twenty-nine. Sixteen are
+  testify suites, five stand in for stdlib interfaces, one is an
+  `export_test.go` alias, and one is a real channel helper. Five are genuine
+  violations — four `collector.Collector` doubles in `gohai` and `mockRenderer`
+  in `osapi-orchestrator` — and two are met in the code but were forbidden by
+  the requirement until `rescope-go-code-standards` widened it. Tracked there as
+  section 5
 - [ ] 3.5 Confirm no test uses an exported alias to re-cover behavior the
   caller's own test already reaches. Not yet established: 65 `export_test.go`
   files exist (32 in `gohai`, 32 in `osapi`, 1 in `osapi-orchestrator`), and the

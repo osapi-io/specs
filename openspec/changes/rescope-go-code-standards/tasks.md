@@ -60,13 +60,29 @@ osapi-io/osapi-orchestrator#77, and osapi-io/osapi#452.
 
 ## 5. Resolve the mocks finding
 
-- [ ] 5.1 `osapi` — record `mockPKISigner` as a real implementation under the
-  widened requirement rather than converting it
-- [ ] 5.2 `gohai` — replace `fakeCollector` with a generated mock, or state why
-  a real implementation serves the collector interface better
-- [ ] 5.3 `osapi-orchestrator` — replace `mockRenderer` with a generated mock,
-  and correct `CONTRIBUTING.md`, which claims the repository declares no mocking
-  library while hand-rolling one
+A full scan replaced the original count of three. Sixteen of the structs it
+turned up are testify suites rather than doubles, five stand in for stdlib
+interfaces, and one is a real channel helper. Five are genuine violations, and
+two need the requirement to say something it did not.
+
+- [x] 5.0 Widen `Mocks are generated` for the two cases applying exposed: a
+  recorder for a dependency called from a goroutine the test cannot join, and a
+  double for a stdlib interface. Both were being met in the code and forbidden
+  by the requirement
+- [ ] 5.1 `osapi` — record `mockPKISigner` as a real implementation and
+  `captureStore` as a permitted recorder, rather than converting either.
+  `captureStore` already states its reason where it is defined, which is what
+  the widened requirement asks for
+- [ ] 5.2 `gohai` — replace the four hand-written `collector.Collector` doubles
+  with generated mocks: `fakeCollector` and `errCollector` in
+  `internal/collector`, `cycleCollector` and `failingCollector` in `pkg/gohai`.
+  The repository already declares `go.uber.org/mock` and generates a mock for
+  `executor.Executor`, so this follows an established pattern rather than
+  introducing one
+- [ ] 5.3 `osapi-orchestrator` — replace `mockRenderer` with a generated mock
+- [ ] 5.4 Confirm no hand-written double remains for an interface the
+  organization owns, and that each permitted double states which carve-out it
+  relies on
 
 ## 6. Verification
 
