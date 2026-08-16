@@ -30,7 +30,7 @@
   blocks: cross-layer consistency, provider idempotency, broadcast response
   shape, HTTP verb separation, OpenAPI validation, SDK method naming, and the Go
   code standards (signatures, `types.go`, test-file naming, mocking)
-- [ ] 3.5 `osapi` — propose a capability from `docs/sidebar/sdk/guidelines.md`;
+- [x] 3.5 `osapi` — propose a capability from `docs/sidebar/sdk/guidelines.md`;
   "never expose generated types" and "JSON tags required" bind every consumer of
   `pkg/sdk`, including `osapi-orchestrator`
 - [ ] 3.6 `osapi` — resolve the three-way duplication of branching, commit
