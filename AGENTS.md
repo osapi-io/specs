@@ -2,9 +2,9 @@
 
 Test: `just test` | Format: `just md-fmt`
 
-Read @CONTRIBUTING.md first. It covers the workflow, the operating model,
-formatting, and every convention — all of which apply to agents exactly as they
-apply to people. This file carries only what is specific to agents.
+Read @CONTRIBUTING.md first. It covers prerequisites, setup, how Spec Kit is
+operated here, and every convention — all of which apply to agents exactly as
+they apply to people. This file carries only what is specific to agents.
 
 ## Running tools
 
@@ -22,52 +22,47 @@ The symptom is a check that fails here and passes in continuous integration, on
 a file nobody edited. When that happens, establish which version ran before
 treating the failure as real.
 
-## Running a change
+## Read the constitution first
 
-The workflow is in @CONTRIBUTING.md under "Running a change". Follow it rather
-than improvising.
+Before starting work in a project, read its `.specify/memory/constitution.md`.
+It is composed from `.charter/` and binds every project here.
 
-It names each step twice: a `/opsx:*` slash command a person types, and a skill
-an agent invokes. You cannot type a slash command — invoke the skill named for
-that step.
+Then read the rest of `.specify/memory/`. That is where completed work is
+consolidated, and it is the standing description of how the component behaves —
+more current than any prose written about it elsewhere.
 
-## Read the corpus first
+## Invoke the skill, never the CLI
 
-Before starting work in any repository, read `openspec/specs/` for the
-capabilities that bind it. `openspec/specs/repo-standards/` binds every
-repository; the rest bind by type, recorded in the classification.
+Each workflow step is a skill: `speckit-specify`, `speckit-plan`,
+`speckit-tasks`, `speckit-archive-run`, and the rest under `.claude/skills/` in
+each project. Invoke the skill.
 
-Requirements are not advice. A repository that does not satisfy one is
-non-conformant, and work that leaves it that way is unfinished.
+The `specify` CLI provisions a project — it initializes, and it installs
+extensions. It does not run the workflow. See @CONTRIBUTING.md under "Operating
+Spec Kit".
 
-## When you find something
+## Where the design goes, and where the code goes
 
-Before editing any repository, answer: **which requirement authorizes this?**
+This repository holds no product code. A feature's spec, plan, and tasks are
+written here; the implementation lands in the component's own repository.
 
-If a requirement covers it, the fix is compliance work — cite the requirement in
-the pull request. If none does, propose the change first. Do not fix it and
-write the requirement afterwards; that produces a corpus that describes what
-already happened rather than what was agreed.
+Do not edit code in the same response that produces planning artifacts, even
+when the request asks you to build something. Wait for an explicit instruction
+to implement.
 
-See @CONTRIBUTING.md under "When you find something".
+## When applying shows the rule is wrong
 
-## Planning boundary
+Stop and correct the rule in its own change, then resume. Correcting the rule
+and the code together produces a rule written to describe what was already done,
+and buries the correction where nobody reviews it as a change of rule. This is
+`global/correction` in the constitution.
 
-`openspec-propose` produces planning artifacts and then stops. Do not edit code
-in the same response, even when the request asks you to build or fix something.
-Wait for an explicit instruction to apply.
+## Commit trailer
 
-Applying waits for the proposal PR to **merge**, not to exist. An open branch is
-not an agreement.
+When committing via Claude Code, end the message with:
 
-If applying shows the requirement is wrong, stop and correct the requirement in
-its own PR, then wait for that to merge before resuming. Do not change the
-requirement and the code in one response: it produces a rule written to describe
-code that already exists, and buries the rule change where nobody reviews it.
-See @CONTRIBUTING.md under "Running a change".
+```
+🤖 Generated with [Claude Code](https://claude.ai/code)
 
-## Writing artifacts
-
-`openspec/config.yaml` carries project context and per-artifact rules injected
-into every generation. They are constraints on what you write — never copy them
-into the output.
+Co-Authored-By: Claude <noreply@anthropic.com>
+```

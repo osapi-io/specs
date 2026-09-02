@@ -1,0 +1,16 @@
+installed:
+- archive
+- charter
+settings:
+  auto_execute_hooks: true
+hooks:
+  before_constitution:
+  - extension: charter
+    command: speckit.charter.compose
+    enabled: true
+    optional: true
+    priority: 10
+    prompt: Recompose constitution from charter fragments before updating?
+    description: Optionally recompose constitution from fragments before manual constitution
+      edits
+    condition: null
