@@ -126,10 +126,17 @@ common way to go wrong here:
 ### Adding a project
 
 ```bash
-just spec <name> init --here --ai claude
-just spec <name> extension add https://github.com/carlosandrade/speckit-charter
-just spec <name> extension add https://github.com/mabellity/speckit-archive
+mkdir <name>
+just spec <name> init --here --force --non-interactive --integration claude
+just spec <name> extension add charter --from \
+  https://github.com/Fyloss/spec-kit-charter/archive/refs/tags/v0.6.1.tar.gz
+just spec <name> extension add archive --from \
+  https://github.com/stn1slv/spec-kit-archive/archive/refs/tags/v1.3.0.tar.gz
 ```
+
+Both extensions are installed from a tagged source tarball rather than by
+catalog name. The catalog resolves to the default branch, so a catalog install
+would give a different project a different version of the extension.
 
 Then point it at the shared registry and compose its constitution — invoke
 `speckit-charter-config`, answering `../.charter` for the registry, then

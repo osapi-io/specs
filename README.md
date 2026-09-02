@@ -19,8 +19,14 @@ its own directory, and `.charter/` at the root holds the constitution fragments
 every project shares:
 
 ```
-.charter/            # shared constitution fragments, composed into each project
-osapi/               # a Spec Kit project: .specify/ and specs/
+.charter/              # shared constitution fragments, composed into each project
+osapi/                 # a Spec Kit project: .specify/ and specs/
+gohai/
+nats-client/
+nats-server/
+osapi-orchestrator/
+osapi-justfiles/
+system/                # how the repositories relate, rather than one codebase
 ```
 
 A change moves through Spec Kit's workflow, invoked as skills in [Claude Code]:
