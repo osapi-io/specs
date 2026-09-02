@@ -1,0 +1,7 @@
+version: 1
+name: "osapi-io Charter Registry"
+mandatory_fragments:
+  - "global/documentation"
+  - "global/verification"
+  - "global/tooling"
+  - "global/correction"
