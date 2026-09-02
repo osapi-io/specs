@@ -3,6 +3,13 @@
 node_modules/
 
 # Claude Code local state. The generated commands/ and skills/ under
-# .claude/ are tracked on purpose — they are the agent wiring.
+# .claude/ are tracked on purpose. They are the agent wiring.
 .claude/settings.local.json
 .claude/worktrees/
+
+# Spec Kit machine-local state, matching the rules upstream spec-kit uses in its
+# own repository. The catalog cache is refetched on demand and records when it
+# was downloaded, so committing it produces a diff every time anyone runs an
+# extension command.
+components/*/.specify/extensions/.cache/
+components/*/.specify/extensions/.backup/
