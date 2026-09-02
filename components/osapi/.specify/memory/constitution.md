@@ -1,4 +1,4 @@
-# OSAPI Constitution
+# osapi Constitution
 
 <!-- [F] global/documentation SECTION -->
 
@@ -56,11 +56,11 @@ corrected first, in its own change. Correcting the rule and the code together
 produces a rule written to describe what was already done, and buries the
 correction where nobody reviews it as a change of rule.
 
-A requirement is written from evidence the repository already carries -- its
+Write a requirement from evidence the repository already carries: its
 configuration, its history, a failure it has had. A standard invented to fill a
 template creates noise rather than a constraint, and is non-conformant from the
 day it is written.
 
 ---
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-02 | **Last Amended**: 2026-09-02
+**Version**: 1.0.1 | **Ratified**: 2026-09-02 | **Last Amended**: 2026-09-02

@@ -3,8 +3,8 @@
 Test: `just test` | Format: `just md-fmt`
 
 Read @CONTRIBUTING.md first. It covers prerequisites, setup, the workflow end to
-end, and every convention — all of which apply to agents exactly as they apply
-to people. This file carries only what is specific to agents.
+end, and every convention. All of it applies to agents exactly as it applies to
+people. This file has only what is specific to agents.
 
 ## Running tools
 
@@ -16,7 +16,7 @@ mise exec -- just test
 
 `mise` is active in a person's shell and supplies the versions `.mise.toml`
 declares. An agent's shell has no activation, so a bare `just` resolves to
-whatever is installed globally — usually an older version.
+whatever is installed globally, usually an older version.
 
 The symptom is a check that fails here and passes in continuous integration, on
 a file nobody edited. When that happens, establish which version ran before
@@ -26,7 +26,7 @@ treating the failure as real.
 
 Before starting work in a component, read its `.specify/memory/constitution.md`,
 then the rest of `.specify/memory/`. That is where completed work is
-consolidated, and it is more current than any prose written about the component
+consolidated, and it is more current than any prose about the component written
 elsewhere.
 
 Nothing in this repository authorizes work that the constitution forbids. When

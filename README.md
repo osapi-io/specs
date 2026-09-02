@@ -11,8 +11,8 @@ here first, then implemented in the repository it belongs to.
 ## 🎯 Usage
 
 This repository holds no product code. It holds the design record and the
-durable knowledge behind [osapi-io] — why each component is built the way it is,
-and what was agreed before it was built.
+durable knowledge behind [osapi-io]. Each component's entry says why that
+component is built the way it is, and what was agreed before it was built.
 
 It is a [Spec Kit] monorepo. Each osapi-io component is a Spec Kit project in
 its own directory, and `.charter/` at the root holds the constitution fragments
@@ -32,27 +32,27 @@ components/
 
 A change moves through Spec Kit's workflow, invoked as skills in [Claude Code]:
 
-1. **Specify** — `speckit-specify` writes what the change must do and why, as a
+1. **Specify.** `speckit-specify` writes what the change must do and why, as a
    feature under the component's `specs/`.
-2. **Plan** — `speckit-plan` settles the approach against the constitution.
-3. **Tasks** — `speckit-tasks` breaks the plan into work.
-4. **Implement** — the code lands in the component's own repository. This one
+2. **Plan.** `speckit-plan` settles the approach against the constitution.
+3. **Tasks.** `speckit-tasks` breaks the plan into work.
+4. **Implement.** The code lands in the component's own repository. This one
    records what was agreed.
-5. **Archive** — `speckit-archive-run` consolidates the merged feature into the
+5. **Archive.** `speckit-archive-run` consolidates the merged feature into the
    component's `.specify/memory/`, which is what future work reads first.
 
-What survives a change is `.specify/memory/` — the standing description of how a
-component behaves, kept honest by every change that passes through it.
+What survives a change is `.specify/memory/`, the standing description of how a
+component behaves. Every change that passes through keeps it honest.
 
-Why bother: the design is reviewable on its own, separate from the diff that
-implements it, and a change spanning several repositories is described in one
-place rather than scattered across them.
+Two things make this worth the overhead. Reviewers read the design on its own,
+separate from the diff that implements it. And one place describes a change
+spanning several repositories, instead of scattering it across them.
 
 ## 📖 Documentation
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers prerequisites, setup, how to operate
-Spec Kit here, and the PR workflow. Upstream documentation for the tool itself
-is the [Spec Kit] repository.
+Spec Kit here, and the PR workflow. The [Spec Kit] repository documents the tool
+itself.
 
 ## 🤝 Contributing
 
