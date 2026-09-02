@@ -74,13 +74,13 @@ specs/
 └── system/                       .specify/ + specs/
 ```
 
-`system` is a project like any other. Its subject is how the repositories
-relate rather than one codebase, so the dependency graph and any domain
-spanning repositories consolidate into its memory.
+`system` is a project like any other. Its subject is how the repositories relate
+rather than one codebase, so the dependency graph and any domain spanning
+repositories consolidate into its memory.
 
-*Alternative: one project for the whole organization.* Rejected. Every
-feature's knowledge would consolidate into a single memory document, so
-`osapi` job routing would sit beside `gohai` collectors.
+*Alternative: one project for the whole organization.* Rejected. Every feature's
+knowledge would consolidate into a single memory document, so `osapi` job
+routing would sit beside `gohai` collectors.
 
 *Alternative: a project per domain rather than per repository.* Rejected.
 Domains are a documentation axis and features are a repository axis. A feature
@@ -105,9 +105,9 @@ Composition marks each section with a typed comment (`[F]` fragment, `[SC]`
 registry sub-constitution, `[PS]` project-specific), so a shared rule can be
 updated in the registry and recomposed without losing local content.
 
-*Alternative: seven independent constitutions.* Rejected — it is the
-duplication this repository exists to prevent, and the failure Charter names
-in its own problem statement.
+*Alternative: seven independent constitutions.* Rejected — it is the duplication
+this repository exists to prevent, and the failure Charter names in its own
+problem statement.
 
 ### Constitution articles come from recorded failures
 
@@ -116,8 +116,8 @@ repository, evidenced by its README, contribution guide, and CI configuration.
 "Do not invent standards merely to fill the constitution template — unrealistic
 rules create noise instead of useful constraints."
 
-The corpus violated this. Its 100% coverage rule was invented to fill a
-template and `osapi` never satisfied it.
+The corpus violated this. Its 100% coverage rule was invented to fill a template
+and `osapi` never satisfied it.
 
 Five candidate articles, each earned by a failure this repository has already
 had:
@@ -125,8 +125,8 @@ had:
 1. A repository states in full the conventions binding it. A pointer to another
    repository is not a statement. *(A repository shipped citing a capability
    that did not yet exist.)*
-2. A rule a tool enforces is never restated as prose. *(Five repositories
-   listed the linter set wrongly, beside the configuration that was right.)*
+2. A rule a tool enforces is never restated as prose. *(Five repositories listed
+   the linter set wrongly, beside the configuration that was right.)*
 3. A claim about the codebase is measured, not inspected. *(Four wrong verdicts
    on test doubles; a coverage-diff settled it.)*
 4. Both provisioning paths resolve to the same version. *(Every contributor
@@ -136,15 +136,15 @@ had:
 
 ### Extensions selected on evidence
 
-| Extension | Role | Signal |
-| --- | --- | --- |
-| `archive` | Consolidates merged features into `.specify/memory/` | 28 stars, updated within the week; fold/separate/contradiction verdicts, `[Source: …]` traceability, bounded inputs |
-| `charter` | Composes constitutions from the shared registry | 7 stars, active |
-| `docguard` | Validates documentation against code | 27 stars, most recently updated in the catalog |
+| Extension  | Role                                                 | Signal                                                                                                              |
+| ---------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `archive`  | Consolidates merged features into `.specify/memory/` | 28 stars, updated within the week; fold/separate/contradiction verdicts, `[Source: …]` traceability, bounded inputs |
+| `charter`  | Composes constitutions from the shared registry      | 7 stars, active                                                                                                     |
+| `docguard` | Validates documentation against code                 | 27 stars, most recently updated in the catalog                                                                      |
 
 Rejected: **Blueprint Index** — the closest description, zero stars.
-**Brownfield Bootstrap** — 62 stars but five months stale. **Repository
-Index**, **dotdog**, **arch-governance** — low signal.
+**Brownfield Bootstrap** — 62 stars but five months stale. **Repository Index**,
+**dotdog**, **arch-governance** — low signal.
 
 The catalog states that maintainers verify formatting only and do not review,
 audit, endorse, or support extension code. Each selected extension is read
@@ -181,5 +181,5 @@ content no workflow produced and no `[Source: …]` reference points at.
   by path. Those are updated in the same change as the deletion, not after.
 
 - **The salvaged facts are claims, not truths.** → One was already stale when
-  read. They enter `system`'s memory through the workflow, where a
-  `[Source: …]` reference records what they came from.
+  read. They enter `system`'s memory through the workflow, where a `[Source: …]`
+  reference records what they came from.
