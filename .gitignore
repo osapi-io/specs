@@ -6,3 +6,6 @@ node_modules/
 # under .claude/ are tracked on purpose — they are the agent wiring.
 .claude/settings.local.json
 .claude/worktrees/
+
+# Transient restructure design; deleted when the refactor lands.
+docs/
