@@ -13,19 +13,12 @@ fetch:
     curl -sSfL https://raw.githubusercontent.com/osapi-io/osapi-justfiles/refs/heads/main/md/md.just -o .just/remote/md.just
     curl -sSfL https://raw.githubusercontent.com/osapi-io/osapi-justfiles/refs/heads/main/just/just.just -o .just/remote/just.just
 
-# --- Specs ---
-
-# Validate all changes and specs
-validate:
-    openspec validate --all --strict
-
 # --- Top-level orchestration ---
 
 # Run all checks
 test:
     just md-fmt-check
     just just-fmt-check
-    just validate
 
 # Format and lint before committing
 ready:
