@@ -32,7 +32,7 @@
     {
       "name": "specs",
       "description": "Spec-driven development workspace for osapi-io projects.",
-      "topics": ["openspec", "osapi", "spec-driven-development", "specs"]
+      "topics": ["osapi", "spec-driven-development", "spec-kit", "specs"]
     }
   ]
 }
