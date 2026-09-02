@@ -5,3 +5,4 @@ mandatory_fragments:
   - "global/verification"
   - "global/tooling"
   - "global/correction"
+  - "global/workflow"
