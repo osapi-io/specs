@@ -51,11 +51,11 @@ The `speckit-*` skills come from Spec Kit itself. They are generated into each
 project's `.claude/skills/` and committed, so they work as soon as you clone the
 repo, with no per-developer setup.
 
-**Do not use superpowers.** It carries its own workflows for planning, design,
-and review, and its own places to write them down. Spec Kit already provides all
-of it, so running both means two workflows disagreeing about which artifact is
-authoritative, and planning output landing somewhere no skill reads. Nothing it
-produces belongs in a repository here.
+**Do not use superpowers.** Spec Kit governs specification, planning, and
+implementation, and the design record for a change lives in
+[osapi-io/specs](https://github.com/osapi-io/specs). A second workflow over that
+ground gives two answers to which artifact is authoritative, and the answer that
+loses is the one nobody reads. Nothing superpowers produces is committed.
 
 ## Setup
 
