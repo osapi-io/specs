@@ -37,22 +37,25 @@ Everything below is provisioned by `mise install` (see [Setup](#setup)):
 
 ### Claude Code
 
-If you use [Claude Code] for development, install these plugins from the default
+If you use [Claude Code] for development, install this plugin from the default
 marketplace:
 
 ```
 /plugin install commit-commands@claude-plugins-official
-/plugin install superpowers@claude-plugins-official
 ```
 
 - **commit-commands.** provides `/commit` and `/commit-push-pr` slash commands
   that follow the project's commit conventions automatically.
-- **superpowers.** provides structured workflows for planning, TDD, debugging,
-  code review, and git worktree isolation.
 
 The `speckit-*` skills come from Spec Kit itself. They are generated into each
 project's `.claude/skills/` and committed, so they work as soon as you clone the
 repo, with no per-developer setup.
+
+**Do not use superpowers.** It carries its own workflows for planning, design,
+and review, and its own places to write them down. Spec Kit already provides all
+of it, so running both means two workflows disagreeing about which artifact is
+authoritative, and planning output landing somewhere no skill reads. Nothing it
+produces belongs in a repository here.
 
 ## Setup
 
