@@ -10,11 +10,11 @@ gohai ─────────────>   nothing in this organization
 ```
 
 Every module path matches its repository location under `github.com/osapi-io/`,
-and no repository uses a `replace` directive — each dependency is a pinned
-version, so a local checkout is never silently substituted for a release.
+and no repository uses a `replace` directive. Each dependency is a pinned
+version, so a local checkout never silently replaces a release.
 
-`gohai` depends on nothing else here, and nothing here depends on it — no
-`go.mod` and no Go source in this organization imports it. It stands alone.
+`gohai` depends on nothing else here, and nothing here depends on it. No
+`go.mod` and no Go source in this organization imports it.
 
 ## Reproducing this
 

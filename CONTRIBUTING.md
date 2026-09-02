@@ -8,16 +8,16 @@ Spec Kit is operated here, and the conventions we hold PRs to.
 
 - Read the [Code of Conduct](CODE_OF_CONDUCT.md). It applies to every
   interaction in this repo.
-- **Check existing work** — Is there an existing PR? Is there a feature already
+- **Check existing work.** Is there an existing PR? Is there a feature already
   underway under a component's `specs/` covering the same ground? Please make
   sure you consider/address these before starting a new one.
-- **Design before you implement** — This repo exists so that the thinking
-  happens first. Write the spec and get agreement on it before writing the
+- **Design before you implement.** This repo exists so that the thinking happens
+  first. Write the spec and get agreement on it before writing the
   implementation in the target repository.
 
 ## Prerequisites
 
-- **[mise]** — Provisions every other tool from `.mise.toml`. This is the only
+- **[mise].** Provisions every other tool from `.mise.toml`. This is the only
   dependency you install yourself:
 
   ```bash
@@ -29,9 +29,9 @@ Spec Kit is operated here, and the conventions we hold PRs to.
 
 Everything below is provisioned by `mise install` (see [Setup](#setup)):
 
-- **[just]** — Task runner. `just test` runs every check CI runs.
+- **[just].** Task runner. `just test` runs every check CI runs.
 
-- **[uv]** — Python package runner. Nothing Python is installed here: both
+- **[uv].** Python package runner. Nothing Python is installed here: both
   [mdformat] and the [Spec Kit] CLI are fetched and run by `uvx` at the version
   the justfile pins.
 
@@ -45,14 +45,14 @@ marketplace:
 /plugin install superpowers@claude-plugins-official
 ```
 
-- **commit-commands** — provides `/commit` and `/commit-push-pr` slash commands
+- **commit-commands.** provides `/commit` and `/commit-push-pr` slash commands
   that follow the project's commit conventions automatically.
-- **superpowers** — provides structured workflows for planning, TDD, debugging,
+- **superpowers.** provides structured workflows for planning, TDD, debugging,
   code review, and git worktree isolation.
 
 The `speckit-*` skills come from Spec Kit itself. They are generated into each
 project's `.claude/skills/` and committed, so they work as soon as you clone the
-repo — no per-developer setup.
+repo, with no per-developer setup.
 
 ## Setup
 
@@ -70,7 +70,7 @@ just test        # runs every check CI runs
 
 ## Repository layout
 
-This is a [Spec Kit] monorepo. It holds no product code — only the design record
+This is a [Spec Kit] monorepo. It holds no product code, only the design record
 and the durable knowledge behind [osapi-io].
 
 ```
@@ -110,7 +110,7 @@ That wraps `uvx --from specify-cli==<pinned> specify` with `SPECIFY_INIT_DIR`
 set to `components/<name>`, so `just spec <component> <args>` addresses one
 component without changing directories.
 
-Pinning it is deliberate: `specify` writes templates and scaffolding into
+Pinning it is deliberate: `specify` writes templates and scripts into
 `.specify/`, and an unpinned CLI would rewrite committed files differently
 depending on who ran it. This is `global/tooling` in the constitution.
 
@@ -142,7 +142,7 @@ Both extensions are installed from a tagged source tarball rather than by
 catalog name. The catalog resolves to the default branch, so a catalog install
 would give a different project a different version of the extension.
 
-Then point it at the shared registry and compose its constitution — invoke
+Then point it at the shared registry and compose its constitution. Invoke
 `speckit-charter-config`, answering `../../.charter` for the registry, then
 `speckit-charter-compose`.
 
@@ -158,7 +158,7 @@ takes all of them.
 
 Each fragment states a rule this organization arrived at by getting it wrong
 first. A rule invented to fill out a template is noise, and `global/correction`
-says as much — write requirements from evidence the repository already carries.
+says as much. Write requirements from evidence the repository already carries.
 
 ### The lifecycle of a change
 
@@ -166,15 +166,15 @@ says as much — write requirements from evidence the repository already carries
 runs against one component: invoke it from that component's directory, or set
 `SPECIFY_INIT_DIR=components/<name>` so it writes to the right component.
 
-| Stage        | Invoke                | Produces                                                   | PR?        |
-| ------------ | --------------------- | ---------------------------------------------------------- | ---------- |
-| 1. Specify   | `speckit-specify`     | `spec.md` — what must be true, and why                     | yes        |
-| 2. Clarify   | `speckit-clarify`     | resolved ambiguities, folded into `spec.md`                | same PR    |
-| 3. Plan      | `speckit-plan`        | `plan.md` — the approach, checked against the constitution | same PR    |
-| 4. Tasks     | `speckit-tasks`       | `tasks.md` — the work, in order                            | same PR    |
-| 5. Analyze   | `speckit-analyze`     | a consistency report across the three                      | no         |
-| 6. Implement | —                     | code, in the component's own repository                    | yes, there |
-| 7. Archive   | `speckit-archive-run` | consolidated `.specify/memory/`                            | yes        |
+| Stage        | Invoke                | Produces                                                 | PR?        |
+| ------------ | --------------------- | -------------------------------------------------------- | ---------- |
+| 1. Specify   | `speckit-specify`     | `spec.md`, what must be true and why                     | yes        |
+| 2. Clarify   | `speckit-clarify`     | resolved ambiguities, folded into `spec.md`              | same PR    |
+| 3. Plan      | `speckit-plan`        | `plan.md`, the approach checked against the constitution | same PR    |
+| 4. Tasks     | `speckit-tasks`       | `tasks.md`, the work in order                            | same PR    |
+| 5. Analyze   | `speckit-analyze`     | a consistency report across the three                    | no         |
+| 6. Implement | none                  | code, in the component's own repository                  | yes, there |
+| 7. Archive   | `speckit-archive-run` | consolidated `.specify/memory/`                          | yes        |
 
 #### Starting a change
 
@@ -182,8 +182,8 @@ Run `speckit-specify` against the component the change belongs to. It creates
 `components/<name>/specs/###-slug/` and writes `spec.md` there.
 
 Pick the component by where the code will land. A change that alters osapi's
-behavior is an osapi feature even when it also touches nats-client — see
-"Changes that span components" below.
+behavior is an osapi feature even when it also touches nats-client. See "Changes
+that span components" below.
 
 Then work stages 2 through 4 in the same branch. They are one unit of review:
 splitting them means reviewing an approach against a spec that has not been
@@ -204,13 +204,12 @@ request that triggered them does not authorize code, however it was phrased.
 
 3. **Merge the implementation.** The change is now real but not yet recorded.
 
-**When implementing shows the spec is wrong — stop.** Correct the spec in its
-own PR here, wait for it to merge, then resume. Correcting both at once produces
-a spec written to match code that already exists, and hides the correction
-inside an implementation diff where nobody reviews it as a change of rule. This
-is the failure the whole workflow exists to prevent, and it is not a sign the
-process failed — a spec that gets corrected under contact is worth more than one
-nobody tested.
+**When implementing shows the spec is wrong, stop.** Correct the spec in its own
+PR here, wait for it to merge, then resume. Correcting both at once produces a
+spec written to match code that already exists, and hides the correction inside
+an implementation diff where nobody reviews it as a change of rule. This is the
+failure the whole workflow exists to prevent, and it is not a sign the process
+failed. A spec corrected under contact is worth more than one nobody tested.
 
 #### Making it evergreen
 
@@ -219,18 +218,18 @@ it and the feature directory becomes a record of something that happened, which
 is what the previous system accumulated 14 of.
 
 Run `speckit-archive-run <feature-dir>` once the implementation has merged. It
-consolidates the feature into `components/<name>/.specify/memory/` — merging
-into `spec.md` and `plan.md`, recording supersessions in `changelog.md`, and
-adding `[Source: ...]` refs so every line can be traced to the feature that
-produced it.
+consolidates the feature into `components/<name>/.specify/memory/`. It merges
+into `spec.md` and `plan.md`, records supersessions in `changelog.md`, and adds
+`[Source: ...]` refs so you can trace every line to the feature that produced
+it.
 
 It asks before deleting anything a later feature replaced. Read those prompts:
 confirming a supersession removes the old requirement permanently, and declining
 records an unresolved contradiction that the next archival raises again.
 
 What survives is memory, not the feature directory. Memory is what the next
-change reads first, so a component's memory — not its code, and not prose
-written about it elsewhere — is the answer to "how does this behave today".
+change reads first. A component's memory answers "how does this behave today",
+and its code and any prose written elsewhere do not.
 
 #### Changes that span components
 
@@ -239,14 +238,14 @@ a change requires work in several repositories, that is a property of the
 implementation, not a reason to split the spec.
 
 Name every affected repository in the spec, implement across them, and archive
-once, into the owning component. A fact about how the repositories relate —
-rather than about any one of them — belongs in `DEPENDENCIES.md` at the root.
+once, into the owning component. A fact about how the repositories relate,
+rather than about any one of them, belongs in `DEPENDENCIES.md` at the root.
 
 ### Why memory, not a docs tree
 
 `.specify/memory/` is where completed work is consolidated, and it is what a
-skill reads first. It is Spec Kit's own directory for durable project knowledge
-— nothing to do with Claude Code's memory.
+skill reads first. It is Spec Kit's own directory for durable project knowledge,
+and has nothing to do with Claude Code's memory.
 
 That is also why there is no `docs/` tree here. A second place to write things
 down becomes the place that goes stale, because nothing reads it and nothing
@@ -266,7 +265,7 @@ contradict it. Before writing documentation, place it:
 
 A rule a tool already enforces is never restated as prose. The configuration is
 the statement of record; documentation names where it lives. This is
-`global/documentation` in the constitution — which each project composes, so it
+`global/documentation` in the constitution, which each component composes, so it
 binds work here too.
 
 ## Before committing
@@ -278,7 +277,7 @@ everything else here. Before opening a pull request, run:
 just test
 ```
 
-That runs what CI runs — markdown formatting and justfile lint. `just md-fmt`
+That runs what CI runs: markdown formatting and justfile lint. `just md-fmt`
 fixes formatting failures.
 
 Two things [mdformat] rewrites silently, so write them correctly the first time:
@@ -321,12 +320,12 @@ be reasonable to split it in a few). Git squash and rebase is your friend!
 
 ## Submitting a PR
 
-- **Describe your changes** — Ensure that you provide a comprehensive
-  description of your changes.
-- **Issue/PR links** — Link any previous work such as related issues or PRs, and
+- **Describe your changes.** Ensure that you provide a comprehensive description
+  of your changes.
+- **Issue/PR links.** Link any previous work such as related issues or PRs, and
   link the implementation PR in the target repo when there is one. Please
   describe how your changes differ to/extend this work.
-- **Draft PRs** — If your changes are incomplete, but you would like to discuss
+- **Draft PRs.** If your changes are incomplete, but you would like to discuss
   them, open the PR as a draft and add a comment to start a discussion. Using
   comments rather than the PR description allows the description to be updated
   later while preserving any discussions.
@@ -334,17 +333,17 @@ be reasonable to split it in a few). Git squash and rebase is your friend!
 ## AI usage
 
 This repo is written with AI assistance and the workflow assumes it. All
-contributions are still subject to the [AI Usage Policy](AI_POLICY.md) —
-disclose the tool you used, and make sure you can explain what your spec says
-without the aid of AI tools.
+contributions are still subject to the [AI Usage Policy](AI_POLICY.md). Disclose
+the tool you used, and make sure you can explain what your spec says without the
+aid of AI tools.
 
 ## FAQ
 
 > I want to contribute, where do I start?
 
 All kinds of contributions are welcome, whether it's a typo fix or a new
-feature. You can also contribute by commenting on open specs — review is the
-most valuable thing you can give a spec.
+feature. You can also contribute by commenting on open specs. Review is the most
+valuable thing you can give a spec.
 
 > I'm stuck, where can I get help?
 
