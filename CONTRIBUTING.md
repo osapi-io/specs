@@ -74,26 +74,28 @@ This is a [Spec Kit] monorepo. It holds no product code, only the design record
 and the durable knowledge behind [osapi-io].
 
 ```
-.charter/                    # shared constitution fragments (the registry)
+.charter/                    # rules binding every repository
 ├── manifest.yml
-└── fragments/global/        # fragments every component composes
+└── fragments/global/        # composed into every constitution
 
-DEPENDENCIES.md              # how the repositories relate
-
-components/
-└── osapi/                   # a Spec Kit project
+components/                  # one project per repository
+└── osapi/
     ├── .specify/
     │   ├── memory/          # constitution + consolidated knowledge
-    │   ├── charter/         # which fragments this component composed
+    │   ├── charter/         # which fragments this project composed
     │   ├── extensions/      # charter, archive
     │   └── templates/
     ├── .claude/skills/      # speckit-* skills
     └── specs/               # features, in flight and merged
+
+system/                      # agreements between repositories
+└── (the same Spec Kit layout)
 ```
 
-Each osapi-io component gets its own project directory under `components/`. The
-component's code stays in its own repository; what lives here is what was agreed
-and why.
+Each osapi-io component gets its own project under `components/`, and its code
+stays in its own repository. `system` is a project too, but its subject is what
+the repositories agree on rather than any one codebase, so it maps to no
+repository and sits beside them.
 
 ## Operating Spec Kit
 
@@ -176,6 +178,36 @@ runs against one component: invoke it from that component's directory, or set
 | 6. Implement | none                  | code, in the component's own repository                  | yes, there |
 | 7. Archive   | `speckit-archive-run` | consolidated `.specify/memory/`                          | yes        |
 
+#### Where a change belongs
+
+Three places hold knowledge here, and they answer different questions. Picking
+the wrong one is how a design becomes unfindable.
+
+| Place                 | Answers                                     | Form                                                     |
+| --------------------- | ------------------------------------------- | -------------------------------------------------------- |
+| `.charter/fragments/` | What rule binds every repository?           | One line, normative, composed into every constitution    |
+| `system/`             | What do repositories agree on between them? | A design: a protocol, a convention, the dependency graph |
+| `components/<name>/`  | How does this one repository behave?        | A design owned by that codebase                          |
+
+**The test.** Ask whether the subject is *how one repository behaves*, or *an
+agreement that two or more must both honor*.
+
+Job retry logic is osapi's behavior, so it is an osapi feature. The subject
+naming and key layout that osapi and osapi-orchestrator both depend on is an
+agreement neither one owns, so it is a `system` feature. A change touching
+several repositories is not automatically systemic: if one repository's behavior
+is the subject and the others merely consume it, that repository owns the
+feature and names the rest in its spec.
+
+**A system design can produce a fragment.** The design and its reasoning live in
+`system`'s memory; the one-line rule it implies goes in `.charter/fragments/`
+and binds every component from then on. The fragment is the enforceable residue
+of the design, not a summary of it.
+
+**Compliance is not a feature.** Once a rule binds every component, bringing a
+repository into line with it is ordinary work in that repository's own pull
+request. Cite the rule; do not write a spec for obeying one.
+
 #### Starting a change
 
 Run `speckit-specify` against the component the change belongs to. It creates
@@ -230,27 +262,6 @@ records an unresolved contradiction that the next archival raises again.
 What survives is memory, not the feature directory. Memory is what the next
 change reads first. A component's memory answers "how does this behave today",
 and its code and any prose written elsewhere do not.
-
-#### Changes that span components
-
-A feature belongs to exactly one component: the one whose behavior changes. When
-a change requires work in several repositories, that is a property of the
-implementation, not a reason to split the spec.
-
-Name every affected repository in the spec, implement across them, and archive
-once, into the owning component. A fact about how the repositories relate,
-rather than about any one of them, belongs in `DEPENDENCIES.md` at the root.
-
-Some changes set a convention that binds every repository equally, with no
-component whose behavior is the subject. Continuous integration layout and
-shared tooling are the usual cases. These belong to the component that
-distributes the thing being standardized, because a convention nothing ships is
-a convention that drifts: `osapi-justfiles` owns shared tooling, so a rule about
-how every repository runs its checks is an `osapi-justfiles` feature.
-
-If no component distributes it, that is the finding. Say so in the spec and make
-distributing it part of the work, rather than writing the same rule into six
-repositories by hand.
 
 ### Why memory, not a docs tree
 
