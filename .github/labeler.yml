@@ -31,13 +31,13 @@ kind/policy:
 
 kind/spec:
   - changed-files:
-      - any-glob-to-any-file: "*/specs/**"
+      - any-glob-to-any-file: "components/*/specs/**"
 
 kind/constitution:
   - changed-files:
       - any-glob-to-any-file:
           - ".charter/**"
-          - "*/.specify/memory/**"
+          - "components/*/.specify/memory/**"
 
 kind/toolchain:
   - changed-files:

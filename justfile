@@ -30,10 +30,10 @@ fetch:
 
 # --- Spec Kit ---
 
-# Run a Spec Kit CLI command against a project, e.g. `just spec osapi extension list`
+# Run a Spec Kit CLI command against a component, e.g. `just spec osapi extension list`
 [group('spec')]
-spec project *args:
-    SPECIFY_INIT_DIR={{ project }} uvx --from specify-cli=={{ speckit_version }} specify {{ args }}
+spec component *args:
+    SPECIFY_INIT_DIR=components/{{ component }} uvx --from specify-cli=={{ speckit_version }} specify {{ args }}
 
 # --- Top-level orchestration ---
 
