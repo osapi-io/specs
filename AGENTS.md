@@ -24,10 +24,14 @@ treating the failure as real.
 
 ## Read the constitution first
 
-Before starting work in a component, read its `.specify/memory/constitution.md`,
+Before starting work in a project, read its `.specify/memory/constitution.md`,
 then the rest of `.specify/memory/`. That is where completed work is
-consolidated, and it is more current than any prose about the component written
-elsewhere.
+consolidated, and it is more current than any prose written about it elsewhere.
+
+Read `system/.specify/memory/` too when the work touches how repositories fit
+together. A component's memory describes only its own behavior, so an agreement
+between components is not in it and its absence there is not evidence the
+agreement does not exist.
 
 Nothing in this repository authorizes work that the constitution forbids. When
 you cannot satisfy both a request and the constitution, say so rather than
@@ -42,6 +46,10 @@ things in it bind agents specifically:
 response that runs `speckit-specify`, `speckit-plan`, or `speckit-tasks`, even
 when the request was phrased as "build" or "fix". The request that triggered
 planning does not authorize implementation.
+
+**Choose the project before writing anything.** @CONTRIBUTING.md gives the test
+under "Where a change belongs". Guessing puts a design where nobody looks for
+it, which is harder to notice than putting it nowhere.
 
 **A merged spec is the authorization; a branch is not.** Wait for the spec PR to
 merge before implementing against it.
