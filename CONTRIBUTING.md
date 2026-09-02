@@ -241,6 +241,17 @@ Name every affected repository in the spec, implement across them, and archive
 once, into the owning component. A fact about how the repositories relate,
 rather than about any one of them, belongs in `DEPENDENCIES.md` at the root.
 
+Some changes set a convention that binds every repository equally, with no
+component whose behavior is the subject. Continuous integration layout and
+shared tooling are the usual cases. These belong to the component that
+distributes the thing being standardized, because a convention nothing ships is
+a convention that drifts: `osapi-justfiles` owns shared tooling, so a rule about
+how every repository runs its checks is an `osapi-justfiles` feature.
+
+If no component distributes it, that is the finding. Say so in the spec and make
+distributing it part of the work, rather than writing the same rule into six
+repositories by hand.
+
 ### Why memory, not a docs tree
 
 `.specify/memory/` is where completed work is consolidated, and it is what a
