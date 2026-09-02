@@ -16,29 +16,30 @@ and what was agreed before it was built.
 
 It is a [Spec Kit] monorepo. Each osapi-io component is a Spec Kit project in
 its own directory, and `.charter/` at the root holds the constitution fragments
-every project shares:
+every component shares:
 
 ```
-.charter/              # shared constitution fragments, composed into each project
-osapi/                 # a Spec Kit project: .specify/ and specs/
-gohai/
-nats-client/
-nats-server/
-osapi-orchestrator/
-osapi-justfiles/
-system/                # how the repositories relate, rather than one codebase
+.charter/              # shared constitution fragments, composed into each component
+DEPENDENCIES.md        # how the repositories relate
+components/
+├── osapi/             # a Spec Kit project: .specify/ and specs/
+├── gohai/
+├── nats-client/
+├── nats-server/
+├── osapi-orchestrator/
+└── osapi-justfiles/
 ```
 
 A change moves through Spec Kit's workflow, invoked as skills in [Claude Code]:
 
 1. **Specify** — `speckit-specify` writes what the change must do and why, as a
-   feature under the project's `specs/`.
+   feature under the component's `specs/`.
 2. **Plan** — `speckit-plan` settles the approach against the constitution.
 3. **Tasks** — `speckit-tasks` breaks the plan into work.
 4. **Implement** — the code lands in the component's own repository. This one
    records what was agreed.
 5. **Archive** — `speckit-archive-run` consolidates the merged feature into the
-   project's `.specify/memory/`, which is what future work reads first.
+   component's `.specify/memory/`, which is what future work reads first.
 
 What survives a change is `.specify/memory/` — the standing description of how a
 component behaves, kept honest by every change that passes through it.

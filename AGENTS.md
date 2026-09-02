@@ -2,9 +2,9 @@
 
 Test: `just test` | Format: `just md-fmt`
 
-Read @CONTRIBUTING.md first. It covers prerequisites, setup, how Spec Kit is
-operated here, and every convention — all of which apply to agents exactly as
-they apply to people. This file carries only what is specific to agents.
+Read @CONTRIBUTING.md first. It covers prerequisites, setup, the workflow end to
+end, and every convention — all of which apply to agents exactly as they apply
+to people. This file carries only what is specific to agents.
 
 ## Running tools
 
@@ -24,38 +24,27 @@ treating the failure as real.
 
 ## Read the constitution first
 
-Before starting work in a project, read its `.specify/memory/constitution.md`.
-It is composed from `.charter/` and binds every project here.
+Before starting work in a component, read its `.specify/memory/constitution.md`,
+then the rest of `.specify/memory/`. That is where completed work is
+consolidated, and it is more current than any prose written about the component
+elsewhere.
 
-Then read the rest of `.specify/memory/`. That is where completed work is
-consolidated, and it is the standing description of how the component behaves —
-more current than any prose written about it elsewhere.
+Nothing in this repository authorizes work that the constitution forbids. When
+you cannot satisfy both a request and the constitution, say so rather than
+picking one silently.
 
-## Invoke the skill, never the CLI
+## The planning boundary
 
-Each workflow step is a skill: `speckit-specify`, `speckit-plan`,
-`speckit-tasks`, `speckit-archive-run`, and the rest under `.claude/skills/` in
-each project. Invoke the skill.
+@CONTRIBUTING.md gives the workflow under "The lifecycle of a change". Two
+things in it bind agents specifically:
 
-The `specify` CLI provisions a project — it initializes, and it installs
-extensions. It does not run the workflow. See @CONTRIBUTING.md under "Operating
-Spec Kit".
+**Producing planning artifacts ends the response.** Do not edit code in the same
+response that runs `speckit-specify`, `speckit-plan`, or `speckit-tasks`, even
+when the request was phrased as "build" or "fix". The request that triggered
+planning does not authorize implementation.
 
-## Where the design goes, and where the code goes
-
-This repository holds no product code. A feature's spec, plan, and tasks are
-written here; the implementation lands in the component's own repository.
-
-Do not edit code in the same response that produces planning artifacts, even
-when the request asks you to build something. Wait for an explicit instruction
-to implement.
-
-## When applying shows the rule is wrong
-
-Stop and correct the rule in its own change, then resume. Correcting the rule
-and the code together produces a rule written to describe what was already done,
-and buries the correction where nobody reviews it as a change of rule. This is
-`global/correction` in the constitution.
+**A merged spec is the authorization; a branch is not.** Wait for the spec PR to
+merge before implementing against it.
 
 ## Commit trailer
 
