@@ -167,9 +167,18 @@ says as much. Write requirements from evidence the repository already carries.
 
 ### The lifecycle of a change
 
-`main` is protected, so each stage below is its own pull request. Every skill
-runs against one component: invoke it from that component's directory, or set
-`SPECIFY_INIT_DIR=components/<name>` so it writes to the right component.
+`main` is protected, so each stage below is its own pull request.
+
+Every skill runs against one project. Name the project with `SPECIFY_INIT_DIR`,
+or invoke the skill from that project's directory:
+
+```bash
+SPECIFY_INIT_DIR=components/osapi   # one repository's behavior
+SPECIFY_INIT_DIR=system             # an agreement between repositories
+```
+
+`system` is a project like any other. Everything below applies to it, reading
+`system/` wherever a path says `components/<name>/`.
 
 | Stage        | Invoke                | Produces                                                 | PR?        |
 | ------------ | --------------------- | -------------------------------------------------------- | ---------- |
@@ -213,12 +222,15 @@ request. Cite the rule; do not write a spec for obeying one.
 
 #### Starting a change
 
-Run `speckit-specify` against the component the change belongs to. It creates
-`components/<name>/specs/###-slug/` and writes `spec.md` there.
+Run `speckit-specify` against the project the change belongs to, chosen by the
+test under "Where a change belongs" above. It creates `specs/###-slug/` under
+that project and writes `spec.md` there — `components/<name>/specs/###-slug/`
+for a component, `system/specs/###-slug/` for an agreement between repositories.
 
-Pick the component by where the code will land. A change that alters osapi's
-behavior is an osapi feature even when it also touches nats-client. See "Changes
-that span components" below.
+A project's `specs/` does not exist until its first feature creates it.
+
+For a component, pick it by where the code will land: a change that alters
+osapi's behavior is an osapi feature even when it also touches nats-client.
 
 Then work stages 2 through 4 in the same branch. They are one unit of review:
 splitting them means reviewing an approach against a spec that has not been
@@ -237,6 +249,11 @@ request that triggered them does not authorize code, however it was phrased.
 2. **Implement** in the component's own repository, in that repository's own PR.
    Link it to the spec PR. Nothing here changes during implementation.
 
+   A `system` feature has no single repository. It lands in each repository it
+   binds, one PR each, and where it implies a standing rule that rule goes to
+   `.charter/fragments/` and is composed into every constitution — see "A system
+   design can produce a fragment" above.
+
 3. **Merge the implementation.** The change is now real but not yet recorded.
 
 **When implementing shows the spec is wrong, stop.** Correct the spec in its own
@@ -253,10 +270,11 @@ it and the feature directory becomes a record of something that happened, which
 is what the previous system accumulated 14 of.
 
 Run `speckit-archive-run <feature-dir>` once the implementation has merged. It
-consolidates the feature into `components/<name>/.specify/memory/`. It merges
-into `spec.md` and `plan.md`, records supersessions in `changelog.md`, and adds
-`[Source: ...]` refs so you can trace every line to the feature that produced
-it.
+consolidates the feature into that project's `.specify/memory/` —
+`components/<name>/.specify/memory/`, or `system/.specify/memory/` for an
+agreement between repositories. It merges into `spec.md` and `plan.md`, records
+supersessions in `changelog.md`, and adds `[Source: ...]` refs so you can trace
+every line to the feature that produced it.
 
 It asks before deleting anything a later feature replaced. Read those prompts:
 confirming a supersession removes the old requirement permanently, and declining
