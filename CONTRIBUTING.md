@@ -284,6 +284,42 @@ What survives is memory, not the feature directory. Memory is what the next
 change reads first. A component's memory answers "how does this behave today",
 and its code and any prose written elsewhere do not.
 
+#### Seeding a component
+
+A project added for a repository that already exists starts with an empty
+memory. Its constitution is composed from `.charter/`, so it says what binds
+every repository and nothing about how this one behaves. Until that is fixed,
+the memory a skill reads first is silent on the thing it is being asked about.
+
+**The baseline arrives as a feature.** Run the lifecycle with the deliverable
+being the inventory of how the repository behaves today, and let
+`speckit-archive-run` fold it into memory like any other feature.
+
+*Do not write `.specify/memory/` by hand.* It seeds memory with content no
+workflow produced and no `[Source: ...]` reference points at, which is
+indistinguishable from invention the moment anyone asks where a line came from.
+
+*Do not write a spec describing work already done as though it were planned.*
+That is the failure `global/correction` names. A baselining feature is honest
+because its subject is the inventory, not the code — what it claims to produce
+is a description, and it produces one.
+
+Two things differ from an ordinary change:
+
+- **Nothing lands in the component's repository.** The deliverable is the
+  inventory, which lives in the feature directory here. Step 2 of "Closing a
+  change" does not apply.
+
+- **Every requirement is verified against the repository, not transcribed.**
+  Prose written earlier, an older corpus, or a design document is a lead, not a
+  source. State how each requirement was checked, the way
+  `system/.specify/memory/dependencies.md` records what it measured and how to
+  measure it again.
+
+A repository archived on the forge cannot take an implementation pull request.
+Baseline it if its behavior still matters to something live, and record that
+compliance cannot land there.
+
 ### Why memory, not a docs tree
 
 `.specify/memory/` is where completed work is consolidated, and it is what a
