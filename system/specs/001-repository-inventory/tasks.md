@@ -59,11 +59,12 @@ ______________________________________________________________________
 **⚠️ CRITICAL**: T007 must not begin until T004 has merged.
 
 - [ ] T003 Re-confirm the shared blocks are still identical across all seven
-  manifests with
+  _(satisfies FR-002)_ manifests with
   `for f in ~/git/osapi-io/{gohai,nats-client,nats-server,osapi,osapi-orchestrator,osapi-justfiles,specs}/.github/repos.json; do jq -S -c '{settings,security,branch_protection}' "$f"; done | sort -u | wc -l`
   returning `1`. If it returns more, stop: the merge assumption in `plan.md` no
   longer holds and the plan needs revising before continuing
 - [ ] T004 Compose the merged manifest content: one `org`, one shared
+  _(satisfies FR-001, FR-002, FR-005, FR-006, FR-012)_
   `settings`/`security`/`branch_protection` block taken from any existing
   manifest, and eight `repos[]` entries carrying only `name`, `description` and
   `topics`, per `system/specs/001-repository-inventory/data-model.md`. Take
@@ -87,53 +88,61 @@ returns eight names, `ls ~/git/osapi-io/*/.github/repos.json` finds nothing, and
 ### Implementation
 
 - [ ] T005 [US1] Create `repos.json` at the root of the `osapi-io/.github`
-  repository with the content composed in T004, and open the pull request
+  _(satisfies FR-001)_ repository with the content composed in T004, and open
+  the pull request
 
 - [ ] T006 [US1] Verify before merging: run `gh reposync --check` from the
-  `osapi-io/.github` checkout and confirm it reports on all eight repositories,
-  with `[specs] topics: DRIFT` the only failure
+  _(satisfies FR-001)_ `osapi-io/.github` checkout and confirm it reports on all
+  eight repositories, with `[specs] topics: DRIFT` the only failure
 
-- [ ] T007 [US1] Merge the `osapi-io/.github` pull request
+- [ ] T007 [US1] Merge the `osapi-io/.github` pull request _(satisfies FR-001)_
 
-- [ ] T008 [US1] Resolve the `specs` drift by running
+- [ ] T008 [US1] Resolve the `specs` drift by running _(satisfies FR-012)_
   `gh reposync --apply --repo specs` from the `osapi-io/.github` checkout,
   replacing the live `openspec` topic with `spec-kit`
 
 - [ ] T009 [US1] Confirm `gh reposync --check` now passes for all eight
-  repositories with exit 0
+  _(satisfies FR-012)_ repositories with exit 0
 
 - [ ] T010 [P] [US1] Delete `.github/repos.json` in `osapi-io/gohai` and open
-  the pull request
+  _(satisfies FR-003)_ the pull request
 
 - [ ] T011 [P] [US1] Delete `.github/repos.json` in `osapi-io/nats-client` and
-  open the pull request
+  _(satisfies FR-003)_ open the pull request
 
 - [ ] T012 [P] [US1] Delete `.github/repos.json` in `osapi-io/nats-server` and
-  open the pull request
+  _(satisfies FR-003)_ open the pull request
 
 - [ ] T013 [P] [US1] Delete `.github/repos.json` in `osapi-io/osapi` and open
-  the pull request
+  _(satisfies FR-003)_ the pull request
 
-- [ ] T014 [P] [US1] Delete `.github/repos.json` in
+- [ ] T014 [P] [US1] Delete `.github/repos.json` in _(satisfies FR-003)_
   `osapi-io/osapi-orchestrator` and open the pull request
 
 - [ ] T015 [P] [US1] Delete `.github/repos.json` in `osapi-io/osapi-justfiles`
-  and open the pull request
+  _(satisfies FR-003)_ and open the pull request
 
 - [ ] T016 [US1] Delete `.github/repos.json` in `osapi-io/specs` as part of this
-  feature's pull request
+  _(satisfies FR-003)_ feature's pull request
 
 - [ ] T017 [US1] Confirm no per-repository manifest remains among the active
-  repositories: `ls ~/git/osapi-io/*/.github/repos.json` finds only `osapi-ui`,
-  which is archived and therefore read-only. Record that exception rather than
-  attempting to unarchive it
+  _(satisfies FR-003, FR-004)_ repositories:
+  `ls ~/git/osapi-io/*/.github/repos.json` finds only `osapi-ui`, which is
+  archived and therefore read-only. Record that exception rather than attempting
+  to unarchive it
 
-- [ ] T017a [US1] Confirm the manifest lists the `.github` repository itself,
-  per FR-005: `jq -r '.repos[].name' repos.json | grep -Fx '.github'`
+- [ ] T018 [US1] Confirm the manifest lists the `.github` repository itself,
+  _(satisfies FR-005)_ per FR-005:
+  `jq -r '.repos[].name' repos.json | grep -Fx '.github'`
 
-- [ ] T017b [US1] Confirm no manifest entry names a repository that no longer
-  exists, per FR-007. `gh reposync --check` fails on such an entry, so a clean
-  exit 0 in T009 is the evidence
+- [ ] T019 [US1] Confirm no manifest entry names a repository that no longer
+  _(satisfies FR-007)_ exists, per FR-007. `gh reposync --check` fails on such
+  an entry, so a clean exit 0 in T009 is the evidence
+
+- [ ] T020 [US1] Record in the `osapi-io/.github` repository README that
+  repository configuration is changed here, not in the repository being
+  configured, so a contributor looking for `repos.json` in its old location is
+  told where it went _(satisfies FR-008)_
 
 **Checkpoint**: One manifest, eight repositories, `--check` green. US1 delivers
 the whole of what was asked for and can ship without US2.
@@ -152,28 +161,29 @@ names repositories inline.
 
 ### Implementation
 
-- [ ] T018 [US2] Write the charter fragment at
+- [ ] T021 [US2] Write the charter fragment at _(satisfies FR-009)_
   `.charter/fragments/global/repositories.md`, stating that the repository list
   comes from `osapi-io/.github/repos.json` and that no other document may
   contain one. Match the voice of the five existing fragments in
   `.charter/fragments/global/`
-- [ ] T019 [US2] Register the fragment in `.charter/manifest.yml` alongside the
-  existing five
-- [ ] T020 [US2] Add `global/repositories` to the `fragments` list in
-  `system/.specify/charter/state.yml`
-- [ ] T021 [US2] Recompose by running `/speckit-charter-compose` from `system/`,
-  then `/speckit-constitution` to write the file. Compose assembles the fragment
-  sections; `/speckit-constitution` writes `constitution.md` including its
-  version line. Do not hand-edit `constitution.md` — it is generated, and a
-  direct edit is lost on the next compose
-- [ ] T022 [US2] Confirm the written `system/.specify/memory/constitution.md`
-  contains a `<!-- [F] global/repositories SECTION -->` block and that its
-  `**Version**` line has been bumped from `1.1.0` with `Last Amended` updated.
-  If the version did not change, re-run `/speckit-constitution` rather than
-  editing the line by hand
-- [ ] T023 [US2] Rewrite `system/.specify/memory/dependencies.md` so its
-  reproduction script reads repository names from the manifest instead of naming
-  them inline in the `for d in ...` loop
+- [ ] T022 [US2] Register the fragment in `.charter/manifest.yml` alongside the
+  _(satisfies FR-010)_ existing five
+- [ ] T023 [US2] Add `global/repositories` to the `fragments` list in
+  _(satisfies FR-010)_ `system/.specify/charter/state.yml`
+- [ ] T024 [US2] Recompose by running `/speckit-charter-compose` from `system/`,
+  _(satisfies FR-010)_ then `/speckit-constitution` to write the file. Compose
+  assembles the fragment sections; `/speckit-constitution` writes
+  `constitution.md` including its version line. Do not hand-edit
+  `constitution.md` — it is generated, and a direct edit is lost on the next
+  compose
+- [ ] T025 [US2] Confirm the written `system/.specify/memory/constitution.md`
+  _(satisfies FR-010)_ contains a `<!-- [F] global/repositories SECTION -->`
+  block and that its `**Version**` line has been bumped from `1.1.0` with
+  `Last Amended` updated. If the version did not change, re-run
+  `/speckit-constitution` rather than editing the line by hand
+- [ ] T026 [US2] Rewrite `system/.specify/memory/dependencies.md` so its
+  _(satisfies FR-011)_ reproduction script reads repository names from the
+  manifest instead of naming them inline in the `for d in ...` loop
 
 **Checkpoint**: The rule is in the generated constitution and loads every
 session. The one existing violation is fixed.
@@ -182,13 +192,13 @@ ______________________________________________________________________
 
 ## Phase 5: Polish & Verification
 
-- [ ] T024 Run every scenario in
+- [ ] T027 Run every scenario in _(satisfies SC-001, SC-002, SC-004, SC-005)_
   `system/specs/001-repository-inventory/quickstart.md` and confirm each
   expected result
-- [ ] T025 Run `mise exec -- just test` in `osapi-io/specs` and confirm
+- [ ] T028 Run `mise exec -- just test` in `osapi-io/specs` and confirm
   `md-fmt-check` and `just-fmt-check` are clean
-- [ ] T026 Confirm no hand-maintained repository list remains anywhere in the
-  specs repository, per SC-003
+- [ ] T029 Confirm no hand-maintained repository list remains anywhere in the
+  _(satisfies SC-003)_ specs repository, per SC-003
 
 ______________________________________________________________________
 
@@ -221,7 +231,9 @@ repository with no manifest at all. T007 is the gate.
   can all be opened at once, once T007 has merged
 - T016 rides in this feature's own pull request, so it is not parallel with the
   others
-- T018 and T019 touch different files and can be done together
+- T021 and T022 touch different files and can be done together
+- T018, T019 and T020 are confirmations against the merged manifest and follow
+  T017
 
 ______________________________________________________________________
 
