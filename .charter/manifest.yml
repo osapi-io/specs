@@ -6,3 +6,4 @@ mandatory_fragments:
   - "global/tooling"
   - "global/correction"
   - "global/workflow"
+  - "global/repositories"

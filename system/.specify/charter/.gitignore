@@ -1,2 +1,7 @@
 # Disposable cache (cloned registries, downloads) — do not version.
 .cache/
+
+# Timestamped copies of the previous constitution, written on every compose.
+# The file they copy is already in git history, so versioning them adds a file
+# per compose and recovers nothing.
+backups/
