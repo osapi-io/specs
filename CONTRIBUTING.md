@@ -132,6 +132,33 @@ common way to go wrong here:
 
 **Never drive the workflow with the CLI.** Invoke the skill.
 
+### Where the skills come from
+
+`specify init` writes `.claude/skills/` into the project it initializes, so
+every project carries its own copy. The copies are identical; the duplication is
+what Spec Kit does, not a decision made here.
+
+An agent registers skills from the directory its session started in. A session
+started at the repository root therefore has no `speckit-*` skills at all,
+because the root is not a project and holds no `.specify/`. **Start the session
+in the project you are working on.** The symptom otherwise is the skill
+appearing not to exist, which reads like a broken install rather than a session
+in the wrong directory.
+
+The scripts behind the skills resolve their target from `SPECIFY_INIT_DIR`,
+falling back to the working directory. Set it only to point a session at a
+different project than the one it started in; it does not put skills within
+reach of a session that has none.
+
+### What to read before writing anything
+
+Read the project's `.specify/memory/` first, starting with `constitution.md`.
+Memory is the standing description of how the component behaves, and it is more
+current than prose written anywhere else. Read `system/.specify/memory/` too
+when the change touches how repositories fit together, since a component's
+memory describes only its own behavior and an agreement between components is
+not in it.
+
 ### Adding a project
 
 ```bash
@@ -169,12 +196,12 @@ says as much. Write requirements from evidence the repository already carries.
 
 `main` is protected, so each stage below is its own pull request.
 
-Every skill runs against one project. Name the project with `SPECIFY_INIT_DIR`,
-or invoke the skill from that project's directory:
+Every skill runs against one project. Start the session in that project's
+directory, for the reason under "Where the skills come from" above:
 
 ```bash
-SPECIFY_INIT_DIR=components/osapi   # one repository's behavior
-SPECIFY_INIT_DIR=system             # an agreement between repositories
+cd components/osapi   # one repository's behavior
+cd system             # an agreement between repositories
 ```
 
 `system` is a project like any other. Everything below applies to it, reading
