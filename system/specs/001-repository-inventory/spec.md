@@ -108,9 +108,9 @@ metadata. Searching the specs repository finds no hardcoded repository list.
 - **SC-001**: A session that read the constitution produces the repository list
   without being told how.
 - **SC-002**: No document here holds a hand-maintained repository list.
+- **SC-003**: Adding a repository requires no edit for it to be included.
 - **SC-004**: `system/.specify/memory/` holds only `constitution.md` and
   `.constitution-template.json`.
-- **SC-003**: Adding a repository requires no edit for it to be included.
 
 ## Assumptions
 

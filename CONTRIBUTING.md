@@ -17,15 +17,21 @@ Spec Kit is operated here, and the conventions we hold PRs to.
 
 ## Prerequisites
 
-- **[mise].** Provisions every other tool from `.mise.toml`. This is the only
-  dependency you install yourself:
+These two are the dependencies you install yourself:
+
+- **[mise].** Provisions every other tool from `.mise.toml`.
+
+- **[gh].** GitHub CLI. The constitution names it as the source of the
+  repository list, and the Spec Kit workflow uses it for pull requests. It is
+  not provisioned by `mise`: `mise` resolves it through `aqua`, whose release
+  attestation check fails for this package.
 
   ```bash
-  brew install mise
+  brew install mise gh
   ```
 
-  Then [activate it in your shell][mise-activate] so tools land on `PATH` when
-  you `cd` into the repo.
+  Then [activate mise in your shell][mise-activate] so tools land on `PATH` when
+  you `cd` into the repo, and authenticate `gh` once with `gh auth login`.
 
 Everything below is provisioned by `mise install` (see [Setup](#setup)):
 
@@ -207,15 +213,33 @@ cd system             # an agreement between repositories
 `system` is a project like any other. Everything below applies to it, reading
 `system/` wherever a path says `components/<name>/`.
 
-| Stage        | Invoke                | Produces                                                 | PR?        |
-| ------------ | --------------------- | -------------------------------------------------------- | ---------- |
-| 1. Specify   | `speckit-specify`     | `spec.md`, what must be true and why                     | yes        |
-| 2. Clarify   | `speckit-clarify`     | resolved ambiguities, folded into `spec.md`              | same PR    |
-| 3. Plan      | `speckit-plan`        | `plan.md`, the approach checked against the constitution | same PR    |
-| 4. Tasks     | `speckit-tasks`       | `tasks.md`, the work in order                            | same PR    |
-| 5. Analyze   | `speckit-analyze`     | a consistency report across the three                    | no         |
-| 6. Implement | none                  | code, in the component's own repository                  | yes, there |
-| 7. Archive   | `speckit-archive-run` | consolidated `.specify/memory/`                          | yes        |
+| Stage        | Invoke                | Produces                                                 | PR?     |
+| ------------ | --------------------- | -------------------------------------------------------- | ------- |
+| 1. Specify   | `speckit-specify`     | `spec.md`, what must be true and why                     | yes     |
+| 2. Clarify   | `speckit-clarify`     | resolved ambiguities, folded into `spec.md`              | same PR |
+| 3. Plan      | `speckit-plan`        | `plan.md`, the approach checked against the constitution | same PR |
+| 4. Tasks     | `speckit-tasks`       | `tasks.md`, the work in order                            | same PR |
+| 5. Analyze   | `speckit-analyze`     | a consistency report across the three                    | no      |
+| 6. Implement | none                  | the change itself, where the project lives               | yes     |
+| 7. Archive   | `speckit-archive-run` | consolidated `.specify/memory/`                          | yes     |
+
+#### Three rules the table does not spell out
+
+**Where stage 6 lands.** A `components/<name>` feature is implemented in that
+repository. A `system` feature is implemented *here*, because what it produces
+is a charter fragment, a constitution, or a memory artifact, and those live in
+this repository. "Its own pull request" still holds either way.
+
+**A merged spec that turns out wrong is amended in its own pull request,**
+before the implementation that depends on it. Correcting the spec and
+implementing the correction together is the same mistake as writing the spec and
+the code together: the spec arrives already describing what was done, and the
+change of intent is buried where nobody reviews it as one. This is the
+constitution's Correction principle applied to the workflow itself.
+
+**Archive only after the implementation has merged.** Stage 7 consolidates what
+was built. Running it against a spec whose implementation is still open records
+intentions as outcomes.
 
 #### Where a change belongs
 
@@ -341,9 +365,8 @@ Two things differ from an ordinary change:
 
 - **Every requirement is verified against the repository, not transcribed.**
   Prose written earlier, an older corpus, or a design document is a lead, not a
-  source. State how each requirement was checked, the way
-  `system/.specify/memory/dependencies.md` records what it measured and how to
-  measure it again.
+  source. State how each requirement was checked, and give the command that
+  checks it again, so a reader re-measures rather than trusting the prose.
 
 An archived repository cannot take a pull request. Baseline it if its behavior
 still matters to something live, and record that compliance cannot land there.
@@ -478,6 +501,7 @@ If you have questions, open a [Discussion] on GitHub.
 [claude code]: https://claude.ai/code
 [conventional commits]: https://www.conventionalcommits.org
 [discussion]: https://github.com/osapi-io/specs/discussions
+[gh]: https://cli.github.com/
 [just]: https://just.systems
 [mdformat]: https://pypi.org/project/mdformat/
 [mise]: https://mise.jdx.dev
