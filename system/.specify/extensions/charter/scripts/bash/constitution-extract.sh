@@ -69,16 +69,31 @@ BEGIN { in_section=0; found=0; n=0 }
 }
 
 # Skip speckit footer metadata
-in_section && /^\*Version\*:/ { in_section=0; exit }
-in_section && /^\*\*Version\*\*:/ { in_section=0; exit }
+in_section && /^\*Version\*:/ { in_section=0; hit_footer=1; exit }
+in_section && /^\*\*Version\*\*:/ { in_section=0; hit_footer=1; exit }
 
 # Collect content while in section
 in_section { lines[n++] = $0 }
 
 END {
+  # Trim leading blank lines. The marker is followed by one in the composed
+  # constitution but not in the snapshot, so keeping it reports every section
+  # as modified.
+  first = 0
+  while (first < n && lines[first] == "") first++
+
   # Trim trailing blank lines so inter-section separators are not included
   last = n - 1
-  while (last >= 0 && lines[last] == "") last--
-  for (i = 0; i <= last; i++) print lines[i]
+  while (last >= first && lines[last] == "") last--
+
+  # The final section runs into the "---" rule that precedes the speckit
+  # version footer. Drop it, and any blank lines it leaves behind. Only when
+  # the footer was actually reached, so a fragment legitimately ending in a
+  # horizontal rule keeps it.
+  if (hit_footer) {
+    while (last >= first && (lines[last] == "" || lines[last] == "---")) last--
+  }
+
+  for (i = first; i <= last; i++) print lines[i]
 }
 ' "$CONSTITUTION_PATH"
