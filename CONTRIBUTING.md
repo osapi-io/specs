@@ -320,6 +320,24 @@ A repository archived on the forge cannot take an implementation pull request.
 Baseline it if its behavior still matters to something live, and record that
 compliance cannot land there.
 
+**Producing the inventory.** Reading six repositories by hand is the slow path.
+An extension that reverse-engineers specifications from existing code produces
+the same artifact the workflow expects, so it feeds the lifecycle rather than
+bypassing it: what it writes is a feature, reviewed in a pull request, archived
+with `[Source: ...]` refs like anything else. It is a first draft to be verified
+against the repository, never output to be trusted.
+
+[Time Machine] is the one selected. It generates specifications from existing
+code and touches nothing else.
+
+[Brownfield Bootstrap] was rejected despite being the better known of the two.
+Its `bootstrap` command generates a constitution, and constitutions here are
+composed from `.charter/`. Two tools writing the same file means the composed
+one wins on every recompose and the generated one is silently lost.
+
+Trial it on one component before committing the rest to it. `gohai` depends on
+nothing else in the organization, so a bad result there costs one feature.
+
 ### Why memory, not a docs tree
 
 `.specify/memory/` is where completed work is consolidated, and it is what a
@@ -428,6 +446,7 @@ valuable thing you can give a spec.
 
 If you have questions, feel free to open a [Discussion] on GitHub.
 
+[brownfield bootstrap]: https://github.com/Quratulain-bilal/spec-kit-brownfield
 [claude code]: https://claude.ai/code
 [conventional commits]: https://www.conventionalcommits.org
 [discussion]: https://github.com/osapi-io/specs/discussions
@@ -437,4 +456,5 @@ If you have questions, feel free to open a [Discussion] on GitHub.
 [mise-activate]: https://mise.jdx.dev/getting-started.html
 [osapi-io]: https://github.com/osapi-io
 [spec kit]: https://github.com/github/spec-kit
+[time machine]: https://github.com/teeyo/spec-kit-time-machine
 [uv]: https://docs.astral.sh/uv/
