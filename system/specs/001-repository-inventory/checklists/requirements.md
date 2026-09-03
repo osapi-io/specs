@@ -32,14 +32,15 @@ to planning **Created**: 2026-09-02 **Feature**: [spec.md](../spec.md)
 
 All items pass. No open clarifications.
 
-Two things were cut from an earlier draft and are recorded here so they are not
-re-added by accident:
+An earlier draft of this feature was four times longer and proposed
+consolidating the eight `.github/repos.json` manifests into one. That was
+dropped: the duplication it targeted has never drifted — the shared block is
+byte-identical across all seven files — and the one drift that did occur was
+per-repository data that consolidating would not have prevented. The Correction
+principle asks for requirements written from evidence the repository carries,
+and there was none.
 
-- **Scheduled verification and alerting.** Running `gh reposync --check`
-  automatically would need a stored organization-wide token and a place for
-  failures to go. The check takes seconds to run by hand. Deferred until
-  forgetting to run it actually causes a problem a second time.
-- **Counted evidence in the prose.** The constitution's Documentation section
-  forbids restating in prose what a tool already enforces. The counts this spec
-  would otherwise quote come from `gh repo list` and `gh reposync --check`, so
-  it names those commands and stops.
+What remains is a rule naming a command, and the removal of the one document
+that holds a copy of what that command returns. The artifact set is smaller to
+match: no `research.md`, `data-model.md` or `quickstart.md`, because there is
+one entity, no interfaces, and the verification fits in the tasks.

@@ -7,54 +7,41 @@
 
 ## Summary
 
-Merge the seven per-repository `.github/repos.json` manifests into one manifest
-in the `osapi-io/.github` repository, delete the originals, and add a charter
-fragment stating that the repository list comes from that manifest and may not
-be written anywhere else. Fix the two existing violations: the `specs` topic
-drift, and the inline repository list in `dependencies.md`.
+Add a charter fragment stating that the osapi-io repository list comes from
+`gh repo list osapi-io --no-archived --visibility public`, regenerate the
+constitution, and rewrite `dependencies.md` to use the command instead of naming
+repositories inline.
 
-The merge is mechanical. All seven manifests carry byte-identical `settings`,
-`security` and `branch_protection` blocks, so the merged file is one shared
-block plus one `repos[]` entry per repository. The `.github` repository itself
-already matches that shared block and is added as an eighth entry.
+Two files change. No code, no configuration, no other repository.
 
 ## Technical Context
 
-**Language/Version**: N/A — JSON configuration and Markdown
+**Language/Version**: N/A — Markdown and a shell command
 
-**Primary Dependencies**: `gh` CLI; `retr0h/gh-reposync` (installed as a `gh`
-extension); `jq`
+**Primary Dependencies**: `gh` CLI, authenticated
 
-**Storage**: Files in git. `osapi-io/.github` holds the manifest.
+**Testing**: `just test` in the specs repo covers Markdown formatting. The rule
+itself is verified by reading the generated constitution and running the
+command.
 
-**Testing**: `gh reposync --check` is the test. `just test` in the specs repo
-covers the Markdown and justfile formatting of anything changed here.
+**Project Type**: Documentation change in one repository.
 
-**Target Platform**: Developer and agent workstations. Nothing runs unattended.
+**Constraints**: `constitution.md` is generated from fragments. It must be
+regenerated, not edited.
 
-**Project Type**: Configuration and documentation change across repositories.
-
-**Performance Goals**: N/A
-
-**Constraints**: `gh reposync` applies `settings`, `security` and
-`branch_protection` to every repository in the manifest; the schema has no
-per-repository override for them. This is workable only because all eight
-repositories want identical values today, which was measured, not assumed.
-
-**Scale/Scope**: Eight repositories. Two repositories are edited in this change
-(`osapi-io/.github` and `osapi-io/specs`), plus deletions in six others.
+**Scale/Scope**: One repository, two files.
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-| Principle                                                                                                                     | Assessment                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Documentation** — a repository states in full the conventions binding it; a rule a tool enforces is never restated as prose | **Pass.** The manifest is the configuration, not prose about it. The charter fragment states a rule no tool enforces, which is the case prose is for. The spec names commands instead of quoting their output.                                                                                                                                                                                                                                                                                                                                                                                              |
-| **Verification** — a claim is measured, not inspected; where a check can be automated it is automated                         | **Pass.** Every claim in the spec came from `gh repo list`, `gh reposync --check` and `jq` over the manifests, so nothing here is inspected-and-concluded. The second clause is satisfied too: the check *is* automated — `gh reposync --check` is a command that exits non-zero, not a review step. What is not automated is its *triggering*. The failure the principle names, "a rule enforced only by review", does not apply, because no human judgement decides whether the manifest matches. Whether to schedule that command is a separate question about cost, answered in research.md decision 6. |
-| **Tooling** — a tool a repository invokes is declared where it declares its tools                                             | **Pass with a follow-up.** `gh-reposync` is a `gh` extension installed per machine and is not declared in `.mise.toml`. See Complexity Tracking.                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| **Correction** — a requirement is written from evidence the repository already carries                                        | **Pass.** Every requirement traces to a measured fact: the one-repo-per-manifest shape, the `specs` topic drift, the inline list in `dependencies.md`.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| **Workflow** — design output lives under the project's `specs/`, consolidated into `.specify/memory/` on merge                | **Pass.** This feature is under `system/specs/001-repository-inventory/`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Principle                                                                              | Assessment                                                                                                                                                                                                                                         |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Documentation** — a rule a tool already enforces is never restated as prose          | **Pass.** No tool enforces where the repository list comes from, so a rule in prose is the right form. The rule names a command rather than restating its output.                                                                                  |
+| **Verification** — a claim is measured, not inspected                                  | **Pass.** The command is the measurement, run each time, rather than a list someone once checked.                                                                                                                                                  |
+| **Tooling** — a tool a repository invokes is declared where it declares its tools      | **Pass.** `gh` is already required by the workflow.                                                                                                                                                                                                |
+| **Correction** — a requirement is written from evidence the repository already carries | **Pass.** Two hardcoded lists exist. An earlier draft of this feature proposed consolidating `.github/repos.json`; that was dropped because the duplication it targeted has never drifted, which is the same principle applied against the author. |
+| **Workflow** — design output lives under the project's `specs/`                        | **Pass.** Under `system/specs/001-repository-inventory/`.                                                                                                                                                                                          |
 
 ## Project Structure
 
@@ -62,48 +49,30 @@ repositories want identical values today, which was measured, not assumed.
 
 ```text
 system/specs/001-repository-inventory/
-├── plan.md              # This file
-├── research.md          # Phase 0 output
-├── data-model.md        # Phase 1 output
-├── quickstart.md        # Phase 1 output
-├── checklists/
-│   └── requirements.md
-└── tasks.md             # Created by /speckit-tasks
+├── plan.md
+├── spec.md
+├── checklists/requirements.md
+└── tasks.md
 ```
+
+No `research.md`, `data-model.md`, `contracts/` or `quickstart.md`. There is one
+entity, no interfaces, and the verification fits in the tasks.
 
 ### Files changed by implementation
 
 ```text
-osapi-io/.github/
-└── repos.json                        # NEW — the single manifest, 8 entries
-
-osapi-io/gohai/.github/repos.json     # DELETED
-osapi-io/nats-client/.github/repos.json        # DELETED
-osapi-io/nats-server/.github/repos.json        # DELETED
-osapi-io/osapi/.github/repos.json              # DELETED
-osapi-io/osapi-orchestrator/.github/repos.json # DELETED
-osapi-io/osapi-justfiles/.github/repos.json    # DELETED
-osapi-io/specs/.github/repos.json              # DELETED
-
-osapi-io/specs/
-├── .charter/fragments/global/repositories.md  # NEW — the rule
-├── system/.specify/charter/state.yml          # fragment added to composition
-├── system/.specify/memory/constitution.md     # regenerated
-└── system/.specify/memory/dependencies.md     # stops naming repos inline
+specs/
+├── .charter/fragments/global/repositories.md   # NEW — the rule
+├── .charter/manifest.yml                       # fragment registered
+├── system/.specify/charter/state.yml           # fragment composed in
+├── system/.specify/memory/constitution.md      # regenerated
+└── system/.specify/memory/dependencies.md      # uses the command
 ```
 
-**Structure Decision**: The manifest lives at the repository root of
-`osapi-io/.github` as `repos.json`, not at `.github/repos.json` inside it.
-`gh reposync`'s discovery order checks `./repos.json` first, and a `.github`
-directory inside the `.github` repository reads as a mistake.
-
-The charter fragment lives in `.charter/fragments/global/` alongside the other
-five, because the rule binds every project in the specs repository, not just
+**Structure Decision**: The fragment goes in `.charter/fragments/global/`
+alongside the existing five, because the rule binds every project here, not just
 `system`.
 
 ## Complexity Tracking
 
-| Violation                                                                                                                                     | Why Needed                                                                                                                         | Simpler Alternative Rejected Because                                                                                                                                                                                                                     |
-| --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gh-reposync` is not declared in `.mise.toml`, so the Tooling principle's "declared where the repository declares its tools" is not satisfied | It is a `gh` extension, installed with `gh ext install`, which `mise` does not manage. Nothing in this feature can change that.    | Declaring it is the correct fix but belongs in its own change: it affects how every contributor provisions the repository, and the Correction principle requires a rule change to land on its own. Recorded here so it is not mistaken for an oversight. |
-| Two repositories are edited in one logical change (`.github` gains the manifest, six others lose theirs)                                      | The manifests must not both exist; two statements of desired configuration would disagree with nothing to say which wins (FR-003). | Landing them separately leaves a window where either no manifest governs a repository, or two do. The window is the risk, not the multi-repository change.                                                                                               |
+No constitution violations to justify.
