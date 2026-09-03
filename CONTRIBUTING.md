@@ -132,6 +132,33 @@ common way to go wrong here:
 
 **Never drive the workflow with the CLI.** Invoke the skill.
 
+### Where the skills come from
+
+`specify init` writes `.claude/skills/` into the project it initializes, so
+every project carries its own copy. The copies are identical; the duplication is
+what Spec Kit does, not a decision made here.
+
+An agent registers skills from the directory its session started in. A session
+started at the repository root therefore has no `speckit-*` skills at all,
+because the root is not a project and holds no `.specify/`. **Start the session
+in the project you are working on.** The symptom otherwise is the skill
+appearing not to exist, which reads like a broken install rather than a session
+in the wrong directory.
+
+The scripts behind the skills resolve their target from `SPECIFY_INIT_DIR`,
+falling back to the working directory. Set it only when a session must target a
+project other than the one it started in. It cannot give skills to a session
+that has none.
+
+### What to read before writing anything
+
+Read the project's `.specify/memory/` first, starting with `constitution.md`.
+Memory is the standing description of how the component behaves, and it is more
+current than prose written anywhere else. Read `system/.specify/memory/` too
+when the change touches how repositories fit together, since a component's
+memory describes only its own behavior and an agreement between components is
+not in it.
+
 ### Adding a project
 
 ```bash
@@ -167,9 +194,18 @@ says as much. Write requirements from evidence the repository already carries.
 
 ### The lifecycle of a change
 
-`main` is protected, so each stage below is its own pull request. Every skill
-runs against one component: invoke it from that component's directory, or set
-`SPECIFY_INIT_DIR=components/<name>` so it writes to the right component.
+`main` is protected, so each stage below is its own pull request.
+
+Every skill runs against one project. Start the session in that project's
+directory, for the reason under "Where the skills come from" above:
+
+```bash
+cd components/osapi   # one repository's behavior
+cd system             # an agreement between repositories
+```
+
+`system` is a project like any other. Everything below applies to it, reading
+`system/` wherever a path says `components/<name>/`.
 
 | Stage        | Invoke                | Produces                                                 | PR?        |
 | ------------ | --------------------- | -------------------------------------------------------- | ---------- |
@@ -213,12 +249,16 @@ request. Cite the rule; do not write a spec for obeying one.
 
 #### Starting a change
 
-Run `speckit-specify` against the component the change belongs to. It creates
-`components/<name>/specs/###-slug/` and writes `spec.md` there.
+Run `speckit-specify` against the project the change belongs to, chosen by the
+test under "Where a change belongs" above. It creates `specs/###-slug/` under
+that project and writes `spec.md` there. That is
+`components/<name>/specs/###-slug/` for a component, and
+`system/specs/###-slug/` for an agreement between repositories.
 
-Pick the component by where the code will land. A change that alters osapi's
-behavior is an osapi feature even when it also touches nats-client. See "Changes
-that span components" below.
+A project's `specs/` does not exist until its first feature creates it.
+
+For a component, pick it by where the code will land: a change that alters
+osapi's behavior is an osapi feature even when it also touches nats-client.
 
 Then work stages 2 through 4 in the same branch. They are one unit of review:
 splitting them means reviewing an approach against a spec that has not been
@@ -237,6 +277,11 @@ request that triggered them does not authorize code, however it was phrased.
 2. **Implement** in the component's own repository, in that repository's own PR.
    Link it to the spec PR. Nothing here changes during implementation.
 
+   A `system` feature has no single repository. It lands in each repository it
+   binds, one PR each, and where it implies a standing rule that rule goes to
+   `.charter/fragments/` and is composed into every constitution. See "A system
+   design can produce a fragment" above.
+
 3. **Merge the implementation.** The change is now real but not yet recorded.
 
 **When implementing shows the spec is wrong, stop.** Correct the spec in its own
@@ -253,8 +298,10 @@ it and the feature directory becomes a record of something that happened, which
 is what the previous system accumulated 14 of.
 
 Run `speckit-archive-run <feature-dir>` once the implementation has merged. It
-consolidates the feature into `components/<name>/.specify/memory/`. It merges
-into `spec.md` and `plan.md`, records supersessions in `changelog.md`, and adds
+consolidates the feature into that project's `.specify/memory/`, which is
+`components/<name>/.specify/memory/` for a component and
+`system/.specify/memory/` for an agreement between repositories. It merges into
+`spec.md` and `plan.md`, records supersessions in `changelog.md`, and adds
 `[Source: ...]` refs so you can trace every line to the feature that produced
 it.
 
@@ -265,6 +312,59 @@ records an unresolved contradiction that the next archival raises again.
 What survives is memory, not the feature directory. Memory is what the next
 change reads first. A component's memory answers "how does this behave today",
 and its code and any prose written elsewhere do not.
+
+#### Seeding a component
+
+A project added for a repository that already exists starts with an empty
+memory. Its constitution is composed from `.charter/`, so it says what binds
+every repository and nothing about how this one behaves. Until that is fixed,
+the memory a skill reads first says nothing about the repository it describes.
+
+**The baseline arrives as a feature.** Run the lifecycle with the deliverable
+being the inventory of how the repository behaves today, and let
+`speckit-archive-run` fold it into memory like any other feature.
+
+*Do not write `.specify/memory/` by hand.* It seeds memory with content no
+workflow produced and no `[Source: ...]` reference points at, so nobody can tell
+later whether a line was found or invented.
+
+*Do not write a spec describing work already done as though it were planned.*
+That is the failure `global/correction` names. A baselining feature is honest
+because its subject is the inventory rather than the code. What it claims to
+produce is a description, and it produces one.
+
+Two things differ from an ordinary change:
+
+- **Nothing lands in the component's repository.** The deliverable is the
+  inventory, which lives in the feature directory here. Step 2 of "Closing a
+  change" does not apply.
+
+- **Every requirement is verified against the repository, not transcribed.**
+  Prose written earlier, an older corpus, or a design document is a lead, not a
+  source. State how each requirement was checked, the way
+  `system/.specify/memory/dependencies.md` records what it measured and how to
+  measure it again.
+
+An archived repository cannot take a pull request. Baseline it if its behavior
+still matters to something live, and record that compliance cannot land there.
+
+**Producing the inventory.** Reading six repositories by hand is the slow path.
+An extension that reverse-engineers specifications from existing code produces
+the same artifact the workflow expects, so it feeds the lifecycle rather than
+bypassing it: what it writes is a feature, reviewed in a pull request, archived
+with `[Source: ...]` refs like anything else. Check what it writes against the
+repository. It is a first draft, not a source.
+
+[Time Machine] is the one selected. It generates specifications from existing
+code and touches nothing else.
+
+[Brownfield Bootstrap] was rejected despite being the better known of the two.
+Its `bootstrap` command generates a constitution, and constitutions here are
+composed from `.charter/`. Two tools writing the same file means the composed
+one wins on every recompose and the generated one is silently lost.
+
+Trial it on one component before committing the rest to it. `gohai` depends on
+nothing else in the organization, so a bad result there costs one feature.
 
 ### Why memory, not a docs tree
 
@@ -345,8 +445,8 @@ be reasonable to split it in a few). Git squash and rebase is your friend!
 
 ## Submitting a PR
 
-- **Describe your changes.** Ensure that you provide a comprehensive description
-  of your changes.
+- **Describe your changes.** Say what changed and why. A reviewer should not
+  have to read the diff to learn the reason for it.
 - **Issue/PR links.** Link any previous work such as related issues or PRs, and
   link the implementation PR in the target repo when there is one. Please
   describe how your changes differ to/extend this work.
@@ -374,6 +474,7 @@ valuable thing you can give a spec.
 
 If you have questions, feel free to open a [Discussion] on GitHub.
 
+[brownfield bootstrap]: https://github.com/Quratulain-bilal/spec-kit-brownfield
 [claude code]: https://claude.ai/code
 [conventional commits]: https://www.conventionalcommits.org
 [discussion]: https://github.com/osapi-io/specs/discussions
@@ -383,4 +484,5 @@ If you have questions, feel free to open a [Discussion] on GitHub.
 [mise-activate]: https://mise.jdx.dev/getting-started.html
 [osapi-io]: https://github.com/osapi-io
 [spec kit]: https://github.com/github/spec-kit
+[time machine]: https://github.com/teeyo/spec-kit-time-machine
 [uv]: https://docs.astral.sh/uv/
