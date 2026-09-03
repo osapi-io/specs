@@ -146,9 +146,9 @@ appearing not to exist, which reads like a broken install rather than a session
 in the wrong directory.
 
 The scripts behind the skills resolve their target from `SPECIFY_INIT_DIR`,
-falling back to the working directory. Set it only to point a session at a
-different project than the one it started in; it does not put skills within
-reach of a session that has none.
+falling back to the working directory. Set it only when a session must target a
+project other than the one it started in. It cannot give skills to a session
+that has none.
 
 ### What to read before writing anything
 
@@ -251,8 +251,9 @@ request. Cite the rule; do not write a spec for obeying one.
 
 Run `speckit-specify` against the project the change belongs to, chosen by the
 test under "Where a change belongs" above. It creates `specs/###-slug/` under
-that project and writes `spec.md` there — `components/<name>/specs/###-slug/`
-for a component, `system/specs/###-slug/` for an agreement between repositories.
+that project and writes `spec.md` there. That is
+`components/<name>/specs/###-slug/` for a component, and
+`system/specs/###-slug/` for an agreement between repositories.
 
 A project's `specs/` does not exist until its first feature creates it.
 
@@ -278,7 +279,7 @@ request that triggered them does not authorize code, however it was phrased.
 
    A `system` feature has no single repository. It lands in each repository it
    binds, one PR each, and where it implies a standing rule that rule goes to
-   `.charter/fragments/` and is composed into every constitution — see "A system
+   `.charter/fragments/` and is composed into every constitution. See "A system
    design can produce a fragment" above.
 
 3. **Merge the implementation.** The change is now real but not yet recorded.
@@ -297,11 +298,12 @@ it and the feature directory becomes a record of something that happened, which
 is what the previous system accumulated 14 of.
 
 Run `speckit-archive-run <feature-dir>` once the implementation has merged. It
-consolidates the feature into that project's `.specify/memory/` —
-`components/<name>/.specify/memory/`, or `system/.specify/memory/` for an
-agreement between repositories. It merges into `spec.md` and `plan.md`, records
-supersessions in `changelog.md`, and adds `[Source: ...]` refs so you can trace
-every line to the feature that produced it.
+consolidates the feature into that project's `.specify/memory/`, which is
+`components/<name>/.specify/memory/` for a component and
+`system/.specify/memory/` for an agreement between repositories. It merges into
+`spec.md` and `plan.md`, records supersessions in `changelog.md`, and adds
+`[Source: ...]` refs so you can trace every line to the feature that produced
+it.
 
 It asks before deleting anything a later feature replaced. Read those prompts:
 confirming a supersession removes the old requirement permanently, and declining
@@ -316,20 +318,20 @@ and its code and any prose written elsewhere do not.
 A project added for a repository that already exists starts with an empty
 memory. Its constitution is composed from `.charter/`, so it says what binds
 every repository and nothing about how this one behaves. Until that is fixed,
-the memory a skill reads first is silent on the thing it is being asked about.
+the memory a skill reads first says nothing about the repository it describes.
 
 **The baseline arrives as a feature.** Run the lifecycle with the deliverable
 being the inventory of how the repository behaves today, and let
 `speckit-archive-run` fold it into memory like any other feature.
 
 *Do not write `.specify/memory/` by hand.* It seeds memory with content no
-workflow produced and no `[Source: ...]` reference points at, which is
-indistinguishable from invention the moment anyone asks where a line came from.
+workflow produced and no `[Source: ...]` reference points at, so nobody can tell
+later whether a line was found or invented.
 
 *Do not write a spec describing work already done as though it were planned.*
 That is the failure `global/correction` names. A baselining feature is honest
-because its subject is the inventory, not the code — what it claims to produce
-is a description, and it produces one.
+because its subject is the inventory rather than the code. What it claims to
+produce is a description, and it produces one.
 
 Two things differ from an ordinary change:
 
@@ -343,16 +345,15 @@ Two things differ from an ordinary change:
   `system/.specify/memory/dependencies.md` records what it measured and how to
   measure it again.
 
-A repository archived on the forge cannot take an implementation pull request.
-Baseline it if its behavior still matters to something live, and record that
-compliance cannot land there.
+An archived repository cannot take a pull request. Baseline it if its behavior
+still matters to something live, and record that compliance cannot land there.
 
 **Producing the inventory.** Reading six repositories by hand is the slow path.
 An extension that reverse-engineers specifications from existing code produces
 the same artifact the workflow expects, so it feeds the lifecycle rather than
 bypassing it: what it writes is a feature, reviewed in a pull request, archived
-with `[Source: ...]` refs like anything else. It is a first draft to be verified
-against the repository, never output to be trusted.
+with `[Source: ...]` refs like anything else. Check what it writes against the
+repository. It is a first draft, not a source.
 
 [Time Machine] is the one selected. It generates specifications from existing
 code and touches nothing else.
@@ -444,8 +445,8 @@ be reasonable to split it in a few). Git squash and rebase is your friend!
 
 ## Submitting a PR
 
-- **Describe your changes.** Ensure that you provide a comprehensive description
-  of your changes.
+- **Describe your changes.** Say what changed and why. A reviewer should not
+  have to read the diff to learn the reason for it.
 - **Issue/PR links.** Link any previous work such as related issues or PRs, and
   link the implementation PR in the target repo when there is one. Please
   describe how your changes differ to/extend this work.
