@@ -66,7 +66,7 @@ specs/
 ├── .charter/manifest.yml                       # fragment registered
 ├── system/.specify/charter/state.yml           # fragment composed in
 ├── system/.specify/memory/constitution.md      # regenerated
-└── system/.specify/memory/dependencies.md      # uses the command
+└── system/.specify/memory/dependencies.md      # DELETED
 ```
 
 **Structure Decision**: The fragment goes in `.charter/fragments/global/`

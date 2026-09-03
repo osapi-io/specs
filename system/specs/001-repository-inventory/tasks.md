@@ -21,7 +21,7 @@ ______________________________________________________________________
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm `gh repo list osapi-io --no-archived --visibility public`
+- [x] T001 Confirm `gh repo list osapi-io --no-archived --visibility public`
   returns the eight repositories, so the rule names a command that works
 
 ______________________________________________________________________
@@ -34,19 +34,19 @@ ______________________________________________________________________
 `grep -i -A6 "^## Repositories" system/.specify/memory/constitution.md` shows
 the rule in the generated file.
 
-- [ ] T002 [US1] Write `.charter/fragments/global/repositories.md` stating that
+- [x] T002 [US1] Write `.charter/fragments/global/repositories.md` stating that
   the osapi-io repositories are what the command returns and that no document
   may hold a copy. Match the length and voice of
   `.charter/fragments/global/tooling.md` — three short paragraphs, no headings
   beyond the title _(satisfies FR-001)_
-- [ ] T003 [P] [US1] Add `global/repositories` to `mandatory_fragments` in
+- [x] T003 [P] [US1] Add `global/repositories` to `mandatory_fragments` in
   `.charter/manifest.yml` _(satisfies FR-002)_
-- [ ] T004 [P] [US1] Add `global/repositories` to `fragments` in
+- [x] T004 [P] [US1] Add `global/repositories` to `fragments` in
   `system/.specify/charter/state.yml` _(satisfies FR-002)_
-- [ ] T005 [US1] Regenerate by running `/speckit-charter-compose` then
+- [x] T005 [US1] Regenerate by running `/speckit-charter-compose` then
   `/speckit-constitution` from `system/`. Do not hand-edit `constitution.md`
   _(satisfies FR-002)_
-- [ ] T006 [US1] Confirm `system/.specify/memory/constitution.md` contains a
+- [x] T006 [US1] Confirm `system/.specify/memory/constitution.md` contains a
   `<!-- [F] global/repositories SECTION -->` block and that its `**Version**`
   line bumped from `1.1.0` with `Last Amended` updated _(satisfies FR-002,
   SC-001)_
@@ -56,28 +56,29 @@ session. US1 ships on its own.
 
 ______________________________________________________________________
 
-## Phase 3: User Story 2 - The written lists are removed (Priority: P2)
+## Phase 3: User Story 2 - The written list is removed (Priority: P2)
 
-**Goal**: The one document that hardcodes repository names stops.
+**Goal**: The one document that hardcodes repository names is gone, and memory
+holds only what was generated or archived into it.
 
-**Independent Test**:
-`grep -rn "nats-client" ~/git/osapi-io/specs --include="*.md"` returns no
-hand-maintained list.
+**Independent Test**: `ls -a system/.specify/memory/` shows only
+`constitution.md` and `.constitution-template.json`.
 
-- [ ] T007 [US2] Rewrite the reproduction script in
-  `system/.specify/memory/dependencies.md` so its `for d in ...` loop takes
-  repositories from `gh repo list osapi-io --no-archived --visibility public`
-  instead of naming them inline _(satisfies FR-003)_
-- [ ] T008 [US2] Confirm no hand-maintained repository list remains anywhere in
+- [x] T007 [US2] Delete `system/.specify/memory/dependencies.md` _(satisfies
+  FR-003)_
+- [x] T008 [US2] Confirm `system/.specify/memory/` now holds only
+  `constitution.md` and `.constitution-template.json` _(satisfies FR-004,
+  SC-004)_
+- [x] T009 [US2] Confirm no hand-maintained repository list remains anywhere in
   the specs repository _(satisfies SC-002)_
 
 ______________________________________________________________________
 
 ## Phase 4: Verification
 
-- [ ] T009 Confirm adding a repository needs no edit: the command's output is
+- [x] T010 Confirm adding a repository needs no edit: the command's output is
   the list, and nothing stores it _(satisfies SC-003)_
-- [ ] T010 Run `mise exec -- just test` and confirm `md-fmt-check` and
+- [x] T011 Run `mise exec -- just test` and confirm `md-fmt-check` and
   `just-fmt-check` are clean
 
 ______________________________________________________________________
@@ -87,9 +88,9 @@ ______________________________________________________________________
 - Setup (T001) first
 - US1 (T002–T006) next. T003 and T004 touch different files and can be done
   together; T005 needs both
-- US2 (T007–T008) can follow US1 or run alongside it — it touches a different
+- US2 (T007–T009) can follow US1 or run alongside it — it touches a different
   file
-- Verification (T009–T010) last
+- Verification (T010–T011) last
 
 ## Implementation Strategy
 

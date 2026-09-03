@@ -16,6 +16,13 @@ repositories writes its own. Two copies exist: the reproduction script in
 `system/.specify/memory/dependencies.md`, and a draft CI specification since set
 aside. Each was correct when written.
 
+`dependencies.md` has a second problem. Memory holds the consolidated output of
+merged features, and nothing in this project has ever been archived — no feature
+has merged. That file was hand-placed during the OpenSpec retirement in
+osapi-io/specs#103 because there was nowhere else to put it. Its dependency
+graph is a cached copy of what `go.mod` says, reproducible in seconds, sitting
+in a directory reserved for something else.
+
 GitHub already holds the answer:
 
 ```bash
@@ -48,21 +55,26 @@ rather than a list written somewhere.
 
 ______________________________________________________________________
 
-### User Story 2 - The written lists are removed (Priority: P2)
+### User Story 2 - The written list is removed (Priority: P2)
 
-`dependencies.md` stops naming repositories inline.
+`system/.specify/memory/dependencies.md` is deleted.
 
-**Why this priority**: A rule the repository already breaks in two places is not
-a rule yet.
+**Why this priority**: A rule the repository already breaks is not a rule yet.
+Deleting the file resolves both problems at once — the hardcoded repository
+list, and a file occupying memory without having been archived there.
 
-**Independent Test**: Searching the specs repository finds no hardcoded list.
+**Independent Test**: Memory holds only the generated constitution and its
+metadata. Searching the specs repository finds no hardcoded repository list.
 
 **Acceptance Scenarios**:
 
-1. **Given** `dependencies.md`, **When** its script runs, **Then** it takes
-   repositories from the command.
+1. **Given** `system/.specify/memory/`, **When** its contents are listed,
+   **Then** only `constitution.md` and `.constitution-template.json` remain.
 2. **Given** any document here, **When** searched for a hand-maintained
    repository list, **Then** none is found.
+3. **Given** the deleted dependency graph is wanted again, **When** it is
+   needed, **Then** it is reproduced from `go.mod` rather than read from a
+   record.
 
 ### Edge Cases
 
@@ -82,8 +94,12 @@ a rule yet.
 - **FR-002**: The rule MUST be a charter fragment in `.charter/`, with the
   constitution regenerated. `constitution.md` is generated; a direct edit is
   lost at the next compose.
-- **FR-003**: `system/.specify/memory/dependencies.md` MUST take its
-  repositories from the command instead of naming them inline.
+- **FR-003**: `system/.specify/memory/dependencies.md` MUST be deleted. It holds
+  a hardcoded repository list, and its dependency graph is a cached copy of what
+  `go.mod` already states. It also sits in memory without having been archived
+  there, which is the only way anything is meant to arrive.
+- **FR-004**: Memory MUST contain only the generated constitution and its
+  metadata until a merged feature is archived into it.
 
 ## Success Criteria *(mandatory)*
 
@@ -92,16 +108,25 @@ a rule yet.
 - **SC-001**: A session that read the constitution produces the repository list
   without being told how.
 - **SC-002**: No document here holds a hand-maintained repository list.
+- **SC-004**: `system/.specify/memory/` holds only `constitution.md` and
+  `.constitution-template.json`.
 - **SC-003**: Adding a repository requires no edit for it to be included.
 
 ## Assumptions
 
+- **Nothing of value is lost by deleting `dependencies.md`.** The graph
+  reproduces from `go.mod`. The one fact a command cannot produce — that `osapi`
+  once declared itself `github.com/retr0h/osapi` and was corrected in
+  osapi-io/osapi#446 — is in git history and in that repository.
+
 - **`gh` is available and authenticated.** Already required by the workflow.
+
 - **`.github/repos.json` is out of scope.** Those files configure one repository
   each; they are not a repository list. Consolidating them was considered and
   rejected — the shared block is byte-identical across all seven, so it has
   never drifted, and the one drift that occurred was per-repository data that
   consolidating would not have prevented.
+
 - **The `specs` topic drift is not fixed here.** `gh reposync --check` reports
   the manifest says `spec-kit` while GitHub says `openspec`, from
   osapi-io/specs#103. A one-command fix, unrelated to the repository list.
