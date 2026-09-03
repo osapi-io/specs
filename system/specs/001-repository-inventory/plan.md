@@ -9,10 +9,14 @@
 
 Add a charter fragment stating that the osapi-io repository list comes from
 `gh repo list osapi-io --no-archived --visibility public`, regenerate the
-constitution, and rewrite `dependencies.md` to use the command instead of naming
-repositories inline.
+constitution, and delete `dependencies.md`.
 
-Two files change. No code, no configuration, no other repository.
+That file holds a hardcoded repository list, caches a graph `go.mod` already
+states, and sits in memory without having been archived there — nothing in this
+project has ever been archived, because no feature has merged. Deleting it
+resolves all three.
+
+No code, no configuration, no other repository.
 
 ## Technical Context
 
