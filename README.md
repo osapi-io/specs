@@ -8,7 +8,7 @@
 The spec-driven development workspace for [osapi-io]. Every change is designed
 here first, then implemented in the repository it belongs to.
 
-## 🎯 Usage
+## Usage
 
 This repository holds no product code. It holds the design record and the
 durable knowledge behind [osapi-io]: what was agreed before something was built,
@@ -34,18 +34,18 @@ spanning several repositories, instead of scattering it across them.
 [CONTRIBUTING.md](CONTRIBUTING.md) has the workflow, the skills that run it, and
 the test for which level a change belongs to.
 
-## 📖 Documentation
+## Documentation
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers prerequisites, setup, how to operate
 Spec Kit here, and the PR workflow. The [Spec Kit] repository documents the tool
 itself.
 
-## 🤝 Contributing
+## Contributing
 
 See the [Contributing](CONTRIBUTING.md) guide for prerequisites, setup,
 conventions, and the PR workflow.
 
-## 📄 License
+## License
 
 The [MIT] License.
 

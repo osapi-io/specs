@@ -472,7 +472,7 @@ valuable thing you can give a spec.
 
 > I'm stuck, where can I get help?
 
-If you have questions, feel free to open a [Discussion] on GitHub.
+If you have questions, open a [Discussion] on GitHub.
 
 [brownfield bootstrap]: https://github.com/Quratulain-bilal/spec-kit-brownfield
 [claude code]: https://claude.ai/code
