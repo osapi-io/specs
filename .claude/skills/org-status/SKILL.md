@@ -66,6 +66,7 @@ PRS  3 open, 8 repos
 
   FAIL  osapi #477  dependabot   9d  otelecho 0.69 -> 0.71, deprecated upstream
         https://github.com/osapi-io/osapi/pull/477
+        -> say "fix 477" to migrate off the deprecated package
   ok    osapi #486  retr0h       4d  conform to the documented conventions
         https://github.com/osapi-io/osapi/pull/486
 
@@ -77,6 +78,7 @@ SECURITY  1 of 8 repos affected
     HIGH    7.2  CVE-2026-41567  docker cp race redirects bind mount to host
     MEDIUM  6.1  CVE-2026-41568  docker cp symlink swap writes empty host files
     https://github.com/osapi-io/osapi/security/dependabot
+  -> say "dismiss the docker alerts" to close all three as not_used
 
   no other repo depends on docker/docker
   code scanning off everywhere, which is not the same as clean
@@ -105,6 +107,16 @@ Rules for that shape:
   Everything healthy reads `ok` and needs no elaboration.
 - Say in one line whether any other repository shares the dependency. The
   reader's next question is always whether this is one problem or eight.
+- **End every actionable finding with the words that act on it**, as an
+  `-> say "..."` line. A reader who has to ask what to type has been handed a
+  status board instead of an answer, and the phrase is the one thing they cannot
+  guess. Quote it exactly as it should be typed:
+  - `-> say "dismiss the docker alerts" to close all three as not_used`
+  - `-> say "bump golang.org/x/sys" to open the PR`
+  - `-> say "fix 477" to migrate off the deprecated package`
+  - For EXPOSED with no patch there is no command, so say that:
+    `-> your call: narrow, replace, or accept. No upgrade exists.`
+  A finding with nothing to do gets no action line. Do not invent one.
 - Name clean repositories in one line, or say "the other 7 are clean". Never one
   line each.
 - No tables. They wrap at terminal width and turn one finding into four lines.

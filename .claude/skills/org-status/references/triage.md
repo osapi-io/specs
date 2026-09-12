@@ -130,6 +130,22 @@ score, and how long the alert has been open.
 Nothing to do. It will not appear in an `state=open` query, so this verdict
 only comes up when someone asks about a specific alert.
 
+## Say the phrase in the report
+
+Each verdict ends its block with the words that act on it, quoted exactly as
+they should be typed:
+
+| Verdict | Action line |
+| --- | --- |
+| UPGRADE AVAILABLE | `-> say "bump <package>" to open the PR` |
+| NOT AFFECTED | `-> say "dismiss the <package> alerts" to close all <n> as not_used` |
+| EXPOSED, NO PATCH | `-> your call: narrow, replace, or accept. No upgrade exists.` |
+| ALREADY DISMISSED | no action line |
+
+The verdict tells the reader what is true. The action line tells them what to
+type. Leaving it out turns the report into a status board they have to ask
+follow-up questions about, and the phrase is the one part they cannot guess.
+
 ## Rules
 
 1. **Never dismiss to shorten a list.** A dismissal is a claim that the code is
