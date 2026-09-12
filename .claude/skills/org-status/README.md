@@ -3,6 +3,29 @@
 Answers "what needs my attention across [osapi-io]?" without you opening eight
 browser tabs.
 
+```
+osapi-io · 12 Sep · 8 repos
+
+  repo                 pr   sec   ci
+  osapi                 1     0   ✅
+  gohai                 0     0   ✅
+  nats-client           0     0   ✅
+  nats-server           0     0   ✅
+  osapi-orchestrator    0     0   ✅
+  osapi-justfiles       0     0   ✅
+  specs                 0     0   ✅
+  .github               0     0   ⚪
+
+🔴 osapi #477 · dependabot · 9d · build failing
+   otelecho 0.69 -> 0.71, deprecated upstream
+   https://github.com/osapi-io/osapi/pull/477
+   → say "fix 477" to migrate off the deprecated package
+```
+
+Every repository gets a row, so an empty result is visibly a query that ran
+rather than one that failed. Detail blocks appear only for what needs you, and
+each ends with the words that act on it.
+
 An [Agent Skills] skill. The agent loads only the name and description until a
 question matches, then reads `SKILL.md`, then reads one reference file for the
 category you asked about. Nothing else enters context.
