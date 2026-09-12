@@ -67,7 +67,13 @@ Format details are in the [Agent Skills specification].
 See the [Contributing](../../../CONTRIBUTING.md) guide. Run `just skill-lint`
 after editing, and keep `SKILL.md` a router: an explanation of how to run a
 query belongs in a reference file, which loads only when the question calls for
-it.
+it. The output shape stays in `SKILL.md` because every route produces it, so a
+reference would load on every run anyway.
+
+Do not run mdformat over this directory. `just md-fmt` already excludes
+`.claude/**`, because mdformat reads the opening `---` as a horizontal rule and
+collapses YAML frontmatter into a heading, which makes a skill silently
+undiscoverable.
 
 ## License
 
