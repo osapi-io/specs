@@ -35,14 +35,23 @@ fetch:
 spec component *args:
     SPECIFY_INIT_DIR=components/{{ component }} uvx --from specify-cli=={{ speckit_version }} specify {{ args }}
 
+# --- Skills ---
+
+# Validate every SKILL.md against the Agent Skills specification
+[group('lint')]
+skill-lint:
+    uvx --with pyyaml python scripts/validate-skills.py
+
 # --- Top-level orchestration ---
 
 # Run all checks
 test:
     just md-fmt-check
     just just-fmt-check
+    just skill-lint
 
 # Format and lint before committing
 ready:
     just md-fmt
     just just-fmt
+    just skill-lint
