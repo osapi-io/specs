@@ -30,39 +30,61 @@ cannot see them" rather than as a clean result.
 
 ## Usage
 
-Ask in plain language. These all route correctly:
+Ask in plain language. Nothing needs special syntax.
+
+### Reading
 
 ```
 do i have any open PRs?
 any dependabot PRs?
 anything waiting on review?
-any security alerts across the org?
-any vulnerabilities in osapi?
+any security alerts?
 is CI green everywhere?
 give me a sweep of what needs attention
 ```
 
-In Claude Code you can also invoke it directly with `/org-status`.
-
-Paste a security URL and it triages that repository:
-
-```
-what do i do about https://github.com/osapi-io/osapi/security
-are we actually exposed to these?
-fix them
-```
-
-`fix` is the one path that writes. It establishes the verdict first, shows you
-the evidence and the exact command, and waits. A Dependabot alert resolves to a
-version bump, a dismissal with recorded reasoning, or a decision that is yours
-to make, and which one it is depends on whether the vulnerable code is
-reachable.
-
-Scope it by naming repositories, and it queries only those:
+Scope it by naming repositories and only those are queried:
 
 ```
 any open PRs in gohai and nats-client?
 ```
+
+### Triaging
+
+Paste a security URL, or ask what an alert means:
+
+```
+https://github.com/osapi-io/osapi/security
+what do i do about the osapi alerts?
+are we actually exposed to these?
+is that vulnerable code even reachable?
+```
+
+You get a verdict rather than a count: upgrade available, not affected, exposed
+with no patch, or already dismissed.
+
+### Fixing
+
+Any of these work, and all of them show you the verdict and the exact command
+before touching anything:
+
+```
+fix it
+fix the osapi security alerts
+dismiss them
+dismiss the docker alerts as not_used
+bump it
+```
+
+The verdict decides what the fix is. An upgrade is a version bump. A
+reachability finding is a dismissal with the checked import paths recorded as
+the comment. An exposed dependency with no upstream fix is a decision, and the
+skill brings you the evidence rather than picking for you.
+
+`fix` is the only path that writes, it always confirms first, and dismissals go
+one alert at a time.
+
+In Claude Code you can also invoke it directly with `/org-status`.
 
 ## Features
 
