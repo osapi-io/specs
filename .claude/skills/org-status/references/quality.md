@@ -32,6 +32,41 @@ gh run list --repo "osapi-io/$r" --workflow go.yml --branch main --limit 1 \
 Every Go repository here runs `go.yml`. The specs repository does not, so skip
 it or expect an empty result.
 
+## Go version drift
+
+The `go` directive must name the older of the two newest Go minor releases
+([why](../../../../.charter/fragments/global/tooling.md)). Nobody is notified
+when a new minor ships, so this is the check that catches it.
+
+```bash
+floor=$(curl -s --max-time 20 'https://proxy.golang.org/golang.org/toolchain/@v/list' \
+  | grep -oE 'go1\.[0-9]+' | sed 's/go1\.//' | sort -un | tail -2 | head -1 | sed 's/^/1./')
+
+gh repo list osapi-io --no-archived --visibility public --limit 200 --json name -q '.[].name' |
+while read -r r; do
+  d=$(gh api "/repos/osapi-io/$r/contents/go.mod" --jq '.content' 2>/dev/null \
+    | base64 -d 2>/dev/null | grep -m1 '^go ' | awk '{print $2}')
+  [ -z "$d" ] && continue
+  [ "${d%.*}" = "$floor" ] || printf "%s go %s, want %s.0\n" "$r" "$d" "$floor"
+done
+```
+
+Derive the floor, never hardcode it. A number written into this file is right
+the day it is written and wrong after the next release, which is the failure
+this check exists to catch.
+
+Report drift as one block naming every repository behind, not one per
+repository: the fix is the same edit in each, and a new Go release puts all of
+them behind at once.
+
+```
+🔴 go directive behind policy · want 1.26, Go 1.27 is out
+   nats-client 1.25.0 · osapi-orchestrator 1.25.7
+   → say "bump the go directive" to raise them
+```
+
+A repository with no `go.mod` is skipped rather than reported.
+
 ## Release state
 
 ```bash

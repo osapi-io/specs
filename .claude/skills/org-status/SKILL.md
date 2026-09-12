@@ -1,6 +1,6 @@
 ---
 name: org-status
-description: Report and act on outstanding work across the osapi-io GitHub organization. Covers open pull requests, Dependabot version bumps, Dependabot and code-scanning and secret-scanning alerts, and CI health on default branches. Also triages security alerts and fixes them on request. Use when asked whether there are any open PRs, any Dependabot PRs, anything waiting on review, any security or vulnerability alerts, whether CI is green, or for a sweep of what needs attention. Also use when asked what to do about an alert, whether the org is actually exposed or affected, whether vulnerable code is reachable, or to fix, bump, triage, or dismiss alerts, and whenever a GitHub osapi-io repository security URL is pasted.
+description: Report and act on outstanding work across the osapi-io GitHub organization. Covers open pull requests, Dependabot version bumps, Dependabot and code-scanning and secret-scanning alerts, and CI health on default branches. Also triages security alerts and fixes them on request. Use when asked whether there are any open PRs, any Dependabot PRs, anything waiting on review, any security or vulnerability alerts, whether CI is green, whether the go directive is behind a new Go release, or for a sweep of what needs attention. Also use when asked what to do about an alert, whether the org is actually exposed or affected, whether vulnerable code is reachable, or to fix, bump, triage, or dismiss alerts, and whenever a GitHub osapi-io repository security URL is pasted.
 compatibility: Requires the gh CLI, authenticated with read access to the osapi-io organization. Security alert queries need the security_events scope.
 license: MIT
 metadata:
@@ -33,7 +33,7 @@ never merge, and `gh search prs --owner osapi-io` counts them.
 | Any alerts, vulnerabilities, anything leaked | [security.md](references/security.md) |
 | What to do about an alert, are we exposed, a pasted `/security` URL | [triage.md](references/triage.md) |
 | Fix it, dismiss them, open the bump | [triage.md](references/triage.md), then act |
-| Is CI green, is anything failing or unreleased | [quality.md](references/quality.md) |
+| Is CI green, is anything failing or unreleased, are we on the right Go | [quality.md](references/quality.md) |
 | A sweep, or no clear category | All four, in that order |
 
 ## 3. Report
