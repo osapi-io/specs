@@ -26,7 +26,7 @@ Ask in plain language, or invoke it directly with `/org-status`.
 | --- | --- |
 | `any open PRs?` `anything waiting on review?` | Every open PR, human and bot separated, oldest first |
 | `any dependabot PRs?` | Just the version bumps |
-| `any security alerts?` `is CI green?` | Alert counts and default-branch health |
+| `any security alerts?` `is CI green?` | Alert counts, default-branch health, Go version drift |
 | `any open PRs in gohai?` | Only the repositories you name |
 | a pasted `/security` URL, `are we exposed?` | A triage verdict for that repository |
 | `fix it` `dismiss them` `bump it` | The fix for that verdict, shown before it runs |
@@ -58,7 +58,7 @@ and the fix follows from which.
 | [references/pull-requests.md](references/pull-requests.md) | Open PRs, author filtering, draft and mergeable and review state |
 | [references/security.md](references/security.md) | Dependabot, code-scanning and secret-scanning alerts, required scopes |
 | [references/triage.md](references/triage.md) | The four verdicts, how to establish each, the fix for each |
-| [references/quality.md](references/quality.md) | Default-branch checks, named workflows, release state, coverage |
+| [references/quality.md](references/quality.md) | Default-branch checks, Go version drift, named workflows, release state |
 
 Format details are in the [Agent Skills specification].
 

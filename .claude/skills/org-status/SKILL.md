@@ -33,7 +33,7 @@ never merge, and `gh search prs --owner osapi-io` counts them.
 | Any alerts, vulnerabilities, anything leaked | [security.md](references/security.md) |
 | What to do about an alert, are we exposed, a pasted `/security` URL | [triage.md](references/triage.md) |
 | Fix it, dismiss them, open the bump | [triage.md](references/triage.md), then act |
-| Is CI green, is anything failing or unreleased | [quality.md](references/quality.md) |
+| Is CI green, is anything failing or unreleased, are we on the right Go | [quality.md](references/quality.md) |
 | A sweep, or no clear category | All four, in that order |
 
 ## 3. Report
