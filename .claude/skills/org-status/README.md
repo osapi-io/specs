@@ -30,25 +30,61 @@ cannot see them" rather than as a clean result.
 
 ## Usage
 
-Ask in plain language. These all route correctly:
+Ask in plain language. Nothing needs special syntax.
+
+### Reading
 
 ```
 do i have any open PRs?
 any dependabot PRs?
 anything waiting on review?
-any security alerts across the org?
-any vulnerabilities in osapi?
+any security alerts?
 is CI green everywhere?
 give me a sweep of what needs attention
 ```
 
-In Claude Code you can also invoke it directly with `/org-status`.
-
-Scope it by naming repositories, and it queries only those:
+Scope it by naming repositories and only those are queried:
 
 ```
 any open PRs in gohai and nats-client?
 ```
+
+### Triaging
+
+Paste a security URL, or ask what an alert means:
+
+```
+https://github.com/osapi-io/osapi/security
+what do i do about the osapi alerts?
+are we actually exposed to these?
+is that vulnerable code even reachable?
+```
+
+You get a verdict rather than a count: upgrade available, not affected, exposed
+with no patch, or already dismissed.
+
+### Fixing
+
+Any of these work, and all of them show you the verdict and the exact command
+before touching anything:
+
+```
+fix it
+fix the osapi security alerts
+dismiss them
+dismiss the docker alerts as not_used
+bump it
+```
+
+The verdict decides what the fix is. An upgrade is a version bump. A
+reachability finding is a dismissal with the checked import paths recorded as
+the comment. An exposed dependency with no upstream fix is a decision, and the
+skill brings you the evidence rather than picking for you.
+
+`fix` is the only path that writes, it always confirms first, and dismissals go
+one alert at a time.
+
+In Claude Code you can also invoke it directly with `/org-status`.
 
 ## Features
 
@@ -69,10 +105,17 @@ endpoints return 404 for a repository that never enabled the feature, which
 looks exactly like zero alerts if you only count array length. The skill
 distinguishes "clean" from "not configured" from "token cannot see it".
 
-An alert with no patched version is reported as unfixable rather than as work.
-`first_patched_version` being null means no upgrade exists, so no Dependabot PR
-will ever arrive and the decision is whether to accept the risk. Listing it as
-a to-do makes the list dishonest.
+Alerts are triaged rather than counted. Dependabot knows a vulnerable version
+is in `go.mod`; it does not know whether the vulnerable code runs. The skill
+checks for a patched version, then checks which import paths the repository
+actually uses, and reports one of four verdicts: upgrade available, not
+affected, exposed with no patch, or already dismissed. "2 HIGH" is a count.
+`HIGH 7.2 CVE-2026-42306 archive endpoint runs container binary on host` next
+to a verdict is a decision.
+
+Reachability is established once per module, not once per repository, and the
+report says which other repositories share the dependency. The reader's next
+question is always whether this is one problem or eight.
 
 Output fits one terminal screen, with a twenty-line budget and bare URLs. A
 terminal makes a bare address cmd-clickable; `[text](url)` hides it behind
@@ -96,6 +139,22 @@ See the [Contributing](../../../CONTRIBUTING.md) guide.
 Keep `SKILL.md` a router. When it starts explaining how to run a query, that
 explanation belongs in a reference file, because `SKILL.md` loads on every
 activation and reference files load only when the question calls for them.
+
+Validate the frontmatter after editing it. The `description` is a plain YAML
+scalar, so a `: ` anywhere inside it makes the file invalid and the skill
+silently undiscoverable. Nothing warns you:
+
+```bash
+uvx --with pyyaml python -c "
+import re,sys,yaml,pathlib
+t=pathlib.Path('.claude/skills/org-status/SKILL.md').read_text()
+m=re.match(r'^---\n(.*?)\n---\n',t,re.S); assert m,'no frontmatter'
+print(sorted(yaml.safe_load(m.group(1))))"
+```
+
+A new capability needs its triggers in the `description` as well as its route in
+`SKILL.md`. The description is the only thing an agent sees before deciding to
+load the skill, so a route nothing routes to is dead weight.
 
 Every command in a reference file should be one that has been run against the
 live org. A command that looks right and has never executed is the failure mode

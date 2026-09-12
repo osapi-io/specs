@@ -1,6 +1,6 @@
 ---
 name: org-status
-description: Report outstanding work across the osapi-io GitHub organization. Covers open pull requests, Dependabot version bumps, Dependabot and code-scanning and secret-scanning alerts, and CI health on default branches. Use when asked whether there are any open PRs, any Dependabot PRs, anything waiting on review, any security or vulnerability alerts, whether CI is green, or for a general sweep of what needs attention across the org.
+description: Report and act on outstanding work across the osapi-io GitHub organization. Covers open pull requests, Dependabot version bumps, Dependabot and code-scanning and secret-scanning alerts, and CI health on default branches. Also triages security alerts and fixes them on request. Use when asked whether there are any open PRs, any Dependabot PRs, anything waiting on review, any security or vulnerability alerts, whether CI is green, or for a sweep of what needs attention. Also use when asked what to do about an alert, whether the org is actually exposed or affected, whether vulnerable code is reachable, or to fix, bump, triage, or dismiss alerts, and whenever a GitHub osapi-io repository security URL is pasted.
 compatibility: Requires the gh CLI, authenticated with read access to the osapi-io organization. Security alert queries need the security_events scope.
 license: MIT
 metadata:
@@ -42,6 +42,8 @@ asks why a count looks low.
 | Any open PRs? Anything waiting on me? Whose PRs are these? | [references/pull-requests.md](references/pull-requests.md) |
 | Any Dependabot PRs? What version bumps are pending? | [references/pull-requests.md](references/pull-requests.md) |
 | Any security alerts? Any vulnerabilities? Anything leaked? | [references/security.md](references/security.md) |
+| What do I do about this alert? Are we actually exposed? A pasted `/security` URL | [references/triage.md](references/triage.md) |
+| Fix it. Fix these alerts. Dismiss them. Open the bump. | [references/triage.md](references/triage.md), then act |
 | Is CI green? Is anything failing or unreleased? | [references/quality.md](references/quality.md) |
 | A general sweep, or no clear category | All three, in the order above |
 
@@ -60,27 +62,49 @@ reader cannot click it or copy it. Print the address.
 ### Shape
 
 ```
-PRS  3 open
+PRS  3 open, 8 repos
 
   FAIL  osapi #477  dependabot   9d  otelecho 0.69 -> 0.71, deprecated upstream
         https://github.com/osapi-io/osapi/pull/477
   ok    osapi #486  retr0h       4d  conform to the documented conventions
         https://github.com/osapi-io/osapi/pull/486
 
-SECURITY  2 HIGH, 1 MEDIUM in 1 of 8 repos
+SECURITY  1 of 8 repos affected
 
-  osapi  docker/docker v28.5.2  117d  NO PATCH AVAILABLE
-         https://github.com/osapi-io/osapi/security
+  osapi   github.com/docker/docker v28.5.2   direct, runtime   117d
+  NOT AFFECTED, daemon-side CVEs and osapi is a client
+    HIGH    7.2  CVE-2026-42306  archive endpoint runs container binary on host
+    HIGH    7.2  CVE-2026-41567  docker cp race redirects bind mount to host
+    MEDIUM  6.1  CVE-2026-41568  docker cp symlink swap writes empty host files
+    https://github.com/osapi-io/osapi/security/dependabot
+
+  no other repo depends on docker/docker
+  code scanning off everywhere, which is not the same as clean
+
+CI  every default branch green
 ```
 
 Rules for that shape:
 
 - Lead each section with the count. A number first tells the reader whether to
   keep reading.
+- **Name the repository where a reader cannot mistake it for something else.**
+  A bare word in column one beside a package name reads as part of the
+  dependency. Put the repository first on its own line with the package, and
+  indent the findings under it.
+- **Give each CVE its severity, its score, and what it does.** "2 HIGH" is a
+  count. `HIGH 7.2 CVE-2026-42306 archive endpoint runs container binary on
+  host` is a decision. One line each, and keep the effect under about seven
+  words.
+- Lead the block with the triage verdict, not the alert count. `NOT AFFECTED`,
+  `EXPOSED`, `UPGRADE AVAILABLE`. See
+  [references/triage.md](references/triage.md) for how each is established.
 - One line per finding, then its URL indented beneath. Age in days, not dates:
   `9d` is a judgement, `2026-09-03` is arithmetic homework.
-- Flag the exception in column one. `FAIL`, `NO PATCH`, `CONFLICT`. Everything
-  healthy reads `ok` and needs no elaboration.
+- Flag the exception in column one for pull requests: `FAIL`, `CONFLICT`.
+  Everything healthy reads `ok` and needs no elaboration.
+- Say in one line whether any other repository shares the dependency. The
+  reader's next question is always whether this is one problem or eight.
 - Name clean repositories in one line, or say "the other 7 are clean". Never one
   line each.
 - No tables. They wrap at terminal width and turn one finding into four lines.
@@ -104,8 +128,11 @@ why #477 fails". One line, and the reader chooses.
    not the same as clean."
 3. **Sort by what needs attention.** Failing before green, severity before
    count, oldest before newest.
-4. **Read, do not write.** Merging a PR or closing an alert is a separate
-   request the user makes explicitly.
+4. **Read by default. Write only when told to.** A question is answered, never
+   acted on. When the user does say fix, dismiss, or open the bump,
+   [references/triage.md](references/triage.md) has the write for each triage
+   verdict, and every one of them needs the verdict established first. Never
+   dismiss an alert to make a list shorter.
 
 ## Do not format this file with mdformat
 

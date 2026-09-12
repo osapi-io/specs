@@ -38,11 +38,11 @@ gh api "/repos/osapi-io/$r/dependabot/alerts?state=open&per_page=100" \
   --jq '.[] | "\(.security_advisory.severity)\t\(.dependency.package.name)\t\(.security_vulnerability.first_patched_version.identifier // "NO PATCH")\t\(.created_at[:10])"'
 ```
 
-**Check `first_patched_version` before reporting anything as actionable.** When
-it is null there is no version to upgrade to, so no Dependabot PR will ever
-appear and "bump the dependency" is not the fix. Say `NO PATCH AVAILABLE` and
-let the reader decide between accepting the risk, narrowing the dependency, or
-dropping it. Reporting an unfixable alert as work makes the list dishonest.
+**A count is not a finding.** Before reporting alerts as work, establish the
+verdict in [triage.md](triage.md): whether a patch exists, and whether the
+vulnerable code is reachable from this repository. An alert with no patch and no
+reachable call path is not work, and listing it as work makes the report
+dishonest.
 
 Group by package. One dependency often carries several advisories, and listing
 them separately turns one decision into three.
