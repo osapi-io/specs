@@ -55,6 +55,11 @@ Derive the floor, never hardcode it. A number written into this file is right
 the day it is written and wrong after the next release, which is the failure
 this check exists to catch.
 
+That command reads the **root** `go.mod` only. Nested modules under `examples/`
+declare their own directive and drift separately, which is how six gohai
+examples sat at `go 1.25.7` against a root of `1.26.0`. See
+[modules.md](modules.md) for finding and fixing those.
+
 Report drift as one block naming every repository behind, not one per
 repository: the fix is the same edit in each, and a new Go release puts all of
 them behind at once.
