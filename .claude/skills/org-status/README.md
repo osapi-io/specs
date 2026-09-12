@@ -1,198 +1,78 @@
 # org-status
 
-Answers "what needs my attention across [osapi-io]?" without you opening eight
+Answers "what needs my attention across [osapi-io]?" without opening eight
 browser tabs.
-
-```
-osapi-io · 12 Sep · 8 repos
-
-  repo                 pr   sec   ci
-  osapi                 1     0   ✅
-  gohai                 0     0   ✅
-  nats-client           0     0   ✅
-  nats-server           0     0   ✅
-  osapi-orchestrator    0     0   ✅
-  osapi-justfiles       0     0   ✅
-  specs                 0     0   ✅
-  .github               0     0   ⚪
-
-🔴 osapi #477 · dependabot · 9d · build failing
-   otelecho 0.69 -> 0.71, deprecated upstream
-   https://github.com/osapi-io/osapi/pull/477
-   → say "fix 477" to migrate off the deprecated package
-```
-
-Every repository gets a row, so an empty result is visibly a query that ran
-rather than one that failed. Detail blocks appear only for what needs you, and
-each ends with the words that act on it.
-
-An [Agent Skills] skill. The agent loads only the name and description until a
-question matches, then reads `SKILL.md`, then reads one reference file for the
-category you asked about. Nothing else enters context.
 
 ## Install
 
-Nothing to install. The skill lives at `.claude/skills/org-status/` in this
-repository and any skills-aware agent working from the repository root finds it.
+Nothing to install. The skill lives in this repository and any skills-aware
+agent working from the repository root finds it. It needs the [gh] CLI,
+authenticated.
 
-It needs the [gh] CLI, authenticated:
-
-```bash
-gh auth status
-```
-
-Security alert queries need one extra scope, which a stock `gh auth login` does
-not grant:
+Security alert queries need one scope a stock `gh auth login` does not grant:
 
 ```bash
 gh auth refresh -h github.com -s security_events
 ```
 
-Without it the alert endpoints return 403. The skill reports that as "the token
+Without it the alert endpoints return 403, which the skill reports as "the token
 cannot see them" rather than as a clean result.
 
 ## Usage
 
-Ask in plain language. Nothing needs special syntax.
+Ask in plain language, or invoke it directly with `/org-status`.
 
-### Reading
+| Ask | You get |
+| --- | --- |
+| `any open PRs?` `anything waiting on review?` | Every open PR, human and bot separated, oldest first |
+| `any dependabot PRs?` | Just the version bumps |
+| `any security alerts?` `is CI green?` | Alert counts and default-branch health |
+| `any open PRs in gohai?` | Only the repositories you name |
+| a pasted `/security` URL, `are we exposed?` | A triage verdict for that repository |
+| `fix it` `dismiss them` `bump it` | The fix for that verdict, shown before it runs |
 
-```
-do i have any open PRs?
-any dependabot PRs?
-anything waiting on review?
-any security alerts?
-is CI green everywhere?
-give me a sweep of what needs attention
-```
+Reading is the default. `fix` is the only path that writes, it always shows the
+verdict and the exact command first, and it confirms even when you have already
+said fix, because you would be approving a verdict you have not seen.
 
-Scope it by naming repositories and only those are queried:
+## How it works
 
-```
-any open PRs in gohai and nats-client?
-```
-
-### Triaging
-
-Paste a security URL, or ask what an alert means:
-
-```
-https://github.com/osapi-io/osapi/security
-what do i do about the osapi alerts?
-are we actually exposed to these?
-is that vulnerable code even reachable?
-```
-
-You get a verdict rather than a count: upgrade available, not affected, exposed
-with no patch, or already dismissed.
-
-### Fixing
-
-Any of these work, and all of them show you the verdict and the exact command
-before touching anything:
-
-```
-fix it
-fix the osapi security alerts
-dismiss them
-dismiss the docker alerts as not_used
-bump it
-```
-
-The verdict decides what the fix is. An upgrade is a version bump. A
-reachability finding is a dismissal with the checked import paths recorded as
-the comment. An exposed dependency with no upstream fix is a decision, and the
-skill brings you the evidence rather than picking for you.
-
-`fix` is the only path that writes, it always confirms first, and dismissals go
-one alert at a time.
-
-In Claude Code you can also invoke it directly with `/org-status`.
-
-## Features
-
-The repository list is never written down. Every run asks GitHub which
-repositories exist, so a new repository is covered the day it is created and a
-retired one stops being queried. The reasoning is in
+The repository list comes from `gh repo list osapi-io` on every run, never from
+a file here, so a new repository is covered the day it is created. The reasoning
+is in
 [.charter/fragments/global/repositories.md](../../../.charter/fragments/global/repositories.md).
 
-Human PRs and bot PRs are separated, because "do I have PRs" and "are there
-Dependabot bumps" are different questions with different urgency.
+`SKILL.md` routes and holds the output contract. One reference file loads for
+the category you asked about, and nothing else enters context.
 
-Alerts and version bumps are separated too. An alert says a vulnerability
-applies to you. A PR says a newer version exists. A repository with alerts and
-no PR needs a manual bump, and that gap is easy to miss.
-
-A query that failed is reported as a failure. Three of GitHub's security
-endpoints return 404 for a repository that never enabled the feature, which
-looks exactly like zero alerts if you only count array length. The skill
-distinguishes "clean" from "not configured" from "token cannot see it".
-
-Alerts are triaged rather than counted. Dependabot knows a vulnerable version
-is in `go.mod`; it does not know whether the vulnerable code runs. The skill
-checks for a patched version, then checks which import paths the repository
-actually uses, and reports one of four verdicts: upgrade available, not
-affected, exposed with no patch, or already dismissed. "2 HIGH" is a count.
-`HIGH 7.2 CVE-2026-42306 archive endpoint runs container binary on host` next
-to a verdict is a decision.
-
-Reachability is established once per module, not once per repository, and the
-report says which other repositories share the dependency. The reader's next
-question is always whether this is one problem or eight.
-
-Output fits one terminal screen, with a twenty-line budget and bare URLs. A
-terminal makes a bare address cmd-clickable; `[text](url)` hides it behind
-punctuation you cannot click. Detail is offered rather than printed.
+Alerts are triaged, not counted. Dependabot knows a vulnerable version is in
+`go.mod`; it does not know whether the vulnerable code runs. Each alert resolves
+to upgrade available, not affected, exposed with no patch, or already dismissed,
+and the fix follows from which.
 
 ## Documentation
 
-| File                                                       | Covers                                                                    |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------- |
-| [SKILL.md](SKILL.md)                                       | Repository resolution, routing, reporting rules                           |
-| [references/pull-requests.md](references/pull-requests.md) | Open PRs, author filtering, draft and mergeable and review state          |
-| [references/security.md](references/security.md)           | Dependabot, code-scanning and secret-scanning alerts, and required scopes |
-| [references/quality.md](references/quality.md)             | Default-branch checks, named workflows, release state, coverage           |
+| File | Covers |
+| --- | --- |
+| [SKILL.md](SKILL.md) | Repository resolution, routing, the output shape |
+| [references/pull-requests.md](references/pull-requests.md) | Open PRs, author filtering, draft and mergeable and review state |
+| [references/security.md](references/security.md) | Dependabot, code-scanning and secret-scanning alerts, required scopes |
+| [references/triage.md](references/triage.md) | The four verdicts, how to establish each, the fix for each |
+| [references/quality.md](references/quality.md) | Default-branch checks, named workflows, release state, coverage |
 
-The [Agent Skills specification] documents the format.
+Format details are in the [Agent Skills specification].
 
 ## Contributing
 
-See the [Contributing](../../../CONTRIBUTING.md) guide.
-
-Keep `SKILL.md` a router. When it starts explaining how to run a query, that
-explanation belongs in a reference file, because `SKILL.md` loads on every
-activation and reference files load only when the question calls for them.
-
-Validate after editing:
-
-```bash
-just skill-lint
-```
-
-`just test` and `just ready` both run it, and so does CI on every push and pull
-request. It checks the frontmatter against the
-[specification](https://agentskills.io/specification) and that every
-`references/` link resolves.
-
-The check exists because `description` is a plain YAML scalar, so a `: `
-anywhere inside it ends the key and the frontmatter stops parsing. That failure
-is silent in both directions: the file still looks fine, and the skill simply
-never loads. `just md-fmt` cannot catch it either, since it excludes
-`.claude/**` to stop mdformat collapsing the frontmatter into a heading.
-
-A new capability needs its triggers in the `description` as well as its route in
-`SKILL.md`. The description is the only thing an agent sees before deciding to
-load the skill, so a route nothing routes to is dead weight.
-
-Every command in a reference file should be one that has been run against the
-live org. A command that looks right and has never executed is the failure mode
-this skill exists to avoid.
+See the [Contributing](../../../CONTRIBUTING.md) guide. Run `just skill-lint`
+after editing, and keep `SKILL.md` a router: an explanation of how to run a
+query belongs in a reference file, which loads only when the question calls for
+it.
 
 ## License
 
 The [MIT] License.
 
-[agent skills]: https://agentskills.io
 [agent skills specification]: https://agentskills.io/specification
 [gh]: https://cli.github.com
 [mit]: ../../../LICENSE
