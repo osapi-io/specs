@@ -140,6 +140,22 @@ Keep `SKILL.md` a router. When it starts explaining how to run a query, that
 explanation belongs in a reference file, because `SKILL.md` loads on every
 activation and reference files load only when the question calls for them.
 
+Validate the frontmatter after editing it. The `description` is a plain YAML
+scalar, so a `: ` anywhere inside it makes the file invalid and the skill
+silently undiscoverable. Nothing warns you:
+
+```bash
+uvx --with pyyaml python -c "
+import re,sys,yaml,pathlib
+t=pathlib.Path('.claude/skills/org-status/SKILL.md').read_text()
+m=re.match(r'^---\n(.*?)\n---\n',t,re.S); assert m,'no frontmatter'
+print(sorted(yaml.safe_load(m.group(1))))"
+```
+
+A new capability needs its triggers in the `description` as well as its route in
+`SKILL.md`. The description is the only thing an agent sees before deciding to
+load the skill, so a route nothing routes to is dead weight.
+
 Every command in a reference file should be one that has been run against the
 live org. A command that looks right and has never executed is the failure mode
 this skill exists to avoid.
