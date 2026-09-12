@@ -3,73 +3,75 @@
 Resolve the repository set first, per [SKILL.md](../SKILL.md).
 
 Every `examples/` directory in this organization holds its own `go.mod`, 19 of
-them across five repositories. Dependabot does not see any of them: each
-`dependabot.yml` declares `gomod` at `directory: "/"` only, so the root module is
-watched and the nested ones drift untouched.
+them across five repositories. Dependabot watches the directory its config
+names, which is the root, so the nested ones drift untouched.
 
-## Find them
+The justfile knows how to do all of this. Do not hand-roll a `find` loop.
 
-```bash
-gh api "/repos/osapi-io/$r/git/trees/HEAD?recursive=1" \
-  --jq '.tree[] | select(.path | endswith("go.mod")) | select(.path != "go.mod") | .path'
-```
-
-Locally, which is what the fix needs anyway:
+## Report
 
 ```bash
-find ~/git/osapi-io/$r -name go.mod -not -path '*/.worktrees/*' -not -path "*/$r/go.mod"
+cd ~/git/osapi-io/$r && just go-mod-check
 ```
 
-Exclude `.worktrees/`. Another agent may have a branch checked out there, and its
-modules are not this repository's to tidy.
+Non-zero when a committed module is untidy, naming each one:
 
-## What drifts
+```
+untidy: examples/timings
+run 'just go-mod' and commit the result
+```
 
-**Tidiness.** `go mod tidy -diff` exits non-zero when the module is untidy and
-prints what would change. It writes nothing, so it is safe to run across every
-module before deciding anything.
+It no-ops in a repository with no `examples/`, so it is safe to run across all of
+them.
+
+Why a committed module can be untidy while CI is green: `just test` calls
+`go-mod`, which tidies, but CI does that in a throwaway checkout. The tidying is
+discarded and nothing compares it against what is committed.
+
+## Fix
 
 ```bash
-(cd "$d" && go mod tidy -diff)
+cd ~/git/osapi-io/$r && just go-mod-bump && just test
 ```
 
-**The `go` directive.** A nested module declares its own, and nothing keeps it in
-step with the root. All six gohai examples sat at `go 1.25.7` while the root was
-at `1.26.0`. The rule in
+`go-mod-bump` runs `go get -u ./...` then `go mod tidy` in each module under
+`examples/`, and says so and exits 0 where there is no `examples/`. Run the
+repository's own gate afterwards: several of these examples are referenced from
+the README, and a broken example is broken documentation.
+
+It leaves the root module alone on purpose. Dependabot owns that, and bumping it
+would drag along the tool versions `go get -tool` rewrites on every run, which is
+churn rather than a change.
+
+## The go directive
+
+A nested module declares its own, and nothing keeps it in step with the root. Six
+gohai examples sat at `go 1.25.7` against a root of `1.26.0`. The rule in
 [the charter](../../../../.charter/fragments/global/tooling.md) applies to these
-files too: the floor is the older of the two newest minor releases, and a nested
-module has no reason to differ from its parent.
+files too.
 
 ```bash
 find ~/git/osapi-io/$r -name go.mod -not -path '*/.worktrees/*' \
   -exec sh -c 'printf "%s\t%s\n" "$1" "$(grep -m1 "^go " "$1" | cut -d" " -f2)"' _ {} \;
 ```
 
-**Dependency versions.** A nested module resolves its own requirements, so it can
-pin an older version of something the root has already moved past.
+`just go-mod-bump` moves it as a side effect of tidying against the current
+toolchain, so this is a check rather than a separate fix.
 
-## Fixing
+Exclude `.worktrees/`. Another agent may have a branch checked out there, and its
+modules are not this repository's to tidy.
 
-```bash
-cd ~/git/osapi-io/$r
-for d in $(find . -name go.mod -not -path './.worktrees/*' -not -path './go.mod' -exec dirname {} \;); do
-  (cd "$d" && go get -u ./... && go mod tidy)
-done
-just ready && just test
-```
+## Do not compile the examples to check them
 
-`go get -u ./...` is what actually bumps; `go mod tidy` alone only reconciles
-what is already required. Run the repository's own gate afterwards: an example
-that no longer compiles is a broken example, and several of these are referenced
-from the README.
+`go build ./...` writes a binary into each directory, which is how 52 stray
+binaries once ended up committed-adjacent across three repositories. `-o /dev/null`
+fails outright when a directory holds several `main` packages, which several of
+these do. `just test` is the check; if something beyond that is needed, `go vet`
+compiles without emitting anything.
 
-A module using `replace ... => ../../` to point at its parent needs no version
-bump for the parent, and `go get -u` will not invent one.
+## The durable fix, which is not this
 
-## The better fix, which is not this
-
-Dependabot v2 takes `directories` with globs, so the drift could stop happening
-rather than be swept up:
+Dependabot v2 takes `directories` with globs, so the drift could stop happening:
 
 ```yaml
 - package-ecosystem: "gomod"
@@ -78,6 +80,7 @@ rather than be swept up:
     - "/examples/*"
 ```
 
-Worth proposing when reporting this. The cost is more Dependabot pull requests;
-the benefit is that nobody has to remember. Do not change `dependabot.yml`
-without asking: it decides how much noise the repository generates.
+And adding `go-mod-check` to a repository's `test` recipe would fail the build
+rather than leaving the drift to be noticed. Both trade noise for not having to
+remember, and both change how a repository behaves, so propose them rather than
+making them.
