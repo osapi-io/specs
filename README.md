@@ -34,6 +34,19 @@ spanning several repositories, instead of scattering it across them.
 [CONTRIBUTING.md](CONTRIBUTING.md) has the workflow, the skills that run it, and
 the test for which level a change belongs to.
 
+## Skills
+
+Skills in this repository answer questions that span every repository in the
+organization. They take the repository list from GitHub on each run rather than
+from a file here, so they stay correct as repositories come and go.
+
+| Skill                                             | Answers                                                                                          |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| [org-status](.claude/skills/org-status/README.md) | Open pull requests, Dependabot bumps, security alerts, and whether CI is green across [osapi-io] |
+
+Each follows the [Agent Skills] format: a slim `SKILL.md` that routes, with the
+detail in reference files an agent reads only when the question calls for them.
+
 ## Documentation
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers prerequisites, setup, how to operate
@@ -49,6 +62,7 @@ conventions, and the PR workflow.
 
 The [MIT] License.
 
+[agent skills]: https://agentskills.io
 [mit]: LICENSE
 [osapi-io]: https://github.com/osapi-io
 [spec kit]: https://github.com/github/spec-kit

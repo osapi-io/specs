@@ -13,3 +13,6 @@ node_modules/
 # extension command.
 components/*/.specify/extensions/.cache/
 components/*/.specify/extensions/.backup/
+
+# Swamp writes a local extension catalog here when run from this directory.
+.swamp/
