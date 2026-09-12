@@ -44,6 +44,20 @@ give me a sweep of what needs attention
 
 In Claude Code you can also invoke it directly with `/org-status`.
 
+Paste a security URL and it triages that repository:
+
+```
+what do i do about https://github.com/osapi-io/osapi/security
+are we actually exposed to these?
+fix them
+```
+
+`fix` is the one path that writes. It establishes the verdict first, shows you
+the evidence and the exact command, and waits. A Dependabot alert resolves to a
+version bump, a dismissal with recorded reasoning, or a decision that is yours
+to make, and which one it is depends on whether the vulnerable code is
+reachable.
+
 Scope it by naming repositories, and it queries only those:
 
 ```
@@ -69,10 +83,17 @@ endpoints return 404 for a repository that never enabled the feature, which
 looks exactly like zero alerts if you only count array length. The skill
 distinguishes "clean" from "not configured" from "token cannot see it".
 
-An alert with no patched version is reported as unfixable rather than as work.
-`first_patched_version` being null means no upgrade exists, so no Dependabot PR
-will ever arrive and the decision is whether to accept the risk. Listing it as
-a to-do makes the list dishonest.
+Alerts are triaged rather than counted. Dependabot knows a vulnerable version
+is in `go.mod`; it does not know whether the vulnerable code runs. The skill
+checks for a patched version, then checks which import paths the repository
+actually uses, and reports one of four verdicts: upgrade available, not
+affected, exposed with no patch, or already dismissed. "2 HIGH" is a count.
+`HIGH 7.2 CVE-2026-42306 archive endpoint runs container binary on host` next
+to a verdict is a decision.
+
+Reachability is established once per module, not once per repository, and the
+report says which other repositories share the dependency. The reader's next
+question is always whether this is one problem or eight.
 
 Output fits one terminal screen, with a twenty-line budget and bare URLs. A
 terminal makes a bare address cmd-clickable; `[text](url)` hides it behind
