@@ -140,17 +140,22 @@ Keep `SKILL.md` a router. When it starts explaining how to run a query, that
 explanation belongs in a reference file, because `SKILL.md` loads on every
 activation and reference files load only when the question calls for them.
 
-Validate the frontmatter after editing it. The `description` is a plain YAML
-scalar, so a `: ` anywhere inside it makes the file invalid and the skill
-silently undiscoverable. Nothing warns you:
+Validate after editing:
 
 ```bash
-uvx --with pyyaml python -c "
-import re,sys,yaml,pathlib
-t=pathlib.Path('.claude/skills/org-status/SKILL.md').read_text()
-m=re.match(r'^---\n(.*?)\n---\n',t,re.S); assert m,'no frontmatter'
-print(sorted(yaml.safe_load(m.group(1))))"
+just skill-lint
 ```
+
+`just test` and `just ready` both run it, and so does CI on every push and pull
+request. It checks the frontmatter against the
+[specification](https://agentskills.io/specification) and that every
+`references/` link resolves.
+
+The check exists because `description` is a plain YAML scalar, so a `: `
+anywhere inside it ends the key and the frontmatter stops parsing. That failure
+is silent in both directions: the file still looks fine, and the skill simply
+never loads. `just md-fmt` cannot catch it either, since it excludes
+`.claude/**` to stop mdformat collapsing the frontmatter into a heading.
 
 A new capability needs its triggers in the `description` as well as its route in
 `SKILL.md`. The description is the only thing an agent sees before deciding to
