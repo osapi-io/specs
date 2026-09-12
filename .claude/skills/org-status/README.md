@@ -69,6 +69,15 @@ endpoints return 404 for a repository that never enabled the feature, which
 looks exactly like zero alerts if you only count array length. The skill
 distinguishes "clean" from "not configured" from "token cannot see it".
 
+An alert with no patched version is reported as unfixable rather than as work.
+`first_patched_version` being null means no upgrade exists, so no Dependabot PR
+will ever arrive and the decision is whether to accept the risk. Listing it as
+a to-do makes the list dishonest.
+
+Output fits one terminal screen, with a twenty-line budget and bare URLs. A
+terminal makes a bare address cmd-clickable; `[text](url)` hides it behind
+punctuation you cannot click. Detail is offered rather than printed.
+
 ## Documentation
 
 | File                                                       | Covers                                                                    |

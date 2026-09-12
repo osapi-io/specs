@@ -2,8 +2,24 @@
 
 Resolve the repository set first, per [SKILL.md](../SKILL.md).
 
-Three separate systems answer "is anything wrong". They fail differently, so
-query them separately and report them separately.
+## Ask the organization, not each repository
+
+All three alert systems have an org-level endpoint. One call each, covering
+every repository:
+
+```bash
+for kind in dependabot secret-scanning code-scanning; do
+  n=$(gh api "/orgs/osapi-io/$kind/alerts?state=open&per_page=100" --jq 'length' 2>/dev/null || true)
+  printf "%-16s %s\n" "$kind" "${n:-not available}"
+done
+```
+
+Three calls instead of three per repository. Use this first, and only drop to
+per-repository queries when something is non-zero and you need to know where.
+
+The org endpoints cover archived and private repositories too, so a count here
+can exceed what the public non-archived repository set explains. That is not an
+error.
 
 ## Dependabot alerts
 
@@ -11,31 +27,32 @@ A known vulnerability in a declared dependency. This is the one that usually has
 findings.
 
 ```bash
-gh repo list osapi-io --no-archived --visibility public --limit 200 --json name -q '.[].name' |
-while read -r r; do
-  n=$(gh api "/repos/osapi-io/$r/dependabot/alerts?state=open&per_page=100" --jq 'length' 2>/dev/null)
-  printf "%-22s %s\n" "$r" "${n:-query failed}"
-done
+gh api "/orgs/osapi-io/dependabot/alerts?state=open&per_page=100" \
+  --jq 'group_by(.repository.name)[] | "\(.[0].repository.name)\t\(length) alert(s)"'
 ```
 
-Then pull the detail for any repository with a non-zero count:
+Then the detail for one repository:
 
 ```bash
 gh api "/repos/osapi-io/$r/dependabot/alerts?state=open&per_page=100" \
-  --jq '.[] | "\(.security_advisory.severity)\t\(.dependency.package.name)\t\(.dependency.manifest_path)\t\(.security_advisory.summary)"'
+  --jq '.[] | "\(.security_advisory.severity)\t\(.dependency.package.name)\t\(.security_vulnerability.first_patched_version.identifier // "NO PATCH")\t\(.created_at[:10])"'
 ```
 
-Sort by severity: `critical`, `high`, `medium`, `low`. Group by package, because
-one dependency often carries several advisories and reporting them as separate
-problems overstates the work.
+**Check `first_patched_version` before reporting anything as actionable.** When
+it is null there is no version to upgrade to, so no Dependabot PR will ever
+appear and "bump the dependency" is not the fix. Say `NO PATCH AVAILABLE` and
+let the reader decide between accepting the risk, narrowing the dependency, or
+dropping it. Reporting an unfixable alert as work makes the list dishonest.
 
-The human page is `https://github.com/osapi-io/<repo>/security/dependabot`. Give
-that URL alongside the counts.
+Group by package. One dependency often carries several advisories, and listing
+them separately turns one decision into three.
 
-An alert and a Dependabot PR are different things. An alert says a vulnerability
-applies. A PR says a newer version exists. A repository can have alerts with no
-PR, which usually means the fix needs a manual bump, and that is worth saying
-out loud.
+The page a human wants is `https://github.com/osapi-io/<repo>/security`. Print
+that, bare.
+
+An alert and a Dependabot PR are different things. An alert says a
+vulnerability applies. A PR says a newer version exists. Either can exist
+without the other.
 
 ## Code scanning alerts
 
