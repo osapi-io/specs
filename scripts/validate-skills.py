@@ -83,9 +83,14 @@ def check(skill: Path) -> list[str]:
     if lines > 500:
         bad.append(f"{lines} lines, specification recommends under 500")
 
-    for target in re.findall(r"\]\((references/[^)#]+)\)", body):
-        if not (skill.parent / target).exists():
+    for target in re.findall(r"\]\(((?:\.\./|references/)[^)#:]+\.md)\)", body):
+        if not (skill.parent / target).resolve().exists():
             bad.append(f"links {target}, which does not exist")
+
+    for ref in sorted(skill.parent.glob("references/*.md")):
+        for target in re.findall(r"\]\(((?:\.\./|[a-z])[^)#:]+\.md)\)", ref.read_text()):
+            if not (ref.parent / target).resolve().exists():
+                bad.append(f"{ref.name} links {target}, which does not exist")
 
     return bad
 

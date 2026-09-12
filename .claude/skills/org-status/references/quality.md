@@ -35,7 +35,7 @@ it or expect an empty result.
 ## Go version drift
 
 The `go` directive must name the older of the two newest Go minor releases
-([why](../../../.charter/fragments/global/go-version.md)). Nobody is notified
+([why](../../../../.charter/fragments/global/tooling.md)). Nobody is notified
 when a new minor ships, so this is the check that catches it.
 
 ```bash
