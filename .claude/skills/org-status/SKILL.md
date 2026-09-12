@@ -29,6 +29,12 @@ Narrow the set at the point of use. If the user names repositories, query only
 those. Otherwise query all of them, `.github` included, since it carries
 workflow dependencies of its own.
 
+`--no-archived` is doing real work. `osapi-sdk` and `osapi-ui` are archived and
+hold eleven open Dependabot pull requests between them, none of which can ever
+merge. `gh search prs --owner osapi-io` returns all eleven and makes the org
+look four times busier than it is. Mention that they exist only if the user
+asks why a count looks low.
+
 ## Step 2: route to the question
 
 | The user asks | Read |
@@ -39,22 +45,67 @@ workflow dependencies of its own.
 | Is CI green? Is anything failing or unreleased? | [references/quality.md](references/quality.md) |
 | A general sweep, or no clear category | All three, in the order above |
 
-## Rules
+## Step 3: report
 
-1. **Report zero as zero.** "No open PRs in any of the 8 repositories" is a
-   real answer. Say how many repositories you checked, so an empty result is
-   distinguishable from a query that silently failed.
-2. **A failed query is not a clean result.** Three of GitHub's security
-   endpoints return a 404 body for a repository that never enabled the feature,
-   which looks identical to zero alerts if you only count array length. Each
-   reference file says which, and how to tell them apart. Report those
-   separately from a genuine zero.
-3. **Sort by what needs attention.** Severity first for alerts, age first for
-   pull requests. A three-week-old PR matters more than yesterday's.
-4. **Give the URL.** Every finding gets its full address, not link text that
-   hides it.
-5. **Read, do not write.** This skill answers questions. Merging a PR, closing
-   an alert, or pushing a fix is a separate request the user makes explicitly.
+The output is read in a terminal. It must fit one screen. **Twenty lines is the
+budget, and a sweep of a clean org should take five.** A reader who has to
+scroll has been given a worse answer, not a more thorough one.
+
+### Bare URLs, never markdown links
+
+Ghostty and every other terminal linkify a bare URL and make it cmd-clickable.
+`[text](url)` renders as literal punctuation with the address hidden, so the
+reader cannot click it or copy it. Print the address.
+
+### Shape
+
+```
+PRS  3 open
+
+  FAIL  osapi #477  dependabot   9d  otelecho 0.69 -> 0.71, deprecated upstream
+        https://github.com/osapi-io/osapi/pull/477
+  ok    osapi #486  retr0h       4d  conform to the documented conventions
+        https://github.com/osapi-io/osapi/pull/486
+
+SECURITY  2 HIGH, 1 MEDIUM in 1 of 8 repos
+
+  osapi  docker/docker v28.5.2  117d  NO PATCH AVAILABLE
+         https://github.com/osapi-io/osapi/security
+```
+
+Rules for that shape:
+
+- Lead each section with the count. A number first tells the reader whether to
+  keep reading.
+- One line per finding, then its URL indented beneath. Age in days, not dates:
+  `9d` is a judgement, `2026-09-03` is arithmetic homework.
+- Flag the exception in column one. `FAIL`, `NO PATCH`, `CONFLICT`. Everything
+  healthy reads `ok` and needs no elaboration.
+- Name clean repositories in one line, or say "the other 7 are clean". Never one
+  line each.
+- No tables. They wrap at terminal width and turn one finding into four lines.
+
+### What to leave out
+
+Detail the reader did not ask for costs them the finding they did. Omit check
+counts for green branches, per-repository zeroes, endpoint names, and the
+commands you ran. A failing check gets its log URL; a passing one gets nothing.
+
+Offer the detail instead of printing it: "say the word and I will dig into
+why #477 fails". One line, and the reader chooses.
+
+### Rules that hold regardless of length
+
+1. **Report zero as zero, with the denominator.** "No open PRs in any of the 8
+   repositories." The count proves the query ran.
+2. **A failed query is not a clean result.** Code scanning returns nothing for a
+   repository that never enabled it, which is indistinguishable from zero
+   findings by length alone. One line: "code scanning: off everywhere, which is
+   not the same as clean."
+3. **Sort by what needs attention.** Failing before green, severity before
+   count, oldest before newest.
+4. **Read, do not write.** Merging a PR or closing an alert is a separate
+   request the user makes explicitly.
 
 ## Do not format this file with mdformat
 
