@@ -66,8 +66,6 @@ osapi-io · 12 Sep · 8 repos
    → say "dismiss the docker alerts" to close all three as not_used
 
    no other repo depends on docker/docker
-
-⚪ code scanning off everywhere, which is not the same as clean
 ```
 
 - **Grid.** Fixed-width ASCII, repository column padded to the longest name.
@@ -95,10 +93,18 @@ osapi-io · 12 Sep · 8 repos
 
 1. **Zero is an answer, with its denominator.** "No open PRs in any of the 8
    repositories." The count proves the query ran.
-2. **A failed query is not a clean result.** Code scanning returns nothing for a
-   repository that never enabled it, which by length alone looks like zero
-   findings.
-3. **Read by default. Write only when told to.** On fix, dismiss or bump,
+2. **A failed query is not a clean result**, but say so once and not again. Code
+   scanning returns nothing for a repository that never enabled it, which by
+   length alone looks like zero findings. Report that the first time it is
+   asked, or when it changes. Repeating it every sweep trains the reader to skip
+   the last line, which is where a real finding will one day sit.
+3. **A standing condition is not a finding.** Something the reader has already
+   seen and chosen not to act on is state, not news: branches whose pull request
+   was closed, a protected `gh-pages`, a feature nobody has enabled. Leave them
+   out unless the user asks for them, they changed, or they are what the question
+   was about. A finding earns its line by being new, actionable, or both, and an
+   action line on something the reader keeps declining is nagging.
+4. **Read by default. Write only when told to.** On fix, dismiss or bump,
    [triage.md](references/triage.md) has the write for each verdict and every
    one needs the verdict established first. Never dismiss an alert to shorten a
    list.
