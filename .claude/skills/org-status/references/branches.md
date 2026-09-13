@@ -59,11 +59,15 @@ another.
 🔴 18 merged branches safe to delete · 7 repos
    osapi 6 · gohai 4 · specs 5 · osapi-orchestrator 1 · nats-client 2
    → say "delete the merged branches" to remove them
-
-⚪ 11 branches whose PR was closed unmerged, deleting discards the work
-   osapi/chore/remove-generated-package-docs · gohai/feat/schema-corpus-tier1 · …
-   → say "delete the abandoned branches too" only if you mean it
 ```
+
+Report the merged ones, because they are work with nothing left to decide.
+
+**Do not report the abandoned ones in a sweep.** A branch whose pull request was
+closed is a decision the reader already made, and repeating it every run with an
+action line attached is nagging rather than reporting. Name them when asked about
+branches directly, and leave them out otherwise. The same holds for a protected
+branch: nobody needs telling that `gh-pages` is still `gh-pages`.
 
 ## Deleting
 
