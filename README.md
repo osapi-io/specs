@@ -37,12 +37,18 @@ the test for which level a change belongs to.
 ## Skills
 
 Skills in this repository answer questions that span every repository in the
-organization. They take the repository list from GitHub on each run rather than
-from a file here, so they stay correct as repositories come and go.
+organization, and carry the operational knowledge for working in them.
 
-| Skill                                             | Answers                                                                                          |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| [org-status](.claude/skills/org-status/README.md) | Open pull requests, Dependabot bumps, security alerts, and whether CI is green across [osapi-io] |
+None of them lists what it describes. `org-status` takes the repository list
+from GitHub on each run, and `add-a-domain` resolves its reference domain from
+the codebase, so both stay correct as repositories and layers come and go. An
+inventory written into a skill is right the day it is written and wrong after
+the next change, with nothing marking the moment.
+
+| Skill                                                 | Answers                                                                                                   |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| [org-status](.claude/skills/org-status/README.md)     | Open pull requests, Dependabot bumps, security alerts, and whether CI is green across [osapi-io]          |
+| [add-a-domain](.claude/skills/add-a-domain/README.md) | Adding an osapi domain: the provider and every layer it has to appear in, in the order that avoids rework |
 
 Each follows the [Agent Skills] format: a slim `SKILL.md` that routes, with the
 detail in reference files an agent reads only when the question calls for them.
