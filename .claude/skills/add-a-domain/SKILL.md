@@ -90,9 +90,11 @@ the new domain, should return the same shape of list as the reference domain.
 ## 5. Verify
 
 ```bash
-mise exec -- just generate     # specs, server, SDK client, docs
-mise exec -- just ready        # generate, format, lint, build both binaries
-mise exec -- just test         # lint, unit, coverage gate
+mise exec -- just react-build            # populate ui/dist first, see below
+mise exec -- just generate               # specs, server, SDK client, docs
+mise exec -- just ready                  # generate, format, lint, build
+mise exec -- just test                   # lint, unit, coverage gate
+mise exec -- just docusaurus-fmt-check   # the site formatter, see below
 ```
 
 Coverage is gated at 99.9%, so an untested branch fails the build rather than
@@ -101,7 +103,18 @@ under `examples/` is untidy: a new SDK example adds one.
 
 Never run `go build ./...` or `go test ./...` directly. The UI is embedded with
 `//go:embed dist/*`, so both fail unless `ui/dist/` is populated, which the
-`just` recipes do first.
+`just` recipes do first. In a fresh clone or worktree, run `just react-build`
+before `just ready`: `ready` lints before it builds the UI, so the linter fails
+to import the embed package and reports a `typecheck` error on a file nobody
+touched.
+
+**`just ready` and `just test` do not check the documentation site.** `md-fmt`
+excludes `docs/` because Prettier owns that tree through `just docusaurus-fmt`,
+so a change touching a feature page, a CLI page or the configuration reference
+passes both gates and still fails CI's `Docusaurus Lint`. Three merged security
+fixes left five pages unformatted that way in September 2026, and main was red
+until osapi-io/osapi#512. Run `just docusaurus-fmt-check` whenever the change
+touches `docs/`, which [docs.md](references/docs.md) says it always does.
 
 ## Rules
 
