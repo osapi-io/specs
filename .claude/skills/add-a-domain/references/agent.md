@@ -64,7 +64,8 @@ registry.Register("{domain}",
 // WireProviderFacts reaches it. Read the current parameter list.
 ```
 
-Platform selection happens here, not in the provider:
+Platform selection happens here, not in the provider. `Detect` and
+`IsContainer` come from `pkg/sdk/platform`:
 
 ```go
 switch osFamily {
