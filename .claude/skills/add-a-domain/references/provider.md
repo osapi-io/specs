@@ -14,7 +14,7 @@ Read the reference domain's provider package before writing.
 | Pattern | Writes files | Platform variants | Example |
 | --- | --- | --- | --- |
 | Direct | no | yes | `node/process`, `node/power` |
-| Meta | through `file.Deployer` | yes | `node/cron`, `node/service` |
+| Meta | through `file.Deployer` | yes | `scheduled/cron`, `node/service` |
 | Direct-write | itself, via `avfs.VFS` | yes | `node/sysctl` |
 | SDK-based | no | no | `container/docker` |
 
@@ -107,7 +107,7 @@ Test that every stub method returns `ErrUnsupported`, on Darwin and on Linux.
 `DebianDocker` either embeds `Debian`, delegating reads and overriding writes,
 or stands alone. `node/host` embeds and blocks `UpdateHostname`; `network/dns`
 stands alone and reads `/etc/resolv.conf` directly. The agent chooses via
-`platform.IsContainer()`.
+`platform.IsContainer()`, from `pkg/sdk/platform`.
 
 ## Facts
 
