@@ -27,9 +27,27 @@ Two shapes, depending on whether the domain is its own category:
   category's processor and delegate to helpers in the new file. Read
   `processor_node.go` for the current switch.
 
-Operation constants live in `internal/job`, named
-`Operation{Domain}{Operation}`. Add them there, not as string literals at the
-call sites.
+Operation constants are defined once in `pkg/sdk/client/operations.go` as
+`JobOperation` strings shaped `{category}.{domain}.{operation}`, for example
+`"node.sysctl.list"`. `internal/job/types.go` aliases each one as
+`Operation{Domain}{Operation}` for use inside the repository. Add the constant
+to `operations.go` and the alias beside its siblings, and never write the string
+literal at a call site: that is how a handler and an agent come to disagree
+about an operation name.
+
+## What a domain does not touch
+
+The sibling NATS projects stay out of this. Nothing under `internal/provider/`,
+`internal/controller/` or `pkg/sdk/` imports `osapi-io/nats-client`; only
+`cmd/` wiring, `internal/agent/consumer.go` and `internal/cli` do. A new domain
+reuses the subjects that already exist (`jobs.query.*` and `jobs.modify.*`,
+routed per host) and the buckets that already exist, so it adds no stream, no
+consumer and no KV bucket.
+
+Streams and buckets are declared once in `internal/job/config.go`. A domain
+that genuinely needs storage of its own is a change to the job layer, with its
+own spec, rather than part of adding a domain. Meta providers write through the
+file-state KV the file provider already owns.
 
 ## 2. The registration
 
