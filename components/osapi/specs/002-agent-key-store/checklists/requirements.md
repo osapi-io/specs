@@ -55,11 +55,10 @@ attempted: each available fix removes something the constitution requires.
 
 ### Deliberate choices
 
-- **FR-009 states a question rather than an answer.** What happens to agents
-  enrolled before this feature — reject, or accept until re-enrolment — is a
-  rollout decision with real operational cost, and the spec requires it to be
-  decided and applied consistently rather than pre-empting it here.
-  `/speckit-clarify` is the right place to settle it.
+- **FR-009 was a question; clarify answered it.** Enforcement is opt-in per
+  side, and once on, an agent with no stored key is refused there. Recorded
+  under Clarifications, applied to FR-009, with SC-007 added for the staged
+  rollout.
 - **FR-006 constrains targeting, not just storage.** Deterministic resolution is
   what actually closes GHSA-j73r; a store nobody consults would satisfy the
   letter of the other requirements and leave the attack open.
