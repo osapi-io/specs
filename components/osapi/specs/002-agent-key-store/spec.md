@@ -19,6 +19,16 @@ pending-enrollment record and deleted when the record is, so every
 controller-side verification path finds no key and skips. This specifies the
 store and what must depend on it.
 
+## Clarifications
+
+### Session 2026-09-18
+
+- Q: When the controller holds no key for an agent — today, every agent — must
+  it refuse that agent's messages, or accept them until the agent re-enrols? →
+  A: Refuse, but only once the operator enables enforcement for that side, with
+  the fleet view showing which agents still lack a key so re-enrolment can be
+  staged.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - The controller can tell a real agent's answer from a forged one (Priority: P1)
@@ -160,10 +170,14 @@ messages signed with a key that was removed do not verify at all.
   and `PreviousControllerPublicKey`.
 - **FR-008**: The system MUST remove a stored key when its agent is removed or
   its enrollment is rejected, after which nothing signed by that key verifies.
-- **FR-009**: The system MUST state, and apply consistently across responses and
-  registrations, what happens when no key is stored for an agent — including
-  agents enrolled before this feature existed. Whichever behaviour is chosen
-  MUST NOT be "treat as verified".
+- **FR-009**: Enforcement MUST be something the operator turns on per side, and
+  MUST NOT begin as a side effect of upgrading. Once enforcement is on for a
+  side, a message from an agent with no stored key MUST be refused there. Until
+  it is on, such a message is handled as it is today. "Treat as verified" is
+  never an outcome: an agent is either enforced against, or not yet enforced.
+  Evidence: `internal/controller/enrollment/accept.go` deletes the pending
+  record, so no existing deployment holds a stored key and every agent starts in
+  this state.
 - **FR-010**: Verification failures MUST be distinguishable by cause: no stored
   key, signature mismatch, and store unavailable are different conditions and
   MUST be reported differently, so an operator can tell "not enrolled yet" from
@@ -204,6 +218,9 @@ messages signed with a key that was removed do not verify at all.
 - **SC-004**: Rotating an agent's key causes no rejected messages for correctly
   behaving agents, and messages signed with the old key stop verifying once the
   grace period lapses.
+- **SC-007**: An operator can enable enforcement on one side, see which agents
+  would be refused, re-enrol them, and complete the rollout without the fleet
+  refusing work at a moment they did not choose.
 - **SC-005**: With PKI disabled, behaviour is unchanged from before this
   feature.
 - **SC-006**: Every rejection is attributable to one of the stated causes, and
