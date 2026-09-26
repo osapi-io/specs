@@ -18,6 +18,10 @@ gh auth refresh -h github.com -s security_events
 Without it the alert endpoints return 403, which the skill reports as "the token
 cannot see them" rather than as a clean result.
 
+Reading needs nothing further. Merging, rebasing, dismissing an alert and
+deleting a branch all write, so they need push access to the repository they
+act on.
+
 ## Usage
 
 Ask in plain language, or invoke it directly with `/org-status`.
@@ -32,10 +36,22 @@ Ask in plain language, or invoke it directly with `/org-status`.
 | `any open PRs in gohai?` | Only the repositories you name |
 | a pasted `/security` URL, `are we exposed?` | A triage verdict for that repository |
 | `fix it` `dismiss them` `bump it` | The fix for that verdict, shown before it runs |
+| `merge the open PRs` `work the queue` | The merge order, a rebase for each bump, and a verdict for anything red |
 
-Reading is the default. `fix` is the only path that writes, it always shows the
-verdict and the exact command first, and it confirms even when you have already
-said fix, because you would be approving a verdict you have not seen.
+Reading is the default. Two paths write, and they differ in what they ask of
+you.
+
+`fix` always shows the verdict and the exact command first, and confirms even
+when you have already said fix, because you would be approving a verdict you
+have not seen.
+
+`merge` merges only what is already green. A failing check is reported with its
+cause rather than rebased and hoped over, because the usual failure here is not
+one a rebase can fix.
+
+The skill's `allowed-tools` grants those writes for the turn that invokes it,
+and the grant clears on your next message. A queue that spans turns is invoked
+again, which is deliberate: each turn restates the intent.
 
 ## How it works
 
@@ -52,6 +68,13 @@ Alerts are triaged, not counted. Dependabot knows a vulnerable version is in
 to upgrade available, not affected, exposed with no patch, or already dismissed,
 and the fix follows from which.
 
+A red bump is read the same way. `mergeable` and the check rollup answer
+different questions, and the failure that recurs here is the repository's own
+tidiness gate rather than the dependency: the bump leaves the module untidy, or
+the committed root module was already untidy because `go get -tool` moved the
+linter's dependencies upstream. Neither is fixed by rebasing, so the cause is
+established before anything is queued.
+
 ## Documentation
 
 | File | Covers |
@@ -63,6 +86,7 @@ and the fix follows from which.
 | [references/branches.md](references/branches.md) | Classifying remote branches as merged, abandoned, active or protected |
 | [references/modules.md](references/modules.md) | Nested `examples/` modules: tidiness, go directive, dependency bumps |
 | [references/quality.md](references/quality.md) | Default-branch checks, Go version drift, named workflows, release state |
+| [references/merging.md](references/merging.md) | Merge order, Dependabot rebases, waiting on checks, why a rebase cannot fix a red bump |
 
 Format details are in the [Agent Skills specification].
 
