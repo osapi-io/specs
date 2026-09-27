@@ -90,11 +90,13 @@ request before trusting what a check tells you:
 git fetch origin "refs/heads/<branch>" && git checkout -B <tmp> FETCH_HEAD
 ```
 
-**Pushing to a Dependabot branch takes it away from Dependabot.** It ignores
-`@dependabot rebase` on a branch carrying commits it did not write, silently —
-no comment, no refusal. Use `@dependabot recreate` there instead, which rebuilds
-the branch from scratch and discards the manual commits, then redo the tidy on
-the new head.
+**Prefer `@dependabot rebase` once you have pushed to the branch.** It replays
+the bump onto the current default branch and keeps the commits you added, the
+tidy above among them.
+
+`@dependabot recreate` rebuilds the branch from scratch and **discards** them,
+so every manual fix has to be redone on the new head. Reach for it only when a
+rebase leaves the pull request `CONFLICTING`, and expect to repeat the tidy.
 
 ## Wait for checks, correctly
 
