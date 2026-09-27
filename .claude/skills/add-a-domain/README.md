@@ -48,7 +48,7 @@ before the spec means writing it twice.
 | File | Covers |
 | --- | --- |
 | [SKILL.md](SKILL.md) | Reference domain, routing, layer order, checklist, verify gate |
-| [references/provider.md](references/provider.md) | Provider patterns, interface, idempotency, platform stubs, facts, input validation |
+| [references/provider.md](references/provider.md) | Where a provider's files go, what they are called, and the scaffolding; the contract itself is cited from the corpus |
 | [references/agent.md](references/agent.md) | Processor, registry registration, platform selection, delivery semantics |
 | [references/api.md](references/api.md) | OpenAPI spec, verbs, paths, validation, handlers, broadcast, registration, permissions |
 | [references/sdk.md](references/sdk.md) | Service files, keeping generated types internal, result types, errors, examples |

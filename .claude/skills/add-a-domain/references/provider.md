@@ -7,34 +7,36 @@ receives parameters from the job payload, does the work, and returns a result.
 CLI -> SDK -> REST API -> job client -> NATS -> agent -> provider
 ```
 
-Read the reference domain's provider package before writing.
+## The contract is in the corpus, not here
 
-## Which pattern
+Every rule a provider obeys is stated in
+[001-provider-contract](../../../../components/osapi/specs/001-provider-contract/spec.md).
+Read it before writing one. This file holds only what that specification does
+not: where the files go, what they are called, and the scaffolding to start
+from.
 
-| Pattern | Writes files | Platform variants | Example |
-| --- | --- | --- | --- |
-| Direct | no | yes | `node/process`, `node/power` |
-| Meta | through `file.Deployer` | yes | `scheduled/cron`, `node/service` |
-| Direct-write | itself, via `avfs.VFS` | yes | `node/sysctl` |
-| SDK-based | no | no | `container/docker` |
+That split is deliberate, and the specification requires it (FR-016). A rule
+restated here would drift from the one in the corpus, and the copy an agent
+happened to load would win.
 
-**Meta** providers get SHA tracking, idempotency, drift detection and template
-rendering from the file provider, and store domain metadata in
-`FileState.Metadata`. Depend on the narrow interface, not the implementation:
+| What you need to know                                     | Where    |
+| --------------------------------------------------------- | -------- |
+| A provider is the operations layer, and what it returns    | FR-001-3 |
+| The idempotency contract, as a table of operation outcomes | FR-004   |
+| `ErrUnsupported` is a fourth outcome, not a failure        | FR-005   |
+| The four implementation patterns, and how to choose        | FR-006   |
+| Platform variants, and how the agent selects one           | FR-007   |
+| How a provider obtains host facts                          | FR-008   |
+| Why the provider validates what the API already validated  | FR-009   |
+| Secrets reach a command without appearing in it            | FR-010   |
+| A caller's value never becomes an option                   | FR-011   |
+| Filesystem access, and why not the `os` package            | FR-012   |
+| A file is not written in place                             | FR-013   |
+| The testing obligations that belong to the provider        | FR-014   |
+| What a provider does not touch                             | FR-015   |
 
-```go
-type Deployer interface {
-    Deploy(ctx context.Context, req DeployRequest) (*DeployResult, error)
-    Undeploy(ctx context.Context, req UndeployRequest) (*UndeployResult, error)
-}
-```
-
-**Direct-write** providers own their files and mark them with an `osapi-`
-filename prefix so they can tell managed files from hand-written ones.
-
-**SDK-based** providers talk to an external API, so there is nothing
-OS-specific to vary. Availability is checked at startup instead, such as a
-Docker daemon ping.
+Read the reference domain's provider package alongside it. The specification
+says what must hold; an existing domain shows it holding.
 
 ## Files
 
@@ -53,7 +55,24 @@ internal/provider/{category}/{domain}/
 does. Categorized domains live under `internal/provider/{category}/{domain}/`,
 uncategorized ones directly under `internal/provider/{domain}/`.
 
-## Interface
+## Naming
+
+| Struct         | Constructor                  | Files                          |
+| -------------- | ---------------------------- | ------------------------------ |
+| `Debian`       | `NewDebianProvider(...)`     | `debian.go`, `debian_{op}.go`  |
+| `DebianDocker` | `NewDebianDockerProvider(...)` | `debian_docker.go`           |
+| `Darwin`       | `NewDarwinProvider(...)`     | `darwin.go`                    |
+| `Linux`        | `NewLinuxProvider()`         | `linux.go`                     |
+| `Client`       | `New()`, `NewWithClient(c)`  | `{domain}.go`                  |
+
+`DebianDocker` either embeds `Debian`, delegating reads and overriding writes,
+or stands alone. `node/host` embeds and blocks `UpdateHostname`; `network/dns`
+stands alone and reads `/etc/resolv.conf` directly.
+
+## Scaffolding
+
+The shapes to start from. What they have to satisfy is FR-002, FR-003 and
+FR-008.
 
 ```go
 // types.go, package {domain}
@@ -64,57 +83,7 @@ type Provider interface {
     Update(ctx context.Context, entry Entry) (*UpdateResult, error)
     Delete(ctx context.Context, name string) (*DeleteResult, error)
 }
-```
 
-Context first on every method. Mutation results carry `Changed bool`, and
-result types carry `Error string` where per-operation errors are reported.
-
-## Idempotency, which is the contract
-
-Desired-state semantics, as Ansible has them.
-
-| Operation | Resource exists | Resource absent |
-| --- | --- | --- |
-| Create | `Changed: false`, no error | creates it |
-| Update | updates it | error, not found |
-| Delete | removes it | `Changed: false`, no error |
-
-`ErrUnsupported` is a fourth outcome, not a failure: the agent maps it to
-`StatusSkipped`, which tells the caller the operation does not exist on that
-host rather than that it broke.
-
-```go
-// darwin.go
-func (d *Darwin) List(
-    _ context.Context,
-) ([]Entry, error) {
-    return nil, fmt.Errorf("{domain}: %w", provider.ErrUnsupported)
-}
-```
-
-Test that every stub method returns `ErrUnsupported`, on Darwin and on Linux.
-
-## Naming
-
-| Struct | Constructor | Files |
-| --- | --- | --- |
-| `Debian` | `NewDebianProvider(...)` | `debian.go`, `debian_{op}.go` |
-| `DebianDocker` | `NewDebianDockerProvider(...)` | `debian_docker.go` |
-| `Darwin` | `NewDarwinProvider(...)` | `darwin.go` |
-| `Linux` | `NewLinuxProvider()` | `linux.go` |
-| `Client` | `New()`, `NewWithClient(c)` | `{domain}.go` |
-
-`DebianDocker` either embeds `Debian`, delegating reads and overriding writes,
-or stands alone. `node/host` embeds and blocks `UpdateHostname`; `network/dns`
-stands alone and reads `/etc/resolv.conf` directly. The agent chooses via
-`platform.IsContainer()`, from `pkg/sdk/platform`.
-
-## Facts
-
-Embed `provider.FactsAware` in every concrete struct and assert the contract at
-compile time:
-
-```go
 var _ Provider = (*Debian)(nil)
 var _ provider.FactsSetter = (*Debian)(nil)
 
@@ -125,47 +94,34 @@ type Debian struct {
 }
 ```
 
-Facts reach the provider through `provider.WireProviderFacts()` in
-`internal/agent/agent.go`, and reach file templates as `{{ .Facts.os_family }}`.
-A provider that is constructed but never passed to that call has nil facts at
-runtime.
+A stub for a platform that does not support the domain:
 
-## Validating input here as well
+```go
+// darwin.go
+func (d *Darwin) List(
+    _ context.Context,
+) ([]Entry, error) {
+    return nil, fmt.Errorf("{domain}: %w", provider.ErrUnsupported)
+}
+```
 
-The API validates, and the provider validates again wherever a value becomes a
-path, a filename, or a command argument. The API is one caller; a job replayed
-from KV is another.
+A meta provider depends on the narrow interface rather than the file provider's
+implementation:
 
-- Reject a name or key that escapes its directory, and anything with a
-  separator, whitespace or control character in it. `node/sysctl` and
-  `node/certificate` carry the pattern.
-- Reject a value that could add a second line to a file the provider writes.
-- Pass secrets on stdin, never in arguments: arguments are logged and visible in
-  the process list. `RunPrivilegedCmdWithStdin` exists for this.
-- Put `--` before a user-supplied name in a command, so a name starting with `-`
-  cannot become an option.
+```go
+type Deployer interface {
+    Deploy(ctx context.Context, req DeployRequest) (*DeployResult, error)
+    Undeploy(ctx context.Context, req UndeployRequest) (*UndeployResult, error)
+}
+```
 
-## Filesystem and commands
+## Mocks
 
-Use [avfs](https://github.com/avfs/avfs): `memfs.New()` in tests, `failfs.New()`
-for error injection. Never `afero`, and never the `os` package directly in a
-provider.
+```
+internal/provider/{category}/{domain}/mocks/generate.go
+```
 
-Commands go through `internal/exec`. Prefer the variants that take a timeout,
-and write a file by rendering to a temporary path and renaming, so a crash
-cannot leave a half-written config behind.
-
-## Tests
-
-Conventions are in the repository's `CONTRIBUTING.md` under Testing. What is
-specific here:
-
-- One `*_public_test.go` suite per production file, one suite method per method
-  under test, cases as table rows with a `validateFunc`.
-- Mock `FileDeployer`, `KeyValue` and `ObjectStore` from `{package}/mocks/`,
-  generated with mockgen and committed. Never hand-write a double for an
-  interface this organization defines.
-- Cover the idempotency rows above explicitly: the create-when-present and
-  delete-when-absent paths are the ones that regress silently.
-- Cover every rejection added above, asserting no command ran and no file was
-  written. A gomock controller fails an unexpected call, which is the assertion.
+One `//go:generate go tool go.uber.org/mock/mockgen` directive per interface the
+domain defines, output committed. Never hand-write a double for an interface this
+organization defines: `just generate` regenerates them, and a hand-written one
+silently stops matching the interface it stands in for.
