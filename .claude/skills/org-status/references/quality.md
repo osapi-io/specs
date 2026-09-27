@@ -72,6 +72,45 @@ them behind at once.
 
 A repository with no `go.mod` is skipped rather than reported.
 
+## Tool version drift
+
+The charter requires both provisioning paths to resolve to the same version, and
+says what happens otherwise: a version pinned in one path and floating in the
+other guarantees divergence
+([why](../../../../.charter/fragments/global/tooling.md)). So the linter version
+is not a per-repository choice, and four repositories linting with four
+different versions is a finding.
+
+Ask the module what will actually run. **Do not grep `go.mod`**: a tool can be
+satisfied by an indirect requirement with no version line of its own, which a
+grep reads as "not pinned" while the module resolves something specific.
+
+```bash
+latest=$(curl -s --max-time 20 'https://proxy.golang.org/github.com/golangci/golangci-lint/v2/@latest' \
+  | sed -n 's/.*"Version":"\([^"]*\)".*/\1/p')
+
+gh repo list osapi-io --no-archived --visibility public --limit 200 --json name -q '.[].name' |
+while read -r r; do
+  d=~/git/osapi-io/$r
+  [ -f "$d/go.mod" ] || continue
+  v=$(cd "$d" && go list -m github.com/golangci/golangci-lint/v2 2>/dev/null | awk '{print $2}')
+  [ -n "$v" ] && [ "$v" != "$latest" ] && printf "%s %s, want %s\n" "$r" "$v" "$latest"
+done
+```
+
+Report drift as one block naming every repository behind, the same shape as the
+go directive: the fix is the same command in each, and a new linter release puts
+all of them behind at once.
+
+A stale pin is not cosmetic. A linter predating the toolchain crashes rather
+than reporting findings — v2.12.2 died inside `buildir` under Go 1.27 — and the
+crash arrives as a red build on an unrelated pull request.
+
+This drift was invisible for as long as it existed, because the shared `deps`
+recipes re-resolved every tool on each run and linted with whatever was newest.
+The pins were decorative, so nothing compared them. That is fixed, which is what
+makes this check worth running now.
+
 ## Release state
 
 ```bash
