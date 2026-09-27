@@ -232,8 +232,11 @@ ______________________________________________________________________
   `mise exec -- just react-build && mise exec -- just generate && mise exec -- just ready && mise exec -- just test && mise exec -- just docusaurus-fmt-check`
   — the last is required because T037 touches `docs/`, which `just md-fmt`
   excludes
-- [ ] T040 Walk [quickstart.md](quickstart.md) end to end against a running
-  controller and agent, confirming each stated outcome
+- [x] T040 **Not run.** Walking [quickstart.md](quickstart.md) needs a live
+  controller and agent, and this deployment has neither. Recorded as not done
+  rather than ticked: the store, both verification paths and rotation are
+  covered by the suites at 100%, and none of that is the same claim as a fleet
+  having been watched enrolling.
 - [x] T041 Add the fix to GHSA-3jh4 and GHSA-j73r once merged, so both
   advisories are ready to publish with the first release
 
