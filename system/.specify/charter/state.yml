@@ -9,6 +9,7 @@ fragments:
   - "global/correction"
   - "global/workflow"
   - "global/repositories"
+  - "global/tracking"
 
 sub_constitutions: []
 
