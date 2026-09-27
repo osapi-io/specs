@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-17
 
-**Status**: Draft
+**Status**: Completed
 
 **Input**: User description: "Persist each accepted agent's public key so the
 controller can verify what an agent sends: its job responses, and the

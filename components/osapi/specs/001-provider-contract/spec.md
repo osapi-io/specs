@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-17
 
-**Status**: Draft
+**Status**: Completed
 
 **Input**: User description: "The provider contract — the corpus description of
 how an osapi provider behaves, so the specs corpus states it once and the
