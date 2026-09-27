@@ -39,6 +39,63 @@ Dependabot force-pushes the branch and CI re-runs. `@dependabot recreate`
 rebuilds the branch from scratch instead, which is what a `CONFLICTING`
 mergeable state usually needs.
 
+## One repository at a time, all repositories at once
+
+Repositories are independent: work them in parallel. Pull requests inside one
+repository often are not.
+
+Two bumps that touch the same file cannot both be merged from the state they
+were built in. The first merge moves the default branch and the second is now
+based on something that no longer exists, so it conflicts — or worse, merges
+cleanly and drops the first one's edit. `mergeable` says `CLEAN` for both right
+up until the first one lands, which is what makes this easy to get wrong.
+
+So decide by the files, not by the colour of the tick:
+
+```bash
+gh pr view <number> --repo "osapi-io/$r" --json files -q '.files[].path'
+```
+
+- **No overlap** — merge them together. Four bumps each touching a different
+  `examples/<name>/go.mod` do not interact.
+- **Overlap** — serialize, one merge at a time:
+  1. merge the first
+  2. `@dependabot rebase` the next, and wait for its checks
+  3. merge it, and repeat
+
+A root bump overlaps everything in a repository with `examples/`: moving the
+parent module's version leaves every example that resolves it untidy, so the
+root bump touches `go.mod`, `go.sum` and each example. Merge it **last**, alone.
+
+**A bump that touches no module file needs none of this.** A workflow pin, an
+action version, a Dockerfile base image: nothing else is reading those, so merge
+it outright.
+
+## A root bump needs its examples tidied in the same pull request
+
+Once CI stops tidying, a root bump is not complete on its own. The examples
+resolve the parent module, so advancing it leaves each of them untidy and
+`go-mod-check` fails on the branch. Tidy on the branch and commit:
+
+```bash
+gh pr checkout <number> --repo "osapi-io/$r"
+mise exec -- just go-mod && git commit -am "chore: tidy the example modules after the bump" && git push
+```
+
+`gh pr checkout` reuses an existing local branch of the same name and will
+silently leave you on a stale commit, so confirm the head matches the pull
+request before trusting what a check tells you:
+
+```bash
+git fetch origin "refs/heads/<branch>" && git checkout -B <tmp> FETCH_HEAD
+```
+
+**Pushing to a Dependabot branch takes it away from Dependabot.** It ignores
+`@dependabot rebase` on a branch carrying commits it did not write, silently —
+no comment, no refusal. Use `@dependabot recreate` there instead, which rebuilds
+the branch from scratch and discards the manual commits, then redo the tidy on
+the new head.
+
 ## Wait for checks, correctly
 
 ```bash
