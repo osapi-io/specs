@@ -271,6 +271,31 @@ of the design, not a summary of it.
 repository into line with it is ordinary work in that repository's own pull
 request. Cite the rule; do not write a spec for obeying one.
 
+#### Where an issue fits
+
+An issue comes before stage 1. It records that something should change, in the
+repository the change will land in, so the intent survives until someone picks
+it up. It is not tracked here: this repository holds the design record, and an
+issue is a request for one.
+
+The stages above answer it. The specification says what changing it means,
+`tasks.md` says the order it is built in, and the implementation PR closes the
+issue. A task is never mirrored back into an issue, which is why
+`speckit-taskstoissues` is not used: the task list is authoritative while the
+work runs, and a copy of it in GitHub is a second list that drifts from the
+first.
+
+Not every change needs one. Work being carried out now is already tracked by its
+task list. Open an issue when the intent has to outlive the session that found
+it, and when it does, `/org-status` reports it alongside open pull requests and
+alerts.
+
+Something exploitable is never an issue. An issue is public the moment it is
+opened, so it is reported as a draft security advisory on the repository it
+affects, and a tracking issue names only what is safe to describe.
+
+This is `global/tracking` in the constitution.
+
 #### Starting a change
 
 Run `speckit-specify` against the project the change belongs to, chosen by the
@@ -407,6 +432,7 @@ contradict it. Before writing documentation, place it:
 | The thing                     | Lives in                     | Never in                     |
 | ----------------------------- | ---------------------------- | ---------------------------- |
 | A rule binding every project  | `.charter/fragments/`        | A project's own constitution |
+| An intent nobody has started  | an issue in that repository  | a task list, or a spec here  |
 | How a component behaves today | its `.specify/memory/`       | A prose overview             |
 | Why a change was made         | the feature's spec           | A commit message alone       |
 | A tool version                | `.mise.toml` or the justfile | Prose naming the version     |

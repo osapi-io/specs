@@ -1,10 +1,11 @@
 ---
 name: org-status
-description: Report and act on outstanding work across the osapi-io GitHub organization. Covers open pull requests, Dependabot version bumps, Dependabot and code-scanning and secret-scanning alerts, and CI health on default branches. Also triages security alerts and fixes them on request. Use when asked whether there are any open PRs, any Dependabot PRs, anything waiting on review, any security or vulnerability alerts, whether CI is green, whether the go directive is behind a new Go release, whether any remote branches are stale or deletable, whether the nested modules under examples are untidy or behind, or for a sweep of what needs attention. Also use when asked what to do about an alert, whether the org is actually exposed or affected, whether vulnerable code is reachable, or to fix, bump, triage, or dismiss alerts, and whenever a GitHub osapi-io repository security URL is pasted.
+description: Report and act on outstanding work across the osapi-io GitHub organization. Covers open pull requests, Dependabot version bumps, open issues, Dependabot and code-scanning and secret-scanning alerts, and CI health on default branches. Also triages security alerts and fixes them on request. Use when asked whether there are any open PRs, any Dependabot PRs, anything waiting on review, what issues are open or what is left to work, any security or vulnerability alerts, whether CI is green, whether the go directive is behind a new Go release, whether any remote branches are stale or deletable, whether the nested modules under examples are untidy or behind, or for a sweep of what needs attention. Also use when asked what to do about an alert, whether the org is actually exposed or affected, whether vulnerable code is reachable, or to fix, bump, triage, or dismiss alerts, and whenever a GitHub osapi-io repository security URL is pasted.
 compatibility: Requires the gh CLI, authenticated with read access to the osapi-io organization. Security alert queries need the security_events scope.
 allowed-tools:
   - Bash(gh pr merge:*)
   - Bash(gh pr comment:*)
+  - Bash(gh issue close:*)
   - Bash(gh api -X PATCH:*)
   - Bash(gh api -X DELETE:*)
 license: MIT
@@ -35,13 +36,14 @@ never merge, and `gh search prs --owner osapi-io` counts them.
 | The user asks | Read |
 | --- | --- |
 | Open PRs, what is waiting, whose they are, Dependabot bumps | [pull-requests.md](references/pull-requests.md) |
+| Open issues, what is left to work, what a tracker still lists | [issues.md](references/issues.md) |
 | Any alerts, vulnerabilities, anything leaked | [security.md](references/security.md) |
 | What to do about an alert, are we exposed, a pasted `/security` URL | [triage.md](references/triage.md) |
 | Fix it, dismiss them, open the bump | [triage.md](references/triage.md), then act |
 | Is CI green, is anything failing or unreleased, are we on the right Go | [quality.md](references/quality.md) |
 | Any stale branches, can we delete any, what is left over | [branches.md](references/branches.md) |
 | Are the examples out of date, do nested modules need tidying or bumping | [modules.md](references/modules.md) |
-| A sweep, or no clear category | All six, in that order |
+| A sweep, or no clear category | All seven, in that order |
 
 ## 3. Report
 
@@ -52,11 +54,11 @@ needs attention the grid stands alone.
 ```
 osapi-io · 12 Sep · 8 repos
 
-  repo                 pr   sec   ci
-  osapi                 1     3   ✅
-  gohai                 0     0   ✅
-  nats-server           0     0   🟡
-  .github               0     0   ⚪
+  repo                 pr  iss   sec   ci
+  osapi                 1   13     3   ✅
+  gohai                 0    0     0   ✅
+  nats-server           0    0     0   🟡
+  .github               0    0     0   ⚪
 
 🔴 osapi #477 · dependabot · 9d · build failing
    otelecho 0.69 -> 0.71, deprecated upstream

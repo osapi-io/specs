@@ -30,6 +30,7 @@ Ask in plain language, or invoke it directly with `/org-status`.
 | --- | --- |
 | `any open PRs?` `anything waiting on review?` | Every open PR, human and bot separated, oldest first |
 | `any dependabot PRs?` | Just the version bumps |
+| `what issues are open?` `what is left to work?` | Open issues per repository, minus the ones a pull request already closes |
 | `any security alerts?` `is CI green?` | Alert counts, default-branch health, Go version drift |
 | `any stale branches?` | Remote branches classified by whether deleting them loses work |
 | `are the examples out of date?` | Nested modules Dependabot does not watch |
@@ -63,6 +64,12 @@ is in
 `SKILL.md` routes and holds the output contract. One reference file loads for
 the category you asked about, and nothing else enters context.
 
+Issues and task lists answer different questions, so the skill does not treat
+them alike. An issue is an intent nobody has picked up; work under way is tracked
+by its Spec Kit task list. An issue with an open pull request against it is
+reported as in flight rather than as outstanding, and the division is stated in
+[.charter/fragments/global/tracking.md](../../../.charter/fragments/global/tracking.md).
+
 Alerts are triaged, not counted. Dependabot knows a vulnerable version is in
 `go.mod`; it does not know whether the vulnerable code runs. Each alert resolves
 to upgrade available, not affected, exposed with no patch, or already dismissed,
@@ -81,6 +88,7 @@ established before anything is queued.
 | --- | --- |
 | [SKILL.md](SKILL.md) | Repository resolution, routing, the output shape |
 | [references/pull-requests.md](references/pull-requests.md) | Open PRs, author filtering, draft and mergeable and review state |
+| [references/issues.md](references/issues.md) | Open issues, what a pull request already has in hand, trackers, closing one |
 | [references/security.md](references/security.md) | Dependabot, code-scanning and secret-scanning alerts, required scopes |
 | [references/triage.md](references/triage.md) | The four verdicts, how to establish each, the fix for each |
 | [references/branches.md](references/branches.md) | Classifying remote branches as merged, abandoned, active or protected |
