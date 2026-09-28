@@ -34,17 +34,17 @@ ______________________________________________________________________
 
 ## Phase 1: Setup
 
-- [ ] T001 Read `osapi/docs/docs/sidebar/architecture/job-architecture.md` in
+- [x] T001 Read `osapi/docs/docs/sidebar/architecture/job-architecture.md` in
   full and confirm the section ranges in [data-model.md](data-model.md) against
   the file as it stands. It is 630 lines, not the 603 the specification records
   (research Finding 2), so the ranges shift by 27 near the end.
-- [ ] T002 [P] Check each of the five principles in
+- [x] T002 [P] Check each of the five principles in
   `osapi/docs/docs/sidebar/architecture/principles.md` against
   `specs/.charter/fragments/global/` and
   `specs/components/osapi/.specify/memory/constitution.md`. Record, per
   principle, whether it is already stated there — research Finding 1. The answer
   decides whether it becomes a citation or a statement in Subject B.
-- [ ] T003 [P] Confirm `@docusaurus/plugin-client-redirects` is compatible with
+- [x] T003 [P] Confirm `@docusaurus/plugin-client-redirects` is compatible with
   the site's Docusaurus version in `osapi/docs/package.json`. Two addresses
   depend on it; if it is not, the fallback is a stub page each, and research
   Decision 3 needs amending first.
@@ -54,16 +54,23 @@ ______________________________________________________________________
 These bind both subjects. Nothing in Phase 3 or later starts until they are
 done.
 
-- [ ] T004 [US3] Write the citation convention into
+- [x] T004 [US3] Write the citation convention into
   `specs/.claude/skills/add-a-domain/README.md`: the table shape from
   [contracts/citation.md](contracts/citation.md), that citations are relative
   and name a requirement rather than a document, and that `just skill-lint` is
   what fails when one does not resolve.
-- [ ] T005 [US3] Verify the gate does what the contract claims: add a
+- [x] T005 [US3] Verify the gate does what the contract claims: add a
   deliberately broken citation to a scratch copy of a reference file, run
   `cd specs && just skill-lint`, confirm it fails, and remove it. FR-008 is only
   enforceable if this is true, and the Verification principle says measure
   rather than assume.
+
+> Phases 1 and 2 are done. T002 corrected research Finding 1 rather than
+> confirming it: none of the five principles are already stated in the charter,
+> and the two that looked like they were are near misses recorded in the
+> finding. T001 confirmed the live section ranges, T003 confirmed the redirects
+> plugin publishes at the site's exact version, and T005 measured the citation
+> gate failing on a broken citation and passing once it was restored.
 
 ## Phase 3: User Story 1 — a contributor answers from the corpus alone (Priority: P1) 🎯 MVP
 

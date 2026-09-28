@@ -57,6 +57,30 @@ before the spec means writing it twice.
 
 Format details are in the [Agent Skills specification].
 
+## Citing the corpus instead of restating it
+
+A rule that the corpus states is cited here, never repeated. The citation is a
+table row naming the requirement, not a sentence pointing at a document:
+
+| Rule | Stated in |
+| --- | --- |
+| A provider returns a typed result, never a formatted string | [FR-004](../../../components/osapi/specs/001-provider-contract/spec.md) |
+
+Three things make that a citation rather than a link:
+
+- **It is relative.** `scripts/validate-skills.py` resolves relative links from
+  the file's own directory, so `just skill-lint` fails when the target is gone.
+  An absolute URL is checked by nothing, which makes it a restatement with extra
+  steps.
+- **It names a requirement.** "See the provider contract" is a pointer; `FR-004`
+  tells a reader whether what they are looking for is there.
+- **It does not restate the rule.** The row names the rule and where it lives.
+  Two statements of one rule is what citing exists to prevent, because the copy
+  an agent happens to load wins.
+
+`references/provider.md` is the worked example: citing the contract rather than
+restating it cut it from 171 lines to 127.
+
 ## Contributing
 
 See the [Contributing](../../../CONTRIBUTING.md) guide. Run `just skill-lint`

@@ -84,23 +84,40 @@ not currently install: `docusaurus.config.ts` declares only the OpenAPI plugin.
 Adding it is in scope for the page change, and is the only dependency this
 feature introduces.
 
+**Confirmed 2026-09-28 by T003.** The plugin publishes at `3.10.2`, the exact
+version of `@docusaurus/core` and `@docusaurus/preset-classic` in
+`docs/package.json`, so it pins alongside them and `global/tooling`'s rule about
+both provisioning paths resolving to one version holds without special handling.
+The fallback in T003 — a stub page each instead — is not needed.
+
 **Alternatives considered**: deleting both files outright. Rejected by FR-006 —
 their addresses resolve today, they are linked from the architecture sidebar,
 and a 404 is invisible to whoever caused it.
 
-## Finding 1: some principles are already stated as org-wide rules
+## Finding 1: none of the principles are already stated, and the near misses are not misses
 
-`principles.md` states five design principles. Two of them are already rules in
-the charter that every osapi-io repository composes: "Automation through
-OpenAPI" overlaps `global/tooling`'s statement about generated artifacts, and
-"Simplicity and Minimalism" overlaps what `global/documentation` says about
-restating.
+**Corrected 2026-09-28 by T002, the task that exists to check this.** The first
+version of this finding claimed two of the five principles were already charter
+rules. They are not, and the claim was made from the headings rather than from
+the text.
 
-FR-008 requires one statement of each rule, which makes this a classification
-problem rather than a moving problem: a principle already stated in the charter
-becomes a citation, not a second statement in the corpus. Each of the five is
-checked against `.charter/fragments/global/` and against this project's own
-constitution before it is written anywhere.
+`principles.md` states five design principles. Checked against
+`.charter/fragments/global/` and this project's constitution, all five are
+unstated:
+
+| Principle                            | Nearest existing rule                                                               | Why it is not the same rule                                                                                         |
+| ------------------------------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Simplicity and Minimalism            | `global/documentation`: "a rule a tool already enforces is never restated as prose" | That governs where a rule is written down. This one governs what the codebase contains.                             |
+| Automation through OpenAPI           | `global/tooling`: "a tool whose output is committed is pinned"                      | That governs pinning a generator. This one says the API and its clients are generated at all, which nothing states. |
+| Pluggability and Extensibility       | —                                                                                   | Nothing.                                                                                                            |
+| Job System for Privileged Operations | —                                                                                   | Nothing. The agent key store (002) says how that system authenticates, not why privileged work goes through it.     |
+| RESTful API Design                   | —                                                                                   | Nothing. `api-guidelines.md`, also moving, elaborates it.                                                           |
+
+So all five are stated for the first time in Subject B. The check was still
+worth running: a second statement of a charter rule is the drift FR-008 exists
+to prevent, and the way to find out is to read the fragment rather than its
+heading. T002 stays in the task list for the next reader, and its answer is now
+recorded rather than assumed.
 
 ## Finding 2: the job system page has grown since the specification was written
 
@@ -114,6 +131,13 @@ This is the newest and most precise contributor knowledge on the page, it cites
 the code it describes, and it is exactly what Subject A is for. The line count
 in the specification's Assumptions is stale by 27 lines; the classification it
 supports is not.
+
+**Confirmed 2026-09-28 by T001.** The live section boundaries, which
+[data-model.md](data-model.md) works from: Facts Collection 414–435, CLI
+Commands 436–457, Package Architecture 458–500, Security Considerations 501–507,
+Performance Optimizations 508–568, Error Handling 569–621, Monitoring 622–630.
+The 27 added lines all sit inside Error Handling, and every section after it
+moved down by the same amount.
 
 ## Finding 3: moving a subject cannot be one change
 
