@@ -819,14 +819,22 @@ questions from the corpus alone, without opening the site.
      `User.ListKeys`, `Agent.ListPending`, `Package.ListUpdates`, `Log.QueryUnit`.
   4. A getter is named `Get` and nothing else, taking its subject from the service.
 
-  Four deviations MUST be recorded with it, because a convention derived from code is
-  honest only if it names what it does not cover: `Docker.ImageRemove` is object then
-  verb and is the only such method (renaming it would break a public API, and that is
-  not proposed); `Ping.Do` names no action, existing because `Ping.Ping` stutters —
-  the case rule 2 cannot express when the service name is the verb; `File.Changed`
-  and `File.Stale` are predicates rather than verbs; `Health.Liveness` and
-  `Health.Ready` are probe names taken from the endpoints they call. These are
-  deviations, not defects.
+  5. When a service exposes **several** distinct reads, each takes verb then object
+     under rule 3; rule 4's bare `Get` applies only where there is exactly one read.
+
+  Seven methods do not conform and MUST be renamed rather than excepted:
+  `Docker.ImageRemove` → `RemoveImage`, `Ping.Do` → `Send`, `File.Stale` →
+  `ListStale`, `File.Changed` → `GetChanged`, and `Health.Liveness`/`Ready`/`Status`
+  → `GetLiveness`/`GetReady`/`GetStatus`. The SDK carries no released version and the
+  one external consumer pins a pseudo-version commit, so these are renames now and
+  breaking changes after the first tag — twenty-six call sites in osapi and three in
+  the orchestrator is the whole cost. `Docker.Pull` is deliberately not renamed:
+  pull applies to nothing but images, so the object adds length without removing
+  ambiguity.
+
+  Two of the seven were first recorded as permitted deviations, described as
+  predicates read off their names rather than their signatures, which return a list
+  and a single record. That is FR-090 failing against the analysis that stated it.
   [Source: specs/005-building-a-domain/spec.md -> FR-028]
 - **FR-075**: The corpus MUST state the CLI obligations: one parent command per domain and one subcommand per endpoint, `--json` on every command, `cli.PrintKV` for key-value output and `cli.PrintCompactTable` for tabular, flags rather than positional arguments for resource IDs, and every response code the OpenAPI specification declares handled in the status switch. Evidence: `PrintCompactTable` at `internal/cli/ui.go:198`, `PrintKV` at `:413`.
   [Source: specs/005-building-a-domain/spec.md -> FR-021]
