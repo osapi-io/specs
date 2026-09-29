@@ -90,7 +90,7 @@ what the site change then cites.
   producing `specs/components/osapi/specs/004-job-system/spec.md`. Per FR-009
   each requirement is checked against the code before it is written, and per
   FR-011 it cites the file it describes.
-- [ ] T007 [US1] In the same branch, run `/speckit-plan` and `/speckit-tasks`
+- [x] T007 [US1] In the same branch, run `/speckit-plan` and `/speckit-tasks`
   for `004`, then `/speckit-analyze`, and fix what it reports. Stages 2 through
   4 are one unit of review.
 - [ ] T008 [US1] Record, in `004`'s specification, every rule the code does not
