@@ -3,9 +3,27 @@
 `pkg/sdk/client` is the public Go API. Its generated client comes from the same
 combined spec as the server, so `just generate` covers it.
 
-The binding rules are the `sdk-standards` capability in this repository, and
-they bind `osapi-orchestrator` too. Where this file and that capability
-disagree, the capability wins.
+## The rules are in the corpus, not here
+
+| What you need to know | Where |
+| --- | --- |
+| Four files per service, a `Client` field, an example, a doc page, the navbar entry | [FR-019](../../../../components/osapi/specs/005-building-a-domain/spec.md) |
+| No `gen` type in a public signature; JSON tags on every result type; errors wrapped with context; one service per file | [FR-020](../../../../components/osapi/specs/005-building-a-domain/spec.md) |
+| What verifies a finished domain, and what Step 8 alone misses | [FR-024](../../../../components/osapi/specs/005-building-a-domain/spec.md) |
+
+**There is no `sdk-standards` capability.** Earlier versions of this file said the
+binding rules were "the `sdk-standards` capability in this repository", that they
+bound `osapi-orchestrator` too, and that the capability won any disagreement.
+Nothing of the sort has been written. The claim was also on osapi's
+`adding-an-api-domain.md`, so two documents deferred to a specification that reads
+as settled and does not exist — recorded as
+[FR-019](../../../../components/osapi/specs/005-building-a-domain/spec.md)'s gap rather than repeated here.
+
+What that means in practice: the conventions below and in FR-019 and FR-020 are
+what actually binds, because they are what can be checked against
+`pkg/sdk/client/`. If a cross-repository SDK standard is wanted, it is a feature
+of its own, and inventing one inside a citation file is how a rule comes to exist
+that nobody agreed.
 
 ## Files, one service per domain
 
