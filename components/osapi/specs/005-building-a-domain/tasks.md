@@ -139,7 +139,7 @@ pages cease to exist.
 
 **Independent test**: SC-002 and SC-003 from [quickstart.md](quickstart.md).
 
-- [ ] T005 [US2] Replace
+- [x] T005 [US2] Replace
   `osapi/docs/docs/sidebar/development/adding-an-api-domain.md` with the
   three-part contributor page specified in [data-model.md](data-model.md) under
   "The contributor page that survives": under ten lines of prose on what adding
@@ -151,19 +151,19 @@ pages cease to exist.
   FR-024, the gate. Both are rules a contributor needs and neither has another
   home on the site once `principles.md` is deleted.
 
-- [ ] T006 [US2] State in one sentence on that page that its corpus links are
+- [x] T006 [US2] State in one sentence on that page that its corpus links are
   absolute GitHub URLs because the corpus is not part of the published site.
   Without it the reader takes the one departure from
   [the citation contract](../003-corpus-backfill/contracts/citation.md) for an
   oversight.
 
-- [ ] T007 [US2] Delete `osapi/docs/docs/sidebar/architecture/api-guidelines.md`
+- [x] T007 [US2] Delete `osapi/docs/docs/sidebar/architecture/api-guidelines.md`
   and `osapi/docs/docs/sidebar/architecture/principles.md`. Both are wholly
   contributor knowledge — FR-014, FR-015, FR-022 — so neither keeps an operator
   half. This is the first time the backfill deletes a page rather than splitting
   one.
 
-- [ ] T008 [US2] Add `@docusaurus/plugin-client-redirects` to
+- [x] T008 [US2] Add `@docusaurus/plugin-client-redirects` to
   `osapi/docs/package.json` and `osapi/docs/docusaurus.config.ts`, redirecting
   both deleted addresses to the contributor page. **This feature adds the
   plugin** — it is [003's T015](../003-corpus-backfill/tasks.md), and T022 marks
@@ -171,22 +171,22 @@ pages cease to exist.
   feature in the backfill that needs a redirect, which is why the plugin arrives
   here rather than with Subject A.
 
-- [ ] T009 [US2] Remove lines `12–174` and `241–266` from
+- [x] T009 [US2] Remove lines `12–174` and `241–266` from
   `osapi/docs/docs/sidebar/architecture/system-architecture.md` — Component Map,
   Entry Points, Layers, Request Flow. Keep `175–240`, `267–309` and the link
   definitions.
 
-- [ ] T010 [US2] Edit that page's introduction by one sentence so it leads into
+- [x] T010 [US2] Edit that page's introduction by one sentence so it leads into
   Health Checks rather than into a removed Component Map. Removing `241–266`
   leaves Health Checks running directly into Security, which reads; removing
   `12–174` leaves a jump the introduction has to cover.
 
-- [ ] T011 [US2] Remove the `api-guidelines.md` and `principles.md` entries from
+- [x] T011 [US2] Remove the `api-guidelines.md` and `principles.md` entries from
   that page's Further Reading list and add one to the contributor page. **This
   is a build failure, not a tidy-up**: `docusaurus-build` fails on a link to a
   deleted page, and both links are there today.
 
-- [ ] T012 [US2] [P] Search the whole site for any other link to either deleted
+- [x] T012 [US2] [P] Search the whole site for any other link to either deleted
   page:
   `grep -rn "api-guidelines\|principles" docs/docs docs/docusaurus.config.ts`.
   Everything outside the redirect configuration is a link that will break.
@@ -195,16 +195,42 @@ pages cease to exist.
   Reading lists are where a link to moved content is most likely to survive. The
   page is otherwise unchanged.
 
-- [ ] T013 [US2] Confirm no surviving page sends an operator to the corpus —
+  **Found one, exactly where the task predicted.** `architecture.md` linked both
+  deleted pages — 003's T013 — and it also described `system-architecture.md` as
+  "package layout, handler structure, provider pattern, and code-level details",
+  which is precisely what T009 removed from it. Both corrected. Naming the file
+  in advance rather than trusting the grep is what caught the stale description,
+  since no grep for a deleted page's name would have matched it.
+
+- [x] T013 [US2] Confirm no surviving page sends an operator to the corpus —
   003's FR-012 and SC-003's grep. The contributor page is the one exception and
   its reader is a contributor.
 
-- [ ] T014 [US2] Run
+  **One page beyond the expected exception, and it is legitimate.**
+  `docs/docs/sidebar/sdk/guidelines.md` points into the corpus, and its reader
+  is a developer of the SDK rather than an operator, so SC-003 is met. It also
+  carried a **third copy** of the `sdk-standards` deferral, claiming rules
+  "specified in the `sdk-standards` capability", binding `osapi-orchestrator`,
+  and winning any disagreement. FR-019 records two copies of that claim, so the
+  gap undercounted by one. Corrected the same way T018 corrected the skill's.
+
+- [x] T014 [US2] Run
   `cd osapi && mise exec -- just docusaurus-fmt-check && mise exec -- just docusaurus-build`.
 
-- [ ] T015 [US2] Open and merge the osapi pull request for T005–T014. **This is
+  **Both green, and the redirects verified in the output rather than inferred.**
+  `build/sidebar/architecture/api-guidelines/index.html` and
+  `build/sidebar/architecture/principles/index.html` each refresh to
+  `/osapi/sidebar/development/adding-an-api-domain`. A green build alone would
+  not have proved the plugin loaded, which is why the generated files were read.
+
+- [x] T015 [US2] Open and merge the osapi pull request for T005–T014. **This is
   the task that ends the duplication.** Until it lands, the corpus and the site
   both state these rules.
+
+  **Merged as osapi#545.** The duplication is over. The site went from stating
+  these rules to indexing them: 654 lines to 76 on the contributor page, two
+  pages deleted with redirects, and 330 lines to 142 on
+  `system-architecture.md`.
 
 ______________________________________________________________________
 
@@ -272,12 +298,17 @@ ______________________________________________________________________
   Subject A's reading found two real gaps its author had read past twice, which
   is the argument for running it.
 
-- [ ] T022 [P] Run the SC-006 check from [quickstart.md](quickstart.md): the
+- [x] T022 [P] Run the SC-006 check from [quickstart.md](quickstart.md): the
   contributor page's last commit must postdate this specification's merge. If it
   does not, the corpus and the site both state these rules and this feature is
   unfinished whatever the corpus says.
 
-- [ ] T023 Mark 003's **T012 through T019** and T023 through T025 done, and
+  **Passes.** The contributor page's last commit is `2026-09-29T03:40:33Z`
+  (osapi#545); this specification merged at `2026-09-29T02:48:25Z` (specs#152).
+  The page postdates the statement by 52 minutes, so the corpus is the statement
+  of record and the site is the index — not two statements.
+
+- [x] T023 Mark 003's **T012 through T019** and T023 through T025 done, and
   update 003's `tasks.md` to record that Subject B completed, so a reader of 003
   sees a task list matching what happened. **Not T011**: that task split
   `job-architecture.md` and belongs to Subject A, which completed it in
@@ -299,6 +330,15 @@ ______________________________________________________________________
   | T023 specify Subject B                          | merged as specs#152          |
   | T024 fold in the principles                     | T003, and FR-022 with FR-023 |
   | T025 the two-repository sequence                | the whole list               |
+
+  **Done.** 003's T012 through T019 and T020 through T025 are ticked, with a
+  mapping table in [003's tasks.md](../003-corpus-backfill/tasks.md) so a reader
+  can check the claim rather than trust it. T020 through T022 turned out to be
+  Subject A's rather than Subject B's, and T022's measurement is recorded there:
+  `references/` is net **-12** lines against `d370e37` with `SKILL.md`
+  unchanged, which passes narrowly because five rules had no corpus home and
+  were kept with a note rather than deleted to improve the number. 003 is now 25
+  of 29; only its own polish phase remains.
 
 - [ ] T024 Run `/speckit-archive-run specs/005-building-a-domain` once T015 and
   T020 have merged, consolidating Subject B into
