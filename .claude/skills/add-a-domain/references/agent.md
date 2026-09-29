@@ -1,8 +1,17 @@
 # Agent wiring
 
-Two files connect a provider to the job pipeline. Nothing else changes: not
-`agent/types.go`, not `agent/agent.go`, not the `JobClient` interface. The
-registry handles dispatch and facts wiring.
+Two files connect a provider to the job pipeline, and the registry handles
+dispatch and facts wiring.
+
+## Two rules are in the corpus, not here
+
+| What you need to know | Where |
+| --- | --- |
+| Two files connect a provider, and what does **not** change — `agent/types.go`, `agent/agent.go`, the `JobClient` interface | [FR-009](../../../../components/osapi/specs/005-building-a-domain/spec.md) |
+| The `FactsAware` obligation: embed it, add the compile-time `FactsSetter` check | [FR-010](../../../../components/osapi/specs/005-building-a-domain/spec.md) |
+
+This file holds the shapes and the file names. The rules above are stated once,
+in the corpus, so a change to either is a change in one place.
 
 ## 1. The processor
 
@@ -111,8 +120,11 @@ Two consequences for a new operation, which are yours rather than the system's:
 ## Facts
 
 `provider.WireProviderFacts(a.GetFacts, registry.AllProviders()...)` injects
-facts into every registered provider. A provider registered through the registry
-is covered; one constructed and passed somewhere else is not.
+facts into every registered provider — one call, in `internal/agent/agent.go`. A
+provider registered through the registry is covered; one constructed and passed
+somewhere else is not. The obligation on the provider struct itself is
+[FR-010](../../../../components/osapi/specs/005-building-a-domain/spec.md), and what a provider does with facts is
+[001](../../../../components/osapi/specs/001-provider-contract/spec.md) FR-008.
 
 ## Tests
 

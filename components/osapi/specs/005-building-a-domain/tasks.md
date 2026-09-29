@@ -46,13 +46,19 @@ ______________________________________________________________________
 
 **Purpose**: confirm the boundaries the plan states still match the files.
 
-- [ ] T001 Confirm the line ranges in [data-model.md](data-model.md) against
+- [x] T001 Confirm the line ranges in [data-model.md](data-model.md) against
   `osapi/docs/docs/sidebar/architecture/system-architecture.md` as it stands
   today: `12–174` covering Component Map, Entry Points and Layers, and `241–266`
   covering Request Flow. Confirm the four page line counts — 654, 61, 46, 330. A
   range that no longer matches means the page moved under the plan, which is how
   [004's Finding 2](../004-job-system/spec.md) was caught; record the new range
   rather than quietly working around it.
+
+  **Confirmed 2026-09-28.** All four line counts match: 654, 61, 46, 330. Every
+  range boundary lands exactly on its heading — line 12 `## Component Map`, 41
+  `## Entry Points`, 54 `## Layers`, 175 `## Health Checks`, 241
+  `## Request Flow`, 267 `## Security`, 310 `## Further Reading`. Nothing moved
+  under the plan.
 
 ______________________________________________________________________
 
@@ -61,14 +67,20 @@ ______________________________________________________________________
 **⚠️ CRITICAL**: T002 blocks every citation task. A wrong depth fails the build
 in a way that reads like a missing file.
 
-- [ ] T002 Confirm the citation depth by writing one citation and running the
+- [x] T002 Confirm the citation depth by writing one citation and running the
   gate: from a file under `specs/.claude/skills/add-a-domain/references/`, the
   path to a corpus requirement is **four** `../` levels —
   `../../../../components/osapi/specs/005-building-a-domain/spec.md`. Three
   lands in `.claude/` and `skill-lint` says so by name. The rule is recorded in
   [003's citation contract](../003-corpus-backfill/contracts/citation.md); this
   task is the cheap proof before twenty rows are written against it.
-- [ ] T003 Check the three principles 003 never named — Reliability and
+
+  **Confirmed.** Four levels resolve; `references/provider.md` has been using
+  `../../../../components/osapi/specs/001-provider-contract/spec.md` since
+  `001`, which is the working example. `skill-lint` passes on every citation
+  written for T016–T018.
+
+- [x] T003 Check the three principles 003 never named — Reliability and
   Stability, CLI Parity with API, Least Privilege Mode — against
   `.charter/fragments/global/` and
   `components/osapi/.specify/memory/constitution.md`, reading the fragment text
@@ -78,7 +90,21 @@ in a way that reads like a missing file.
   Record what was found, including "unstated", so the next reader sees a check
   rather than an assumption.
 
-**Checkpoint**: the citation shape is proven and the charter check is recorded.
+  **Result: all three are unstated, so all eight principles are stated for the
+  first time in `005`.** Checked by reading the text, not the headings:
+
+  | Checked                   | `.charter/fragments/global/` | `constitution.md` | Existing memory |
+  | ------------------------- | ---------------------------- | ----------------- | --------------- |
+  | Reliability and Stability | no match                     | no match          | no match        |
+  | CLI Parity with API       | no match                     | no match          | no match        |
+  | Least Privilege Mode      | no match                     | no match          | no match        |
+
+  The constitution composes exactly five sections — Documentation, Verification,
+  Tooling, Correction, Workflow — and none of them reaches reliability, CLI
+  parity or privilege. This extends
+  [003's Finding 1](../003-corpus-backfill/research.md) from five principles to
+  eight with the same answer. **Checkpoint**: the citation shape is proven and
+  the charter check is recorded.
 
 ______________________________________________________________________
 
@@ -89,15 +115,20 @@ ______________________________________________________________________
 **Independent test**: SC-001's reading, run in Phase 6 once the corpus half has
 merged.
 
-- [ ] T004 [US1] Write the walkthrough into [data-model.md](data-model.md) —
+- [x] T004 [US1] Write the walkthrough into [data-model.md](data-model.md) —
   already drafted under "The walkthrough" — and confirm it keeps FR-004's three
   forced orderings separate from the conventional sequence, applying the test in
   [contracts/walkthrough.md](contracts/walkthrough.md): would a reader call the
   corpus *wrong* or merely *dated* if the step moved? Only "wrong" belongs in a
   requirement.
 
-**Checkpoint**: the corpus states both the rules and the order. The site still
-states them too — the window [research.md](research.md) Decision 1 describes.
+  **Done in the plan.** The walkthrough is in [data-model.md](data-model.md)
+  under "The walkthrough", with the three forced orderings separated from the
+  conventional sequence and the trap in steps 7 and 8 named. The test in
+  [contracts/walkthrough.md](contracts/walkthrough.md) was applied to each: only
+  the three that break a build are stated as requirements. **Checkpoint**: the
+  corpus states both the rules and the order. The site still states them too —
+  the window [research.md](research.md) Decision 1 describes.
 
 ______________________________________________________________________
 
@@ -184,7 +215,7 @@ the mechanics.
 
 **Independent test**: SC-004's `just test`, and SC-005's grep.
 
-- [ ] T016 [US3] Replace the domain-building mechanics in
+- [x] T016 [US3] Replace the domain-building mechanics in
   `specs/.claude/skills/add-a-domain/references/api.md` with citation rows
   naming FR-011, FR-012, FR-013, FR-014, FR-015, FR-016, FR-017, FR-018 and
   FR-024 — written out rather than as a range, so a coverage check can see each
@@ -196,25 +227,34 @@ the mechanics.
   copied into a reference becomes guidance, which is the opposite of what
   recording it was for.
 
-- [ ] T017 [US3] [P] Do the same for `references/cli.md` citing FR-021,
+- [x] T017 [US3] [P] Do the same for `references/cli.md` citing FR-021,
   `references/docs.md` citing FR-001, and `references/agent.md` citing FR-009
   and FR-010. `references/agent.md` already cites 004 from Subject A; add to it
   rather than rewriting it. `references/provider.md` is unchanged — it already
   cites 001 and is the pattern being copied.
 
-- [ ] T018 [US3] In `references/sdk.md`, cite FR-019 and FR-020, and **name the
+- [x] T018 [US3] In `references/sdk.md`, cite FR-019 and FR-020, and **name the
   `sdk-standards` deferral at line 6 as unwritten rather than repeating it**. It
   claims binding rules exist in this repository and they do not. Repeating the
   claim propagates a settled-looking rule nobody has written; naming it tells
   the reader what state it is actually in.
 
-- [ ] T019 [US3] Run the SC-005 grep from [quickstart.md](quickstart.md) over
+- [x] T019 [US3] Run the SC-005 grep from [quickstart.md](quickstart.md) over
   `specs/.claude/skills/add-a-domain/`. Every hit must sit in a citation row
   naming a requirement, never in a paragraph explaining the mechanism. A
   reference that explains how validation tags work is a second statement
   whatever it links to.
 
-- [ ] T020 [US3] Run `cd specs && mise exec -- just test`. `skill-lint`
+  **Result: three hits, all in `api.md`, all acceptable — and one was not before
+  it was fixed.** Lines 48 and 74 are identifiers inside scaffolding code
+  blocks, which is what `provider.md` has always done and is not a paragraph
+  explaining a mechanism. Line 101 was a prose rule — "`IsBroadcastTarget` has
+  one implementation, never write a second" — stated with no citation. It is now
+  inside the section that names rules the corpus does not hold, citing FR-015
+  for where the implementation lives. `x-oapi-codegen-extra-tags` no longer
+  appears anywhere; FR-011 holds it.
+
+- [x] T020 [US3] Run `cd specs && mise exec -- just test`. `skill-lint`
   resolving every new citation at four levels is the gate, and it is what T002
   proved in advance.
 
