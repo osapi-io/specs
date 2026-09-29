@@ -38,6 +38,35 @@ feature that states it.
 
 **Tasks Completed:** 29/29 tasks
 
+### Building a domain — amended again 2026-09-28
+
+**Source:** closing out FR-073's gap, and correcting the correction
+
+Two things, and the second is a correction of this project's own earlier fix.
+
+- **The `sdk-standards` claim had three copies, not two.** FR-073 named the site's
+  domain page and the skill's `references/sdk.md`. The site's SDK guidelines page
+  carried it too, found while checking that no operator page points into the corpus.
+  All three now name it as unwritten.
+- **One of the deferral's four subjects has no rule anywhere.** It named method
+  naming, type exposure, result-field tags and error handling. The last three are
+  real and stated as FR-074, and the guidelines page shows each working. Method
+  naming is stated nowhere — not in the corpus, not on that page, not in the
+  capability nobody wrote. The replacement text written for the guidelines page
+  listed it among the rules FR-073 and FR-074 state, which was itself an overclaim of
+  the same kind, smaller, and is corrected.
+
+So the missing authority was never a document that would have collected existing
+rules. For one of its four subjects there was nothing to collect, which is a more
+useful thing to know than "a capability is missing".
+
+**Where the remainder belongs:** this project, not `system`. `osapi-orchestrator` does
+depend on `osapi`, so the cross-repository claim was true in substance, but the SDK is
+osapi's own public API and the orchestrator consumes it — osapi's behaviour rather than
+an agreement between repositories. A method-naming convention is worth stating once
+somebody decides what it is, rather than inferring one from the method names that
+happen to exist.
+
 ### Building a domain — amended 2026-09-28
 
 **Source:** the SC-001 reading, `specs/005-building-a-domain/tasks.md` T021

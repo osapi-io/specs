@@ -790,6 +790,14 @@ questions from the corpus alone, without opening the site.
   [Source: specs/005-building-a-domain/spec.md -> FR-018]
 - **FR-073**: The corpus MUST state the SDK obligations — four files per service, a field on the `Client` struct, an example under `examples/sdk/client/`, a doc page in the matching category, and the navbar entry — and MUST NOT defer to an authority that does not exist. **Gap**: three documents claimed SDK naming and error handling were "specified in the `sdk-standards` capability", that it bound `osapi-orchestrator`, and that it won any disagreement. No such capability was ever written. The three were the site's domain page, the skill's `references/sdk.md`, and the site's SDK guidelines page; all three now name it as unwritten. Owner: this repository, as a feature of its own.
   [Source: specs/005-building-a-domain/spec.md -> FR-019]
+  **Method naming is stated nowhere** — not in the corpus, not on the site's SDK
+  guidelines page, and not in the capability nobody wrote; it was named only in the
+  deferral, so for one of that deferral's four subjects there was no rule to collect.
+  The other three — type exposure, JSON tags, error wrapping — are FR-074. There were
+  three copies of the claim, not two. `osapi-orchestrator` does depend on `osapi`, so
+  the cross-repository claim was true in substance, but the SDK is osapi's own public
+  API and the orchestrator consumes it, which makes this osapi's behaviour rather than
+  an agreement between repositories.
 - **FR-074**: The corpus MUST state the SDK rules that are verifiable: no `gen` type in a public method signature, JSON tags on every result type, errors wrapped with context, and one service per file with no methods added to another service's files.
   [Source: specs/005-building-a-domain/spec.md -> FR-020]
 - **FR-075**: The corpus MUST state the CLI obligations: one parent command per domain and one subcommand per endpoint, `--json` on every command, `cli.PrintKV` for key-value output and `cli.PrintCompactTable` for tabular, flags rather than positional arguments for resource IDs, and every response code the OpenAPI specification declares handled in the status switch. Evidence: `PrintCompactTable` at `internal/cli/ui.go:198`, `PrintKV` at `:413`.
