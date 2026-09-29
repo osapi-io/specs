@@ -85,7 +85,7 @@ This is Subject A, and per FR-005 it goes first. It is its own feature: these
 tasks carry it as far as a merged specification, because a corpus statement is
 what the site change then cites.
 
-- [ ] T006 [US1] Run `/speckit-specify` in `components/osapi` for Subject A,
+- [x] T006 [US1] Run `/speckit-specify` in `components/osapi` for Subject A,
   naming the sections in [data-model.md](data-model.md) marked *Corpus*, and
   producing `specs/components/osapi/specs/004-job-system/spec.md`. Per FR-009
   each requirement is checked against the code before it is written, and per
