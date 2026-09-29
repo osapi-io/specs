@@ -4,12 +4,15 @@
 
 **Created**: 2026-09-28
 
-**Status**: Archived 2026-09-28, amended 2026-09-28 — the SC-001 reading (T021)
-found that nothing stated a domain's test obligations, that FR-007's six layers
-and FR-001's seven artifact kinds did not reconcile, and that FR-006 split
-node-targeted from controller-only operations by directory without saying what
-decides it. FR-027 is new; the amendment is recorded in
-[changelog.md](../../.specify/memory/changelog.md).
+**Status**: Archived 2026-09-28, amended twice 2026-09-28 — FR-028 states the
+SDK's method-naming convention in five rules, derived from the existing surface
+once it was established that none had been written, and names the seven methods
+to be renamed so that nothing is left as a permitted exception. Earlier that day
+— the SC-001 reading (T021) found that nothing stated a domain's test
+obligations, that FR-007's six layers and FR-001's seven artifact kinds did not
+reconcile, and that FR-006 split node-targeted from controller-only operations
+by directory without saying what decides it. FR-027 is new; the amendment is
+recorded in [changelog.md](../../.specify/memory/changelog.md).
 
 **Input**: Subject B of [003-corpus-backfill](../003-corpus-backfill/spec.md) —
 the second and last subject of the corpus backfill. 003's `data-model.md`
@@ -398,6 +401,67 @@ corpus statement existing first.
   registration FR-018 — and tests had none, so a reader of this specification
   alone saw an omission where a deferral was intended. The deferral was real and
   recorded in [data-model.md](data-model.md); it was simply not here.
+
+- **FR-028**: The corpus MUST state the SDK's method-naming convention. It was
+  derived from the 31 services and roughly 110 exported methods that exist in
+  `pkg/sdk/client/`, rather than decided in the abstract, because no convention
+  had ever been written down — FR-019 records that. Four rules describe what is
+  there:
+
+  1. **The five CRUD verbs are exactly `List`, `Get`, `Create`, `Update`,
+     `Delete`.** Never `GetAll`, `Fetch`, `Set`, `Put` or `Remove` for the
+     service's own resource. Eleven services use some or all of them and none
+     deviates.
+
+  2. **A method acting on the service's own resource takes the bare verb, with
+     no object.** `Service.Start`, not `Service.StartService`; `Power.Reboot`,
+     `Agent.Accept`, `Job.Retry`, `Package.Install`, `Docker.Pull`.
+
+  3. **A method acting on a *sub*-resource takes verb then object.**
+     `User.AddKey`, `User.ListKeys`, `User.RemoveKey`, `User.ChangePassword`,
+     `Agent.ListPending`, `Package.ListUpdates`, `Log.QueryUnit`.
+
+  4. **A getter is named `Get` and nothing else.** Six services expose a single
+     read — `Disk`, `Load`, `Memory`, `OS`, `Status`, `Uptime` — and each names
+     it `Get`, taking its subject from the service.
+
+  5. **When a service exposes several distinct reads, each takes verb then
+     object** under rule 3; rule 4's bare `Get` applies only where there is
+     exactly one read. `User.ListKeys`, `Agent.ListPending` and
+     `Package.ListUpdates` already work this way.
+
+  Applying these rules to the existing surface leaves **seven methods that do
+  not conform**, and the corpus MUST state that each is to be renamed rather
+  than recorded as a permitted exception:
+
+  | Current              | Becomes       | Why                                                                                                                                | Call sites                    |
+  | -------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+  | `Docker.ImageRemove` | `RemoveImage` | Rule 3 is verb then object; this is the only object-then-verb method in the SDK                                                    | 3 here, 1 in the orchestrator |
+  | `Ping.Do`            | `Send`        | `Do` names no action. `Send` is the domain verb, which rule 2 admits — the stutter in `Ping.Ping` is what made `Do` look necessary | 3 here, 2 in the orchestrator |
+  | `File.Stale`         | `ListStale`   | Returns `StaleList`. It is a list of a sub-resource, so rule 3                                                                     | 3                             |
+  | `File.Changed`       | `GetChanged`  | Returns `FileChanged` for a path. A read of a sub-resource, so rule 3                                                              | 2                             |
+  | `Health.Liveness`    | `GetLiveness` | Three distinct reads on one service, so rule 5                                                                                     | 3                             |
+  | `Health.Ready`       | `GetReady`    | Same                                                                                                                               | 3                             |
+  | `Health.Status`      | `GetStatus`   | Same                                                                                                                               | 6                             |
+
+  **Why renaming rather than excepting.** The SDK has no released version —
+  osapi carries no `v*` tag and `osapi-orchestrator` pins a pseudo-version
+  commit — so these are renames today and breaking changes after the first tag.
+  Twenty-six call sites here and three there is the whole cost, and it only
+  grows.
+
+  `Docker.Pull` is deliberately **not** renamed. `PullImage` would be more
+  symmetric with `RemoveImage`, but pull applies to nothing but images in
+  Docker, so the object adds length without removing ambiguity.
+
+  **Two of these were first recorded as permitted deviations, and that was
+  wrong.** `File.Stale` and `File.Changed` were described as predicates
+  answering a question about state — read off their names rather than their
+  signatures, which return a list and a single record. FR-090 requires a rule
+  checked against the code before it is written down, and this is that
+  requirement failing against the analysis that stated it. The correction is
+  recorded here rather than in a later amendment because the statement had not
+  yet merged.
 
 - **FR-025**: After this specification merges, the `add-a-domain` skill MUST
   cite its requirements rather than restating the mechanics, in the shape

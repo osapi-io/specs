@@ -38,6 +38,33 @@ feature that states it.
 
 **Tasks Completed:** 29/29 tasks
 
+### Building a domain — the SDK naming convention, 2026-09-28
+
+**Source:** FR-073's remaining gap, closed by deriving the rule rather than inventing it
+
+FR-073 established that three documents deferred to an `sdk-standards` capability
+nobody wrote, and that one of its four subjects — method naming — was stated nowhere
+at all. That gap is now closed, and it was closed the only honest way available: by
+reading the 31 services and roughly 110 exported methods in `pkg/sdk/client/` and
+writing down what they already do.
+
+FR-094 states five rules — the five exact CRUD verbs, a bare verb for the service's
+own resource, verb-then-object for a sub-resource, `Get` where a service has exactly
+one read, and verb-then-object where it has several — and names **seven methods to be
+renamed** so that nothing is left as a permitted exception.
+
+The first draft of this recorded four of them as permitted deviations instead. Two of
+those four were misread: `File.Stale` and `File.Changed` were called predicates
+answering a question about state, which is what their *names* suggest and not what
+their signatures say — they return a list and a single record. FR-090 requires a rule
+checked against the code before it is written down, and this is that requirement
+failing against the analysis that stated it, one day after it was written.
+
+Renaming rather than excepting is affordable precisely now: the SDK carries no
+released version and its one external consumer pins a pseudo-version commit, so the
+whole cost is twenty-six call sites in osapi and three in the orchestrator. After the
+first tag they are breaking changes.
+
 ### Building a domain — amended again 2026-09-28
 
 **Source:** closing out FR-073's gap, and correcting the correction
