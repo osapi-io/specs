@@ -87,3 +87,33 @@ is recorded:
   link-checks its 221. The rest of the build tooling is uniform, which the
   requirement states explicitly rather than leaving a reader to infer drift.
   Recorded with an owner, not fixed.
+
+## The operation, settled
+
+The first version of this specification defined a document shape and said
+nothing about the repositories' own documentation. That left the two things
+already done pointing in opposite directions:
+
+|       | What happened                                            | Obeys the one-statement rule? |
+| ----- | -------------------------------------------------------- | ----------------------------- |
+| osapi | contributor docs **moved out**, pages deleted or reduced | yes                           |
+| gohai | contributor docs **left in place**, cited                | no — two statements           |
+
+Under "no repository should be different" they cannot both be right, and the
+rule already adopted decides it: `global/documentation` and the backfill's own
+one-statement requirement mean the move is the right operation everywhere.
+
+What the amendment adds is the ordering, because osapi's was wrong. It was
+backfilled across three features and still has no baseline — so the document
+that establishes which pages are contributor-facing was never written. FR-025 to
+FR-027 make the baseline come first, make it carry the classification, and make
+the move its own feature.
+
+FR-028 is the guard against over-applying it: `gohai/docs/collectors/` is a
+catalogue for people *using* the library, and gohai's own FR-004 cites it as the
+maintained enumeration. Moving it would take a user's reference away and break
+the citation at once. The test is who reads a page, not where it sits.
+
+FR-029 starts with osapi because it is the hub — `nats-client` and `nats-server`
+below, `osapi-orchestrator` above. A leaf baselined first has nothing to state
+its edges against.
