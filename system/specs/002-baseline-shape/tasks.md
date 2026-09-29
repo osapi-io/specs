@@ -160,7 +160,9 @@ against the right project, and stops there.
   adds section 2, section 3, and the classification of its 68 documentation
   pages. Section 3 is the one to note: gohai's FR-016 excluded architecture
   *deliberately*, so the amendment reverses a judgement rather than filling a
-  blank.
+  blank. SC-006 is satisfied by that amendment, not by this task: opening a
+  feature is not carrying it out, and the check belongs to the amendment's own
+  task list.
 - [ ] T016 [US3] Open `osapi-justfiles`' baseline early rather than last, even
   though it is the smallest. It has no Go and no documentation pages, so it is
   the one repository that tests FR-011 and FR-013 — whether a section may be
