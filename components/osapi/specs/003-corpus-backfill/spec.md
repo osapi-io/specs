@@ -192,27 +192,52 @@ citation.
 ## Assumptions
 
 - The six candidate pages are `development/adding-an-api-domain.md` (654 lines),
-  `architecture/job-architecture.md` (603),
+  `architecture/job-architecture.md` (630),
   `architecture/system-architecture.md` (330), `architecture/architecture.md`
   (204), `architecture/api-guidelines.md` (61) and `architecture/principles.md`
-  (46), totalling 1,898 of the site's 16,938 lines. The remaining 15,040 lines —
+  (46), totalling 1,925 of the site's 16,938 lines. The remaining 15,013 lines —
   thirty feature pages, the usage and SDK documentation — are user-facing and
   out of scope.
+
+  **Corrected 2026-09-28.** Three of this feature's own records were wrong, and
+  each was found by the work rather than by re-reading this file. They are
+  corrected here, ahead of archival, because a specification archived with wrong
+  inventories records the error as knowledge.
+
+  | This said                                 | It is     | Found by                                                                                                                                                             |
+  | ----------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | `job-architecture.md` is 603 lines        | **630**   | Subject A's research. The page grew by an Error Handling section added while closing the September review — the newest and most precise contributor knowledge on it. |
+  | `api-guidelines.md` holds five guidelines | **six**   | Subject B, verifying before writing. The sixth is path-versus-query parameters.                                                                                      |
+  | `principles.md` holds five principles     | **eight** | Subject B. The three never named are Reliability and Stability, CLI Parity with API, and Least Privilege Mode.                                                       |
+
+  The pattern in the last two is worth naming, because it is the argument for
+  FR-009. **Every line count in this list was right**; both pages are exactly as
+  long as recorded. What was wrong was the count of *items inside* two of them,
+  which was taken from reading about the pages rather than from the pages. A
+  measurement is evidence and a recollection is not, which is why FR-009
+  requires each requirement checked against the repository before it is written
+  rather than transcribed from prose.
+
 - The thirty feature pages stay where they are. Each describes what a domain
   does for an operator, which is the site's job.
+
 - Not every candidate page moves. The classification in FR-001 is the work, and
   the answer for at least one page is expected to be "stays" or "splits" rather
   than "moves".
+
 - No Go code changes. This moves and cites prose.
+
 - The site is formatted by Prettier and checked by a site formatting gate that
   runs with the tests rather than with the pre-commit checks; the corpus is
   formatted by a Markdown formatter that excludes the skills directory; and the
   skills are validated by a checker that resolves every relative link. A
   citation into the corpus that does not resolve therefore fails the build,
   which is what makes FR-008 enforceable rather than aspirational.
+
 - The provider contract is the precedent for how this is done: its rules live in
   the corpus and its skill reference cites them, which cut that reference from
   171 lines to 127.
+
 - Which subjects the moved content becomes is decided during planning, not here.
   This specification requires grouping by subject and names the first one; it
   does not enumerate the rest, because that decision needs the pages read in
