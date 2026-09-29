@@ -27,7 +27,7 @@ ______________________________________________________________________
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm the line ranges in [data-model.md](data-model.md) against
+- [x] T001 Confirm the line ranges in [data-model.md](data-model.md) against
   `osapi/docs/docs/sidebar/architecture/job-architecture.md` as it stands. 003's
   T001 confirmed them at 630 lines; anything merged into that page since moves
   them again, and the split is done by section boundary rather than by line
@@ -35,7 +35,7 @@ ______________________________________________________________________
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T002 [US3] Re-run the SC-002 citation checks from
+- [x] T002 [US3] Re-run the SC-002 citation checks from
   [quickstart.md](quickstart.md). Every cited file must still print. A citation
   that stopped resolving between the specification merging and this change is a
   requirement describing code that moved, and it is corrected here rather than
@@ -49,19 +49,19 @@ holds a second copy.
 **Independent test**: SC-004's greps return nothing from the page, and SC-001's
 three questions are answerable from the specification alone.
 
-- [ ] T003 [US1] Remove from
+- [x] T003 [US1] Remove from
   `osapi/docs/docs/sidebar/architecture/job-architecture.md` the sections
   [data-model.md](data-model.md) marks as replaced: Overview, Architecture
   Principles, Job Flow, NATS Configuration, Subject Hierarchy and Semantic
   Routing Rules, the routing *rules* from Target Types, Agent Implementation,
   Facts Collection, Package Architecture, Performance Optimizations, Security
   Considerations, and Error Handling.
-- [ ] T004 [US1] Delete the three wrong statements with the sections that hold
+- [x] T004 [US1] Delete the three wrong statements with the sections that hold
   them — the `{status}.{uuid}` key format, `MaxDeliver: 3` and `AckWait: 30s`,
   and the 24-hour TTL. Research Decision 1: none of the three is corrected in
   place, because correcting a number in two places is how it drifted the first
   time.
-- [ ] T005 [US1] Run the SC-004 grep. No output. A match is a second statement,
+- [x] T005 [US1] Run the SC-004 grep. No output. A match is a second statement,
   and for the first three a second statement that is wrong.
 
 ## Phase 4: User Story 2 — the page still serves an operator (Priority: P1)
@@ -71,22 +71,22 @@ unchanged.
 
 **Independent test**: 003's SC-002 and SC-003 checks, plus the site build.
 
-- [ ] T006 [US2] Rewrite the page's opening so it introduces what the page now
+- [x] T006 [US2] Rewrite the page's opening so it introduces what the page now
   is — running and watching jobs — rather than opening on an overview of a
   system it no longer describes. FR-003 of 003: the operator's half must read as
   a coherent page, not as what was left.
-- [ ] T007 [US2] Keep, and check for orphaned cross-references: the submission
+- [x] T007 [US2] Keep, and check for orphaned cross-references: the submission
   CLI examples, the job states as observed, polling, the target syntax an
   operator types, the CLI command reference, and the metrics worth watching.
   [data-model.md](data-model.md) lists them with their line ranges.
-- [ ] T008 [US2] [P] Update any page that linked into a removed section.
+- [x] T008 [US2] [P] Update any page that linked into a removed section.
   `architecture.md`'s Deep Dives and `system-architecture.md`'s Further Reading
   both point here; a link to a heading that no longer exists is what the site
   build catches.
-- [ ] T009 [US2] Confirm the page states nothing that sends an operator to the
+- [x] T009 [US2] Confirm the page states nothing that sends an operator to the
   corpus — 003's FR-012. A contributor arriving here is served by the skill, not
   by a pointer on an operator page.
-- [ ] T010 [US2] Run
+- [x] T010 [US2] Run
   `cd osapi && just docusaurus-fmt-check && just docusaurus-build`.
 - [ ] T011 [US2] Open and merge the osapi pull request for T003–T010. **This is
   the task that ends the duplication.** Until it lands, the corpus and the page
@@ -99,16 +99,16 @@ unchanged.
 
 **Independent test**: SC-004's `just test`, and SC-005's grep.
 
-- [ ] T012 [US3] Replace the delivery-semantics section of
+- [x] T012 [US3] Replace the delivery-semantics section of
   `specs/.claude/skills/add-a-domain/references/agent.md` with a citation table
   naming FR-009, FR-010, FR-011, FR-012, FR-013, FR-014 and FR-015 — written out
   rather than as a range, so a coverage check can see each one — in the shape
   [003's citation contract](../003-corpus-backfill/contracts/citation.md)
   defines. Leave the processor, registration and platform-selection material
   alone — research Decision 2.
-- [ ] T013 [US3] Run `cd specs && just test`. `skill-lint` resolving the new
+- [x] T013 [US3] Run `cd specs && just test`. `skill-lint` resolving the new
   citations is the gate.
-- [ ] T014 [US3] Run the SC-005 grep and read the Security Considerations
+- [x] T014 [US3] Run the SC-005 grep and read the Security Considerations
   requirements: they must cite [002](../002-agent-key-store/spec.md) rather than
   explain signing again.
 

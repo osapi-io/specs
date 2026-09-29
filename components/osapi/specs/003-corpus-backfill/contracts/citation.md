@@ -25,9 +25,17 @@ Three properties matter:
 1. **Relative, not absolute.** `scripts/validate-skills.py` resolves relative
    links from the file's own directory. An absolute URL is not checked by
    anything, which makes it a restatement with extra steps.
+
+   From a reference file the depth is **four** levels up — `references/` →
+   `<skill>/` → `skills/` → `.claude/` → the repository root — so the path opens
+   `../../../../components/osapi/specs/…`. Three levels lands in `.claude/` and
+   resolves to nothing; the gate says so by name, which is how this note came to
+   be written.
+
 2. **Named to a requirement, not to a document.** "See the job system
    specification" is a pointer; "FR-007" is a citation. Only the second tells a
    reader whether the thing they are looking for is there.
+
 3. **One statement per rule.** The citing file states the rule's *name* and
    where it lives. It does not restate the rule, because two statements are what
    this feature exists to end.

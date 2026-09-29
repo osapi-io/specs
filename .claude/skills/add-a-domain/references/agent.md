@@ -88,20 +88,25 @@ panicking.
 
 ## Delivery semantics worth knowing before you add an operation
 
-The agent acknowledges a message once the operation has run and its response and
-status are recorded, whether it succeeded or failed. Before running, it checks
-whether it has already answered that job and skips re-execution if so, which
-covers a crash between executing and acknowledging.
+The job system's guarantees are specified in the corpus, which is where to read them
+in full. What matters when adding an operation, and where each rule is stated:
 
-What that means for a new operation:
+| What you are relying on | Stated in |
+| --- | --- |
+| Delivery is at-least-once, and the agent checks for a recorded response before executing | [FR-009](../../../../components/osapi/specs/004-job-system/spec.md) |
+| Which operations make that check load-bearing rather than theoretical | [FR-010](../../../../components/osapi/specs/004-job-system/spec.md) |
+| A job that has run is terminal — a failure is reported, not retried by redelivery | [FR-011](../../../../components/osapi/specs/004-job-system/spec.md) |
+| What happens when the response cannot be written after the work ran | [FR-012](../../../../components/osapi/specs/004-job-system/spec.md) |
+| Which failures terminate a message instead of redelivering it | [FR-013](../../../../components/osapi/specs/004-job-system/spec.md) |
+| The consumer's delivery settings, as defaults a deployment may override | [FR-014](../../../../components/osapi/specs/004-job-system/spec.md) |
+| A long operation is kept alive while it runs, so it is not redelivered mid-flight | [FR-015](../../../../components/osapi/specs/004-job-system/spec.md) |
 
-- **A failure is reported, not retried.** Return an error from the provider and
-  it becomes a failed job with the message, once.
-- **Redelivery must not be your safety net.** The provider's idempotency is what
-  makes a repeat safe.
-- **A long operation is kept alive** while it runs, so it is not redelivered
-  mid-flight. Nothing to do per domain.
-- `job retry` creates a new job rather than replaying the old message.
+Two consequences for a new operation, which are yours rather than the system's:
+
+- **Redelivery is not your safety net.** The provider's idempotency is what makes a
+  repeat safe — the contract's own requirement, not this one.
+- **`job retry` creates a new job** rather than replaying the old message, so
+  nothing per-domain handles it.
 
 ## Facts
 
