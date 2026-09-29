@@ -288,7 +288,7 @@ ______________________________________________________________________
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T021 [P] Run the SC-001 reading from [quickstart.md](quickstart.md) with
+- [x] T021 [P] Run the SC-001 reading from [quickstart.md](quickstart.md) with
   somebody who has not read the site page, asking the four fixed questions. An
   author cannot test their own corpus for completeness. A person is preferred; a
   fresh agent given **only** `spec.md` — no repository, no site, no other
@@ -297,6 +297,50 @@ ______________________________________________________________________
   does not**: that the answers are in the text, not that a person would succeed.
   Subject A's reading found two real gaps its author had read past twice, which
   is the argument for running it.
+
+  **Result: SC-001 met.** All four questions came back ANSWERABLE from
+  [spec.md](spec.md) alone. The reader was a fresh agent given that one file and
+  the four questions — no repository, no site, no other specification, no
+  session context, and an instruction not to answer from its own knowledge of
+  Go, REST or OpenAPI. That is not a person and does not prove a person would
+  succeed; it does prove the answers are in the text.
+
+  | Question                                                                   | Cited                        |
+  | -------------------------------------------------------------------------- | ---------------------------- |
+  | What does a domain consist of, and how would I know one was incomplete?    | FR-001, FR-007, Key Entities |
+  | What must be built before what, and which of those orderings is forced?    | FR-004, FR-005               |
+  | Where does user input get validated, and what happens to a path parameter? | FR-011, FR-012               |
+  | What must be true of an operation that targets more than one machine?      | FR-015, FR-016, FR-017       |
+
+  **Three findings are real and land against this specification.** Verified
+  against the file rather than taken on the reader's word:
+
+  - **Nothing states a domain's test obligations.** "Tests" is named among the
+    Domain entity's artifacts, and every other artifact kind has a requirement —
+    the CLI has FR-021, the SDK FR-019 and FR-020, registration FR-018 — while
+    tests have none. The deferral exists: [data-model.md](data-model.md) records
+    that testing conventions are osapi's `CONTRIBUTING.md`'s, cited rather than
+    copied. It is simply not in `spec.md`, so a reader of the specification
+    alone sees a hole where a deferral should be. The reader called it a silent
+    gap and was right.
+  - **FR-007's "six layers" and the Domain entity's seven artifact kinds do not
+    reconcile.** SDK, documentation and tests appear in the artifact list and
+    not among the layers, and nothing says why. Two lists of what a domain
+    touches, differing, in one document.
+  - **FR-006 distinguishes node-targeted from controller-only operations by
+    directory without saying what makes an operation one or the other.** That is
+    the first choice a contributor makes and the most expensive to get wrong.
+
+  Two thinner ones: "the combined specification" is used in FR-004 and defined
+  nowhere, and `valid_target` is cited as a call without saying what it checks.
+  The first is worth a clause. Three further observations — the processor file's
+  name, a threshold for "expected to grow", and the absence of a worked example
+  — are the skill's job rather than the corpus's.
+
+  **Not fixed here.** A merged specification is amended in its own pull request,
+  ahead of anything depending on it, and folding a correction into an archive
+  diff is the failure the workflow exists to prevent. The three real findings go
+  to that amendment, which also carries them into memory.
 
 - [x] T022 [P] Run the SC-006 check from [quickstart.md](quickstart.md): the
   contributor page's last commit must postdate this specification's merge. If it
