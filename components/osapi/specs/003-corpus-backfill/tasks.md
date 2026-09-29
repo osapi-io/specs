@@ -120,7 +120,7 @@ surviving page sends an operator to the corpus.
 
 **Independent test**: SC-002 and SC-003 from [quickstart.md](quickstart.md).
 
-- [ ] T011 [US2] Split
+- [x] T011 [US2] Split
   `osapi/docs/docs/sidebar/architecture/job-architecture.md` per
   [data-model.md](data-model.md): the job states as observed, polling, the CLI
   reference and the metrics stay; the mechanics go. The result must read as a
