@@ -38,6 +38,26 @@ feature that states it.
 
 **Tasks Completed:** 29/29 tasks
 
+### Building a domain — the SDK naming convention, 2026-09-28
+
+**Source:** FR-073's remaining gap, closed by deriving the rule rather than inventing it
+
+FR-073 established that three documents deferred to an `sdk-standards` capability
+nobody wrote, and that one of its four subjects — method naming — was stated nowhere
+at all. That gap is now closed, and it was closed the only honest way available: by
+reading the 31 services and roughly 110 exported methods in `pkg/sdk/client/` and
+writing down what they already do.
+
+FR-094 states four rules — the five exact CRUD verbs, a bare verb for the service's
+own resource, verb-then-object for a sub-resource, and `Get` for a single read — and
+records four deviations beside them: `Docker.ImageRemove` (the only object-then-verb
+method, and renaming it would break a public API), `Ping.Do`, and the predicate and
+probe names on `File` and `Health`.
+
+Recording the deviations is the point. A convention derived from code that quietly
+omitted its own exceptions would read as describing the surface while contradicting
+four parts of it.
+
 ### Building a domain — amended again 2026-09-28
 
 **Source:** closing out FR-073's gap, and correcting the correction

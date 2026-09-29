@@ -29,6 +29,11 @@
 > put here, which is what a method feature archived after its subjects should look
 > like.
 
+> **Revision**: 2026-09-28 — Added the SDK's method-naming convention as FR-094,
+> derived from the 31 services that exist rather than decided in the abstract, once
+> FR-073 had established that no convention was written anywhere. Its four deviations
+> are recorded with it.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - The contract can be read without reading a sibling provider (Priority: P1)
@@ -800,6 +805,29 @@ questions from the corpus alone, without opening the site.
   an agreement between repositories.
 - **FR-074**: The corpus MUST state the SDK rules that are verifiable: no `gen` type in a public method signature, JSON tags on every result type, errors wrapped with context, and one service per file with no methods added to another service's files.
   [Source: specs/005-building-a-domain/spec.md -> FR-020]
+- **FR-094**: The corpus MUST state the SDK's method-naming convention, and it MUST
+  record that the convention was **derived from the existing surface** — 31 services
+  and roughly 110 exported methods in `pkg/sdk/client/` — rather than decided in the
+  abstract, because none had ever been written down (FR-073). Four rules:
+
+  1. The five CRUD verbs are exactly `List`, `Get`, `Create`, `Update`, `Delete` —
+     never `GetAll`, `Fetch`, `Set`, `Put`, or `Remove` for the service's own
+     resource. Eleven services use them and none deviates.
+  2. A method acting on the service's own resource takes the **bare verb**, no object:
+     `Service.Start`, not `StartService`; `Power.Reboot`, `Agent.Accept`, `Job.Retry`.
+  3. A method acting on a **sub-resource** takes verb then object: `User.AddKey`,
+     `User.ListKeys`, `Agent.ListPending`, `Package.ListUpdates`, `Log.QueryUnit`.
+  4. A getter is named `Get` and nothing else, taking its subject from the service.
+
+  Four deviations MUST be recorded with it, because a convention derived from code is
+  honest only if it names what it does not cover: `Docker.ImageRemove` is object then
+  verb and is the only such method (renaming it would break a public API, and that is
+  not proposed); `Ping.Do` names no action, existing because `Ping.Ping` stutters —
+  the case rule 2 cannot express when the service name is the verb; `File.Changed`
+  and `File.Stale` are predicates rather than verbs; `Health.Liveness` and
+  `Health.Ready` are probe names taken from the endpoints they call. These are
+  deviations, not defects.
+  [Source: specs/005-building-a-domain/spec.md -> FR-028]
 - **FR-075**: The corpus MUST state the CLI obligations: one parent command per domain and one subcommand per endpoint, `--json` on every command, `cli.PrintKV` for key-value output and `cli.PrintCompactTable` for tabular, flags rather than positional arguments for resource IDs, and every response code the OpenAPI specification declares handled in the status switch. Evidence: `PrintCompactTable` at `internal/cli/ui.go:198`, `PrintKV` at `:413`.
   [Source: specs/005-building-a-domain/spec.md -> FR-021]
 - **FR-076**: The corpus MUST state all **eight** design principles, each with what it constrains, so a principle can decide a question rather than decorate a page. **Gap**: the corpus backfill recorded five; the page stated eight. The three never named were Reliability and Stability, CLI Parity with API, and Least Privilege Mode. The recorded line count was right, so the page had not grown — the count of principles was wrong when written.

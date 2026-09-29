@@ -4,11 +4,13 @@
 
 **Created**: 2026-09-28
 
-**Status**: Archived 2026-09-28, amended 2026-09-28 — the SC-001 reading (T021)
-found that nothing stated a domain's test obligations, that FR-007's six layers
-and FR-001's seven artifact kinds did not reconcile, and that FR-006 split
-node-targeted from controller-only operations by directory without saying what
-decides it. FR-027 is new; the amendment is recorded in
+**Status**: Archived 2026-09-28, amended twice 2026-09-28 — FR-028 states the
+SDK's method-naming convention, derived from the existing surface once it was
+established that none had been written. Earlier that day — the SC-001 reading
+(T021) found that nothing stated a domain's test obligations, that FR-007's six
+layers and FR-001's seven artifact kinds did not reconcile, and that FR-006
+split node-targeted from controller-only operations by directory without saying
+what decides it. FR-027 is new; the amendment is recorded in
 [changelog.md](../../.specify/memory/changelog.md).
 
 **Input**: Subject B of [003-corpus-backfill](../003-corpus-backfill/spec.md) —
@@ -398,6 +400,41 @@ corpus statement existing first.
   registration FR-018 — and tests had none, so a reader of this specification
   alone saw an omission where a deferral was intended. The deferral was real and
   recorded in [data-model.md](data-model.md); it was simply not here.
+
+- **FR-028**: The corpus MUST state the SDK's method-naming convention. It was
+  derived from the 31 services and roughly 110 exported methods that exist in
+  `pkg/sdk/client/`, rather than decided in the abstract, because no convention
+  had ever been written down — FR-019 records that. Four rules describe what is
+  there:
+
+  1. **The five CRUD verbs are exactly `List`, `Get`, `Create`, `Update`,
+     `Delete`.** Never `GetAll`, `Fetch`, `Set`, `Put` or `Remove` for the
+     service's own resource. Eleven services use some or all of them and none
+     deviates.
+  2. **A method acting on the service's own resource takes the bare verb, with
+     no object.** `Service.Start`, not `Service.StartService`; `Power.Reboot`,
+     `Agent.Accept`, `Job.Retry`, `Package.Install`, `Docker.Pull`.
+  3. **A method acting on a *sub*-resource takes verb then object.**
+     `User.AddKey`, `User.ListKeys`, `User.RemoveKey`, `User.ChangePassword`,
+     `Agent.ListPending`, `Package.ListUpdates`, `Log.QueryUnit`.
+  4. **A getter is named `Get` and nothing else.** Six services expose a single
+     read — `Disk`, `Load`, `Memory`, `OS`, `Status`, `Uptime` — and each names
+     it `Get`, taking its subject from the service.
+
+  The corpus MUST also record the four places the existing surface departs from
+  these rules, because a convention derived from code is only honest if it names
+  what it does not cover:
+
+  | Method                            | Departs how                                                                                                                                                                                        |
+  | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | `Docker.ImageRemove`              | Object then verb, where rule 3 says verb then object. The only such method in the SDK; `RemoveImage` would conform. Renaming it is a breaking change to a public API and is **not** proposed here. |
+  | `Ping.Do`                         | `Do` names no action. It exists because `Ping.Ping` stutters, which is the case rule 2 cannot express when the service name *is* the verb.                                                         |
+  | `File.Changed`, `File.Stale`      | Adjectives rather than verbs. Both are predicates answering a question about state, which none of the four rules covers.                                                                           |
+  | `Health.Liveness`, `Health.Ready` | Probe names rather than verbs, taken from the endpoints they call.                                                                                                                                 |
+
+  These are recorded as **deviations, not defects**. Each is either a real
+  limitation of the rules or a public API that should not be renamed to satisfy
+  a convention written after it.
 
 - **FR-025**: After this specification merges, the `add-a-domain` skill MUST
   cite its requirements rather than restating the mechanics, in the shape
