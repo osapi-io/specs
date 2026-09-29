@@ -2,6 +2,40 @@
 
 ## Merged Features Log
 
+### Building a domain — amended 2026-09-28
+
+**Source:** the SC-001 reading, `specs/005-building-a-domain/tasks.md` T021
+
+The reading that closed Subject B was given the specification and nothing else, and
+three things did not survive it. All three are corrected here rather than in the pull
+request that archived the feature, because a merged statement is amended in its own
+change.
+
+- **FR-081 is new: nothing stated a domain's test obligations.** Tests were named
+  among the seven artifact kinds a domain contributes, and every other kind had a
+  requirement — the CLI, the SDK, handler registration. The deferral to osapi's
+  `CONTRIBUTING.md` was real and recorded in the feature's data model; it was simply
+  not in the specification, so a reader of that alone saw an omission rather than a
+  deferral.
+- **FR-061 now reconciles the six layers with the seven artifact kinds.** SDK,
+  documentation and tests appeared in one list and not the other, with nothing saying
+  why. The layers describe the running system; the artifacts describe what a domain
+  adds to it, and three of them are not layers at all.
+- **FR-060 now says what makes an operation node-targeted rather than only where its
+  code lives.** It is where the work happens: a managed machine by way of the job
+  system and a provider, or the controller answering from state it holds. `file`
+  exists as both an object-store upload and a host deployment, which is why the test
+  has to be functional rather than nominal.
+
+FR-058 also gained one clause: the combined specification is
+`internal/controller/api/gen/api.yaml`, assembled by `redocly join`, and it was used
+by name without ever being defined.
+
+Three further observations from the same reading were not acted on: the processor
+file's expected name, a threshold for "an area expected to grow", and the absence of
+a worked end-to-end example are the `add-a-domain` skill's job rather than the
+corpus's.
+
 ### Building a domain — archived 2026-09-28
 
 **Branch:** `005-building-a-domain`

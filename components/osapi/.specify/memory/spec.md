@@ -16,6 +16,12 @@
 > consists of. Four gaps are recorded as gaps, not corrected. The job system's
 > archival left no revision note here; this is noted rather than backfilled.
 
+> **Revision**: 2026-09-28 — Amended building a domain after its completeness
+> reading: FR-081 states the test obligations nothing held, FR-061 reconciles the six
+> layers with the seven artifact kinds, FR-060 says what makes an operation
+> node-targeted rather than only where its code lives, and FR-058 defines the
+> combined specification.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - The contract can be read without reading a sibling provider (Priority: P1)
@@ -686,13 +692,37 @@ corpus states appears in restated form in the skill's references.
   [Source: specs/005-building-a-domain/spec.md -> FR-002]
 - **FR-057**: Where it reaches delivery semantics, the two clocks, the dead letter queue or any other job mechanic, it MUST cite the job system; where it reaches signing, response verification or agent identity, it MUST cite the agent key store.
   [Source: specs/005-building-a-domain/spec.md -> FR-003]
-- **FR-058**: The corpus MUST state the build order and MUST distinguish the parts a tool forces from the parts that are convention. The forced ones: the OpenAPI specification precedes generation, because generation reads it; generation precedes the handler, because the handler implements a generated interface; the combined specification precedes the SDK client, because the SDK generates from the combined file. Evidence: the `//go:generate` directives under `internal/controller/api/*/gen/`, the `redocly join` step in `just generate`, and `go generate ./pkg/sdk/client/gen/...`.
+- **FR-058**: The corpus MUST state the build order and MUST distinguish the parts a tool forces from the parts that are convention. The forced ones: the OpenAPI specification precedes generation, because generation reads it; generation precedes the handler, because the handler implements a generated interface; the combined specification precedes the SDK client, because the SDK generates from the combined file. The combined specification is `internal/controller/api/gen/api.yaml`, which `redocly join` assembles from every domain's own `gen/api.yaml` inside `just generate`; a domain absent from it is invisible to the SDK however complete its own spec is. Evidence: the `//go:generate` directives under `internal/controller/api/*/gen/`, the `redocly join` step in `just generate`, and `go generate ./pkg/sdk/client/gen/...`.
   [Source: specs/005-building-a-domain/spec.md -> FR-004]
 - **FR-059**: The corpus MUST state the eight steps as a walkthrough rather than as eight requirements, because a numbered requirement per step would be renumbered every time a tool changes. What is stated as a requirement is what must be true of the result.
   [Source: specs/005-building-a-domain/spec.md -> FR-005]
-- **FR-060**: The corpus MUST state where a domain's code goes and what decides it: node-targeted operations under `internal/controller/api/node/{domain}/`, controller-only operations under `internal/controller/api/{domain}/`, and the provider under `internal/provider/{domain}/` or `internal/provider/{category}/{domain}/`.
+- **FR-060**: The corpus MUST state where a domain's code goes **and what decides
+  it**, because the directory is the consequence rather than the rule. An operation is
+  **node-targeted** when the work happens on a managed machine: addressed to a host,
+  dispatched through the job system, carried out by a provider on an agent. It is
+  **controller-only** when the controller answers it itself from state it holds — the
+  job queue, the audit log, enrollment, health, the object store — with no agent
+  executing anything. Node-targeted operations live under
+  `internal/controller/api/node/{domain}/` and carry `/node/{hostname}`;
+  controller-only ones live under `internal/controller/api/{domain}/` and do not.
+  The provider goes under `internal/provider/{domain}/` or
+  `internal/provider/{category}/{domain}/`. A domain name can appear in **both**,
+  which is why the test is functional rather than nominal:
+  `internal/controller/api/file/` uploads to the object store at `/api/file`, and
+  `internal/controller/api/node/file/` deploys to a host at
+  `/api/node/{hostname}/file/deploy`.
   [Source: specs/005-building-a-domain/spec.md -> FR-006]
-- **FR-061**: The corpus MUST state the component map, the entry points, the six layers — CLI, REST API, job system, provider, agent lifecycle, configuration — and the request flow, because that is what a contributor reads immediately before the domain instructions.
+- **FR-061**: The corpus MUST state the component map, the entry points, the six
+  layers — CLI, REST API, job system, provider, agent lifecycle, configuration — and
+  the request flow, because that is what a contributor reads immediately before the
+  domain instructions. It MUST also state how those six relate to the seven artifact
+  kinds a domain contributes (FR-055), because the two lists differ and a reader who
+  takes them for one list will hunt for a layer that is not there. The layers
+  describe **the running system**; the artifacts describe **what a domain adds to
+  it**. Four artifacts land in a layer — provider, agent processor, API handler, CLI
+  commands. Three are not layers: the SDK service is a *client* of the REST API
+  rather than a layer, and documentation and tests are not runtime code. The
+  configuration and job system layers exist already for every domain.
   [Source: specs/005-building-a-domain/spec.md -> FR-007]
 - **FR-062**: The corpus MUST state the request path an operation takes, `CLI → SDK → REST API → Job Client → NATS → Agent → Provider`, and that the provider runs on the agent rather than the controller. Evidence: `internal/job/client/client.go`.
   [Source: specs/005-building-a-domain/spec.md -> FR-008]
@@ -732,6 +762,18 @@ corpus states appears in restated form in the skill's references.
   [Source: specs/005-building-a-domain/spec.md -> FR-025]
 - **FR-080**: In the same change that adds those citations, the contributor half of the site MUST be removed: the domain page reduced to an index with a citation table and a pointer to the skill; the API guidelines and principles pages removed with their addresses redirected; and the system architecture page's component map, entry points, layers and request flow removed. Adding the citations without removing the pages leaves two statements.
   [Source: specs/005-building-a-domain/spec.md -> FR-026]
+- **FR-081**: The corpus MUST state a domain's test obligations, or cite where they
+  are stated, and MUST NOT leave tests as the one artifact kind FR-055 names with no
+  requirement behind it. They are osapi's `CONTRIBUTING.md`'s, under "Testing", cited
+  rather than copied: `testify/suite` table tests with one suite method per function
+  under test, `*_public_test.go` in a `_test` package as the default, coverage gated
+  at 99.9% with `.coverignore` narrowing what the figure covers, and the two HTTP
+  wiring methods a public suite carries. One obligation is specific to this subject:
+  a new API domain includes a `{domain}_test.go` smoke suite under
+  `test/integration/`, with every mutating test guarded by `skipWrite(s.T())` so
+  continuous integration runs read-only by default. Evidence: `CONTRIBUTING.md`,
+  "Testing", "Test file conventions" and "Test layers"; `.coverignore`.
+  [Source: specs/005-building-a-domain/spec.md -> FR-027]
 
 ### Key Entities
 
