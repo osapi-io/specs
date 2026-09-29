@@ -216,14 +216,28 @@ gohai's README.
   reader who compares `ls` with the README and is told only one of them will
   think one is broken. Verified: `ls -d pkg/gohai/collectors/*/ | wc -l` returns
   62; the catalogue's row count is 65.
+
+  **Corrected in gohai by gohai#201**, after this gap was recorded. Both figures
+  now appear there with what each counts, so the disagreement described above no
+  longer exists in that repository. The requirement stays as written: it states
+  what the corpus must hold, and the record of having *found* the disagreement
+  is what explains why gohai's prose changed.
+
 - **FR-015**: The corpus MUST state **ten** categories and MUST record that
   gohai's prose says nine in two places. **Gap, and this one is an error rather
   than a definition**: `README.md` line 111 says "65 collectors across 9
   categories" and `docs/collectors/README.md` line 3 says "across 9 categories".
   Ten constants are declared and all ten are returned by at least one collector,
-  so there is no reading on which nine is right. Fixing gohai's prose is **not**
-  this feature's work — nothing lands in that repository — and the correction
-  belongs to gohai in its own change.
+  so there is no reading on which nine is right.
+
+  **Corrected in gohai by gohai#201**, in its own change — which is where a
+  correction to that repository belongs, since nothing lands there from this
+  feature. That change also found a **third** defect this requirement had not:
+  the catalogue's legend defined `✅` twice, once as "implemented and tested" and
+  once as "planned", which made the Implemented column unreadable given that 62
+  of its 65 rows are ticks. It surfaced only because reconciling 65 against 62
+  meant reading the legend — which is the argument for pairing a count with the
+  command that produces it rather than stating the count alone.
 
 ### What this inventory does not cover
 
