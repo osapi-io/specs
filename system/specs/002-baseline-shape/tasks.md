@@ -127,7 +127,7 @@ architecture from a transcribed call graph.
   section become wrong, or merely cite a stale path?* Nothing automatable checks
   the difference between architecture and a call graph, and a contract that did
   not give the reviewer a question would leave FR-004 unenforceable.
-- [ ] T012 [US2] Run `cd specs && mise exec -- just test`.
+- [ ] T012 [US2] Run `cd specs && mise exec -- just test` — SC-009.
 
 **Checkpoint**: this feature's own output is complete. Everything below opens
 other work.
@@ -175,9 +175,12 @@ ______________________________________________________________________
 
 ## Phase 6: The programme's exit criteria
 
-**Neither of these is a task this feature completes.** Both need the other ten
-units merged. They are recorded here because a programme without a stated finish
-line is one that gets abandoned rather than finished.
+**None of these six is a task this feature completes.** Every one needs
+baselines that do not exist yet, so none can run until the other ten units have
+merged. They are recorded here because a programme without a stated finish line
+is one that gets abandoned rather than finished — and because four of them were
+briefly filed as though this feature could run them, which would have meant
+reporting a pass against zero baselines.
 
 - [ ] T017 The SC-001 reading, from [quickstart.md](quickstart.md): a reader who
   has seen none of the baselines reads all six and answers what each repository
@@ -186,7 +189,23 @@ line is one that gets abandoned rather than finished.
   conforming documents that share a template rather than a set — each
   individually correct, the graph still untraceable, because section 2 was
   filled in as a formality.
-- [ ] T018 The SC-008 search: every documentation page still present in a
+- [ ] T018 [P] SC-002: every count in every baseline is paired with the command
+  that reproduces it, and running the commands reproduces the counts or shows
+  precisely which have drifted. A count whose command no longer reproduces it
+  has **dated**, not failed; a count with no command beside it has failed.
+- [ ] T019 [P] SC-003: no baseline contains a transcribed call graph, an
+  exhaustive list of exported functions, or a file-by-file walkthrough. The
+  check is the question in
+  [contracts/section-order.md](contracts/section-order.md) under section 3,
+  applied by a reviewer, because nothing automatable separates architecture from
+  transcription.
+- [ ] T020 [P] SC-004: every baseline's section 7 is non-empty. FR-004's
+  evergreen bound guarantees every baseline excludes something, so a zero means
+  the omission was not stated rather than that nothing was omitted.
+- [ ] T021 [P] SC-007: every documentation page in every repository was
+  classified by that repository's baseline before any move touched it — 442
+  pages across the five that have any.
+- [ ] T022 The SC-008 search: every documentation page still present in a
   repository is one its own baseline classified **user-facing**. Anything
   classified contributor-facing and still there is a rule stated twice, which is
   the state the programme exists to end and the only check that distinguishes a
@@ -244,5 +263,7 @@ ______________________________________________________________________
   either — FR-016 and FR-027 put every move in its own feature.
 - Eleven units in total, enumerated in [plan.md](plan.md). One is this feature,
   nine are new features, one is an amendment to gohai's merged baseline.
-- 221 documentation pages will be classified by the baselines, none of them
-  here.
+- **442** documentation pages will be classified by the baselines, none of them
+  here. Not 221 — that is `osapi`'s own count, and coincidentally also the total
+  for the four repositories still needing a move. The two are different
+  quantities that share a figure.

@@ -110,6 +110,10 @@ there, the shape is wrong.
 - **Move**: the relocation of a repository's contributor documentation into the
   corpus, driven by its baseline's classification. Four of them.
 - **Classification**: the per-page verdict — user-facing or contributor-facing —
-  that a baseline records and a move obeys. 221 pages across five repositories.
+  that a baseline records and a move obeys. **442** pages across the five
+  repositories that have any — `osapi`'s 221, `osapi-orchestrator`'s 140,
+  `gohai`'s 68, `nats-client`'s 8 and `nats-server`'s 5. Not 221: that figure is
+  `osapi`'s own page count, and also, by coincidence, the total of the four
+  repositories still needing a move.
 - **Edge**: a dependency between two repositories, stated by both baselines and
   held once in the map.
