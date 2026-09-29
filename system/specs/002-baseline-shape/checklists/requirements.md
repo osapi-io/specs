@@ -69,3 +69,21 @@ Two further decisions came from the goal rather than from the first attempt:
 This specification uses Given/When/Then itself, because the template requires it
 of a feature. FR-017 says why that is not a contradiction: the two documents
 have different readers.
+
+## Settled after the first review
+
+Two questions this specification left open are now decided, and one new finding
+is recorded:
+
+- **`osapi` gets a baseline** (FR-021). Its five archived features record what
+  changed, never what the repository is, so it is the one memory that does not
+  conform to the shape. Six repositories, six baselines.
+- **`system` does not** (FR-022), because it is not a repository. It holds the
+  map and the agreements instead. Without stating this, "every project gets a
+  baseline" reads as including it, and a baseline of a project with no code
+  would have to invent its subject.
+- **208 doc pages have no link checking** (FR-023, FR-024). `osapi-orchestrator`
+  and `gohai` enforce markdown formatting only, where `osapi` builds and
+  link-checks its 221. The rest of the build tooling is uniform, which the
+  requirement states explicitly rather than leaving a reader to infer drift.
+  Recorded with an owner, not fixed.
