@@ -295,6 +295,67 @@ whoever writes the next one.
   change. Recorded here rather than fixed, because this feature states a
   document shape and changes no repository.
 
+### Classifying a repository's own documentation
+
+The osapi backfill and gohai's baseline were **two different operations**, and
+under one shape they cannot both be right. osapi's contributor documentation
+moved out of its site into the corpus and the pages were deleted or reduced;
+gohai's was left where it was and cited. The first obeys the one-statement rule;
+the second leaves the same knowledge in two places, which is the drift
+`global/documentation` forbids and the backfill existed to end.
+
+So the move is the right operation everywhere — and the ordering osapi used was
+wrong.
+
+- **FR-025**: A baseline MUST classify **every page** of its repository's own
+  documentation as **user-facing** or **contributor-facing**, and the test is
+  the one the osapi backfill used: *who reads this page* — somebody using the
+  repository, or somebody changing it — not where the page currently sits.
+
+  This classification belongs in the baseline rather than in a separate audit,
+  because the baseline is the document that establishes what the repository is
+  for and who consumes it. Deciding it page-by-page during a move is how a
+  remainder page gets produced and how user-facing content gets taken away by
+  accident.
+
+- **FR-026**: The baseline MUST come **before** the move. osapi did the reverse
+  — its contributor documentation was backfilled across three features and it
+  still has no baseline, which is the gap FR-021 exists to close. The baseline
+  is what tells a reader which pages are contributor-facing; running the move
+  first means deciding that mid-change with nothing to check the decision
+  against.
+
+- **FR-027**: Moving a repository's contributor documentation into the corpus
+  MUST be its **own feature**, separate from the baseline that classified it,
+  and MUST leave every address resolving — a short index, a redirect, or a
+  reduced page that reads as a whole rather than as a remainder. This is the
+  sequence osapi's backfill proved: the corpus statement merges first, then the
+  repository change that removes the duplicate.
+
+  Two repositories therefore have two features each and one has only a baseline:
+
+  | Repository           | Doc pages | Baseline                       | Move                                |
+  | -------------------- | --------- | ------------------------------ | ----------------------------------- |
+  | `osapi`              | 221       | needed — it has none           | already done, across three features |
+  | `osapi-orchestrator` | 140       | needed                         | needed, the largest remaining       |
+  | `gohai`              | 68        | exists, needs sections 2 and 3 | needed                              |
+  | `nats-client`        | 8         | needed                         | likely small                        |
+  | `nats-server`        | 5         | needed                         | likely small                        |
+  | `osapi-justfiles`    | 0         | needed                         | none — nothing to move              |
+
+- **FR-028**: A page a repository's consumers read MUST stay in that repository.
+  Not everything in a `docs/` tree is contributor knowledge:
+  `gohai/docs/collectors/` is a 65-row catalogue for people *using* the library,
+  and gohai's own baseline already cites it as the maintained enumeration its
+  FR-004 depends on. Moving it would take a user's reference away and break the
+  citation in the same stroke.
+
+- **FR-029**: The order across the six repositories MUST start with **`osapi`**,
+  because it is the hub of the dependency graph — `nats-client` and
+  `nats-server` below it, `osapi-orchestrator` above — so its "where it sits" is
+  what every other baseline's edges are stated against. A leaf baselined first
+  has nothing to point at.
+
 ### What this feature does not do
 
 - **FR-016**: This specification MUST NOT write any of the five remaining
@@ -334,7 +395,14 @@ whoever writes the next one.
   constitutions, so the shape binds rather than being advice.
 - **SC-006**: gohai's baseline carries sections 2 and 3, added by its own
   amendment rather than by this feature.
-- **SC-007**: `just test` passes in the specs repository.
+- **SC-007**: Every documentation page in every repository is classified as
+  user-facing or contributor-facing by that repository's baseline, and no page
+  is moved without its classification stating why. 221 pages across the five
+  repositories that have any.
+- **SC-008**: After the moves, no contributor rule is stated in both a
+  repository and the corpus. This is the one-statement rule applied across
+  repositories rather than within one, and it is what the whole exercise is for.
+- **SC-009**: `just test` passes in the specs repository.
 
 ## Assumptions
 
@@ -359,6 +427,11 @@ whoever writes the next one.
   inventory: it says what each change did and nowhere says what the repository
   is, where it sits, or what its architecture is. Under this shape it is the one
   memory that does not conform — see FR-021.
+- The work is **two operations, not one**: a baseline states what a repository
+  is, and a move relocates its contributor documentation into the corpus. gohai
+  has the first and needs the second; osapi has the second and needs the first.
+  That asymmetry is the thing being corrected, and it is why FR-026 fixes the
+  order rather than leaving it to whoever goes next.
 - The seven sections are the minimum that answers SC-001. A baseline may say
   more; it may not say less without stating the omission.
 - One finding is recorded here and deliberately not acted on: `osapi-justfiles`
