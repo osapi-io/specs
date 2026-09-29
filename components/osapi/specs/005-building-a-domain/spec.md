@@ -295,6 +295,7 @@ corpus statement existing first.
   scope middleware itself, and that the `Server` struct does not change. Startup
   wiring is one appended line in `registerControllerHandlers`. Evidence:
   `cmd/controller_setup.go`.
+
 - **FR-019**: The corpus MUST state the SDK obligations: four files per service,
   a field on the `Client` struct, an example under `examples/sdk/client/`, a doc
   page in the matching category, and the navbar entry — and MUST NOT defer to an
@@ -307,6 +308,29 @@ corpus statement existing first.
   Two documents defer to a specification nobody has written, which reads as
   settled and is not. The corpus states the conventions it can verify and
   records this as unstated rather than repeating the deferral.
+
+  **Amended: there was a third, and one of the four subjects has no rule at
+  all.** The site's SDK guidelines page carried the same claim, so three
+  documents deferred to it rather than two; all three now name it as unwritten.
+  And the deferral named four subjects — method naming, type exposure,
+  result-field tags, error handling. Three are real and stated: type exposure,
+  JSON tags and error wrapping are FR-020, and the guidelines page shows each
+  working. **Method naming is stated nowhere** — not here, not on that page,
+  whose sections are package structure, generated types, result types, the
+  response pattern and error handling, and not in the capability nobody wrote.
+  It was named only in the deferral. So the missing authority was not a document
+  that would have collected existing rules; for one of its four subjects there
+  was nothing to collect.
+
+  Owner of the remainder: this repository, and this project rather than
+  `system`. `osapi-orchestrator` does depend on `github.com/osapi-io/osapi`, so
+  the claim that these rules reach a second repository was true in substance.
+  But the SDK is osapi's own public API and the orchestrator consumes it, which
+  by the test under "Where a change belongs" makes it osapi's behaviour rather
+  than an agreement between repositories. A method-naming convention is worth
+  stating only once somebody decides what it is, rather than inferring one from
+  the method names that happen to exist.
+
 - **FR-020**: The corpus MUST state the rules an SDK service obeys that *are*
   verifiable: no `gen` types in a public method signature, JSON tags on every
   result type, errors wrapped with context, and one service per file with no
