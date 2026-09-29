@@ -22,6 +22,13 @@
 > node-targeted rather than only where its code lives, and FR-058 defines the
 > combined specification.
 
+> **Revision**: 2026-09-28 — Added the corpus backfill
+> (`specs/003-corpus-backfill`), the parent of both subjects: 1 user story as US13, 12
+> requirements as FR-082–FR-093, 4 entities, 3 edge cases and 2 outcomes. Four of its
+> outcomes and two of its stories folded into entries its own subjects had already
+> put here, which is what a method feature archived after its subjects should look
+> like.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - The contract can be read without reading a sibling provider (Priority: P1)
@@ -284,6 +291,8 @@ what must be true of an operation targeting more than one machine.
 
 ### User Story 11 - An operator is not sent to a contributor's document (Priority: P1)
 
+[Source: specs/003-corpus-backfill/spec.md -> User Story 2]
+
 Somebody who bookmarked an architecture page finds it still resolves, and what
 replaces it does not send them into a corpus written for somebody else.
 
@@ -304,6 +313,8 @@ operator page points into the corpus.
 
 ### User Story 12 - The rule has one home (Priority: P2)
 
+[Source: specs/003-corpus-backfill/spec.md -> User Story 3]
+
 Somebody reading the `add-a-domain` skill finds a rule's name and where it lives,
 not a second statement of the rule that can drift from the first.
 
@@ -321,6 +332,25 @@ corpus states appears in restated form in the skill's references.
 2. **Given** a rule the corpus states, **When** the references are grepped for it,
    **Then** the rule's name appears with a citation and its mechanics do not appear
    twice.
+
+### User Story 13 - A question is answered from the corpus, not the site (Priority: P1)
+
+Somebody with a question about how osapi is built looks in one place and finds the
+answer there. The published site is for using osapi; the corpus is for building it.
+
+**Why this priority**: it is the whole point of moving anything. The subjects carry
+the content; this is the reason they moved.
+[Source: specs/003-corpus-backfill/spec.md -> User Story 1]
+
+**Independent Test**: a reader with no prior knowledge answers a subject's fixed
+questions from the corpus alone, without opening the site.
+
+**Acceptance Scenarios**:
+
+1. **Given** a contributor's question about how osapi is built, **When** they consult
+   the corpus, **Then** the answer is there rather than in a link to the site.
+2. **Given** a page that told a contributor how to build something, **When** it is
+   read after the move, **Then** it cites the corpus rather than restating it.
 
 ### Edge Cases
 
@@ -401,6 +431,18 @@ corpus states appears in restated form in the skill's references.
   gap rather than the page being silently corrected, so a reader can tell whether
   the page was wrong or they were.
   [Source: specs/005-building-a-domain/spec.md -> Edge Cases]
+- A page serves both readers in the same paragraph rather than in separate sections.
+  Splitting by section will not divide it: the paragraph is rewritten for the
+  operator and the contributor's half restated in the corpus, rather than the page
+  moving wholesale and taking operator content with it.
+  [Source: specs/003-corpus-backfill/spec.md -> Edge Cases]
+- A moved page is linked from outside the repository — a README, an issue, a
+  bookmark, a search result. Deleting its address breaks those silently, and whoever
+  moved it will not see the breakage.
+  [Source: specs/003-corpus-backfill/spec.md -> Edge Cases]
+- A subject is too small to be its own specification. A specification per page
+  produces specifications nobody reads, so a small subject folds into a larger one.
+  [Source: specs/003-corpus-backfill/spec.md -> Edge Cases]
 
 ## Requirements
 
@@ -775,6 +817,33 @@ corpus states appears in restated form in the skill's references.
   "Testing", "Test file conventions" and "Test layers"; `.coverignore`.
   [Source: specs/005-building-a-domain/spec.md -> FR-027]
 
+#### Where knowledge lives
+
+- **FR-082**: A page holding contributor knowledge MUST be classified as moving wholly, splitting, or staying, and the classification MUST be justified by **who reads it** rather than by where it currently sits.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-001]
+- **FR-083**: Content telling a contributor or an agent how osapi is built MUST end up in the corpus. Content telling an operator how to use osapi MUST stay on the published site.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-002]
+- **FR-084**: A page serving both readers MUST be split so the operator's half is a coherent page in its own right, not the remainder left after the contributor's half was removed.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-003]
+- **FR-085**: Moved content MUST be grouped by **subject** rather than by the page it came from, and each subject MUST be large enough to be worth a specification of its own. A subject too small to stand alone MUST be folded into a larger one.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-004]
+- **FR-086**: Where subjects are moved in sequence, the largest body of contributor knowledge MUST go first — it is the one the skills lean on most, so it is where the pattern is worth proving.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-005]
+- **FR-087**: No page address that existed before a move MUST 404 after it. Per moved page, it MUST be stated whether the address keeps a user-facing page or redirects, and why that choice fits that page.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-006]
+- **FR-088**: A skill needing a moved rule MUST cite the corpus requirement rather than restate it: a table mapping each rule to the requirement stating it, as a relative link the skill linter resolves.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-007]
+- **FR-089**: After a subject moves, **exactly one statement** of each of its rules MUST exist across the corpus, the site and the skills. Every other mention MUST be a citation.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-008]
+- **FR-090**: A moved rule MUST be checked against the code before it is written into the corpus, and a rule the code does not match MUST be recorded as a **gap** rather than restated as though it held. This is the requirement that caught five gaps across the two subjects, and the one this feature's own record broke: its page inventories were right about line counts and wrong about the count of items inside two pages, because those were taken from prose rather than measured.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-009]
+- **FR-091**: Each subject MUST move in a single change per repository that moves the content, updates the citations, and leaves every address resolving — so no state exists where a reader finds two disagreeing statements of the same rule.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-010]
+- **FR-092**: The corpus statement of a moved rule MUST cite the code it describes, so a reader can check the rule rather than trust it.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-011]
+- **FR-093**: The published site MUST NOT send an operator to the corpus. A citation is for contributors and agents; an operator page answering with "see the specifications repository" has lost its reader.
+  [Source: specs/003-corpus-backfill/spec.md -> FR-012]
+
 ### Key Entities
 
 - **Provider**: A domain's operations, running in the agent, selected by OS
@@ -836,6 +905,21 @@ corpus states appears in restated form in the skill's references.
   with both sides named and an owner, never silently corrected. Four are recorded
   against building a domain.
   [Source: specs/005-building-a-domain/spec.md -> Key Entities]
+- **Candidate page**: A published-site page holding contributor or agent knowledge.
+  Six were identified across the backfill, totalling 1,925 lines of the site's
+  16,938.
+  [Source: specs/003-corpus-backfill/spec.md -> Key Entities]
+- **Subject**: A body of related knowledge that becomes one corpus specification,
+  independent of which pages it came from. Two were moved: the job system and
+  building a domain.
+  [Source: specs/003-corpus-backfill/spec.md -> Key Entities]
+- **Citation**: A reference from a skill or a page to a corpus requirement, replacing
+  a restatement. Validated by the gate: a citation whose target does not exist fails
+  the build.
+  [Source: specs/003-corpus-backfill/spec.md -> Key Entities]
+- **Reader**: Either an operator, who uses osapi, or a contributor or agent, who
+  changes it. Every classification decision turns on which one is being served.
+  [Source: specs/003-corpus-backfill/spec.md -> Key Entities]
 
 ## Success Criteria
 
@@ -884,10 +968,14 @@ corpus states appears in restated form in the skill's references.
   what carries a job and guarantees its delivery, what a second delivery obliges the
   agent to do, and what bounds how long an operation runs.
   [Source: specs/004-job-system/spec.md -> SC-001]
+  [Source: specs/003-corpus-backfill/spec.md -> SC-001]
 - **SC-014**: Every requirement naming a configured value or a key format cites a
   file, and opening that file confirms the value or finds the gap the requirement
   records.
   [Source: specs/004-job-system/spec.md -> SC-002]
+  Generally: every rule moved into the corpus cites the code it describes, and a rule
+  the code does not match is recorded as a gap rather than stated as fact.
+  [Source: specs/003-corpus-backfill/spec.md -> SC-006]
 - **SC-015**: The three gaps between the published site and the code — the job key
   shape, the consumer defaults, the bucket TTL — are stated as corrections rather
   than silently differing from the page they came from.
@@ -895,6 +983,8 @@ corpus states appears in restated form in the skill's references.
 - **SC-016**: One statement of each job system rule exists across the corpus, the
   site and the skills, with the citations resolving under `just skill-lint`.
   [Source: specs/004-job-system/spec.md -> SC-004]
+  This holds for every moved subject, not only the job system.
+  [Source: specs/003-corpus-backfill/spec.md -> SC-004]
 - **SC-017**: No job system requirement restates a rule the provider contract or the
   agent key store already states.
   [Source: specs/004-job-system/spec.md -> SC-005]
@@ -907,6 +997,8 @@ corpus states appears in restated form in the skill's references.
   [Source: specs/005-building-a-domain/spec.md -> SC-001]
 - **SC-019**: Every address removed from the site resolves after the change.
   [Source: specs/005-building-a-domain/spec.md -> SC-002]
+  More broadly: no address that resolved before a move fails to resolve after it.
+  [Source: specs/003-corpus-backfill/spec.md -> SC-003]
 - **SC-020**: No page an operator reads points into the corpus. The contributor index
   and the SDK development guidelines are the exceptions, and both have contributor
   readers.
@@ -920,6 +1012,18 @@ corpus states appears in restated form in the skill's references.
 - **SC-023**: The site page's last commit postdates the specification's merge. If it
   does not, the corpus and the page both state these rules.
   [Source: specs/005-building-a-domain/spec.md -> SC-006]
+- **SC-024**: Every task in the site's usage and feature documentation can still be
+  completed from the site alone. This is the half of the operator test that address
+  resolution does not cover: a page can resolve and still have lost what somebody
+  needed from it.
+  [Source: specs/003-corpus-backfill/spec.md -> SC-002]
+- **SC-025**: The `add-a-domain` skill shrinks, and what remains is routing plus
+  citations rather than restated mechanics. Measured across both subjects its
+  references went from 704 lines to 692, a net 12 — narrow, because five rules turned
+  out to have no home in the corpus and were kept in place with a note saying so
+  rather than deleted to improve the figure. The measure that shows what the backfill
+  achieved is the site, where 950 lines of contributor knowledge left `docs/`.
+  [Source: specs/003-corpus-backfill/spec.md -> SC-005]
 
 ## Assumptions
 
@@ -995,3 +1099,20 @@ corpus states appears in restated form in the skill's references.
   matched what the backfill recorded. What did not match was the *contents* of two of
   those pages, which is why a count taken from prose is not evidence.
   [Source: specs/005-building-a-domain/spec.md -> "The line counts"]
+
+- **AS-019**: Six candidate pages held 1,925 lines of contributor knowledge, of the
+  site's 16,938. The other 15,013 — thirty feature pages, the usage and SDK
+  documentation — are user-facing and were never in scope.
+  [Source: specs/003-corpus-backfill/spec.md -> "The six candidate pages"]
+- **AS-020**: The thirty feature pages stay where they are. Each describes what a
+  domain does for an operator, which is the site's job.
+  [Source: specs/003-corpus-backfill/spec.md -> "The thirty feature pages stay"]
+- **AS-021**: Not every candidate page moved. Two moved wholly, two were split, two
+  were deleted with their addresses redirected — the classification was the work, and
+  "stays" and "splits" were both real answers.
+  [Source: specs/003-corpus-backfill/spec.md -> "Not every candidate page moves"]
+- **AS-022**: This feature's own page inventories were wrong in three places and were
+  corrected before it was archived. Every line count was right; the count of items
+  inside two pages was taken from prose rather than measured. It is the argument for
+  FR-090 written by the feature that stated it.
+  [Source: specs/003-corpus-backfill/spec.md -> "Corrected 2026-09-28"]

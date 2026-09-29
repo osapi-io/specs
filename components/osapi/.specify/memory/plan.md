@@ -18,6 +18,10 @@
 > after both backfill subjects, and the two-repository sequence. No new dependency
 > at runtime; `@docusaurus/plugin-client-redirects` added to the site.
 
+> **Revision**: 2026-09-28 — Composed the corpus backfill: the citation contract that
+> the skill linter enforces, and the two redirected addresses. Its two-repository
+> sequence was already here through its second subject, so nothing was restated.
+
 ## Summary
 
 The provider contract is stated in the corpus rather than inferred from whichever
@@ -245,3 +249,48 @@ gone first.
 
 Archival is third, after both. Running it earlier records intentions as outcomes.
 [Source: specs/005-building-a-domain/research.md -> "Decision 1"]
+
+## What a Citation Is, and What Checks It
+
+A documentation change exposes no interface. What it has is a convention other work
+depends on, and a gate that fails when the convention is broken.
+
+A citation is a **relative markdown link from the citing file to the corpus
+requirement**, in a table mapping each rule to the requirement that states it. Three
+properties matter:
+
+1. **Relative, not absolute.** `scripts/validate-skills.py` resolves relative links
+   from the file's own directory; an absolute URL is checked by nothing, which makes
+   it a restatement with extra steps. **From a skill's reference file the depth is
+   four `../` levels** — `references/` → the skill → `skills/` → `.claude/` → the
+   repository root. Three lands in `.claude/` and resolves to nothing; the gate says
+   so by name, which is how this note came to be written.
+2. **Named to a requirement, not to a document.** "See the job system specification"
+   is a pointer; "FR-007" is a citation. Only the second tells a reader whether what
+   they are looking for is there.
+3. **One statement per rule.** The citing file states the rule's *name* and where it
+   lives. It does not restate the rule.
+
+**The one sanctioned exception to property 1**: a page on the published site cannot
+link relatively into the corpus, because the corpus is a separate repository and is
+not published as part of the site. Those two pages use absolute GitHub addresses and
+say so in a note, rather than leaving the departure to look like an oversight.
+
+`just skill-lint` is what fails when a citation stops resolving. That is what makes
+the one-statement rule enforceable rather than aspirational.
+[Source: specs/003-corpus-backfill/contracts/citation.md]
+
+## Redirected Addresses
+
+Two site addresses now resolve by client-side redirect rather than by a page, through
+`@docusaurus/plugin-client-redirects`:
+
+| Address | Redirects to |
+| --- | --- |
+| `/sidebar/architecture/api-guidelines` | `/sidebar/development/adding-an-api-domain` |
+| `/sidebar/architecture/principles` | the same contributor index |
+
+Both pages were wholly contributor knowledge sitting in an operator's navigation, so
+neither kept a half. The redirect is what satisfies the rule that no address which
+resolved before a move fails after it.
+[Source: specs/003-corpus-backfill/plan.md -> "Redirects"]

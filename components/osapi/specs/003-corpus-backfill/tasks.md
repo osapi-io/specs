@@ -245,21 +245,91 @@ and both have now landed.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T026 [P] Run the SC-006 check from [quickstart.md](quickstart.md): every
+- [x] T026 [P] Run the SC-006 check from [quickstart.md](quickstart.md): every
   behavioural requirement in `004` names the file it describes, and a sample of
   five is opened and confirmed against the code.
-- [ ] T027 [P] Run the SC-001 reading with somebody who has not read the site
+
+  **Passes.** 24 of `004`'s 25 requirements name the file they describe or cite
+  another specification. The exception is its FR-024, which obliges the skill to
+  cite rather than restate — a process rule with no code to name, so nothing is
+  missing.
+
+  Five opened and confirmed against the code, not against the specification:
+
+  | Requirement | Claim                                   | Confirmed at                                                                |
+  | ----------- | --------------------------------------- | --------------------------------------------------------------------------- |
+  | FR-001      | a job is keyed `jobs.{job-id}`          | `internal/job/client/client.go:334` and `:489` — `kvKey := "jobs." + jobID` |
+  | FR-014      | `MaxDeliver: 5`, `AckWait: 2m`          | `cmd/root.go:175` and `:176`                                                |
+  | FR-017      | the backstop is `DefaultCommandTimeout` | `internal/exec/types.go:36` — `10 * time.Minute`                            |
+  | FR-021      | the `job-queue` TTL is `1h`             | `configs/osapi.yaml:92`                                                     |
+  | FR-019      | four per-host statuses                  | `pkg/sdk/client/status.go:46–51` — failed, skipped, timeout beside ok       |
+
+- [x] T027 [P] Run the SC-001 reading with somebody who has not read the site
   pages, using the three fixed questions. An author cannot test their own corpus
   for completeness.
-- [ ] T028 Run `/speckit-archive-run specs/003-corpus-backfill` once T019 and
+
+  **Already satisfied, and deliberately not re-run.** This task's reading is
+  defined in [quickstart.md](quickstart.md) as the three fixed questions asked
+  against `components/osapi/specs/004-job-system/spec.md` — which is exactly the
+  reading `004` ran as its own T015, by a fresh agent given that one file and
+  nothing else: no repository, no site, no other specification, no session
+  context. All three came back ANSWERABLE.
+
+  Re-running it would put the same questions to the same file, so what it would
+  test is the reader rather than the corpus. Recorded here instead, with two
+  things a later reader should know:
+
+  - That reading also found two real gaps, and `004` was amended for both before
+    this was written — the two clocks now give their durations, and the terminal
+    case of exhausted redelivery is stated. The file satisfies these questions
+    by a wider margin now than when the reading passed.
+  - Subject B was read separately, against its own specification and its own
+    four questions, as `005`'s T021. That reading found three further holes, all
+    since amended. Both subjects have therefore been read by somebody who had
+    not seen the site pages, which is what this task exists for.
+
+- [x] T028 Run `/speckit-archive-run specs/003-corpus-backfill` once T019 and
   T025 have merged, consolidating this feature into
   `specs/components/osapi/.specify/memory/`. Archive after the implementation,
   not before: this feature's outcome is the classification and the pattern, and
   both are only true once the moves have landed.
-- [ ] T029 Update `specs/components/osapi/specs/003-corpus-backfill/spec.md`'s
+
+  **Archived 2026-09-28. The backfill is complete.** Merged into
+  `components/osapi/.specify/memory/`: 1 user story as US13, 12 requirements as
+  FR-082–FR-093, 4 entities, 3 edge cases, 2 outcomes as SC-024 and SC-025, and
+  4 assumptions as AS-019–AS-022. The citation contract and the two redirected
+  addresses went to `memory/plan.md`.
+
+  **Two stories and four outcomes folded rather than duplicated**, into entries
+  this feature's own subjects had already put in memory: the operator story into
+  US11, the one-home story into US12, and the outcomes about reading from the
+  corpus, citing the code, one statement per rule, and addresses resolving into
+  SC-013, SC-014, SC-016 and SC-019. Four of those folds widened the existing
+  entry from one subject to the general case. Nothing was superseded.
+
+  That folding is the honest shape for a method feature archived after its
+  subjects. The alternative was twelve near-duplicates of rules already stated
+  per-subject.
+
+- [x] T029 Update `specs/components/osapi/specs/003-corpus-backfill/spec.md`'s
   Assumptions with the corrected line count for `job-architecture.md` — 630, not
   603 — in its own pull request. A merged specification that turns out wrong is
   amended before the work that depends on it, per the Correction principle.
+
+  **Merged as specs#157, and it was three corrections rather than one.** The
+  task named the line count; the work had found two more:
+
+  | This feature recorded                     | It is |
+  | ----------------------------------------- | ----- |
+  | `job-architecture.md` is 603 lines        | 630   |
+  | `api-guidelines.md` holds five guidelines | six   |
+  | `principles.md` holds five principles     | eight |
+
+  **Every line count was right.** What was wrong was the count of items inside
+  two of the pages, taken from reading about them rather than from them — which
+  is the failure FR-009 exists to catch, in this feature's own record. Corrected
+  in its own pull request ahead of archival, because a specification archived
+  with wrong inventories records the error as knowledge.
 
 ## Dependencies & Execution Order
 
