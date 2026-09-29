@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-26
 
-**Status**: Draft
+**Status**: Archived 2026-09-28
 
 **Input**: User description: "Move the domain knowledge out of the Docusaurus
 site and into the specs corpus, so the skills read it from the corpus and the

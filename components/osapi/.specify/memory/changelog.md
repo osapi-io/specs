@@ -2,6 +2,42 @@
 
 ## Merged Features Log
 
+### The corpus backfill — archived 2026-09-28
+
+**Branch:** `003-corpus-backfill`
+
+**Spec:** [specs/003-corpus-backfill/spec.md](../../specs/003-corpus-backfill/spec.md)
+
+**What was added:** the method, not the content. Its two subjects carried the
+knowledge and were archived first; what is recorded here is how knowledge gets moved
+and what stops it drifting afterwards.
+
+- Twelve rules as FR-082 through FR-093: classify by who reads a page, group by
+  subject rather than by page, keep every address resolving, cite rather than
+  restate, one statement per rule, and check a rule against the code before writing
+  it down.
+- The citation contract, in the plan: the shape a citation must have and the four-level
+  relative depth the skill linter enforces, with the one sanctioned exception for a
+  site page that cannot link relatively into another repository.
+- Two redirected addresses, also in the plan.
+
+**New Components:** none. No Go code changed across the whole backfill.
+
+**Folded rather than duplicated:** two of its user stories and four of its outcomes
+folded into entries its own subjects had already put in memory — the operator story,
+the one-home story, and the outcomes about reading from the corpus, citing the code,
+one statement per rule, and addresses resolving. Four of those folds widened the
+existing entry from one subject to the general case. That is what a method feature
+archived after its subjects should look like, and the alternative would have been
+twelve near-duplicates.
+
+**What it got wrong about itself:** three page inventories, corrected before archival.
+Every line count was right; the count of items inside two pages was taken from prose
+rather than measured, which is the failure FR-090 exists to catch, in the record of the
+feature that states it.
+
+**Tasks Completed:** 29/29 tasks
+
 ### Building a domain — amended 2026-09-28
 
 **Source:** the SC-001 reading, `specs/005-building-a-domain/tasks.md` T021
