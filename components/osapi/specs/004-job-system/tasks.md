@@ -88,7 +88,7 @@ unchanged.
   by a pointer on an operator page.
 - [x] T010 [US2] Run
   `cd osapi && just docusaurus-fmt-check && just docusaurus-build`.
-- [ ] T011 [US2] Open and merge the osapi pull request for T003–T010. **This is
+- [x] T011 [US2] Open and merge the osapi pull request for T003–T010. **This is
   the task that ends the duplication.** Until it lands, the corpus and the page
   both state these rules and three of the page's numbers are wrong — see
   [research.md](research.md), "The risk this feature carries".
@@ -114,17 +114,58 @@ unchanged.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T015 [P] Run the SC-001 reading with somebody who has not read the site
+- [x] T015 [P] Run the SC-001 reading with somebody who has not read the site
   page, using the three fixed questions. An author cannot test their own corpus
   for completeness.
-- [ ] T016 [P] Run the "check that matters most" from
+
+  **Result: SC-001 met.** All three questions came back ANSWERABLE from
+  [spec.md](spec.md) alone. The reader was a fresh agent with no access to this
+  session, the code, the site, the other specs, or its own knowledge of
+  JetStream — given the one file and the three questions, nothing else. That is
+  not a person, and it does not prove a person would succeed; it does prove the
+  answers are in the text rather than in the author's head, which is what this
+  task exists to establish.
+
+  Questions and where the reader found each answer:
+
+  | Question                                                                                                                   | Cited                                  |
+  | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+  | What carries a job from the API to an agent, and what guarantees its delivery?                                             | FR-001, FR-002, FR-009, FR-014, FR-015 |
+  | What must an agent not do when the same job arrives twice, and what does it do instead?                                    | FR-009, FR-010, FR-011, FR-012, FR-013 |
+  | What bounds how long an operation runs, and what happens when the controller stops waiting before the agent stops working? | FR-016, FR-017, FR-018                 |
+
+  The reading also returned five gaps. Two of them are real and land against
+  this specification's own acceptance bar:
+
+  - **FR-016 and FR-017 name the two clocks but never give their durations.**
+    `controller.api.job_timeout` and `DefaultCommandTimeout` appear as
+    identifiers with citations, where FR-014 states `MaxDeliver: 5` and
+    `AckWait: 2m` and FR-021 states `1h`. US1's acceptance scenario says "the
+    deadline, the backstop ... are all stated", and a name is not a duration.
+  - **Nothing states what happens once `MaxDeliver` is exhausted.** FR-009
+    through FR-015 describe at-least-once and the agent's obligations, then stop
+    short of the terminal case.
+
+  One is a scope question rather than a gap: no TTL is stated for the
+  `job-responses` bucket, only for `job-queue` (FR-021). The remaining two —
+  broadcast ordering and concurrency, and payload versioning — are subjects this
+  specification never claimed.
+
+  **These are not fixed here.** A merged specification is amended in its own
+  pull request, ahead of anything that depends on it; folding a correction into
+  an archive diff is the failure the workflow exists to prevent. The two real
+  gaps go to that amendment.
+
+- [x] T016 [P] Run the "check that matters most" from
   [quickstart.md](quickstart.md): the page's last commit must postdate the
   specification's merge. If it does not, this feature is unfinished whatever the
   corpus says.
-- [ ] T017 Mark 003's T010 and T011 done, and update 003's `tasks.md` to record
+
+- [x] T017 Mark 003's T010 and T011 done, and update 003's `tasks.md` to record
   that Subject A completed — including which of its phases this feature carried
   out, so the next subject reads a task list that matches what happened.
-- [ ] T018 Run `/speckit-archive-run specs/004-job-system` once T011 and T013
+
+- [x] T018 Run `/speckit-archive-run specs/004-job-system` once T011 and T013
   have merged, consolidating this subject into
   `specs/components/osapi/.specify/memory/`. Archive after the implementation,
   never before: what merged here is the statement, and the outcome is only true

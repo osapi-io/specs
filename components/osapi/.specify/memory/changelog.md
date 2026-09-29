@@ -2,6 +2,52 @@
 
 ## Merged Features Log
 
+### The job system — archived 2026-09-28
+
+**Branch:** `004-job-system`
+
+**Spec:** [specs/004-job-system/spec.md](../../specs/004-job-system/spec.md)
+
+**What was added:**
+
+- How work reaches an agent, stated in the corpus: a job is stored under
+  `jobs.{job-id}` before it is announced, the notification carries an ID rather than
+  content, and status is append-only events computed by priority.
+- The delivery guarantee, and the obligation it creates. At-least-once, not
+  at-most-once, so an agent checks for a recorded response before executing — and the
+  operations that make that load-bearing rather than theoretical are named.
+- The two clocks that bound a job, which bound different things: how long the
+  controller waits, and how long the work may run. With the backstop for a command
+  that sets no deadline, and the fact that cancelling the request stops neither.
+- Four per-host statuses and a machine-readable cause beside each message, including
+  why a host that never answered reports `timeout` rather than `failed`.
+- 430 lines left `docs/docs/sidebar/architecture/job-architecture.md`, whose
+  remaining 203 are for somebody running jobs. Its address is unchanged and four
+  inbound links now describe what it holds.
+- The `add-a-domain` skill's delivery-semantics section became seven citations.
+
+**Three corrections:** the published site had drifted from the code, and each
+disagreement is recorded rather than quietly resolved.
+
+- The job key is `jobs.{job-id}`; the page said `{status}.{uuid}`, which described
+  the status-event keys as though they were the job key. FR-033.
+- The consumer defaults are `MaxDeliver` 5 and `AckWait` 2m; the page said 3 and 30s.
+  FR-043.
+- One TTL of `1h` covers the `job-queue` bucket; the page said 24 hours for completed
+  and failed jobs. FR-050.
+
+None was corrected in place on the page. Correcting a number in two places is how it
+drifted the first time, and a configured value's statement of record is the
+configuration file.
+
+**New Components:** none. No Go code changed; this states what the code already does.
+
+**Tasks Completed:** 16/18 — T011 and T017 are bookkeeping that this archival
+completes; T015, the reading with somebody who has not seen the page, is the one task
+an author cannot run on their own work.
+
+**Bugs addressed:** none. Three documentation gaps, recorded above.
+
 ### Per-agent public key store — archived 2026-09-26
 
 **Branch:** `002-agent-key-store`

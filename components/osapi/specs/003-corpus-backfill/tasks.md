@@ -65,6 +65,12 @@ done.
   enforceable if this is true, and the Verification principle says measure
   rather than assume.
 
+> Phases 1 through 3 are done, and Subject A has landed in both repositories:
+> `004-job-system` is specified, planned, tasked, implemented and archived, its
+> site page is 203 operator-facing lines, and the skill cites it. Phase 4's
+> tasks were carried out as `004`'s own T003–T011 rather than from this list,
+> which is what "Subject A is its own feature" means in practice.
+>
 > Phases 1 and 2 are done. T002 corrected research Finding 1 rather than
 > confirming it: none of the five principles are already stated in the charter,
 > and the two that looked like they were are near misses recorded in the
@@ -93,14 +99,14 @@ what the site change then cites.
 - [x] T007 [US1] In the same branch, run `/speckit-plan` and `/speckit-tasks`
   for `004`, then `/speckit-analyze`, and fix what it reports. Stages 2 through
   4 are one unit of review.
-- [ ] T008 [US1] Record, in `004`'s specification, every rule the code does not
+- [x] T008 [US1] Record, in `004`'s specification, every rule the code does not
   match as a gap rather than as a statement — FR-009. A rule moved from the site
   that the code has outgrown is the Edge Case the specification warns about.
-- [ ] T009 [US1] Cite `002` rather than restating it wherever Subject A reaches
+- [x] T009 [US1] Cite `002` rather than restating it wherever Subject A reaches
   signing, response verification or agent identity —
   [data-model.md](data-model.md), "The relationship to what memory already
   holds".
-- [ ] T010 [US1] Open the pull request for `004` in `specs/` and merge it. This
+- [x] T010 [US1] Open the pull request for `004` in `specs/` and merge it. This
   is the statement of record, and nothing in Phase 4 may start before it lands.
 
 **Checkpoint**: the job system is stated in the corpus. The site still says it
@@ -114,7 +120,7 @@ surviving page sends an operator to the corpus.
 
 **Independent test**: SC-002 and SC-003 from [quickstart.md](quickstart.md).
 
-- [ ] T011 [US2] Split
+- [x] T011 [US2] Split
   `osapi/docs/docs/sidebar/architecture/job-architecture.md` per
   [data-model.md](data-model.md): the job states as observed, polling, the CLI
   reference and the metrics stay; the mechanics go. The result must read as a

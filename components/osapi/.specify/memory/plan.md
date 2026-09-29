@@ -21,6 +21,14 @@ corpus MUST state X", documenting practice the fourteen node providers and their
 categorized siblings already follow.
 [Source: specs/001-provider-contract/plan.md -> "Summary"]
 
+The job system is stated there too, on the same terms: how work reaches an agent,
+what is guaranteed about delivery and what that obliges an agent to do, and the two
+clocks that bound an operation. Roughly 430 lines left the published site's
+architecture page, whose remaining 203 are for somebody running jobs rather than
+building one, and the `add-a-domain` skill cites the requirements instead of
+restating the mechanics.
+[Source: specs/004-job-system/plan.md -> "Summary"]
+
 ## Technical Context
 
 **Language/Version**: Go, `go 1.26.0` directive, CI builds the floor and stable.
@@ -36,7 +44,12 @@ depends on nothing at runtime.
 
 **Storage**: NATS JetStream KV. The enrollment bucket holds pending records under
 an `enrollment.` prefix and accepted agents' keys under `accepted.`, so no new
-bucket, config field or provisioning step appears. Corpus content lives in
+bucket, config field or provisioning step appears. The job system uses three of its
+own: `job-queue` for definitions under `jobs.{job-id}` and their append-only status
+events, `job-responses` for results, and `agent-facts` for the facts an agent
+gathers independently — with one TTL per bucket rather than per status.
+[Source: specs/004-job-system/plan.md -> "Storage"]
+ Corpus content lives in
 `components/osapi/specs/`, `.specify/memory/`, and the skill references that cite
 them. [Source: specs/002-agent-key-store/plan.md -> "Storage"]
 [Source: specs/001-provider-contract/plan.md -> "Storage"]
@@ -126,6 +139,13 @@ the build, which is what keeps FR-016's direction enforceable rather than
 aspirational.
 [Source: specs/001-provider-contract/plan.md -> "Testing"]
 
+Corpus work that moves content off the published site is also gated in osapi:
+`just docusaurus-fmt-check` for formatting and `just docusaurus-build`, which fails
+on an internal link left pointing at a heading that moved. Those two run in the
+repository the pages live in, so a subject's two halves are each checked where they
+land.
+[Source: specs/004-job-system/plan.md -> "Testing"]
+
 ## Configuration
 
 No new configuration. `ControllerPKI.Enabled` governs controller-side enforcement,
@@ -133,6 +153,20 @@ No new configuration. `ControllerPKI.Enabled` governs controller-side enforcemen
 a replaced agent key keeps verifying. All three already existed and were already
 documented as covering PKI enrollment and signing.
 [Source: specs/002-agent-key-store/plan.md -> "Constraints"]
+
+## Documentation Surface
+
+Two audiences, split by who is served rather than by where a page sits. The corpus
+under `components/osapi/specs/` states how osapi is built, for a contributor or an
+agent; the published site under `docs/docs/sidebar/` states how to use it, for an
+operator. A rule lives in one of them and is cited from the other, never stated
+twice — a citation being a relative link naming a requirement, which
+`scripts/validate-skills.py` resolves.
+
+The site does not send an operator to the corpus. A contributor page may cite it,
+and the `add-a-domain` skill does; an operator page that answers with "see the
+specifications repository" has lost its reader.
+[Source: specs/004-job-system/plan.md -> "Constraints"]
 
 ## Routing & Navigation
 

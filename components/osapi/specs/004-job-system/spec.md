@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-28
 
-**Status**: Draft
+**Status**: Archived 2026-09-28
 
 **Input**: Subject A of [003-corpus-backfill](../003-corpus-backfill/spec.md) —
 "the job system MUST be the first subject moved, because it is the largest body
