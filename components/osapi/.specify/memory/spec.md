@@ -527,15 +527,19 @@ the same thing, or the requirement records the disagreement.
   redelivered mid-flight, because the agent extends the deadline while it runs.
   Evidence: the in-progress keepalive in `internal/agent/handler.go`.
   [Source: specs/004-job-system/spec.md -> FR-015]
-- **FR-045**: The corpus MUST state that two clocks bound a job and that they bound
-  different things: `controller.api.job_timeout` bounds how long the controller waits
+- **FR-045**: The corpus MUST state that two clocks bound a job, that they bound
+  different things, and MUST give each one's duration rather than only its name:
+  `controller.api.job_timeout`, `30s` by default, bounds how long the controller waits
   for a response, and the agent's command deadline bounds how long the work itself
-  may run. Evidence: `cmd/root.go`, `internal/job/client/client.go`,
-  `internal/exec/types.go`.
+  may run. The gap between them is the point — the controller stops waiting long
+  before the work must stop. Evidence: `cmd/root.go` and `configs/osapi.yaml` for the
+  `30s`, `internal/job/client/client.go`, `internal/exec/types.go`.
   [Source: specs/004-job-system/spec.md -> FR-016]
 - **FR-046**: The corpus MUST state that a command with no deadline of its own is
-  bounded by a backstop rather than left to run forever, and MUST name it. Evidence:
-  `DefaultCommandTimeout` in `internal/exec/types.go`.
+  bounded by a backstop rather than left to run forever, and MUST give both its name
+  and its duration: `DefaultCommandTimeout`, `10m`. A name alone does not answer what
+  an operation may assume about time. Evidence: `DefaultCommandTimeout` in
+  `internal/exec/types.go`, applied in `internal/exec/exec.go`.
   [Source: specs/004-job-system/spec.md -> FR-017]
 - **FR-047**: The corpus MUST state that cancelling the originating API request does
   not stop a running agent operation, and that `job delete` removes the queue entry
@@ -571,7 +575,18 @@ the same thing, or the requirement records the disagreement.
   MUST cite its requirements rather than restating the mechanics, and the contributor
   half of the site page MUST be removed in the same change that adds those citations.
   [Source: specs/004-job-system/spec.md -> FR-024]
-
+- **FR-054**: The corpus MUST state what happens once redelivery is exhausted,
+  because FR-040 through FR-044 describe at-least-once delivery and stop short of its
+  terminal case. After `MaxDeliver` attempts JetStream emits a `MAX_DELIVERIES`
+  advisory, and a dedicated `<stream>-DLQ` stream subscribes to those advisories and
+  retains them — `168h` and 1000 messages by default. What the dead letter queue holds
+  is the **advisory** rather than the job: the job's own definition stays in the
+  `job-queue` bucket until that bucket's TTL expires it (FR-050), so a reader who
+  expects to retrieve the failed job from the DLQ will not find it there. The depth is
+  surfaced as `dlq_count` on queue statistics and in `osapi client health status`.
+  Evidence: `cmd/nats_setup.go`, `configs/osapi.yaml` under `nats.dlq`,
+  `internal/job/client/jobs.go`.
+  [Source: specs/004-job-system/spec.md -> FR-025]
 
 ### Key Entities
 

@@ -4,7 +4,11 @@
 
 **Created**: 2026-09-28
 
-**Status**: Archived 2026-09-28
+**Status**: Archived 2026-09-28, amended 2026-09-28 — FR-016 and FR-017 gave
+their clocks' names without their durations, and no requirement stated what
+happens once redelivery is exhausted. Both were found by the SC-001 reading
+(T015). FR-025 is new; the amendment is recorded in
+[changelog.md](../../.specify/memory/changelog.md).
 
 **Input**: Subject A of [003-corpus-backfill](../003-corpus-backfill/spec.md) —
 "the job system MUST be the first subject moved, because it is the largest body
@@ -198,15 +202,21 @@ the same thing, or the requirement records the disagreement.
 
 #### Time
 
-- **FR-016**: The corpus MUST state that two clocks bound a job and that they
-  bound different things: `controller.api.job_timeout` bounds how long the
-  controller waits for a response, and the agent's command deadline bounds how
-  long the work itself may run. Evidence: `cmd/root.go` for the default,
-  `internal/job/client/client.go` for the wait, `internal/exec/types.go` for the
-  command deadline.
+- **FR-016**: The corpus MUST state that two clocks bound a job, that they bound
+  different things, and MUST give each one's duration rather than only its name:
+  `controller.api.job_timeout`, `30s` by default, bounds how long the controller
+  waits for a response, and the agent's command deadline bounds how long the
+  work itself may run. The gap between them is the point — the controller stops
+  waiting long before the work must stop. Evidence: `cmd/root.go`, which sets
+  `controller.api.job_timeout` to `30s`, and `configs/osapi.yaml`, which ships
+  the same value; `internal/job/client/client.go` for the wait;
+  `internal/exec/types.go` for the command deadline.
 - **FR-017**: The corpus MUST state that a command with no deadline of its own
-  is bounded by a backstop rather than left to run forever, and MUST name it.
-  Evidence: `DefaultCommandTimeout` in `internal/exec/types.go`.
+  is bounded by a backstop rather than left to run forever, and MUST give both
+  its name and its duration: `DefaultCommandTimeout`, `10m`. A name alone does
+  not answer what an operation may assume about time, which is what US1 asks of
+  this section. Evidence: `DefaultCommandTimeout` in `internal/exec/types.go`,
+  applied in `internal/exec/exec.go`.
 - **FR-018**: The corpus MUST state that cancelling the originating API request
   does not stop a running agent operation, and that `job delete` removes the
   queue entry rather than the process. An operation is stopped by its own
@@ -236,8 +246,24 @@ the same thing, or the requirement records the disagreement.
 - **FR-022**: Where this subject reaches signing, response verification or agent
   identity, it MUST cite [002](../002-agent-key-store/spec.md) rather than
   describing them again.
+
 - **FR-023**: Where it reaches what a provider must return or how a provider
   behaves, it MUST cite [001](../001-provider-contract/spec.md).
+
+- **FR-025**: The corpus MUST state what happens once redelivery is exhausted,
+  because FR-009 through FR-015 describe at-least-once delivery and stop short
+  of its terminal case. After `MaxDeliver` attempts JetStream emits a
+  `MAX_DELIVERIES` advisory, and a dedicated `<stream>-DLQ` stream subscribes to
+  those advisories and retains them — `168h` and 1000 messages by default. The
+  corpus MUST state that what the dead letter queue holds is the **advisory**
+  rather than the job: the job's own definition stays in the `job-queue` bucket
+  until that bucket's TTL expires it (FR-021), so a reader who expects to
+  retrieve the failed job from the DLQ will not find it there. The depth is
+  surfaced as `dlq_count` on queue statistics and in
+  `osapi client health status`. Evidence: the DLQ stream built in
+  `cmd/nats_setup.go`, its defaults in `configs/osapi.yaml` under `nats.dlq`,
+  and the count read in `internal/job/client/jobs.go`.
+
 - **FR-024**: After this specification merges, the `add-a-domain` skill MUST
   cite these requirements rather than restating the mechanics, and the
   contributor half of the site page MUST be removed in the same change that adds
