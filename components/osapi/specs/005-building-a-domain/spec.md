@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-28
 
-**Status**: Draft
+**Status**: Archived 2026-09-28
 
 **Input**: Subject B of [003-corpus-backfill](../003-corpus-backfill/spec.md) —
 the second and last subject of the corpus backfill. 003's `data-model.md`

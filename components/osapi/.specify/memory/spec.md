@@ -9,6 +9,13 @@
 > entities, 5 edge cases, 7 measurable outcomes, 5 assumptions. Nothing folded:
 > the provider contract and agent identity share no ground.
 
+> **Revision**: 2026-09-28 — Added building a domain
+> (`specs/005-building-a-domain`): 3 user stories, 26 functional requirements, 4
+> entities, 4 edge cases, 6 measurable outcomes, 5 assumptions. Nothing folded:
+> the job system states what carries an operation, and this states what a domain
+> consists of. Four gaps are recorded as gaps, not corrected. The job system's
+> archival left no revision note here; this is noted rather than backfilled.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - The contract can be read without reading a sibling provider (Priority: P1)
@@ -242,6 +249,73 @@ the same thing, or the requirement records the disagreement.
    the correction is visible as a correction rather than silently different.
 
 
+### User Story 10 - A contributor can add a domain from the corpus alone (Priority: P1)
+
+Somebody adding a domain to osapi needs to know what artifacts a domain consists
+of, in what order they are built, and which of the choices along the way are rules
+rather than preferences. They read the corpus, and the `add-a-domain` skill cites
+one statement rather than carrying a second.
+
+**Why this priority**: it is the subject. Everything else about building a domain
+supports it.
+[Source: specs/005-building-a-domain/spec.md -> User Story 1]
+
+**Independent Test**: given the corpus alone, a reader can say what a domain
+consists of, what must be built before what, where user input is validated, and
+what must be true of an operation targeting more than one machine.
+
+**Acceptance Scenarios**:
+
+1. **Given** a contributor who has never added a domain, **When** they ask what a
+   domain consists of across every layer, **Then** the corpus names the layers, the
+   artifacts each one takes, and the consistency obligation that binds them.
+2. **Given** a contributor partway through, **When** they ask whether a step may be
+   skipped or reordered, **Then** the corpus distinguishes the steps whose order a
+   tool forces from those merely done in that order by convention.
+3. **Given** a contributor reading a rule the corpus states, **When** they ask why
+   it is a rule, **Then** the corpus gives the reason or the file that enforces it,
+   so the rule can be checked rather than believed.
+
+### User Story 11 - An operator is not sent to a contributor's document (Priority: P1)
+
+Somebody who bookmarked an architecture page finds it still resolves, and what
+replaces it does not send them into a corpus written for somebody else.
+
+**Why this priority**: a corpus statement that costs an operator their bookmark is
+not an improvement.
+[Source: specs/005-building-a-domain/spec.md -> User Story 2]
+
+**Independent Test**: every removed address still resolves, and no surviving
+operator page points into the corpus.
+
+**Acceptance Scenarios**:
+
+1. **Given** a bookmark to a removed contributor page, **When** it is opened after
+   the change, **Then** it resolves to the contributor index rather than to a 404.
+2. **Given** a page whose contributor half was removed, **When** an operator reads
+   it, **Then** what they need is still there and the page reads as a whole rather
+   than as a remainder.
+
+### User Story 12 - The rule has one home (Priority: P2)
+
+Somebody reading the `add-a-domain` skill finds a rule's name and where it lives,
+not a second statement of the rule that can drift from the first.
+
+**Why this priority**: it is the point of the backfill, and it depends on the
+corpus statement existing first.
+[Source: specs/005-building-a-domain/spec.md -> User Story 3]
+
+**Independent Test**: `just skill-lint` resolves every citation, and no rule the
+corpus states appears in restated form in the skill's references.
+
+**Acceptance Scenarios**:
+
+1. **Given** the skill's references, **When** `skill-lint` runs, **Then** every
+   citation resolves to a requirement in the corpus.
+2. **Given** a rule the corpus states, **When** the references are grepped for it,
+   **Then** the rule's name appears with a citation and its mechanics do not appear
+   twice.
+
 ### Edge Cases
 
 - A host runs an OS family the provider does not implement. This is not a
@@ -305,6 +379,22 @@ the same thing, or the requirement records the disagreement.
   rather than a literal.
   [Source: specs/004-job-system/spec.md -> "A subject prefix is configurable per namespace"]
 
+- A rule the provider contract already holds is reached from the contributor's
+  direction. Providers are stated once, in the contract, and a document about
+  adding a domain cites them rather than restating them from the other side.
+  [Source: specs/005-building-a-domain/spec.md -> Edge Cases]
+- A step's order is habit rather than a tool's requirement. Stating all of a
+  sequence as obligations freezes a preference as a rule, so only the orderings a
+  build actually breaks on are requirements.
+  [Source: specs/005-building-a-domain/spec.md -> Edge Cases]
+- A document defers to an authority that does not exist. Deferring to nothing is
+  worse than stating nothing, because it reads as though the rule were settled
+  elsewhere.
+  [Source: specs/005-building-a-domain/spec.md -> Edge Cases]
+- A page states a rule the code has outgrown. Both sides are named as a recorded
+  gap rather than the page being silently corrected, so a reader can tell whether
+  the page was wrong or they were.
+  [Source: specs/005-building-a-domain/spec.md -> Edge Cases]
 
 ## Requirements
 
@@ -588,6 +678,61 @@ the same thing, or the requirement records the disagreement.
   `internal/job/client/jobs.go`.
   [Source: specs/004-job-system/spec.md -> FR-025]
 
+#### Building a domain
+
+- **FR-055**: The corpus MUST state what a domain consists of across every layer, and MUST state the consistency obligation: a domain appears in every place an existing domain appears, and the check is to pick a completed domain and search for it. Evidence: `docs/docs/sidebar/development/adding-an-api-domain.md`, "Cross-Layer Consistency".
+  [Source: specs/005-building-a-domain/spec.md -> FR-001]
+- **FR-056**: Where the corpus reaches provider types, file structure, the provider interface, naming, platform variants or the idempotency obligation, it MUST cite the provider contract rather than stating the rule a second time. Memory is not exempt from the one-statement test.
+  [Source: specs/005-building-a-domain/spec.md -> FR-002]
+- **FR-057**: Where it reaches delivery semantics, the two clocks, the dead letter queue or any other job mechanic, it MUST cite the job system; where it reaches signing, response verification or agent identity, it MUST cite the agent key store.
+  [Source: specs/005-building-a-domain/spec.md -> FR-003]
+- **FR-058**: The corpus MUST state the build order and MUST distinguish the parts a tool forces from the parts that are convention. The forced ones: the OpenAPI specification precedes generation, because generation reads it; generation precedes the handler, because the handler implements a generated interface; the combined specification precedes the SDK client, because the SDK generates from the combined file. Evidence: the `//go:generate` directives under `internal/controller/api/*/gen/`, the `redocly join` step in `just generate`, and `go generate ./pkg/sdk/client/gen/...`.
+  [Source: specs/005-building-a-domain/spec.md -> FR-004]
+- **FR-059**: The corpus MUST state the eight steps as a walkthrough rather than as eight requirements, because a numbered requirement per step would be renumbered every time a tool changes. What is stated as a requirement is what must be true of the result.
+  [Source: specs/005-building-a-domain/spec.md -> FR-005]
+- **FR-060**: The corpus MUST state where a domain's code goes and what decides it: node-targeted operations under `internal/controller/api/node/{domain}/`, controller-only operations under `internal/controller/api/{domain}/`, and the provider under `internal/provider/{domain}/` or `internal/provider/{category}/{domain}/`.
+  [Source: specs/005-building-a-domain/spec.md -> FR-006]
+- **FR-061**: The corpus MUST state the component map, the entry points, the six layers — CLI, REST API, job system, provider, agent lifecycle, configuration — and the request flow, because that is what a contributor reads immediately before the domain instructions.
+  [Source: specs/005-building-a-domain/spec.md -> FR-007]
+- **FR-062**: The corpus MUST state the request path an operation takes, `CLI → SDK → REST API → Job Client → NATS → Agent → Provider`, and that the provider runs on the agent rather than the controller. Evidence: `internal/job/client/client.go`.
+  [Source: specs/005-building-a-domain/spec.md -> FR-008]
+- **FR-063**: The corpus MUST state that two files connect a provider to the agent — a processor file under `internal/agent/` and the registration in `cmd/agent_setup.go` — and MUST state what does not change: `agent/types.go`, `agent/agent.go` and the `JobClient` interface, because the registry handles dispatch and facts wiring. Evidence: `ProviderRegistry.Register` at `internal/agent/registry.go:51`, `AllProviders` at `:74`, and the single `provider.WireProviderFacts` call at `internal/agent/agent.go:90`.
+  [Source: specs/005-building-a-domain/spec.md -> FR-009]
+- **FR-064**: The corpus MUST state the `FactsAware` obligation — embed `provider.FactsAware`, add the compile-time `FactsSetter` check — and MUST cite the provider contract rather than restating what it already holds. Evidence: `WireProviderFacts` at `internal/provider/facts.go:64`.
+  [Source: specs/005-building-a-domain/spec.md -> FR-010]
+- **FR-065**: The corpus MUST state that the OpenAPI specification is the source of truth for input validation, and MUST state the three places a tag goes and the one place it does not: `x-oapi-codegen-extra-tags` on request body properties, at *parameter* level for query parameters rather than inside `schema:`, `format: uuid` for UUID path parameters, and **not** on path parameters in strict-server mode, where oapi-codegen generates no tags.
+  [Source: specs/005-building-a-domain/spec.md -> FR-011]
+- **FR-066**: The corpus MUST state that a path parameter needing validation beyond `format: uuid` is validated by hand in the handler, and MUST state where that validator actually lives. **Gap**: the site said "a shared helper like `node.validateHostname()`". There is no shared helper and that call does not compile across packages — `validateHostname` is unexported and exists three times, at `internal/controller/api/agent/validate.go:30`, `internal/controller/api/node/validate.go:30` and `internal/controller/api/node/power/validate.go:30`. What is shared is `validation.Var(hostname, "required,min=1,valid_target")`. Owner: osapi, as a Go change.
+  [Source: specs/005-building-a-domain/spec.md -> FR-012]
+- **FR-067**: The corpus MUST state the verb mapping and that a mutable domain uses separate verbs for create and update — `POST` creates with the name in the body, `PUT /{name}` updates from the path — and MUST state the reason: it is what gives 404 semantics a meaning. A combined set or upsert endpoint is forbidden.
+  [Source: specs/005-building-a-domain/spec.md -> FR-013]
+- **FR-068**: The corpus MUST state the API design guidelines: endpoints grouped by functional domain under their own top-level prefix, resource-oriented paths with sub-resources nested under their parent, an area expected to grow split into its own category early, everything targeting a managed machine under `/node/{hostname}`, and path parameters for identification with query parameters only for filtering and pagination. **Gap**: the corpus backfill recorded five guidelines to fold in; the page stated **six**. The sixth, path-versus-query parameters, is included. The page had not drifted — the count was taken from memory rather than read.
+  [Source: specs/005-building-a-domain/spec.md -> FR-014]
+- **FR-069**: The corpus MUST state that `{hostname}` accepts a literal hostname, the reserved values `_any` and `_all`, or a `key:value` label selector. Evidence: `IsBroadcastTarget` at `internal/job/subjects.go:306`, which is the single implementation.
+  [Source: specs/005-building-a-domain/spec.md -> FR-015]
+- **FR-070**: The corpus MUST state that every operation under `/node/{hostname}/...` supports broadcast targeting, that the single-target and broadcast paths return the same collection shape, and that every result item carries `hostname` and `error`. A single target returns one result; a broadcast returns as many as there are agents, with failed and skipped ones present as entries rather than absent.
+  [Source: specs/005-building-a-domain/spec.md -> FR-016]
+- **FR-071**: The corpus MUST state that the `JobClient` interface has four generic methods — `Query`, `QueryBroadcast`, `Modify`, `ModifyBroadcast` — and that adding an operation needs none added, because a handler passes a category string and an operation constant. Evidence: `internal/job/client/types.go`, lines 146, 153, 160 and 167.
+  [Source: specs/005-building-a-domain/spec.md -> FR-017]
+- **FR-072**: The corpus MUST state that a domain package exports a `Handler()` function returning route-registration closures, that it wraps the handler in scope middleware itself, and that the `Server` struct does not change. Startup wiring is one appended line in `registerControllerHandlers`. Evidence: `cmd/controller_setup.go`.
+  [Source: specs/005-building-a-domain/spec.md -> FR-018]
+- **FR-073**: The corpus MUST state the SDK obligations — four files per service, a field on the `Client` struct, an example under `examples/sdk/client/`, a doc page in the matching category, and the navbar entry — and MUST NOT defer to an authority that does not exist. **Gap**: three documents claimed SDK naming and error handling were "specified in the `sdk-standards` capability", that it bound `osapi-orchestrator`, and that it won any disagreement. No such capability was ever written. The three were the site's domain page, the skill's `references/sdk.md`, and the site's SDK guidelines page; all three now name it as unwritten. Owner: this repository, as a feature of its own.
+  [Source: specs/005-building-a-domain/spec.md -> FR-019]
+- **FR-074**: The corpus MUST state the SDK rules that are verifiable: no `gen` type in a public method signature, JSON tags on every result type, errors wrapped with context, and one service per file with no methods added to another service's files.
+  [Source: specs/005-building-a-domain/spec.md -> FR-020]
+- **FR-075**: The corpus MUST state the CLI obligations: one parent command per domain and one subcommand per endpoint, `--json` on every command, `cli.PrintKV` for key-value output and `cli.PrintCompactTable` for tabular, flags rather than positional arguments for resource IDs, and every response code the OpenAPI specification declares handled in the status switch. Evidence: `PrintCompactTable` at `internal/cli/ui.go:198`, `PrintKV` at `:413`.
+  [Source: specs/005-building-a-domain/spec.md -> FR-021]
+- **FR-076**: The corpus MUST state all **eight** design principles, each with what it constrains, so a principle can decide a question rather than decorate a page. **Gap**: the corpus backfill recorded five; the page stated eight. The three never named were Reliability and Stability, CLI Parity with API, and Least Privilege Mode. The recorded line count was right, so the page had not grown — the count of principles was wrong when written.
+  [Source: specs/005-building-a-domain/spec.md -> FR-022]
+- **FR-077**: The corpus MUST record that each of the eight principles was checked against `.charter/fragments/global/` and this project's constitution before being stated. All eight are unstated there: the first five were checked when the backfill was planned, and the remaining three were checked by reading the fragment text rather than the headings, because that finding's own first version had claimed two were charter rules read from their headings.
+  [Source: specs/005-building-a-domain/spec.md -> FR-023]
+- **FR-078**: The corpus MUST state what verifies a finished domain, and MUST NOT reproduce the site's command list as sufficient. **Gap**: the page's last step gave `just generate`, `go build ./...`, `just go-unit` and `just go-vet`. All four exist, and none covers the previous step, which edits eight documentation files: `docusaurus-fmt-check` and `docusaurus-build` run in `just test`. A contributor following that list exactly can hand in work that fails continuous integration on the documentation the step before told them to write. The gate is `just ready` and `just test`. Owner: osapi.
+  [Source: specs/005-building-a-domain/spec.md -> FR-024]
+- **FR-079**: The `add-a-domain` skill MUST cite these requirements rather than restating the mechanics, as a relative link four `../` levels up from a reference file, named to a requirement rather than to a document.
+  [Source: specs/005-building-a-domain/spec.md -> FR-025]
+- **FR-080**: In the same change that adds those citations, the contributor half of the site MUST be removed: the domain page reduced to an index with a citation table and a pointer to the skill; the API guidelines and principles pages removed with their addresses redirected; and the system architecture page's component map, entry points, layers and request flow removed. Adding the citations without removing the pages leaves two statements.
+  [Source: specs/005-building-a-domain/spec.md -> FR-026]
+
 ### Key Entities
 
 - **Provider**: A domain's operations, running in the agent, selected by OS
@@ -633,6 +778,22 @@ the same thing, or the requirement records the disagreement.
   system.
   [Source: specs/004-job-system/spec.md -> Key Entities]
 
+- **Domain**: A coherent area of system behaviour exposed as API endpoints, whose
+  artifacts span provider, agent processor, API handler, SDK service, CLI commands,
+  documentation and tests. It is complete when it appears everywhere an existing
+  domain appears.
+  [Source: specs/005-building-a-domain/spec.md -> Key Entities]
+- **Layer**: One of the six the system is built from — CLI, REST API, job system,
+  provider, agent lifecycle, configuration — each taking a defined artifact from a
+  domain.
+  [Source: specs/005-building-a-domain/spec.md -> Key Entities]
+- **Step**: One unit of the build sequence. Some orderings are forced by code
+  generation and are requirements; the rest are convention and are a walkthrough.
+  [Source: specs/005-building-a-domain/spec.md -> Key Entities]
+- **Gap**: A rule a document states that the repository does not bear out, recorded
+  with both sides named and an owner, never silently corrected. Four are recorded
+  against building a domain.
+  [Source: specs/005-building-a-domain/spec.md -> Key Entities]
 
 ## Success Criteria
 
@@ -696,6 +857,27 @@ the same thing, or the requirement records the disagreement.
   agent key store already states.
   [Source: specs/004-job-system/spec.md -> SC-005]
 
+- **SC-018**: A reader who has not seen the site page answers four questions from the
+  corpus alone: what a domain consists of and how an incomplete one is recognised;
+  what must be built before what and which orderings are forced; where user input is
+  validated and what happens to a path parameter; and what must be true of an
+  operation targeting more than one machine.
+  [Source: specs/005-building-a-domain/spec.md -> SC-001]
+- **SC-019**: Every address removed from the site resolves after the change.
+  [Source: specs/005-building-a-domain/spec.md -> SC-002]
+- **SC-020**: No page an operator reads points into the corpus. The contributor index
+  and the SDK development guidelines are the exceptions, and both have contributor
+  readers.
+  [Source: specs/005-building-a-domain/spec.md -> SC-003]
+- **SC-021**: `just test` passes in the specifications repository, `skill-lint`
+  resolving every citation into the corpus.
+  [Source: specs/005-building-a-domain/spec.md -> SC-004]
+- **SC-022**: No rule the corpus states appears in restated form in the skill's
+  references. The skill states a rule's name and where it lives.
+  [Source: specs/005-building-a-domain/spec.md -> SC-005]
+- **SC-023**: The site page's last commit postdates the specification's merge. If it
+  does not, the corpus and the page both state these rules.
+  [Source: specs/005-building-a-domain/spec.md -> SC-006]
 
 ## Assumptions
 
@@ -749,3 +931,25 @@ the same thing, or the requirement records the disagreement.
   citing the file it describes is what lets the next reader find them rather than
   trust the corpus.
   [Source: specs/004-job-system/spec.md -> Assumptions]
+
+- **AS-014**: The reader of the domain-building corpus is a contributor or an agent,
+  not an operator. That is what makes a citation the right form there and the wrong
+  form on a feature page.
+  [Source: specs/005-building-a-domain/spec.md -> "The reader of the corpus"]
+- **AS-015**: The four gaps recorded against building a domain are recorded, not
+  fixed. Each has an owner: the unexported and triplicated hostname validator and
+  the incomplete verification command list are osapi's, the absent SDK standards
+  capability is this repository's own feature, and two miscounted inventories are
+  the backfill's own record.
+  [Source: specs/005-building-a-domain/spec.md -> "The four gaps are recorded"]
+- **AS-016**: The redirects plugin is available for the two removed addresses. It was
+  added by this work rather than inherited: building a domain is the only subject in
+  the backfill that deletes a page, and therefore the only one that needs a redirect.
+  [Source: specs/005-building-a-domain/spec.md -> "@docusaurus/plugin-client-redirects"]
+- **AS-017**: Building a domain changed no Go code. It states what the code does and
+  cites the file for each claim.
+  [Source: specs/005-building-a-domain/spec.md -> "any Go code change"]
+- **AS-018**: Page line counts were re-measured before anything moved and all four
+  matched what the backfill recorded. What did not match was the *contents* of two of
+  those pages, which is why a count taken from prose is not evidence.
+  [Source: specs/005-building-a-domain/spec.md -> "The line counts"]

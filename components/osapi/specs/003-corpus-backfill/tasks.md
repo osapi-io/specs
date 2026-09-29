@@ -125,32 +125,32 @@ surviving page sends an operator to the corpus.
   [data-model.md](data-model.md): the job states as observed, polling, the CLI
   reference and the metrics stay; the mechanics go. The result must read as a
   whole page, not a remainder — FR-003.
-- [ ] T012 [US2] Split
+- [x] T012 [US2] Split
   `osapi/docs/docs/sidebar/architecture/system-architecture.md`: health checks
   with their endpoints and CLI access, authentication, authorization, CORS and
   external dependencies stay; the component map, the layers and the request flow
   go to Subject B.
-- [ ] T013 [US2] [P] Update the Deep Dives and Further Reading links in
+- [x] T013 [US2] [P] Update the Deep Dives and Further Reading links in
   `osapi/docs/docs/sidebar/architecture/architecture.md`, which is otherwise
   unchanged. A link to a section that moved is the broken internal link the site
   build catches.
-- [ ] T014 [US2] Replace
+- [x] T014 [US2] Replace
   `osapi/docs/docs/sidebar/development/adding-an-api-domain.md` with the short
   contributor page from research Decision 3: what adding a domain involves, a
   citation table into the corpus, and a pointer to the `add-a-domain` skill.
-- [ ] T015 [US2] Add `@docusaurus/plugin-client-redirects` to
+- [x] T015 [US2] Add `@docusaurus/plugin-client-redirects` to
   `osapi/docs/package.json` and `osapi/docs/docusaurus.config.ts`, redirecting
   `architecture/api-guidelines` and `architecture/principles` to the page from
   T014, and delete both files.
-- [ ] T016 [US2] Run the SC-003 address check from
+- [x] T016 [US2] Run the SC-003 address check from
   [quickstart.md](quickstart.md). Six lines, none `MISSING`.
-- [ ] T017 [US2] Run
+- [x] T017 [US2] Run
   `cd osapi && just docusaurus-fmt-check && just docusaurus-build`. The build is
   what catches a link left pointing at moved content.
-- [ ] T018 [US2] Run the SC-002 grep. No surviving page may answer an operator
+- [x] T018 [US2] Run the SC-002 grep. No surviving page may answer an operator
   with "see the specifications repository"; the contributor page from T014 is
   the only exclusion.
-- [ ] T019 [US2] Open the pull request in `osapi/` for T011–T018 and merge it.
+- [x] T019 [US2] Open the pull request in `osapi/` for T011–T018 and merge it.
   The duplication from the Phase 3 checkpoint ends here — this task is what
   closes FR-010's window, and leaving it undone leaves the duplication
   permanent.
@@ -165,23 +165,83 @@ A's path.
 
 **Independent test**: SC-004 and SC-005 from [quickstart.md](quickstart.md).
 
-- [ ] T020 [US3] Replace every restatement of a job system rule in
+- [x] T020 [US3] Replace every restatement of a job system rule in
   `specs/.claude/skills/add-a-domain/references/` with a citation table naming
   the `004` requirement, following `references/provider.md`'s existing example.
-- [ ] T021 [US3] Run `cd specs && just test`. `skill-lint` resolving every
+
+- [x] T021 [US3] Run `cd specs && just test`. `skill-lint` resolving every
   citation is SC-004's gate.
-- [ ] T022 [US3] Run the SC-005 check:
+
+- [x] T022 [US3] Run the SC-005 check:
   `git diff --stat main -- .claude/skills/add-a-domain/` must be net negative on
   `references/`, with `SKILL.md` unchanged in shape.
-- [ ] T023 [US3] Run `/speckit-specify` for Subject B — building a domain —
+
+  **T022 passes, and the margin is worth recording.** Measured against
+  `d370e37`, the commit that planned this feature:
+
+  | Reference     | Then    | Now     |
+  | ------------- | ------- | ------- |
+  | `agent.md`    | 119     | 136     |
+  | `api.md`      | 193     | 125     |
+  | `cli.md`      | 83      | 83      |
+  | `docs.md`     | 60      | 81      |
+  | `provider.md` | 127     | 127     |
+  | `sdk.md`      | 122     | 140     |
+  | **Total**     | **704** | **692** |
+
+  Net **-12** on `references/`, and `SKILL.md` unchanged at 140 lines, so the
+  check is met. It is met narrowly, and the reason is honest rather than a
+  shortfall: five rules turned out to have no home in the corpus — three CLI and
+  validation rules in `005`'s T016 to T018, and the absent `sdk-standards`
+  capability named twice — and each is now stated where it was with a note
+  saying the corpus does not hold it. Deleting them to make this number look
+  better would have lost five real rules.
+
+  The measure that shows what the backfill actually achieved is the site, not
+  the skill: **950 lines of contributor knowledge left `docs/`** across the two
+  subjects — 427 from `job-architecture.md`, 578 from `adding-an-api-domain.md`,
+  107 in two deleted pages, and 188 from `system-architecture.md`.
+
+- [x] T023 [US3] Run `/speckit-specify` for Subject B — building a domain —
   producing `specs/components/osapi/specs/005-building-a-domain/spec.md` from
   the sources in [data-model.md](data-model.md), citing `001` for every provider
   rule it already holds rather than restating it.
-- [ ] T024 [US3] Fold in the principles that T002 found are *not* already stated
+
+- [x] T024 [US3] Fold in the principles that T002 found are *not* already stated
   in the charter or the constitution; cite the ones that are.
-- [ ] T025 [US3] Carry Subject B through the same two-repository sequence: merge
+
+- [x] T025 [US3] Carry Subject B through the same two-repository sequence: merge
   `005` in `specs/`, then the osapi pull request that empties
   `adding-an-api-domain.md` of what `005` now states and updates the citations.
+
+**Subject B completed 2026-09-28.** T012 through T019 and T023 through T025 were
+carried out by [005-building-a-domain](../005-building-a-domain/tasks.md), which
+ran the same two-repository sequence Subject A did: the corpus statement and the
+skill citations merged in `specs/` as #152 and #154, then the site reduction
+merged in `osapi/` as #545.
+
+| This task                                    | Carried out by `005`                                              |
+| -------------------------------------------- | ----------------------------------------------------------------- |
+| T012 the `system-architecture.md` split      | T009, T010 — 330 lines to 142                                     |
+| T013 `architecture.md` links                 | T012 — it also described `system-architecture.md` as what left it |
+| T014 the contributor page                    | T005, T006 — 654 lines to 76                                      |
+| T015 the redirects plugin and both deletions | T007, T008                                                        |
+| T016 the address check                       | T014's build, verified in the generated HTML                      |
+| T017 the osapi gate                          | T014                                                              |
+| T018 the SC-002 grep                         | T013                                                              |
+| T019 merge the osapi pull request            | T015 — osapi#545                                                  |
+| T023 specify Subject B                       | specs#152                                                         |
+| T024 fold in the principles                  | T003, which found all **eight** unstated, not five                |
+| T025 the two-repository sequence             | the whole of `005`                                                |
+
+Two of this feature's own records were wrong and `005` recorded both rather than
+correcting them quietly: `api-guidelines.md` states six guidelines, not five,
+and `principles.md` states eight principles, not five. The line counts here were
+right, so neither page had drifted — the counts were taken from memory. They are
+corrected when this feature is archived, which is T028.
+
+Only T026 through T029 remain. Archiving `003` comes after both its subjects,
+and both have now landed.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 

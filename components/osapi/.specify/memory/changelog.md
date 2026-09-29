@@ -2,6 +2,44 @@
 
 ## Merged Features Log
 
+### Building a domain — archived 2026-09-28
+
+**Branch:** `005-building-a-domain`
+
+**Spec:** [specs/005-building-a-domain/spec.md](../../specs/005-building-a-domain/spec.md)
+
+**What was added:**
+
+- What a domain consists of across every layer, and the obligation that makes it
+  checkable: a domain appears everywhere an existing domain appears.
+- The build order, with the three orderings a tool forces separated from the five
+  that are convention. The walkthrough is in the plan; the forced orderings are
+  requirements.
+- Validation, including the one place a tag does nothing — path parameters in
+  strict-server mode.
+- Broadcast, the four job-client methods, handler registration, the SDK and CLI
+  obligations, and all eight design principles.
+
+**New Components:** none. No Go code changed.
+
+**Gaps recorded rather than fixed:**
+
+- The hostname path-parameter validator is not a shared helper. It is unexported and
+  duplicated in three packages, so the call the site named does not compile across
+  them. Owner: osapi.
+- The `sdk-standards` capability three documents deferred to as binding does not
+  exist. Owner: this repository, as a feature of its own.
+- The API guidelines page states six guidelines where the backfill recorded five.
+- The principles page states eight principles where the backfill recorded five.
+- The site's verification step does not cover the documentation step before it.
+  Owner: osapi.
+
+The last two are the backfill's own record being wrong about pages it measured
+correctly; the line counts matched.
+
+**Tasks Completed:** 22/24 tasks — the independent completeness reading and this
+archival were open when it was written.
+
 ### The job system — amended 2026-09-28
 
 **Source:** the SC-001 reading, `specs/004-job-system/tasks.md` T015
