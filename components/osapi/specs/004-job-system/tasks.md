@@ -88,7 +88,7 @@ unchanged.
   by a pointer on an operator page.
 - [x] T010 [US2] Run
   `cd osapi && just docusaurus-fmt-check && just docusaurus-build`.
-- [ ] T011 [US2] Open and merge the osapi pull request for T003–T010. **This is
+- [x] T011 [US2] Open and merge the osapi pull request for T003–T010. **This is
   the task that ends the duplication.** Until it lands, the corpus and the page
   both state these rules and three of the page's numbers are wrong — see
   [research.md](research.md), "The risk this feature carries".
@@ -117,14 +117,14 @@ unchanged.
 - [ ] T015 [P] Run the SC-001 reading with somebody who has not read the site
   page, using the three fixed questions. An author cannot test their own corpus
   for completeness.
-- [ ] T016 [P] Run the "check that matters most" from
+- [x] T016 [P] Run the "check that matters most" from
   [quickstart.md](quickstart.md): the page's last commit must postdate the
   specification's merge. If it does not, this feature is unfinished whatever the
   corpus says.
-- [ ] T017 Mark 003's T010 and T011 done, and update 003's `tasks.md` to record
+- [x] T017 Mark 003's T010 and T011 done, and update 003's `tasks.md` to record
   that Subject A completed — including which of its phases this feature carried
   out, so the next subject reads a task list that matches what happened.
-- [ ] T018 Run `/speckit-archive-run specs/004-job-system` once T011 and T013
+- [x] T018 Run `/speckit-archive-run specs/004-job-system` once T011 and T013
   have merged, consolidating this subject into
   `specs/components/osapi/.specify/memory/`. Archive after the implementation,
   never before: what merged here is the statement, and the outcome is only true

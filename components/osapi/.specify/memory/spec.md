@@ -171,6 +171,77 @@ messages signed with a key that was removed do not verify at all.
 
 [Source: specs/002-agent-key-store/spec.md -> User Story 3]
 
+### User Story 7 - A contributor adds an operation and knows what they are handed (Priority: P1)
+
+Somebody adding an operation to a domain needs to know what carries their request,
+what the agent is guaranteed to receive, and what the system does to them if the
+network hiccups. They read the corpus, and they know before they write.
+
+**Why this priority**: every domain added to osapi passes through the job system,
+and until its mechanics are stated the add-a-domain skill either restates them or
+sends the reader to a page written for an operator.
+[Source: specs/004-job-system/spec.md -> User Story 1]
+
+**Independent Test**: given the corpus alone, a reader can say which store holds a
+job, which store holds its result, what a second delivery obliges the agent to do,
+and what bounds how long the work may run.
+
+**Acceptance Scenarios**:
+
+1. **Given** the corpus, **When** a contributor asks how a request becomes work an
+   agent runs, **Then** the path — store, notify, fetch, execute, record — is stated
+   with the code that implements each step.
+2. **Given** the corpus, **When** a contributor asks what happens when the same job
+   arrives twice, **Then** the obligation is stated as an obligation, not as an
+   observation about the current implementation.
+3. **Given** the corpus, **When** a contributor asks what an operation may assume
+   about time, **Then** the deadline, the backstop and what cancellation does not
+   reach are all stated.
+
+### User Story 8 - An agent implementer knows what the system will not do for them (Priority: P1)
+
+Somebody writing the agent side needs the obligations: what to check before
+executing, what to write and when, what to acknowledge, and which failures are
+theirs to handle rather than the system's to retry.
+
+**Why this priority**: the delivery guarantee is weaker than it looks, and an
+implementer who assumes at-most-once will execute a reboot twice.
+[Source: specs/004-job-system/spec.md -> User Story 2]
+
+**Independent Test**: given the corpus alone, a reader can state what the agent
+must check before running an operation, what it must record before acknowledging,
+and which of a failure's causes it must not retry.
+
+**Acceptance Scenarios**:
+
+1. **Given** the corpus, **When** an implementer asks what to do with a redelivered
+   message, **Then** the check that makes re-execution unnecessary is stated, along
+   with what happens when the response cannot be written.
+2. **Given** the corpus, **When** an implementer asks which failures terminate the
+   message rather than letting it redeliver, **Then** the list is stated with its
+   reason.
+
+### User Story 9 - A rule that was wrong on the site is not wrong in the corpus (Priority: P2)
+
+Somebody reading a number in the corpus — a timeout, a delivery count, a key format
+— finds the number the code uses, or an explicit statement that the two disagree.
+
+**Why this priority**: it is what makes a moved page a specification rather than a
+copy. Three of the site page's statements were already untrue when the job system
+was archived.
+[Source: specs/004-job-system/spec.md -> User Story 3]
+
+**Independent Test**: for each number and key format stated, the cited code says
+the same thing, or the requirement records the disagreement.
+
+**Acceptance Scenarios**:
+
+1. **Given** a requirement naming a configured value, **When** the cited file is
+   opened, **Then** it holds that value or the requirement says it does not.
+2. **Given** a value the site stated wrongly, **When** the corpus is read, **Then**
+   the correction is visible as a correction rather than silently different.
+
+
 ### Edge Cases
 
 - A host runs an OS family the provider does not implement. This is not a
@@ -215,6 +286,25 @@ messages signed with a key that was removed do not verify at all.
   present. The older entry stops being authoritative once the new agent is
   accepted.
   [Source: specs/002-agent-key-store/spec.md -> "An agent is accepted while a previous registration"]
+
+- A configured value has a default in code and a different value in the shipped
+  config file. Stating one hides the other, so a requirement about a configured
+  value names the default and the file that may override it.
+  [Source: specs/004-job-system/spec.md -> "A configured value has a default in code"]
+- An operation cannot be made idempotent — `command.exec`, `power.reboot`. The
+  delivery guarantee cannot be strengthened for them, so the obligation lands on the
+  agent, and the specification says which side owns it. Distinct from the provider
+  idempotency case above: that one is about a provider making a repeat harmless, this
+  one about work that cannot.
+  [Source: specs/004-job-system/spec.md -> "An operation is not idempotent and cannot be made so"]
+- A job outlives the controller's patience. Two clocks run, and each bounds a
+  different thing, because an operator reading "timed out" will otherwise conclude
+  the work did not happen.
+  [Source: specs/004-job-system/spec.md -> "A job outlives the controller's patience"]
+- A subject prefix is configurable per namespace, so a stated subject is a shape
+  rather than a literal.
+  [Source: specs/004-job-system/spec.md -> "A subject prefix is configurable per namespace"]
+
 
 ## Requirements
 
@@ -363,6 +453,126 @@ messages signed with a key that was removed do not verify at all.
   from FR-026, and what an operator does when an agent reports no stored key.
   [Source: specs/002-agent-key-store/spec.md -> FR-013]
 
+#### The job system
+
+- **FR-030**: A job MUST be stored before it is announced: the definition is written
+  to the `job-queue` KV bucket under `jobs.{job-id}`, and only then is a notification
+  published to the `JOBS` stream. Evidence: `internal/job/client/client.go`.
+  [Source: specs/004-job-system/spec.md -> FR-001]
+- **FR-031**: The notification MUST carry the job's identity rather than its content.
+  An agent receives an ID on a subject and fetches the definition from KV. Evidence:
+  `internal/job/client/client.go`, `internal/agent/handler.go`.
+  [Source: specs/004-job-system/spec.md -> FR-002]
+- **FR-032**: Status MUST be recorded as append-only events rather than a mutated
+  field. Each event is its own key, `status.{job-id}.{state}.{source}.{unix-nano}`,
+  and a job's status is computed from them by priority. Evidence:
+  `internal/job/client/jobs.go`, `internal/job/client/agent.go`,
+  `job.StatusPriority` in `internal/job/types.go`.
+  [Source: specs/004-job-system/spec.md -> FR-003]
+- **FR-033**: The corpus MUST state that the job definition key is `jobs.{job-id}`,
+  and MUST record that the published site said `{status}.{uuid}` — a shape the code
+  does not use, which described the status-event keys as though they were the job
+  key. Evidence: `internal/job/client/client.go`.
+  [Source: specs/004-job-system/spec.md -> FR-004]
+- **FR-034**: Results MUST be stored separately from the job, in the `job-responses`
+  bucket, so a caller reading a result does not read the job's history to find it.
+  Evidence: `internal/config/nats.go`.
+  [Source: specs/004-job-system/spec.md -> FR-005]
+- **FR-035**: Operations MUST be routed by a dot-notation subject under one of two
+  prefixes, `jobs.query` for reads and `jobs.modify` for writes, so a consumer can
+  subscribe to one class of work without filtering the other. Evidence:
+  `internal/job/subjects.go`.
+  [Source: specs/004-job-system/spec.md -> FR-006]
+- **FR-036**: The subject prefix MUST be treated as namespaced rather than literal:
+  both prefixes are built from a base a deployment can change, so a stated subject
+  names a shape. Evidence: `internal/job/subjects.go`.
+  [Source: specs/004-job-system/spec.md -> FR-007]
+- **FR-037**: A target MUST be resolvable as a hostname, a machine ID, a broadcast
+  (`_all`, `_any`) or a label selector, and the rules deciding which agents a
+  broadcast expects MUST be stated. Evidence: `internal/job/subjects.go`,
+  `job.ExpectedAgentHostnames`.
+  [Source: specs/004-job-system/spec.md -> FR-008]
+- **FR-038**: The corpus MUST state that delivery is at-least-once, not
+  at-most-once, and the obligation that follows: before executing, an agent checks
+  whether it has already recorded a response for that job, and if it has,
+  acknowledges without re-executing. Evidence: `HasJobResponse` in
+  `internal/job/client/types.go`, used in `internal/agent/handler.go`.
+  [Source: specs/004-job-system/spec.md -> FR-009]
+- **FR-039**: The corpus MUST name the operations that make that obligation
+  load-bearing rather than theoretical: `command.exec`, `command.shell`,
+  `power.reboot` and `power.shutdown` are not safe to run twice. Evidence:
+  `internal/agent/processor_command.go`.
+  [Source: specs/004-job-system/spec.md -> FR-010]
+- **FR-040**: The corpus MUST state that a job which has run is terminal: the agent
+  acknowledges after recording a response, success or failure, so a failed operation
+  is not retried by redelivery. Evidence: `internal/agent/handler.go`.
+  [Source: specs/004-job-system/spec.md -> FR-011]
+- **FR-041**: The corpus MUST state what happens when the response cannot be written
+  after the operation ran — the failure is recorded best-effort and the message is
+  still acknowledged, because leaving it unacknowledged would redeliver it and run
+  the operation a second time. Evidence: `internal/agent/handler.go`.
+  [Source: specs/004-job-system/spec.md -> FR-012]
+- **FR-042**: The corpus MUST state which failures terminate a message instead of
+  letting it redeliver — a malformed payload, an unparsable subject, a failed
+  signature — and why: none can succeed on retry. A failure to read the job data
+  itself is treated as possibly transient and left to redeliver. Evidence:
+  `internal/agent/handler.go`.
+  [Source: specs/004-job-system/spec.md -> FR-013]
+- **FR-043**: The corpus MUST state the consumer's delivery settings as defaults a
+  deployment may override, and MUST record that the published site stated different
+  values: it said `MaxDeliver: 3` and `AckWait: 30s`; the defaults are `5` and `2m`.
+  Evidence: `cmd/root.go`, `configs/osapi.yaml`, `internal/agent/consumer.go`.
+  [Source: specs/004-job-system/spec.md -> FR-014]
+- **FR-044**: The corpus MUST state that an operation outliving `AckWait` is not
+  redelivered mid-flight, because the agent extends the deadline while it runs.
+  Evidence: the in-progress keepalive in `internal/agent/handler.go`.
+  [Source: specs/004-job-system/spec.md -> FR-015]
+- **FR-045**: The corpus MUST state that two clocks bound a job and that they bound
+  different things: `controller.api.job_timeout` bounds how long the controller waits
+  for a response, and the agent's command deadline bounds how long the work itself
+  may run. Evidence: `cmd/root.go`, `internal/job/client/client.go`,
+  `internal/exec/types.go`.
+  [Source: specs/004-job-system/spec.md -> FR-016]
+- **FR-046**: The corpus MUST state that a command with no deadline of its own is
+  bounded by a backstop rather than left to run forever, and MUST name it. Evidence:
+  `DefaultCommandTimeout` in `internal/exec/types.go`.
+  [Source: specs/004-job-system/spec.md -> FR-017]
+- **FR-047**: The corpus MUST state that cancelling the originating API request does
+  not stop a running agent operation, and that `job delete` removes the queue entry
+  rather than the process. An operation is stopped by its own deadline, the backstop,
+  or the agent shutting down. Evidence: `internal/job/client/client.go`,
+  `internal/exec/exec.go`.
+  [Source: specs/004-job-system/spec.md -> FR-018]
+- **FR-048**: The corpus MUST state that a per-host result carries one of four
+  statuses — `ok`, `failed`, `skipped`, `timeout` — and what distinguishes them: a
+  failure ran and did not succeed, a skip does not apply to that OS family, and a
+  timeout says nothing about whether it ran. Evidence: `pkg/sdk/client/status.go`,
+  `internal/job/client/client.go`.
+  [Source: specs/004-job-system/spec.md -> FR-019]
+- **FR-049**: The corpus MUST state that a failure carries a machine-readable cause
+  beside its message, and that a cause the reader does not recognise is treated as an
+  ordinary failure rather than guessed at. Evidence: `internal/job/errors.go`,
+  `job.Response.ErrorCode` in `internal/job/types.go`.
+  [Source: specs/004-job-system/spec.md -> FR-020]
+- **FR-050**: The corpus MUST state the KV bucket TTLs as configured values, naming
+  the file that sets them, and MUST record that the published site stated a different
+  one: it said 24 hours for completed and failed jobs, where the shipped
+  configuration sets one TTL of `1h` for the whole `job-queue` bucket. Evidence:
+  `configs/osapi.yaml`.
+  [Source: specs/004-job-system/spec.md -> FR-021]
+- **FR-051**: Where the job system's specification reaches signing, response
+  verification or agent identity, it MUST cite the requirements stating them rather
+  than describing them again.
+  [Source: specs/004-job-system/spec.md -> FR-022]
+- **FR-052**: Where it reaches what a provider must return or how a provider
+  behaves, it MUST cite the provider contract's requirements.
+  [Source: specs/004-job-system/spec.md -> FR-023]
+- **FR-053**: After the job system's specification merges, the `add-a-domain` skill
+  MUST cite its requirements rather than restating the mechanics, and the contributor
+  half of the site page MUST be removed in the same change that adds those citations.
+  [Source: specs/004-job-system/spec.md -> FR-024]
+
+
 ### Key Entities
 
 - **Provider**: A domain's operations, running in the agent, selected by OS
@@ -391,6 +601,23 @@ messages signed with a key that was removed do not verify at all.
   FR-019. [Source: specs/002-agent-key-store/spec.md -> Job response]
 - **Enrollment acceptance**: The only event that may create or replace a stored
   key. [Source: specs/002-agent-key-store/spec.md -> Enrollment acceptance]
+
+- **Job**: An immutable definition stored under `jobs.{job-id}`, plus the
+  append-only status events describing what happened to it.
+  [Source: specs/004-job-system/spec.md -> Key Entities]
+- **Notification**: A subject-routed message carrying a job ID, not its content.
+  [Source: specs/004-job-system/spec.md -> Key Entities]
+- **Response**: An agent's answer, stored in its own bucket, carrying a status, a
+  message and a machine-readable cause.
+  [Source: specs/004-job-system/spec.md -> Key Entities]
+- **Target**: What a job is addressed to — a hostname, a machine ID, a broadcast or a
+  label selector.
+  [Source: specs/004-job-system/spec.md -> Key Entities]
+- **Obligation**: Something the system does not guarantee and the agent must
+  therefore do. At-least-once delivery creates the one that matters in the job
+  system.
+  [Source: specs/004-job-system/spec.md -> Key Entities]
+
 
 ## Success Criteria
 
@@ -435,6 +662,26 @@ messages signed with a key that was removed do not verify at all.
   refusing work at a moment they did not choose.
   [Source: specs/002-agent-key-store/spec.md -> SC-007]
 
+- **SC-013**: A contributor with no prior knowledge answers, from the corpus alone,
+  what carries a job and guarantees its delivery, what a second delivery obliges the
+  agent to do, and what bounds how long an operation runs.
+  [Source: specs/004-job-system/spec.md -> SC-001]
+- **SC-014**: Every requirement naming a configured value or a key format cites a
+  file, and opening that file confirms the value or finds the gap the requirement
+  records.
+  [Source: specs/004-job-system/spec.md -> SC-002]
+- **SC-015**: The three gaps between the published site and the code — the job key
+  shape, the consumer defaults, the bucket TTL — are stated as corrections rather
+  than silently differing from the page they came from.
+  [Source: specs/004-job-system/spec.md -> SC-003]
+- **SC-016**: One statement of each job system rule exists across the corpus, the
+  site and the skills, with the citations resolving under `just skill-lint`.
+  [Source: specs/004-job-system/spec.md -> SC-004]
+- **SC-017**: No job system requirement restates a rule the provider contract or the
+  agent key store already states.
+  [Source: specs/004-job-system/spec.md -> SC-005]
+
+
 ## Assumptions
 
 - **AS-001**: The audience is contributors and agents working on osapi, not
@@ -472,3 +719,18 @@ messages signed with a key that was removed do not verify at all.
   authorization are out of scope, the last being deployment configuration rather
   than osapi behaviour.
   [Source: specs/002-agent-key-store/spec.md -> "Out of scope"]
+- **AS-010**: The operator half of the job system's site page stays where it is: the
+  job states as observed, polling, the CLI reference, and the metrics worth watching.
+  [Source: specs/004-job-system/spec.md -> Assumptions]
+- **AS-011**: The job system page was 630 lines when it was archived, not the 603 the
+  corpus backfill's specification recorded. The 27 extra lines are its error handling
+  section, which is the most precisely sourced content on the page.
+  [Source: specs/004-job-system/spec.md -> Assumptions]
+- **AS-012**: Archiving the job system changed no Go code. It states what the code
+  already does, and records where the published site said otherwise.
+  [Source: specs/004-job-system/spec.md -> Assumptions]
+- **AS-013**: Three gaps were found by reading the code behind three of the page's
+  statements. Others may exist in statements not yet checked; every requirement
+  citing the file it describes is what lets the next reader find them rather than
+  trust the corpus.
+  [Source: specs/004-job-system/spec.md -> Assumptions]
