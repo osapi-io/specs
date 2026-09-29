@@ -13,6 +13,11 @@
 > carry a real value beside the corpus one. No scalar conflicts: the corpus fields
 > said "not applicable" where this feature states a value.
 
+> **Revision**: 2026-09-28 — Composed building a domain
+> (`specs/005-building-a-domain`): the build walkthrough, the documentation surface
+> after both backfill subjects, and the two-repository sequence. No new dependency
+> at runtime; `@docusaurus/plugin-client-redirects` added to the site.
+
 ## Summary
 
 The provider contract is stated in the corpus rather than inferred from whichever
@@ -168,8 +173,75 @@ and the `add-a-domain` skill does; an operator page that answers with "see the
 specifications repository" has lost its reader.
 [Source: specs/004-job-system/plan.md -> "Constraints"]
 
+Both backfill subjects have landed, so the split is now the site's actual shape.
+950 lines of contributor knowledge left `docs/`: the job system page kept its
+operator half, the domain page became a 76-line index, the API guidelines and
+principles pages were deleted with their addresses redirected, and the system
+architecture page kept health checks, authentication, authorization, CORS and
+external dependencies while its component map, entry points, layers and request
+flow moved.
+
+Two site pages cite the corpus, and both have contributor readers: the domain index
+and the SDK development guidelines. Their links are **absolute GitHub addresses**,
+because the corpus is a separate repository and is not published as part of the
+site — the one place the relative-link rule cannot apply, and the domain index says
+so in a note rather than leaving it to look like an oversight.
+[Source: specs/005-building-a-domain/plan.md -> "Documentation Surface"]
+
 ## Routing & Navigation
 
 `GET /agent` reports `key_stored` and `verified` per agent, so a rollout can be
 staged before enforcement is enabled. No new endpoint.
 [Source: specs/002-agent-key-store/spec.md -> FR-012]
+
+## Building a Domain: the Walkthrough
+
+Which orderings are obligations and which are convention is stated in the
+specification (FR-058) and the reason for the split is that a reader would call the
+corpus *wrong* if a forced ordering moved and merely *dated* if a conventional one
+did. Three are forced, because a build breaks:
+
+1. The domain's `gen/api.yaml` exists before `just generate` runs, because
+   generation reads it.
+2. Generation runs before the handler is written, because the handler implements the
+   generated `StrictServerInterface`.
+3. The combined specification is regenerated — `redocly join`, inside
+   `just generate` — before `go generate ./pkg/sdk/client/gen/...`, because the SDK
+   client generates from the combined file and not from the domain's own.
+
+The rest is how it is done, and a reader who departs from it produces working code:
+
+| Step | What it produces | Why here |
+| --- | --- | --- |
+| 0 | The provider, under `internal/provider/…` | The operation must exist before anything can call it, and it is testable alone, which makes it the cheapest place to be wrong. |
+| 1 | `gen/api.yaml`, `cfg.yaml`, `generate.go`, then `just generate` | Forced before step 2. |
+| 2 | The handler, one file per endpoint, with its tests | Implements what step 1 generated. |
+| 3 | `handler.go` exporting `Handler()` | Separate from step 2 so the middleware wiring is reviewable on its own. |
+| 4 | One appended line in `registerControllerHandlers` | Smallest step; the domain becomes reachable here. |
+| 5 | The SDK service, four files, plus the example and doc page | Forced after the combined specification regenerates. |
+| 6 | The CLI commands | Consumes the SDK, so after it. |
+| 7 | The documentation, eight files | Describes what the previous steps produced. |
+| 8 | Verification | Last by definition. |
+
+**The trap in the last two steps.** Step 7 edits documentation and step 8's
+commands do not check it: `docusaurus-fmt-check` and `docusaurus-build` run only in
+`just test`. A contributor following the sequence exactly can hand in work that
+fails continuous integration on the files the previous step told them to write — so
+the gate is `just ready` **and** `just test`, which is FR-078.
+[Source: specs/005-building-a-domain/data-model.md -> "The walkthrough"]
+
+## Landing a Corpus Change Across Two Repositories
+
+A backfill subject lands in two pull requests and **the corpus one merges first**.
+The two orders fail differently, and only one failure is recoverable by waiting.
+
+Corpus first leaves a window where both the corpus and the site state the same
+rules: visible, bounded by the second pull request, and a reader consulting either
+gets a correct answer. Site first leaves a window where **neither** does — the page
+is gone, the skill's citations point at a corpus that has not merged so `skill-lint`
+fails, and a reader at the old address gets a redirect to a page whose citation
+table resolves to nothing. Nothing recovers that except merging what should have
+gone first.
+
+Archival is third, after both. Running it earlier records intentions as outcomes.
+[Source: specs/005-building-a-domain/research.md -> "Decision 1"]

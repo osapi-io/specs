@@ -340,12 +340,22 @@ ______________________________________________________________________
   were kept with a note rather than deleted to improve the number. 003 is now 25
   of 29; only its own polish phase remains.
 
-- [ ] T024 Run `/speckit-archive-run specs/005-building-a-domain` once T015 and
+- [x] T024 Run `/speckit-archive-run specs/005-building-a-domain` once T015 and
   T020 have merged, consolidating Subject B into
   `components/osapi/.specify/memory/`. Archive after the implementation, never
   before: what merged here is the statement, and the outcome is only true once
   the site change lands. The walkthrough in [data-model.md](data-model.md) folds
   into `memory/plan.md`; the requirements fold into `memory/spec.md`.
+
+  **Archived 2026-09-28.** Merged into `components/osapi/.specify/memory/`: 3
+  user stories as US10–US12, 26 requirements as FR-055–FR-080, 4 entities, 4
+  edge cases, 6 outcomes as SC-018–SC-023 and 5 assumptions as AS-014–AS-018.
+  The walkthrough folded into `memory/plan.md` as "Building a Domain: the
+  Walkthrough" and the two-repository sequence as "Landing a Corpus Change
+  Across Two Repositories", per [research.md](research.md) Decision 2. Nothing
+  folded into an existing entry and nothing was superseded: the job system
+  states what carries an operation, and this states what a domain consists of.
+  All four gaps carried across as gaps with an owner each.
 
 ______________________________________________________________________
 
