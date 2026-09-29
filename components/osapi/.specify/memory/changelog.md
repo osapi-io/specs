@@ -2,6 +2,31 @@
 
 ## Merged Features Log
 
+### The job system — amended 2026-09-28
+
+**Source:** the SC-001 reading, `specs/004-job-system/tasks.md` T015
+
+The reading that closed 004 handed the specification a reader who had seen
+nothing else, and two requirements did not survive it. Both are corrected here
+rather than in the pull request that archived the feature, because a merged
+statement is amended in its own change.
+
+- **FR-045 and FR-046 named their clocks without giving their durations.**
+  `controller.api.job_timeout` and `DefaultCommandTimeout` appeared as
+  identifiers with citations, where the neighbouring requirements state
+  `MaxDeliver: 5`, `AckWait: 2m` and `1h` as numbers. A reader could learn that
+  two clocks exist and not how long either one runs, which is short of what the
+  requirement claims to answer. Now `30s` and `10m`.
+- **FR-054 is new: nothing stated what happens once `MaxDeliver` is exhausted.**
+  The delivery requirements described at-least-once and stopped at its terminal
+  case. The dead letter queue holds the JetStream advisory, not the job — a
+  distinction worth stating, since the job itself stays in `job-queue` under that
+  bucket's TTL.
+
+Three further findings from the same reading were not acted on: no TTL is stated
+for the `job-responses` bucket, and broadcast ordering and payload versioning are
+subjects 004 never claimed.
+
 ### The job system — archived 2026-09-28
 
 **Branch:** `004-job-system`
