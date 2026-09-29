@@ -244,6 +244,57 @@ whoever writes the next one.
   learns the shape there and then reads the rest knowing what to expect in each
   section.
 
+### Every repository, and what `system` is instead
+
+- **FR-021**: Every repository MUST have a baseline, **`osapi` included**. Its
+  five archived features are not one: they record what changed, not what the
+  repository is. A reader arriving at `osapi`'s memory today finds requirements
+  about job delivery and provider contracts, and no statement of what `osapi` is
+  for or what it depends on — exactly the gap this shape exists to close.
+
+  The two coexist. A baseline states what the repository is; archived features
+  state what was decided about it. Neither replaces the other, and `osapi`'s
+  baseline will be the largest of the six because it is the largest repository.
+
+- **FR-022**: `system` MUST NOT have a baseline, because it is not a repository.
+  It maps to no codebase, and its subject is what the repositories agree on
+  rather than how any one of them behaves. What it holds instead is the
+  cross-repository map (FR-019) and the agreements no single repository owns —
+  this specification being one of them.
+
+  Stating this matters because "every project gets a baseline" would otherwise
+  read as including `system`, and a baseline of a project with no code would
+  have to invent its own subject.
+
+### Consistency beyond the corpus
+
+- **FR-023**: The corpus MUST record where the repositories' **own documentation
+  tooling** is consistent and where it is not, because a reader comparing two
+  baselines will ask why one repository's documentation is checked more
+  thoroughly than another's. Measured 2026-09-29:
+
+  | Repository           | Doc pages | Built  | Link-checked |
+  | -------------------- | --------- | ------ | ------------ |
+  | `osapi`              | 221       | yes    | yes          |
+  | `osapi-orchestrator` | 140       | **no** | **no**       |
+  | `gohai`              | 68        | **no** | **no**       |
+  | `nats-client`        | 8         | no     | no           |
+  | `nats-server`        | 5         | no     | no           |
+  | `osapi-justfiles`    | 0         | n/a    | n/a          |
+
+  The rest of the build tooling is uniform, and the corpus MUST say so rather
+  than implying drift: the four Go repositories fetch the same `go`, `just` and
+  `md` justfile modules and run the same nine workflows. `osapi-justfiles`
+  differs only by having no Go, and `osapi` only by having a published site.
+  Both differences track a real difference in the repository.
+
+- **FR-024**: **Gap**: 208 documentation pages across `osapi-orchestrator` and
+  `gohai` have no build and no link checking — markdown formatting alone is
+  enforced, so a broken internal link is never caught, where `osapi`'s 221 pages
+  are checked by its site build. Owner: those two repositories, each in its own
+  change. Recorded here rather than fixed, because this feature states a
+  document shape and changes no repository.
+
 ### What this feature does not do
 
 - **FR-016**: This specification MUST NOT write any of the five remaining
@@ -303,10 +354,11 @@ whoever writes the next one.
   `.specify/memory/`, and are never copied into the repository they describe. A
   copy there would be the second statement `global/documentation` forbids, and
   it would be the copy that goes stale, because nothing regenerates it.
-- `osapi`'s existing five archived features are **not** a baseline and this
-  shape does not retrofit them. `osapi` has memory because features were
-  archived into it, not because it was inventoried; whether it needs a baseline
-  section set of its own is a separate question this feature does not answer.
+- **`osapi` gets a baseline like every other repository.** Its memory holds five
+  archived features, which is accumulated *feature* history rather than an
+  inventory: it says what each change did and nowhere says what the repository
+  is, where it sits, or what its architecture is. Under this shape it is the one
+  memory that does not conform — see FR-021.
 - The seven sections are the minimum that answers SC-001. A baseline may say
   more; it may not say less without stating the omission.
 - One finding is recorded here and deliberately not acted on: `osapi-justfiles`
