@@ -50,8 +50,11 @@ it covers — without opening `pkg/client`.
 1. **Given** the corpus, **When** a reader asks how a consumer authenticates,
    **Then** the three modes and what each needs are stated.
 2. **Given** the corpus, **When** a reader asks what happens when the connection
-   drops, **Then** the answer is stated rather than left to the upstream
-   library's defaults.
+   drops, **Then** the answer is stated — including that the wrapper contributes
+   nothing to it, which is FR-012a. **This scenario originally read "rather than
+   left to the upstream library's defaults", and the answer turned out to be
+   that it is exactly that.** The scenario asserted a conclusion before the code
+   had been read.
 
 ______________________________________________________________________
 
@@ -179,16 +182,55 @@ what passes between parts, nothing a rename would falsify.
   Everything under `pkg/client/mocks/` is generated and is not the contract.
   Verified with the test files excluded — see FR-016 for why that exclusion is
   not optional.
+
 - **FR-011**: The corpus MUST state the **three authentication modes** and what
   each requires, because they are the part of the contract a consumer must
   satisfy before anything else works: `NoAuth`; `UserPassAuth`, needing a
   username and password; and `NKeyAuth`, needing the path to an Ed25519 private
   seed file. Verified: `AuthType` and `AuthOptions` in `pkg/client/types.go`.
+
 - **FR-012**: The corpus MUST state what the contract does **not** promise: no
   retry or reconnection policy of the wrapper's own, no abstraction over the
   upstream types FR-007 names, and no stability guarantee beyond what the pin in
   FR-004 gives — the repository publishes no tags, so a consumer depends on a
   commit.
+
+- **FR-012a**: The corpus MUST state **what actually happens when the connection
+  drops**, because FR-012 says only what the wrapper does not add and a reader
+  needs the behaviour rather than its absence.
+
+  Measured from the code: the wrapper passes exactly three options to
+  `nats.Connect` — `nats.Name`, and then `nats.UserInfo` or `nats.Nkey`
+  depending on the mode. It sets **no reconnection options whatsoever**, and
+  registers **no disconnect, reconnect or closed handler**. So the upstream
+  library's default reconnection behaviour governs entirely, and **a consumer is
+  not notified when a drop or a recovery happens** — there is no callback to
+  receive it.
+
+  What that means for a consumer is worth stating plainly: resilience is
+  whatever the upstream default is, and it is not configurable through this
+  wrapper's `Options`. A consumer needing different behaviour cannot get it
+  here. Verified:
+  `grep -n 'Reconnect\|ClosedHandler\|DisconnectErr' pkg/client/*.go` returns
+  nothing, and the option list is built in `pkg/client/connect.go`.
+
+  **The upstream defaults themselves are deliberately not restated**, per
+  `global/documentation`: they are the NATS library's to state and change, and
+  prose about another project's settings drifts while continuing to read as
+  authoritative. What is stated here is that this wrapper contributes nothing to
+  them.
+
+- **FR-012b**: The corpus MUST record **how FR-012a came to exist**, because the
+  omission was not random. The SC-001 reading asked what happens when the
+  connection drops, found that nothing stated it, and found that this
+  specification's **own acceptance scenario had promised it was stated** — the
+  scenario was written asserting a conclusion the code had not been consulted
+  about.
+
+  A promise in an acceptance scenario is the worst place for an unverified
+  claim, because it reads as the test rather than as the assertion under test.
+  The scenario is corrected and this requirement records that a reading rather
+  than a re-reading caught it.
 
 ### 5. Measurements
 
