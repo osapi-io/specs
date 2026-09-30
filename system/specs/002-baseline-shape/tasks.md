@@ -225,13 +225,19 @@ against the right project, and stops there.
   `grep -c '^## Baseline' components/*/.specify/memory/constitution.md` — six
   files, one each.
 
-- [ ] T015 [US3] Open `gohai`'s baseline **amendment** — not a new feature. It
+- [~] T015 [US3] Open `gohai`'s baseline **amendment** — not a new feature. It
   adds section 2, section 3, and the classification of its 68 documentation
-  pages. Section 3 is the one to note: gohai's FR-016 excluded architecture
-  *deliberately*, so the amendment reverses a judgement rather than filling a
-  blank. SC-006 is satisfied by that amendment, not by this task: opening a
-  feature is not carrying it out, and the check belongs to the amendment's own
-  task list.
+  pages. **The classification merged at specs#205; sections 2 and 3 are still
+  owed.** Splitting it that way was not the plan and is worth recording: the
+  classification was self-contained and the two missing sections are not, so
+  holding the smaller half back would have delayed a finding for nothing.
+  gohai's memory already carries both subjects, written during the memory tree
+  work, so what the amendment owes is the baseline's own statement of them
+  rather than the knowledge. Section 3 is the one to note: gohai's FR-016
+  excluded architecture *deliberately*, so the amendment reverses a judgement
+  rather than filling a blank. SC-006 is satisfied by that amendment, not by
+  this task: opening a feature is not carrying it out, and the check belongs to
+  the amendment's own task list.
 
 - [x] T016 [US3] Open `osapi-justfiles`' baseline early rather than last, even
   though it is the smallest. It has no Go and no documentation pages, so it is
@@ -307,9 +313,14 @@ reporting a pass against zero baselines.
   counts were also wrong, both missing an exclusion. Remaining: `nats-server`,
   `osapi-orchestrator`, gohai's amendment, and the moves.
 
-- [ ] T021 [P] SC-007: every documentation page in every repository was
-  classified by that repository's baseline before any move touched it — 442
-  pages across the five that have any.
+- [x] T021 [P] SC-007: every documentation page in every repository was
+  classified by that repository's baseline before any move touched it — 440
+  pages across the five that have any. **Done.** osapi at specs#169, gohai at
+  #205, osapi-orchestrator at #206, and both nats repositories at #207. Three of
+  those four were amendments to baselines that predated FR-025, which is the
+  cost of fixing the shape after four baselines had merged. The results
+  contradict FR-027's prediction for three of six repositories and are recorded
+  as FR-035.
 
 - [ ] T023 Open `osapi`'s **move** — the twelfth unit, which FR-027's table
   originally said was unnecessary. It relocates `architecture/ui.md` and
@@ -386,7 +397,8 @@ ______________________________________________________________________
   either — FR-016 and FR-027 put every move in its own feature.
 - Eleven units in total, enumerated in [plan.md](plan.md). One is this feature,
   nine are new features, one is an amendment to gohai's merged baseline.
-- **442** documentation pages will be classified by the baselines, none of them
-  here. Not 221 — that is `osapi`'s own count, and coincidentally also the total
-  for the four repositories still needing a move. The two are different
-  quantities that share a figure.
+- **440** documentation pages will be classified by the baselines, none of them
+  here. Not 442, which used `osapi`'s pre-correction 221; see FR-031 and FR-038.
+  And not 221 — that is `osapi`'s own count, which the four other repositories
+  also totalled before the correction. The collision is what made the stale
+  figure findable, and correcting `osapi` to 219 is what broke it.
