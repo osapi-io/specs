@@ -226,6 +226,14 @@ on both.
   | `md`         |       2 | `md-fmt`, `md-fmt-check`                                                                                                                                                                                                         |
   | `react`      |       8 | `react-build`, `react-deps`, `react-dev`, `react-fmt`, `react-fmt-check`, `react-generate`, `react-lint`, `react-test`                                                                                                           |
 
+- **FR-011a**: The corpus MUST state that **two of the 38 recipes take
+  arguments**, because a recipe's signature is part of what a consumer invokes
+  and a bare name does not carry it: `docusaurus-bump version` requires one, and
+  `run *args` is variadic and forwards what it is given to `go run`. The other
+  36 take none. Verified by reading each module's recipe headers; the two appear
+  as `{{ version }}` and `{{ args }}` in their bodies, which is how they were
+  found — see FR-013a.
+
 - **FR-012**: The corpus MUST state that **37 of the 38 recipes are prefixed
   with their module's name and one is not**: `run`, in the `go` module. A
   consumer importing `go.just` therefore gains an unprefixed recipe name in the
@@ -244,6 +252,21 @@ on both.
   | `md`         | `md_version` (`1.0.0`), `md_gfm_version` (`1.0.0`), `md_wrap` (`80`), `md_python` (`3.13`), `md_site_dir` (`docs`), `md_excludes`, `md_site_exclude`, `md_extra_excludes` |
   | `react`      | `react_dir` (`.`), `react_fmt_pattern` (`src/**/*.{ts,tsx,css}`)                                                                                                          |
   | `just`       | none — it takes no configuration                                                                                                                                          |
+
+- **FR-013a**: The corpus MUST state that FR-013's table is **complete** — every
+  variable any module's recipes read has an assignment with a default in that
+  module — and MUST state how that was established rather than asserting it.
+  Each module's `{{ variable }}` references were compared against its assignment
+  lines; the only two references not matched by an assignment are
+  `{{ version }}` and `{{ args }}`, and both are recipe parameters rather than
+  module variables, which is FR-011a. So there is no variable a consumer must
+  set without a default, and no variable the table omits.
+
+  **This requirement exists because the check nearly did not happen.** The plan
+  had named "a variable a module reads without assigning a default" as a limit
+  of the inventory — a caveat, stated and left. Running the comparison took one
+  command and turned the caveat into a verified fact. A limit that can be tested
+  is not a limit; it is a check nobody ran.
 
 - **FR-014**: The corpus MUST state that **each module pins the tools it invokes
   while nothing pins the module**. `md` pins mdformat 1.0.0, mdformat-gfm 1.0.0
