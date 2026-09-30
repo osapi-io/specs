@@ -57,9 +57,10 @@ every request.
 A contributor who read only the client would take the decode for a check. It is
 not one. Nothing the UI hides is protected by the UI hiding it.
 
-Its permission model is osapi's, not a second one: three built-in roles and
-`resource:verb` permissions matching the Go model. What each role permits is on
-the published site, where an operator configuring them will look.
+Its permission model is osapi's, not a second one. The roles claim it reads
+resolves through the same 37 permissions and three roles the API checks, described
+in [permissions](permissions.md). What each role permits for an *operator* is also
+on the published site, where somebody configuring one will look.
 
 ## Coverage says nothing about it
 

@@ -138,9 +138,9 @@ A permission is chosen by **blast radius, not by endpoint group**. Two operation
 that differ in how much damage they can do want two permissions however similar
 their shape.
 
-A new one has to be added in four places: the built-in role expansion, the
-permission constants, the SDK, and the roles tables on the published site. **A
-permission that exists in the specification and in no role reaches nobody.**
+A new one has to be added in four places, and [permissions](permissions.md) says
+what each omission costs. **A permission that exists in the specification and in
+no role reaches nobody**, and nothing reports it.
 
 ## Where this connects
 
