@@ -334,14 +334,14 @@ wrong.
 
   Two repositories therefore have two features each and one has only a baseline:
 
-  | Repository           | Doc pages | Baseline                       | Move                                |
-  | -------------------- | --------- | ------------------------------ | ----------------------------------- |
-  | `osapi`              | 221       | needed — it has none           | already done, across three features |
-  | `osapi-orchestrator` | 140       | needed                         | needed, the largest remaining       |
-  | `gohai`              | 68        | exists, needs sections 2 and 3 | needed                              |
-  | `nats-client`        | 8         | needed                         | likely small                        |
-  | `nats-server`        | 5         | needed                         | likely small                        |
-  | `osapi-justfiles`    | 0         | needed                         | none — nothing to move              |
+  | Repository           | Doc pages | Baseline                       | Move                          |
+  | -------------------- | --------- | ------------------------------ | ----------------------------- |
+  | `osapi`              | 219       | done — specs#169               | **needed** — see FR-030       |
+  | `osapi-orchestrator` | 140       | needed                         | needed, the largest remaining |
+  | `gohai`              | 68        | exists, needs sections 2 and 3 | needed                        |
+  | `nats-client`        | 8         | needed                         | likely small                  |
+  | `nats-server`        | 5         | needed                         | likely small                  |
+  | `osapi-justfiles`    | 0         | needed                         | none — nothing to move        |
 
 - **FR-028**: A page a repository's consumers read MUST stay in that repository.
   Not everything in a `docs/` tree is contributor knowledge:
@@ -355,6 +355,38 @@ wrong.
   `nats-server` below it, `osapi-orchestrator` above — so its "where it sits" is
   what every other baseline's edges are stated against. A leaf baselined first
   has nothing to point at.
+
+### Corrected: twelve units, not eleven
+
+- **FR-030**: osapi needs a **move** after all, so the programme is **twelve**
+  units rather than eleven. This corrects FR-027's table, which said osapi's
+  move was "already done, across three features".
+
+  That was true of the six pages the corpus backfill scoped and false of three
+  it never looked at. osapi's own baseline found them — `architecture/ui.md` at
+  264 lines, `development/ui-development.md` at 200, and `sdk/guidelines.md` at
+  227\. The first two have **no corpus counterpart at all**: 464 lines of
+  contributor architecture on an operator's site with nowhere to cite, which is
+  the state the backfill existed to end.
+
+  They survived because the backfill named six candidate pages and classified
+  those. Nothing examined a page that was not a candidate, and an inventory
+  re-checking only those six would have missed them the same way. **That is the
+  argument for baselining a repository that already has memory**, and it is why
+  FR-026 puts the baseline before the move rather than treating a completed move
+  as evidence that nothing remains.
+
+- **FR-031**: `osapi`'s page count is **219 published pages**, not 221. FR-023's
+  table records 221, which counts `docs/README.md` and `docs/SUPPORT.md` — the
+  Docusaurus project's own files rather than published pages. Both figures are
+  right about different questions, and the programme's classification total is
+  therefore **440** rather than 442.
+
+  This is the **second** number collision this feature has produced, after the
+  221-against-442 one the analysis pass caught. Both had the same shape: a
+  figure correct for one question, quietly reused for another. Worth recording
+  as a pattern rather than as two incidents, because the next baseline will
+  offer the same opportunity.
 
 ### What this feature does not do
 
@@ -397,11 +429,12 @@ wrong.
   amendment rather than by this feature.
 - **SC-007**: Every documentation page in every repository is classified as
   user-facing or contributor-facing by that repository's baseline, and no page
-  is moved without its classification stating why. **442** pages across the five
-  repositories that have any. **Corrected**: this read 221, which is `osapi`'s
-  own page count and coincidentally also the total for the four repositories
-  still needing a move — two different quantities sharing one figure, which is
-  why the error read as consistent.
+  is moved without its classification stating why. **440** pages across the five
+  repositories that have any — `osapi`'s 219 published pages, not the 221 that
+  includes the Docusaurus project's own files. **Corrected**: this read 221,
+  which is `osapi`'s own page count and coincidentally also the total for the
+  four repositories still needing a move — two different quantities sharing one
+  figure, which is why the error read as consistent.
 - **SC-008**: After the moves, no contributor rule is stated in both a
   repository and the corpus. This is the one-statement rule applied across
   repositories rather than within one, and it is what the whole exercise is for.

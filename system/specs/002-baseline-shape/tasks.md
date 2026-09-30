@@ -181,18 +181,35 @@ against the right project, and stops there.
 
 **These four tasks open features. They do not write them.**
 
-- [ ] T013 [US3] Open `osapi`'s baseline: branch, then `speckit-specify` against
+- [x] T013 [US3] Open `osapi`'s baseline: branch, then `speckit-specify` against
   `components/osapi` for a seven-section baseline. **It must not restate the
   1,840 lines already in that memory** from five archived features — its section
   4 is mostly citation, because osapi's contract is already stated and restating
   it is the second statement this whole programme forbids. First by FR-029,
   because it is the dependency hub and every other baseline's edges are stated
   against its section 2.
+
+  **Merged as specs#169**, and it changed the programme's arithmetic. The
+  baseline found three contributor pages the corpus backfill never looked at —
+  `architecture/ui.md` at 264 lines, `development/ui-development.md` at 200, and
+  `sdk/guidelines.md` at 227 — of which the first two have no corpus counterpart
+  at all. So osapi needs a move after all: **twelve units, not eleven**,
+  recorded as FR-030, and a new task T023 below.
+
+  It also corrected osapi's page count from 221 to **219**: the 221 counted the
+  Docusaurus project's own `README.md` and `SUPPORT.md` rather than published
+  pages. The programme's classification total is 440.
+
+  It did **not** restate the 1,840 lines already in osapi's memory. Its section
+  4 is mostly citation and says why, which is what FR-010 of that baseline
+  requires.
+
 - [ ] T014 [US3] **After T013's baseline merges**, and not before, run T004's
   composition if it has not already run — see [research.md](research.md)
   Decision 5. The fragment lands between the first baseline and the remaining
   four: earlier binds six repositories to an untested shape, later leaves five
   baselines written against a specification rather than a rule.
+
 - [ ] T015 [US3] Open `gohai`'s baseline **amendment** — not a new feature. It
   adds section 2, section 3, and the classification of its 68 documentation
   pages. Section 3 is the one to note: gohai's FR-016 excluded architecture
@@ -200,6 +217,7 @@ against the right project, and stops there.
   blank. SC-006 is satisfied by that amendment, not by this task: opening a
   feature is not carrying it out, and the check belongs to the amendment's own
   task list.
+
 - [ ] T016 [US3] Open `osapi-justfiles`' baseline early rather than last, even
   though it is the smallest. It has no Go and no documentation pages, so it is
   the one repository that tests FR-011 and FR-013 — whether a section may be
@@ -228,22 +246,34 @@ reporting a pass against zero baselines.
   conforming documents that share a template rather than a set — each
   individually correct, the graph still untraceable, because section 2 was
   filled in as a formality.
+
 - [ ] T018 [P] SC-002: every count in every baseline is paired with the command
   that reproduces it, and running the commands reproduces the counts or shows
   precisely which have drifted. A count whose command no longer reproduces it
   has **dated**, not failed; a count with no command beside it has failed.
+
 - [ ] T019 [P] SC-003: no baseline contains a transcribed call graph, an
   exhaustive list of exported functions, or a file-by-file walkthrough. The
   check is the question in
   [contracts/section-order.md](contracts/section-order.md) under section 3,
   applied by a reviewer, because nothing automatable separates architecture from
   transcription.
+
 - [ ] T020 [P] SC-004: every baseline's section 7 is non-empty. FR-004's
   evergreen bound guarantees every baseline excludes something, so a zero means
   the omission was not stated rather than that nothing was omitted.
+
 - [ ] T021 [P] SC-007: every documentation page in every repository was
   classified by that repository's baseline before any move touched it — 442
   pages across the five that have any.
+
+- [ ] T023 Open `osapi`'s **move** — the twelfth unit, which FR-027's table
+  originally said was unnecessary. It relocates `architecture/ui.md` and
+  `development/ui-development.md` into the corpus, and the part of
+  `sdk/guidelines.md` that is not a demonstration of rules the corpus already
+  states. Driven by the classification in specs#169, which is the ordering
+  FR-026 requires and the one osapi got wrong the first time.
+
 - [ ] T022 The SC-008 search: every documentation page still present in a
   repository is one its own baseline classified **user-facing**. Anything
   classified contributor-facing and still there is a rule stated twice, which is
