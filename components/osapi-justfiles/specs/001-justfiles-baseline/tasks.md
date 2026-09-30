@@ -200,13 +200,24 @@ ______________________________________________________________________
   FR-017 through FR-020 — and that none is corrected here. Two are
   `osapi-justfiles`', one is `system`'s, and one is a question handed to
   `system` about its own fragment.
-- [ ] T017 Open the amendment `system`'s 002 needs for FR-019, or record that it
+
+- [x] T017 Open the amendment `system`'s 002 needs for FR-019, or record that it
   is not opened. 002's FR-031 records this repository as having 0 documentation
   pages, which is true of pages and misleading as a statement about
   documentation: it has **no documentation pages and six documentation files**.
   That is 002's to amend in its own change. **This task is not "fix it"** — it
   is "do not let it be forgotten", and recording that it was left is an
   acceptable outcome as long as it is recorded.
+
+  **Opened, and it grew.** The page-count correction went in as 002's FR-032.
+  Two more went with it, because this baseline's verification had found them by
+  then: FR-033, that `osapi-justfiles` has seven consumers rather than six —
+  `specs` fetches `just` and `md`, and 002's own repository map said six while
+  carrying the command that returns seven — and FR-034, that the programme
+  covers six components while the organization has eight public repositories, so
+  the difference between "the six" and "the repositories" is stated rather than
+  left implicit. FR-034 exists because that implicit difference is what produced
+  the wrong consumer count.
 
 ______________________________________________________________________
 

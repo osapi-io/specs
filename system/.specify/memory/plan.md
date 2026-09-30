@@ -96,9 +96,12 @@ No constitution violations to justify.
 
 ## The Repository Map
 
-Six repositories. Read this for the graph, then read a baseline for a repository.
-`gohai`'s baseline is the worked example: it has no edges either way, so it can be
-read without holding another repository in mind.
+Six components, in eight repositories. The table below is the six the baseline
+programme covers; `specs` and `.github` are the other two, and only the first of
+them appears in the graph — as a *consumer* of `osapi-justfiles`, which is the edge
+this map originally missed. Read this for the graph, then read a baseline for a
+repository. `gohai`'s baseline is the worked example: it has no edges either way,
+so it can be read without holding another repository in mind.
 
 | Repository | Depends on | Depended on by | What it is |
 | --- | --- | --- | --- |
@@ -107,7 +110,7 @@ read without holding another repository in mind.
 | `nats-client` | — | `osapi` | NATS client wrapper |
 | `nats-server` | — | `osapi` | Embedded NATS server |
 | `gohai` | — | — | SDK-first system fact collection, standalone |
-| `osapi-justfiles` | — | all six, by fetch | Shared justfile modules |
+| `osapi-justfiles` | — | all seven, by fetch | Shared justfile modules |
 
 **The commands that produce it**, because a written list is correct when written and
 wrong after the next dependency changes, and nothing marks the moment:
@@ -121,6 +124,20 @@ grep -n justfiles */justfile              # the build edge
 `osapi-justfiles` through a justfile recipe rather than importing it, so a reader who
 ran only the first command would conclude it has no dependents. That is why it is
 listed separately rather than derived from the Go graph.
+
+**And the fetch reaches seven repositories, not six.** `specs` takes the `just` and
+`md` modules; only `.github` has no justfile at all. This map said six until
+`osapi-justfiles`' baseline measured it (specs#182, amended into 002 as FR-033), and
+the correction is worth more than the number: **the command above returns `specs`.**
+It was written here, beside a figure that disagreed with it, and the disagreement
+survived because the frame was the six components rather than the repositories the
+command returns. A count paired with its command is only evidence once somebody runs
+the command.
+
+Per module, since the blast radius differs: `md` reaches all seven, `just` six, `go`
+five, and `react` and `docusaurus` one each. `md` is the widest change available in
+the organization — and `specs`' `just test`, which gates every corpus change, is
+downstream of it.
 
 **A finding, recorded and not fixed here.** That fetch takes
 `refs/heads/main` rather than a pinned ref. The Tooling principle says a tool whose
