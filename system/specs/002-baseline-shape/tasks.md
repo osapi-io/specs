@@ -294,6 +294,13 @@ reporting a pass against zero baselines.
   evergreen bound guarantees every baseline excludes something, so a zero means
   the omission was not stated rather than that nothing was omitted.
 
+  **Unit 8 done, 2026-09-30.** `nats-server` baselined at specs#191, amended at
+  #192, archived at #193. Its findings came from reading `Start()` in order
+  rather than from counting — a statement order, two literal arguments, and an
+  absent statement — and its SC-001 reading passed three of three, the first
+  clean reading in the programme. It also drew a **different** coherence verdict
+  from the two before it: one argument rather than a checklist with footnotes.
+
   **Unit 7 done, 2026-09-30.** `nats-client` baselined at specs#188, amended at
   #189 and archived at #190. Its reading found something a command could not: an
   acceptance scenario promising a behaviour the specification never stated. Two
