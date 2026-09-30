@@ -162,6 +162,46 @@ Reconciling 65 against 62 meant reading the catalogue's legend, which defined
 ticks, so the Implemented column could not be read. Nobody was looking for that
 and the count is what surfaced it.
 
+## Known limitations
+
+Five, and the first four are cases where nothing reports the mistake.
+
+**The registration error is discarded, and the test it defers to does not
+exist.** `registerBuiltins` in `pkg/gohai/gohai.go` calls `_ = reg.Register(c)`
+for each of the 62, with a comment saying a duplicate or empty name "would only
+occur from programmer bugs ... which are caught by tests". The test that exists
+checks that `Register` rejects a duplicate on a fresh registry. Nothing exercises
+`registerBuiltins`, and the whole assertion on the built-in registry is that it
+contains one name:
+
+```sh
+grep -rn 'registerBuiltins\|builtinCollectors' --include='*_test.go' .   # nothing
+grep -A2 'func.*TestNewRegistry' pkg/gohai/registry_public_test.go
+```
+
+So a duplicate name among the 62 drops one collector silently, and the
+justification for discarding the error is a test nobody wrote.
+
+**The registered count does not check registration.** The
+`Registered collectors` row above counts `collectors/<name>` paths in
+`pkg/gohai/gohai.go`, which is source text. It catches a collector that exists and
+was never added to that file, which is the failure it was written for, and it
+cannot catch a collector that is in the file and did not register. Those are
+different failures and only the first has a check.
+
+**An undeclared dependency works until it does not.** `prior` always carries what
+a collector declared and **may** carry upstream siblings it did not. Reading one
+of those works today and breaks whenever scheduling changes, with nothing in
+between to warn. Declare what you read.
+
+**A default run omits the heavy collectors and says nothing.** `DefaultEnabled`
+returns false for ssh host keys, full package inventory and full service list. A
+consumer expecting one of those in a default run gets no value and no error, which
+is indistinguishable from the collector finding nothing.
+
+**`schemas/gohai.schema.json` is generated.** Editing it by hand is lost on the
+next run of `schemas/gen`.
+
 ## Not covered here
 
 How any individual collector gathers its facts. There are 62 of them and they
@@ -177,6 +217,7 @@ gohai's testing conventions, which are its own `CONTRIBUTING.md`'s.
 ______________________________________________________________________
 
 Traced to `specs/001-gohai-baseline/`, amended twice on 2026-09-30 to add the
-dependency section and the page classification the shape requires. What the
-baseline still lacks is a section naming this repository's own gaps; the
-registration footgun above is the one that would go in it.
+dependency section and the page classification the shape requires. The limitations
+above were found by reading the code rather than carried from that baseline, which
+still has no section naming this repository's gaps. It is owed one, and what it
+owes is now written down here rather than nowhere.
