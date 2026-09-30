@@ -1,122 +1,130 @@
-# Main Project Specification
+# What the repositories agree on
 
-> **Revision**: 2026-09-02 — First archival. Seeded from `specs/001-repository-inventory`; every section was previously empty.
+`system` is a project without a repository. Its subject is what the osapi-io
+repositories agree on between them, so a rule that binds more than one lives here
+rather than in whichever one noticed it first.
 
-## User Scenarios & Testing
+Two documents. This one holds the agreements. [architecture.md](architecture.md)
+holds how the repositories actually fit together, and is where to start if you
+want the product rather than the conventions.
 
-### User Story 1 - Cross-repository work knows where to get the list (Priority: P1)
+## The repository list is a command, not a document
 
-Work touching more than one repository runs the command and uses its output,
-rather than a list written somewhere.
+The repositories in this organisation are what this returns:
 
-**Why this priority**: This is the feature.
+```sh
+gh repo list osapi-io --no-archived --visibility public
+```
 
-**Independent Test**: In a fresh session, the constitution names the command.
+**No document holds a copy of that list.** A written list is correct when written
+and wrong after the next repository is added, and nothing marks the moment it
+turns. So work spanning repositories takes the set from the command each time and
+narrows it at the point of use.
 
-**Acceptance Scenarios**:
+`--no-archived` matters. Archived repositories hold Dependabot pull requests that
+can never merge, and a search across the organisation counts them.
 
-1. **Given** a session that read the constitution, **When** work needs the
-   repository list, **Then** the constitution names the command producing it.
-2. **Given** a repository is added to the organization, **When** the command
-   runs, **Then** it appears with nothing edited.
-3. **Given** a repository is archived or made private, **When** the command
-   runs, **Then** it is absent.
+This rule started as a deletion. `system/.specify/memory/dependencies.md` held a
+hand-maintained dependency graph, and the graph was already derivable from
+`go.mod` files and justfiles. It went, and the rule that replaced it is
+`global/repositories` in every constitution.
 
-[Source: specs/001-repository-inventory/spec.md -> User Story 1]
+**It has been broken since, which is the useful part.** `osapi-justfiles`' own
+baseline listed six consumers. The command returns seven, because `specs` fetches
+justfile modules too, and the list was written from the six *components* rather
+than from what the command returns. **It was wrong when written, not stale.**
+Ageing was never the failure mode; the writer's frame was.
 
-### User Story 2 - The written list is removed (Priority: P2)
+## Every component's memory has the same shape
 
-`system/.specify/memory/dependencies.md` is deleted.
+A reader moving between repositories finds the same answer in the same place. Seven
+subjects, in this order:
 
-**Why this priority**: A rule the repository already breaks is not a rule yet.
-Deleting the file resolves both problems at once — the hardcoded repository
-list, and a file occupying memory without having been archived there.
+| # | Subject                      | Answers                                                     |
+| - | ---------------------------- | ----------------------------------------------------------- |
+| 1 | What this repository is       | Its purpose, and who consumes it                            |
+| 2 | Where it sits                 | What it depends on, what depends on it, what breaks each way |
+| 3 | Architecture                  | The parts, what each is for, what flows between them        |
+| 4 | The contract                  | What a consumer may depend on, and what is free to change   |
+| 5 | Measurements                  | Counts, each with the command that reproduces it            |
+| 6 | Gaps                          | Where the repository's prose and its code disagree, with an owner |
+| 7 | What this inventory excludes  | Named omissions, so a gap is never mistaken for an oversight |
 
-**Independent Test**: Memory holds only the generated constitution and its
-metadata. Searching the specs repository finds no hardcoded repository list.
+The names are fixed. `osapi-justfiles`' baseline extended three of them, each an
+improvement in isolation, and the drift would have propagated to every baseline
+written by copying it. They are verbatim now.
 
-**Acceptance Scenarios**:
+**The shape survived a repository with no code.** `osapi-justfiles` has no Go, no
+`docs/` tree and no documentation site, and it was baselined sixth deliberately to
+find out whether the shape fits before four more were written to it. No section had
+to be dropped. Section 4 was the only one needing interpretation, because "the
+contract" reads as though it presumes exported symbols: there it is 38 recipe names
+and 20 variable names. The bound that keeps the word useful is **something a
+consumer's build breaks on**.
 
-1. **Given** `system/.specify/memory/`, **When** its contents are listed,
-   **Then** only `constitution.md` and `.constitution-template.json` remain.
-2. **Given** any document here, **When** searched for a hand-maintained
-   repository list, **Then** none is found.
-3. **Given** the deleted dependency graph is wanted again, **When** it is
-   needed, **Then** it is reproduced from `go.mod` rather than read from a
-   record.
+## Memory is documentation
 
-[Source: specs/001-repository-inventory/spec.md -> User Story 2]
+Not a specification. No requirement identifiers in the body, no `MUST`, no user
+stories, no acceptance scenarios, no success criteria. Those belong to the feature
+that produced the knowledge, where a reviewer reads them once. Memory is read
+repeatedly by somebody learning the system, and the formalism that serves the first
+reader obstructs the second.
 
-### Edge Cases
+Memory is also a **tree**, not a file. `spec.md` says what the repository is and
+links to its subjects; a subject with enough in it to explain gets its own document.
+Archiving a feature places its content in the subject it belongs to, merged with
+what is there, and `spec.md` gains a link at most.
 
-- `.github` is returned but holds no code. Work needing only code repositories
-  filters at the point of use, rather than maintaining a second list.
-  [Source: specs/001-repository-inventory/spec.md -> ".github is returned but holds no code"]
-- A private repository becomes active. `--visibility public` excludes it.
-  Revisit when one exists; none does.
-  [Source: specs/001-repository-inventory/spec.md -> "A private repository becomes active"]
-- `gh` unauthenticated fails loudly rather than returning a short list.
-  [Source: specs/001-repository-inventory/spec.md -> "gh unauthenticated fails loudly"]
+Both rules exist because both were broken. Five archivals copied the feature's form
+into memory, so `nats-client`'s opened with `## User Scenarios & Testing` and stated
+`SC-006: just test passes in the specs repository`. And osapi's covered five
+subjects in 266 lines, which says something about each and explains none of them.
 
-## Requirements
+`global/baseline` carries the rule. `scripts/check-memory-docs.py` and
+`scripts/check-memory-counts.py` fail the build when it is broken, which is the
+only part of this that does not depend on somebody remembering.
 
-### Functional Requirements
+## A count carries the command that produces it
 
-- **FR-001**: The constitution MUST state that the osapi-io repositories are
-  what `gh repo list osapi-io --no-archived --visibility public` returns, and
-  that no document may hold a copy of that list.
-  [Source: specs/001-repository-inventory/spec.md -> FR-001]
-- **FR-002**: The rule MUST be a charter fragment in `.charter/`, with the
-  constitution regenerated. `constitution.md` is generated; a direct edit is
-  lost at the next compose.
-  [Source: specs/001-repository-inventory/spec.md -> FR-002]
-- **FR-003**: `system/.specify/memory/dependencies.md` MUST be deleted. It holds
-  a hardcoded repository list, and its dependency graph is a cached copy of what
-  `go.mod` already states. It also sits in memory without having been archived
-  there, which is the only way anything is meant to arrive.
-  [Source: specs/001-repository-inventory/spec.md -> FR-003]
-- **FR-004**: Memory MUST contain only the generated constitution and its
-  metadata until a merged feature is archived into it.
-  [Source: specs/001-repository-inventory/spec.md -> FR-004]
+A number alone is a claim that was true when somebody typed it, and nothing marks
+the moment it stops being true.
 
-### Key Entities
+`just memory-check` runs every command in every measurement table against the
+repository it describes. Getting there fixed seven counts nobody could have
+checked: six written as "the same, plus `-not -name '*_test.go'`", which is a
+shortcut for whoever wrote the table and cannot be run by anything.
 
-- **Repository list**: The set of public, unarchived repositories in the
-  osapi-io organization. Produced by a command, never stored.
-  [Source: specs/001-repository-inventory/spec.md -> "Repository list"]
+Each command has to stand alone for that reason.
 
-## Success Criteria
+## Classification precedes a move
 
-### Measurable Outcomes
+A repository's documentation is classified before anything is relocated, page by
+page, by **who reads it** rather than by where it sits. The move is a separate
+change.
 
-- **SC-001**: A session that read the constitution produces the repository list
-  without being told how.
-  [Source: specs/001-repository-inventory/spec.md -> SC-001]
-- **SC-002**: No document here holds a hand-maintained repository list.
-  [Source: specs/001-repository-inventory/spec.md -> SC-002]
-- **SC-003**: Adding a repository requires no edit for it to be included.
-  [Source: specs/001-repository-inventory/spec.md -> SC-003]
-- **SC-004**: `system/.specify/memory/` holds only `constitution.md` and
-  `.constitution-template.json`.
-  [Source: specs/001-repository-inventory/spec.md -> SC-004]
+osapi is why. Its corpus backfill moved documentation across three features and
+none of them wrote the document saying which pages were contributor-facing, so
+three pages survived that nobody had examined: two of them 464 lines of contributor
+architecture on an operator's site with nowhere to cite. The classification that
+found them came a year of features later.
 
-## Assumptions
+A page a repository's *consumers* read stays with the repository.
+`gohai/docs/collectors/` is the example: its readers are library consumers, not
+contributors, so it belongs where they will look.
 
-- **AS-001**: Nothing of value is lost by deleting `dependencies.md`. The graph
-  reproduces from `go.mod`. The one fact a command cannot produce — that `osapi`
-  once declared itself `github.com/retr0h/osapi` and was corrected in
-  osapi-io/osapi#446 — is in git history and in that repository.
-  [Source: specs/001-repository-inventory/spec.md -> "Nothing of value is lost by deleting dependencies.md"]
-- **AS-002**: `gh` is available and authenticated. Already required by the
-  workflow.
-  [Source: specs/001-repository-inventory/spec.md -> "gh is available and authenticated"]
-- **AS-003**: `.github/repos.json` is out of scope. Those files configure one
-  repository each; they are not a repository list. Consolidating them was
-  considered and rejected — the shared block is byte-identical across all seven,
-  so it has never drifted, and the one drift that occurred was per-repository
-  data that consolidating would not have prevented.
-  [Source: specs/001-repository-inventory/spec.md -> ".github/repos.json is out of scope"]
-- **AS-004**: The `specs` topic drift is not fixed here. `gh reposync --check`
-  reports the manifest says `spec-kit` while GitHub says `openspec`, from
-  osapi-io/specs#103. A one-command fix, unrelated to the repository list.
-  [Source: specs/001-repository-inventory/spec.md -> "The specs topic drift is not fixed here"]
+## What is not here
+
+How any one repository works. That is its own memory, and
+[architecture.md](architecture.md) links to all six.
+
+Anything about `specs` or `.github` as components. `specs` holds this
+documentation; `.github` holds shared configuration and has no justfile. Neither
+gets a baseline, and stating that is what stops the difference between "the six
+components" and "the repositories" being left implicit, which is exactly what
+produced the wrong consumer count above.
+
+______________________________________________________________________
+
+Traced to `specs/001-repository-inventory/` for the list rule and
+`specs/002-baseline-shape/` for the shape, the documentation contract and the
+classification order.
