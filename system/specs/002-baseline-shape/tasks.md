@@ -276,13 +276,71 @@ is one that gets abandoned rather than finished — and because four of them wer
 briefly filed as though this feature could run them, which would have meant
 reporting a pass against zero baselines.
 
-- [ ] T017 The SC-001 reading, from [quickstart.md](quickstart.md): a reader who
+- [x] T017 The SC-001 reading, from [quickstart.md](quickstart.md): a reader who
   has seen none of the baselines reads all six and answers what each repository
   is for, which depends on which and what would break, and where to look for how
   one is built. Question 2 is the one that fails if the baselines are six
   conforming documents that share a template rather than a set — each
   individually correct, the graph still untraceable, because section 2 was
   filled in as a formality.
+
+  **Done 2026-09-30. Question 1 passes, question 2 passes, question 3 is
+  partial.** The reading answered the graph from the text, with every Go edge
+  stated from both ends and every build edge in `osapi-justfiles`' FR-004, and
+  it reconstructed what breaks on each edge including the delayed shape that
+  pinning by pseudo-version produces. Question 3 is partial by design: the
+  recipe contract, the variables, the fetch mechanism and the pinning situation
+  are all stated precisely, while CI workflows, recipe internals, binary
+  production and toolchain versions are excluded. The reader's own summary of
+  that: "I can tell you what `just test` resolves to and not what it runs."
+
+  Its verdict on the set: **one set, converged onto rather than born as one.**
+  The evidence it gave was not the shared template, which it dismissed, but that
+  the documents report on their own propagation. `osapi-justfiles` records three
+  headings drifting and corrects them, `nats-client` says it kept them right by
+  copying the corrected file rather than re-deriving, and `nats-server` and
+  `osapi-orchestrator` count the hops. Four of the six also declare their own
+  reading order in their preambles, and all six file findings against each other
+  and against this feature with owners rather than fixing them in place.
+
+  **Nine defects, all fixed at specs#212.** Ordered by what each cost a reader:
+
+  | Defect                                                      | Where                    |
+  | ----------------------------------------------------------- | ------------------------ |
+  | A citation to `FR-115`, which does not exist, twice         | `nats-client`            |
+  | Two documents disagreeing about which repository is the hub | `osapi-justfiles` FR-003 |
+  | Five requirements filed inside Success Criteria             | `gohai`, from specs#205  |
+  | A move size stale against an amendment one day older        | `gohai` FR-020           |
+  | Nine counts whose command needs the row above it            | three baselines          |
+  | A fourth gap invisible to anyone reading section 6          | `nats-server`, from #207 |
+  | "five exclusions" where six are listed                      | `osapi` SC-004           |
+  | "three gaps" where four are stated                          | `osapi-justfiles` SC-005 |
+  | "three exported types" beside a table saying four           | `nats-server` FR-012     |
+
+  The first is the one worth keeping. Four documents claim their edges are
+  "verified from both ends", and at the single place where one of them links to
+  the other end, it links to a requirement that has never existed. Nobody
+  followed the link, including the reviews that merged it. A claim about
+  verification that is itself unverified is the exact failure this programme
+  exists to catch, and it took a reader restricted to the text to find it.
+
+  Two of the nine were introduced by amendments **this programme** made in the
+  last two days, which is the honest cost of correcting merged documents: a
+  block appended before the wrong heading, and a gap filed in the section whose
+  count it corrects rather than the section that lists gaps.
+
+  **What the reading could not get, and it is not a defect list.** Nothing in
+  the six says what the product is *for*. Six documents and roughly 3,400 lines
+  describe the machine, and osapi's FR-017 excludes what any domain or provider
+  does, so a reader finishes knowing the shape of osapi and not its purpose. The
+  reader's words: "I can describe the machine and not the job." Also absent: a
+  definition of "the corpus", which is the subject of nearly every requirement
+  in all six; and the programme's other units, since four of the six carry a
+  unit number while units 1 to 5 and 10 to 12 are named nowhere.
+  `osapi-justfiles`' FR-022a recorded that complaint about itself and assigned
+  it here. Owner: this feature, and it is the strongest argument yet that a
+  reader who needs an entry point should be given memory rather than the
+  baselines.
 
 - [x] T018 [P] SC-002: every count in every baseline is paired with the command
   that reproduces it, and running the commands reproduces the counts or shows
@@ -291,7 +349,18 @@ reporting a pass against zero baselines.
 
   **Done 2026-09-30.** 35 commands extracted from the six baselines and run in
   the repository each describes. Every one reproduces its count except one,
-  which had failed rather than dated: `osapi`'s SDK method count gave
+  which had failed rather than dated. **The pass also missed a second class
+  entirely**, which T017's reading found: nine rows across three baselines gave
+  their command as "the same, plus ..." or "the same, with ...", inheriting the
+  row above. The extractor skipped those rather than reporting them, so "every
+  command reproduces" was true of the commands it ran and silent about nine it
+  did not. `just memory-check` has treated that form as a defect since it was
+  written, on the ground that a count whose command needs the row above it
+  cannot be checked alone, and the baselines were held to a weaker standard than
+  memory for no reason anybody had stated. All nine are now self-contained and
+  all nine reproduce, taking the baselines from 35 runnable commands to 44.
+
+  The one that had failed outright: `osapi`'s SDK method count gave
   `grep -cE ... pkg/sdk/client/*.go` followed by the word "summed" outside the
   backticks. `grep -c` over many files prints a count per file, so the command
   as written produces no number at all. The count itself, 117, is right. Fixed

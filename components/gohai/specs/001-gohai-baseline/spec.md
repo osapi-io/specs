@@ -360,28 +360,6 @@ gohai's README.
 - **Catalogued collector**: An entry in the collector catalogue, which may be
   implemented or deliberately not. 65 catalogued, 62 implemented.
 
-## Success Criteria *(mandatory)*
-
-### Measurable Outcomes
-
-- **SC-001**: A reader who has not seen gohai's README or `docs/` answers three
-  questions from the corpus alone: *what does a collector have to implement?*;
-  *why might a collector not run, and how do I make it run?*; *how does one
-  collector use another's facts, and what may it assume about ordering?* Each
-  would break a consumer if unanswered — a collector that does not satisfy the
-  interface, a caller who cannot explain an absent fact, and a collector reading
-  an undeclared sibling.
-- **SC-002**: Every count in the corpus is paired with a command, and running
-  the command reproduces the count. Four counts are stated: 314, 205, 62, 10.
-- **SC-003**: Both disagreements between gohai's prose and its code appear in
-  the corpus with both figures and the reason they differ, rather than as a
-  single corrected number.
-- **SC-004**: `just test` passes in the specs repository.
-- **SC-005**: Nothing in the gohai repository changes. `git -C gohai status` is
-  clean at the end of this feature.
-- **SC-006**: gohai's `.specify/memory/spec.md` is non-empty once this feature
-  is archived, and every entry in it carries a source reference to this feature.
-
 ### The classification this baseline owed
 
 - **FR-017**: The corpus MUST classify every one of gohai's 68 documentation
@@ -454,9 +432,39 @@ gohai's README.
   per 002's FR-026 and FR-027: the baseline classifies and relocates nothing.
   That feature is not open. Owner: this project.
 
-  It is also larger than osapi's was. osapi's move reconciled 464 lines across
-  two UI pages; this one is 769 across three, and one of them is architecture
-  the baseline explicitly excluded.
+  It is smaller than osapi's, which this said the opposite of. **Corrected
+  2026-09-30**: osapi's move reconciles **three** statements of the UI totalling
+  727 lines, not the 464 across two that this cited, because osapi's own
+  amendment of 2026-09-29 found a third at `ui/docs/architecture.md` holding 263
+  lines. gohai's is 769 across three, so the two are close in volume rather than
+  one being clearly larger, and what distinguishes gohai's is that one of its
+  three is architecture the baseline explicitly excluded.
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: A reader who has not seen gohai's README or `docs/` answers three
+  questions from the corpus alone: *what does a collector have to implement?*;
+  *why might a collector not run, and how do I make it run?*; *how does one
+  collector use another's facts, and what may it assume about ordering?* Each
+  would break a consumer if unanswered — a collector that does not satisfy the
+  interface, a caller who cannot explain an absent fact, and a collector reading
+  an undeclared sibling.
+- **SC-002**: Every count in the corpus is paired with a command, and running
+  the command reproduces the count. Four when this was written: 314, 205, 62 and
+  10\. The two amendments of 2026-09-30 added more, and each carries its command
+  where it is stated rather than being listed here, because a criterion that
+  enumerates the counts has to be edited every time one is added and is wrong
+  until somebody does.
+- **SC-003**: Both disagreements between gohai's prose and its code appear in
+  the corpus with both figures and the reason they differ, rather than as a
+  single corrected number.
+- **SC-004**: `just test` passes in the specs repository.
+- **SC-005**: Nothing in the gohai repository changes. `git -C gohai status` is
+  clean at the end of this feature.
+- **SC-006**: gohai's `.specify/memory/spec.md` is non-empty once this feature
+  is archived, and every entry in it carries a source reference to this feature.
 
 ## Assumptions
 
