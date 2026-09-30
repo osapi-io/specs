@@ -54,6 +54,28 @@ it, which is harder to notice than putting it nowhere.
 **A merged spec is the authorization; a branch is not.** Wait for the spec PR to
 merge before implementing against it.
 
+## Writing memory
+
+`.specify/memory/` is documentation, not a specification. `global/baseline` in
+every constitution says what that means; two things bind mechanically:
+
+**Run `unslop` over anything you write into `.specify/memory/` before committing
+it.** It is a user skill and it applies to prose in this repository the way
+`mdformat` applies to formatting. Em dashes are the tell it catches most often
+here, and requirement prose survives conversion as bold labels restating the
+line after them.
+
+**Never carry feature scaffolding into memory.** No `FR-` labels in the body, no
+`MUST`, no user stories, no acceptance scenarios, no success criteria, and no
+per-paragraph source footer. Those belong to the feature that produced the
+knowledge. Memory names the feature once, at the end.
+
+The calibration is the architecture documentation this organization already
+wrote: `osapi/docs/docs/sidebar/architecture/system-architecture.md` explains
+why its liveness probe checks nothing, in one sentence, next to the liveness
+probe, and then tells the reader what to use instead. Reason about the system,
+stated once, beside the thing it explains. Nothing about the document.
+
 ## Commit trailer
 
 When committing via Claude Code, end the message with:

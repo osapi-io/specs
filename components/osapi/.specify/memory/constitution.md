@@ -164,6 +164,32 @@ A count is written with the command that produces it. A number alone is a claim
 that was true when somebody typed it, and nothing marks the moment it stops
 being true.
 
+Memory is documentation, written in the voice of somebody explaining a system to
+somebody who has to work on it. Not a specification: no requirement identifiers
+in the body, no "MUST", no user stories, no acceptance scenarios, no success
+criteria. Those belong to the feature that produced the knowledge, where a
+reviewer reads them once. Memory is read repeatedly by somebody learning the
+system, and the formalism that serves the first reader obstructs the second.
+
+A heading names the thing, with its path where a path helps. A statement is made
+in the present tense and stated once. A design decision carries its reason, in a
+sentence, the first time it appears — why the liveness probe checks nothing
+belongs beside the liveness probe. What never appears is commentary about the
+document: how a fact was found, that a fact is important, which requirement
+obliged it, or what an earlier version said. A reader who wants that reads the
+feature it came from.
+
+Show the thing where showing it is shorter than describing it. A configuration
+block, a directory tree, a response shape and a command are documentation; a
+paragraph about the shape of a configuration block is not.
+
+Memory is written in a human voice and checked for the tells that mark machine
+prose. Em dashes, bold labels that restate the line after them, title case
+headings, "serves as" where "is" would do, rule-of-three lists that were not
+three things to begin with. A document a reader cannot finish is not
+documentation, whatever it contains.
+
+
 ---
 
-**Version**: 1.2.0 | **Ratified**: 2026-09-02 | **Last Amended**: 2026-09-29
+**Version**: 1.3.0 | **Ratified**: 2026-09-02 | **Last Amended**: 2026-09-30
