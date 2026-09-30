@@ -570,6 +570,30 @@ half of it.
   all. A number that was interesting for being equal stops being equal when it
   is corrected, and that is a better alarm than most.
 
+- **FR-039**: The corpus MUST record that the seven sections ask what a
+  repository **is** and never what it is **for**, which T017's reading found by
+  being unable to answer it. Six baselines and roughly 3,400 lines describe the
+  machine, and a reader finishes them able to say that osapi queues work to
+  agents and unable to say why anybody wants that.
+
+  The answer was never missing from the organization. `osapi`'s README and the
+  first page of its site both say it, in the same sentence: the project
+  "provides basic management capabilities to Linux systems, enabling them to be
+  used as appliances". A classification that asks who reads a page has no
+  question that would notice the corpus lacking a sentence the front door
+  carries.
+
+  Section 1 is the natural home and its name works against it. "What the
+  repository is" invites an answer about shape, and every baseline gave one.
+  Fixed in memory rather than in the baselines, at specs#213, because memory is
+  what a reader is handed: `system`'s architecture document and `osapi`'s entry
+  point now open with the purpose, and the repository table in `README.md`
+  states it above the links.
+
+  What is left is whether section 1 should require it, which would bind six
+  constitutions through `.charter/fragments/global/baseline.md`. Owner: this
+  feature, in its own change, for the reason FR-037 gives about fragments.
+
 ### What this feature does not do
 
 - **FR-016**: This specification MUST NOT write any of the five remaining

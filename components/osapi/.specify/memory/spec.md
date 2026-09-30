@@ -1,8 +1,15 @@
 # osapi
 
-osapi manages Linux hosts over a message bus. Two things ship together: a
-**controller** exposing a REST API, and an **agent** running on each managed host.
-`cmd/` holds both entry points and `main.go` dispatches between them.
+osapi manages Linux hosts over a message bus, so that a host can be treated as an
+appliance: configured through an interface rather than by logging in and editing
+files. That is what the project says it is for, in its README and on the first
+page of its site, and it is worth holding onto while reading the rest, because
+almost every constraint here comes from wanting it across many machines rather
+than one.
+
+Two things ship together: a **controller** exposing a REST API, and an **agent**
+running on each managed host. `cmd/` holds both entry points and `main.go`
+dispatches between them.
 
 **Work reaches a host by being queued, not by being called.** The controller does
 not run anything itself. A request becomes a job, an agent picks it up, and a

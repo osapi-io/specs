@@ -1,5 +1,13 @@
 # How the osapi-io repositories fit together
 
+**The product exists to make a Linux host behave like an appliance.** You install
+one binary, point it at a config file, and get a REST API and a CLI for reading
+and changing system configuration: hostname, DNS, disk, memory, load, packages,
+services, users. The appliance framing is the point. An appliance is a machine you
+configure through an interface rather than by logging in and editing files, and
+every design decision below follows from wanting that over a fleet rather than on
+one box.
+
 Six components, one product. osapi is the thing an operator runs; everything else
 either supports it or drives it.
 
