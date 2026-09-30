@@ -42,6 +42,10 @@ spec component *args:
 skill-lint:
     uvx --with pyyaml python scripts/validate-skills.py
 
+# Run every count in .specify/memory/ against the command beside it
+memory-check:
+    python3 scripts/check-memory-counts.py
+
 # --- Top-level orchestration ---
 
 # Run all checks
@@ -49,9 +53,11 @@ test:
     just md-fmt-check
     just just-fmt-check
     just skill-lint
+    just memory-check
 
 # Format and lint before committing
 ready:
     just md-fmt
     just just-fmt
     just skill-lint
+    just memory-check
