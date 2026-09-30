@@ -49,7 +49,7 @@ That third one has a consequence worth stating on its own.
 `internal/controller/api/gen/api.yaml` is assembled by `redocly join` from every
 domain's own `gen/api.yaml` inside `just generate`. **A domain absent from the
 combined file is invisible to the SDK however complete its own specification
-is** — and it fails silently, because nothing reports a domain that simply is not
+is**. It fails silently too, because nothing reports a domain that simply is not
 there.
 
 Everything else in the nine-step walkthrough is convention, and the walkthrough
@@ -65,10 +65,13 @@ in three places and does nothing in a fourth.
 | request body properties                          | `x-oapi-codegen-extra-tags`      |
 | query parameters, at **parameter** level          | not inside `schema:`             |
 | UUID path parameters                             | `format: uuid`                   |
-| path parameters in strict-server mode            | **nothing. No tags are generated.** |
+| path parameters                                   | **nothing. No tags are generated.** |
 
-So a path parameter needing validation beyond `format: uuid` is validated by hand
-in the handler. There is **no shared helper** for it: `validateHostname` is
+The last row is a property of the generator's configuration. `cfg.yaml` sets
+`strict-server: true`, which makes oapi-codegen produce an interface taking typed
+parameters rather than raw request objects, and in that mode it generates no
+validation tags on path parameters at all. So a path parameter needing validation
+beyond `format: uuid` is validated by hand in the handler. There is **no shared helper** for it: `validateHostname` is
 unexported and exists per domain, so a handler writes its own or calls into
 `internal/validation` where a registered validator fits.
 

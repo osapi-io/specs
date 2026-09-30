@@ -65,6 +65,12 @@ it.** It is a user skill and it applies to prose in this repository the way
 here, and requirement prose survives conversion as bold labels restating the
 line after them.
 
+**Place content in the subject it belongs to, not in `spec.md`.** `spec.md` is
+an entry point: what the repository is, and a table linking to its subjects. A
+feature about queuing work is archived into the document about queuing work,
+merged with what is there rather than appended after it. `spec.md` gains a link
+at most. `components/osapi/.specify/memory/` is the worked example.
+
 **Never carry feature scaffolding into memory.** No `FR-` labels in the body, no
 `MUST`, no user stories, no acceptance scenarios, no success criteria, and no
 per-paragraph source footer. Those belong to the feature that produced the

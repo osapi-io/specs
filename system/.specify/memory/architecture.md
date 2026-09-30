@@ -1,7 +1,11 @@
 # How the osapi-io repositories fit together
 
-Six repositories, one product. osapi is the thing an operator runs; everything
-else either supports it or drives it.
+Six components, one product. osapi is the thing an operator runs; everything else
+either supports it or drives it.
+
+A seventh repository, `specs`, holds this documentation and is not a component. It
+matters once below, because it consumes `osapi-justfiles` like the others do, which
+is why the blast radius of a justfiles change is seven and not six.
 
 ```
       nats-client ─┐
@@ -74,8 +78,8 @@ and `.just/` is gitignored everywhere.
 
 `md` reaches all seven consumers, `just` six, `go` five, and `react` and
 `docusaurus` one each. So **`md.just` is the widest change available in the
-organisation** — and the specs repository, whose `just test` gates every corpus
-change, is downstream of it.
+organisation.** The specs repository, whose `just test` gates every corpus change,
+is downstream of it.
 
 ## What no single repository states
 

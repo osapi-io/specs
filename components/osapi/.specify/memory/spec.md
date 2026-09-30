@@ -21,11 +21,12 @@ through that same SDK.
 
 | Subject                                        | What it answers                                                              |
 | ---------------------------------------------- | ---------------------------------------------------------------------------- |
-| [The job system](architecture/job-system.md)   | How work reaches a host, what is guaranteed, the two clocks, the four statuses |
+| [The job system](architecture/job-system.md)   | How work reaches a host, what is guaranteed, the two clocks, the four statuses, and one request traced end to end |
 | [Providers](architecture/providers.md)         | How work gets done on the machine, the idempotency rule, the four patterns    |
 | [Agent identity](architecture/agent-identity.md) | Enrollment, signing, rotation, and why targeting needs verification         |
 | [Building a domain](architecture/domains.md)   | What a new endpoint touches, in what order, and what is forced by tooling     |
 | [The embedded UI](architecture/ui.md)          | The dashboard compiled into the binary, and what it does not verify          |
+| [The Go SDK](architecture/sdk.md)              | What a service owes, the five naming rules, and the seven methods that break them |
 
 ## Where it sits
 
