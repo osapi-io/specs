@@ -224,6 +224,53 @@ whoever writes the next one.
   baseline that is entirely tables states facts without saying how they relate,
   which is the one thing a reader cannot get from the code.
 
+- **FR-017a**: FR-017 and FR-018 bind **what archival writes into
+  `.specify/memory/`**, not only the feature specification that produces it.
+  Five archivals read them as the latter and the result is that memory holds the
+  formalism FR-017 forbids.
+
+  **What went wrong, precisely.** A baseline's feature specification
+  legitimately carries user stories with priorities, acceptance scenarios and
+  success criteria — that is how a change gets reviewed, and nothing here
+  objects to it. Archival then copied those sections into memory unchanged, so
+  `components/nats-client/.specify/memory/spec.md` opens with
+  `## User Scenarios & Testing`, holds `User Story 2 … (Priority: P1)`, and
+  states `SC-006: just test passes in the specs repository` — a sentence with no
+  meaning in a document about what `nats-client` is. The seven sections a reader
+  wants sit two levels below, under `### Functional Requirements`, each phrased
+  "the corpus MUST state that…".
+
+  A reader who wants to know what the repository is must mentally delete "the
+  corpus MUST state that" from every sentence and skip past the process
+  furniture to reach it. That is the obstruction FR-017 describes, and it is in
+  the file FR-017 exists to protect.
+
+- **FR-017b**: Archived memory MUST take this shape, because "prose" alone was
+  not specific enough to prevent FR-017a:
+
+  | File             | Holds                                                                                 |
+  | ---------------- | ------------------------------------------------------------------------------------- |
+  | `memory/spec.md` | The **seven sections at top level**, as declarative prose. What the repository *is*.  |
+  | `memory/plan.md` | How it was established, what was decided, and what remains unverified. How we *know*. |
+
+  Three rules follow, and each names something a completed archival did wrong:
+
+  1. **Declarative, not normative.** "`nats-server` runs a NATS server inside
+     its consumer's process" — not "the corpus MUST state that it runs…". The
+     `MUST` belongs to the feature specification, where it obliges somebody to
+     write something. In memory the writing has happened, so the obligation is
+     spent and only the fact remains.
+  2. **No feature-process furniture.** User stories, priorities, acceptance
+     scenarios and success criteria do not reach memory. They record how a
+     change was reviewed; the changelog already records that the change
+     happened.
+  3. **Source refs stay on every statement.** They are the traceability the
+     whole corpus rests on, and they are the one part of the current form worth
+     keeping.
+
+  A reader arriving at `memory/spec.md` should find seven headings and be able
+  to read straight down. That is the test.
+
 ### What stitches the set together
 
 - **FR-019**: `system`'s own memory MUST hold the **cross-repository map**:
