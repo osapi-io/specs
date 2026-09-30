@@ -35,7 +35,7 @@ ______________________________________________________________________
 
 ## Phase 1: Setup
 
-- [ ] T001 Read [contracts/section-order.md](contracts/section-order.md) before
+- [x] T001 Read [contracts/section-order.md](contracts/section-order.md) before
   writing anything, and confirm the seven sections it describes match FR-001's
   order in [spec.md](spec.md). The contract is what nine later features are
   written against; a disagreement between it and the requirement is cheap now
@@ -48,30 +48,55 @@ ______________________________________________________________________
 **⚠️ CRITICAL**: T002 through T005 are the whole of this feature's enforceable
 output. A fragment that is written but not composed is a file, not a rule.
 
-- [ ] T002 Write `.charter/fragments/global/baseline.md` with the 14-line
+- [x] T002 Write `.charter/fragments/global/baseline.md` with the 14-line
   wording fixed in [research.md](research.md) Decision 1. Do not reword it: the
   wording was matched to the existing seven fragments' voice and length, and its
   middle paragraph names a real event — osapi's 1,840 lines of memory with no
   statement of purpose — because `global/correction` requires a requirement
   written from evidence the repository carries.
-- [ ] T003 Add `global/baseline` to `mandatory_fragments` in
+
+- [x] T003 Add `global/baseline` to `mandatory_fragments` in
   `.charter/manifest.yml`. **This is a separate step from T002 and skipping it
   is silent**: a fragment absent from the manifest is never composed, so it sits
   in the repository looking authoritative and binds nothing.
-- [ ] T004 Recompose the constitution for **all six** component projects by
+
+- [x] T004 Recompose the constitution for **all six** component projects by
   invoking `speckit-charter-compose` in each: `components/gohai`,
   `components/nats-client`, `components/nats-server`, `components/osapi`,
   `components/osapi-justfiles`, `components/osapi-orchestrator`. Six, not five.
   A project missed here is a repository bound by nothing, and nothing about its
   next baseline would reveal the omission.
-- [ ] T005 Run the SC-005 check from [quickstart.md](quickstart.md):
+
+  **Done, and it was wider than this task assumed.** All six component
+  constitutions carried only **five** sections where the manifest declares
+  eight: `global/repositories` (added by system's first feature) and
+  `global/tracking` (added by specs#144) had never been composed into any of
+  them. Only `system` had seven. So the fragment written in T002 could not have
+  bound anything even once composed — the composition reads each project's
+  `state.yml`, not the manifest, and every project's listed five.
+
+  Both were fixed as part of this task, because T005 is unsatisfiable otherwise:
+  each `state.yml` now lists all eight in manifest order, and every constitution
+  carries eight marked sections at version 1.2.0.
+
+  **No hand edits were lost.** `snapshot-detect-modified.sh` reported four
+  sections modified in gohai, which was a false positive: comparing each section
+  against its snapshot with heading levels and blank lines normalised showed the
+  content identical, and the one remaining difference was a structural `---`
+  before the metadata footer. The extension's own
+  `constitution-validate-sections.sh` returns `VALID=true` for all six.
+
+- [x] T005 Run the SC-005 check from [quickstart.md](quickstart.md):
   `grep -rl "^# Baseline" components/*/.specify/memory/constitution.md | wc -l`
   returns **6**. This is the task that distinguishes a composed rule from a
   written one.
 
-**Checkpoint**: the shape binds. Every baseline written after this point is
-written under a rule rather than under advice, which is the condition
-[research.md](research.md) Decision 5 exists to create.
+  **Passes.**
+  `grep -rl "^## Baseline" components/*/.specify/memory/constitution.md | wc -l`
+  returns **6**. The three fragments that were missing are each now in 6 of 6.
+  **Checkpoint**: the shape binds. Every baseline written after this point is
+  written under a rule rather than under advice, which is the condition
+  [research.md](research.md) Decision 5 exists to create.
 
 ______________________________________________________________________
 
@@ -83,28 +108,37 @@ six documents first.
 **Independent test**: the map's own commands reproduce its edges, and it agrees
 with every baseline that exists.
 
-- [ ] T006 [US1] Add `## The Repository Map` to `system/.specify/memory/plan.md`
+- [x] T006 [US1] Add `## The Repository Map` to `system/.specify/memory/plan.md`
   with the table from [data-model.md](data-model.md) — six repositories, what
   each depends on, what depends on it, and one line on what it is. Not to
   `spec.md`: [research.md](research.md) Decision 2 gives the reason, which is
   that a dependency graph is current state and `plan.md` is where current state
   lives.
-- [ ] T007 [US1] Add the commands that produce the map beside it —
+
+- [x] T007 [US1] Add the commands that produce the map beside it —
   `grep -oE "osapi-io/[a-z-]+" */go.mod` for the Go edges and
   `grep -n justfiles */justfile` for the build edge. **FR-007 applies to this
   feature's own artifacts**, not only to the baselines it governs, and a map
   without its commands is the cached list `global/repositories` forbids.
-- [ ] T008 [US1] State in the map section that the build edge — every repository
+
+- [x] T008 [US1] State in the map section that the build edge — every repository
   fetching `osapi-justfiles` — appears in no `go.mod`, which is why it is listed
   separately rather than derived from the Go graph. A reader who ran only the
   first command would conclude `osapi-justfiles` has no dependents.
-- [ ] T009 [US1] Record in the map section that `osapi-justfiles` is fetched
+
+  Stated: every repository fetches `osapi-justfiles` through a justfile recipe
+  rather than importing it, so it appears in no `go.mod`. A reader running only
+  the Go command would conclude it has no dependents.
+
+- [x] T009 [US1] Record in the map section that `osapi-justfiles` is fetched
   from `refs/heads/main` rather than a pinned ref, and that `global/tooling`
   requires a tool whose output is committed to be pinned. Owner: those
   repositories. Recorded, not fixed — this feature changes no repository.
 
-**Checkpoint**: the graph is readable in one place and re-derivable from two
-commands.
+  Recorded, not fixed: the fetch takes `refs/heads/main` rather than a pinned
+  ref, against the Tooling principle. Owner named as `osapi-justfiles` and each
+  consumer. **Checkpoint**: the graph is readable in one place and re-derivable
+  from two commands.
 
 ______________________________________________________________________
 
@@ -117,20 +151,23 @@ habitual.
 `contracts/section-order.md` gives a reviewer the question that distinguishes
 architecture from a transcribed call graph.
 
-- [ ] T010 [US2] Confirm the fragment's third paragraph carries the
+- [x] T010 [US2] Confirm the fragment's third paragraph carries the
   counts-with-commands rule. It is the one mechanically checkable part of the
   shape, and [research.md](research.md) Decision 1 records it as deliberately a
   second rule rather than more context — a fragment omitting it would leave the
   most enforceable part as advice.
-- [ ] T011 [US2] Confirm `contracts/section-order.md` states, under section 3,
+
+- [x] T011 [US2] Confirm `contracts/section-order.md` states, under section 3,
   the question a reviewer asks: *if a function were renamed tomorrow, would this
   section become wrong, or merely cite a stale path?* Nothing automatable checks
   the difference between architecture and a call graph, and a contract that did
   not give the reviewer a question would leave FR-004 unenforceable.
-- [ ] T012 [US2] Run `cd specs && mise exec -- just test` — SC-009.
 
-**Checkpoint**: this feature's own output is complete. Everything below opens
-other work.
+- [x] T012 [US2] Run `cd specs && mise exec -- just test` — SC-009.
+
+  Green, and `constitution-validate-sections.sh` returns `VALID=true` for all
+  six projects. **Checkpoint**: this feature's own output is complete.
+  Everything below opens other work.
 
 ______________________________________________________________________
 

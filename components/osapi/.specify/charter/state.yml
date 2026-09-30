@@ -8,6 +8,9 @@ fragments:
   - "global/tooling"
   - "global/correction"
   - "global/workflow"
+  - "global/repositories"
+  - "global/tracking"
+  - "global/baseline"
 
 sub_constitutions: []
 
