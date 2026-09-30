@@ -107,48 +107,78 @@ statements go.
 
 **Independent test**: SC-003 and SC-004 from [quickstart.md](quickstart.md).
 
-- [ ] T005 [US2] Remove lines `12–53`, `69–153`, `160–175` and `191–231` from
+- [x] T005 [US2] Remove lines `12–53`, `69–153`, `160–175` and `191–231` from
   `osapi/docs/docs/sidebar/architecture/ui.md` — the embedding mechanism,
   application structure, stack, component architecture, auth flow, SDK
   generation and fetch mutator. 184 lines of 264. Carries FR-003 through
   FR-007's move, and FR-014's split.
-- [ ] T006 [US2] Rewrite that page's introduction, one sentence, so it
+
+- [x] T006 [US2] Rewrite that page's introduction, one sentence, so it
   introduces an operator's page and says where the architecture went. **Deletion
   alone will not fix it**: the current introduction introduces a contributor's
   document, and a page whose first paragraph promises architecture and then
   shows three operator sections reads as damaged rather than as reduced.
-- [ ] T007 [US2] Confirm the surviving page's headings are exactly
+
+- [x] T007 [US2] Confirm the surviving page's headings are exactly
   `## Configuration`, `## Authentication & Authorization`, `## Pages` — SC-003's
   grep — and that the authentication opening now runs into the RBAC model, and
   the RBAC model into `## Pages`, without a bridging paragraph. Both joins were
   checked in [plan.md](plan.md) and read.
-- [ ] T008 [US2] Replace `osapi/docs/docs/sidebar/development/ui-development.md`
+
+- [x] T008 [US2] Replace `osapi/docs/docs/sidebar/development/ui-development.md`
   with the three-part contributor index from [data-model.md](data-model.md):
   under ten lines of prose, a citation table by absolute GitHub address, and a
   pointer to the justfile rather than the commands — FR-015, with FR-009 for why
   the commands stay in the justfile. One sentence must say why the links are
   absolute — the corpus is a separate repository and is not published as part of
   the site.
-- [ ] T009 [US2] Replace `osapi/ui/docs/architecture.md` with the pointer from
+
+- [x] T009 [US2] Replace `osapi/ui/docs/architecture.md` with the pointer from
   [data-model.md](data-model.md), under ten lines. It **must** include the
   sentence saying it is a pointer rather than a summary: a pointer is a file
   somebody can edit back into a document, and that sentence is the only thing
   guarding against it — [research.md](research.md) Decision 2. FR-016.
-- [ ] T010 [US2] [P] Search the site for any link into a removed section:
+
+- [x] T010 [US2] [P] Search the site for any link into a removed section:
   `grep -rn "ui.md#" docs/docs` and
   `grep -rn "ui-development" docs/docs docusaurus.config.ts`. A link to a moved
   anchor survives deletion and fails the build.
-- [ ] T011 [US2] Run
+
+- [x] T011 [US2] Run
   `cd osapi && mise exec -- just docusaurus-fmt-check && mise exec -- just docusaurus-build`
   — SC-006 — and confirm the diff is markdown only, which is SC-007.
-- [ ] T012 [US2] Confirm **all three** files are in the same commit before
+
+- [x] T012 [US2] Confirm **all three** files are in the same commit before
   opening the pull request: the split page, the contributor index, and the
   pointer. Splitting them across changes leaves the divergent copy as the sole
   statement for as long as the gap lasts, and that copy is the one missing
   `Configuration` and `Embedding Mechanism`.
-- [ ] T013 [US2] Open and merge the osapi pull request. **This is the task that
+
+- [x] T013 [US2] Open and merge the osapi pull request. **This is the task that
   ends the divergence.** Until it lands, three documents state the same
   architecture and two of them disagree.
+
+  **Merged as osapi#549**, in one commit carrying all three files plus two
+  sentences elsewhere that described what the moved sections held. T010 found no
+  broken anchor but three descriptions that resolve and lie —
+  `management-dashboard.md` sent a reader to `architecture/ui.md` "for the
+  embedding mechanism, component layers, and SDK generation flow", all three of
+  which had just moved. A link that works while describing content that is gone
+  is the same drift in smaller form and the build cannot catch it, so they were
+  corrected in the same commit.
+
+  Two measured deviations from the plan, both small and both recorded rather
+  than absorbed. The surviving page is **82 lines, not 80**: the `[orval]` link
+  definition sat at line 264, inside the range the plan marked as staying, while
+  its only reference was at 194 inside the moving SDK Generation section, so
+  removing the orphan took two lines the plan had counted as staying. And the
+  first attempt at the pointer passed the Docusaurus gates and failed
+  `md-fmt-check`: `ui/docs/` sits outside `docs/**`, so it is mdformat's file
+  rather than Prettier's. This repository has two markdown formatters divided by
+  path, and a change touching both needs both run.
+
+  **The divergence did not end here.** SC-002's grep found a fourth copy
+  afterwards, removed at osapi#550. See T014.
 
 ______________________________________________________________________
 
@@ -204,10 +234,27 @@ ______________________________________________________________________
   one pass what re-reading the file did not, which is the argument for the
   reading being done by somebody who has seen nothing else.
 
-- [ ] T016 Run `/speckit-archive-run specs/007-the-embedded-ui` once T004 and
+- [x] T016 Run `/speckit-archive-run specs/007-the-embedded-ui` once T004 and
   T013 have merged, and mark `system`'s 002 T023 done. Archive after the
   implementation: what merged in `specs/` is the statement, and the outcome is
   only true once the three documents have changed.
+
+  **Archived 2026-09-29.** Two stories, 18 requirements, four entities, three
+  edge cases, four outcomes and four assumptions went into
+  `components/osapi/.specify/memory/`; four items folded into entries that
+  already generalised past the subject that wrote them. The UI was the one part
+  of osapi that memory said nothing about.
+
+  `system`'s 002 T023 was **not** marked done, and that is the honest answer
+  rather than the tidy one. It names three pages and this feature moved two:
+  `sdk/guidelines.md` partly moves under 006's FR-015 and nothing has been
+  opened for it. Recorded at specs#176.
+
+  One thing archival surfaced that no task looked for: **006, osapi's baseline,
+  has never been archived**, and cannot be — it has `spec.md` and no `plan.md`
+  or `tasks.md`, so it stopped at stage 1 when its specification merged as
+  specs#169. This feature was archived ahead of it as a result, which is out of
+  the ascending order archival expects.
 
 ______________________________________________________________________
 

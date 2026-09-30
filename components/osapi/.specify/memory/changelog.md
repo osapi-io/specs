@@ -2,6 +2,51 @@
 
 ## Merged Features Log
 
+### The embedded UI — archived 2026-09-29
+**Branch:** `007-the-embedded-ui`
+**Spec:** [specs/007-the-embedded-ui/spec.md](../../specs/007-the-embedded-ui/spec.md)
+
+**What was added:**
+- The UI stated for the first time. Memory held 1,840 lines about osapi and nothing
+  about the part of it a user actually sees: what it is, how it reaches a browser,
+  what separates its four kinds of component, that its client is generated from the
+  same specification as the Go SDK, and that it decodes a JWT without verifying it.
+- Two requirements that came from the code rather than either prose document — the
+  unverified decode, and `/ui/` sitting in `.coverignore` so the coverage gate says
+  nothing about the UI.
+- The record of a **prose-versus-prose** divergence, which is new ground: two
+  documents stating the same architecture, edited eighteen days apart, each holding a
+  section the other never got. Carried forward as a union rather than by picking a
+  winner, because recency tracks editing and not accuracy.
+- A **third disposition** for a document: a pointer, kept for its location rather
+  than its content. One file in the programme has it.
+- US14 and US15, FR-095 through FR-112, four entities, three edge cases, SC-026
+  through SC-029, and AS-023 through AS-026.
+
+**New Components:**
+- None. No Go code changed; the diff is markdown in two repositories.
+- `ui/` appears in the plan's structure for the first time, with the boundary its
+  four component kinds are placed against.
+
+**Folded:** an operator story into US11, a split-page edge case into the backfill's
+same-paragraph case, and three outcomes into SC-016, SC-021 and SC-024, each of which
+already generalised past the subject that wrote it.
+
+**Corrected before archival:** three of the feature's own claims, each found by a
+different one of its own checks and none by re-reading the specification — a grep
+found a fourth copy of the architecture the classification had missed, a line count
+found the pointer at ten lines against a criterion of under ten, and the reading found
+FR-004 requiring a statement it did not make.
+
+**Not fully passed:** SC-026's reading answered two of its three questions, and has
+not been re-run since FR-004 was fixed. SC-016's grep failed on its first run and
+passes now.
+
+**Implementation:** osapi-io/osapi#549 and #550; specified at osapi-io/specs#172,
+planned at #173, verified at #174, corrected at #175 and #176.
+
+**Tasks Completed:** 16/16 tasks
+
 ### The corpus backfill — archived 2026-09-28
 
 **Branch:** `003-corpus-backfill`

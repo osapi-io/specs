@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft
+**Status**: Completed
 
 **Input**: The twelfth unit of the baseline programme, and the move
 [osapi's baseline](../006-osapi-baseline/spec.md) classified. osapi ships an
