@@ -74,9 +74,11 @@ ______________________________________________________________________
   described by its surface alone has been described as a package rather than as
   a dependency: a consumer depends on `jetstream.Msg` whether or not this
   repository names it.
+
 - [ ] T008 [US1] Confirm the three authentication modes and what each needs are
   stated — FR-011 — since that is the part of the contract a consumer must
   satisfy before anything works.
+
 - [ ] T009 [US1] Run the SC-001 reading. Give somebody who has not opened
   `pkg/client` the specification alone and three questions: what does the
   wrapper add over the upstream library; how does a consumer authenticate; and
@@ -85,6 +87,36 @@ ______________________________________________________________________
   a wrapper implies resilience has been misled. A person is preferred; a fresh
   agent given only `spec.md` is the fallback. **Record what it proves and what
   it does not.**
+
+  **Two of three, and the third was the one this task flagged.** A fresh agent
+  given only `spec.md` answered what the wrapper adds (FR-002) and how a
+  consumer authenticates (FR-011), both plainly. It could **not** answer what
+  happens when the connection drops — and found something worse than an
+  omission: this specification's own **acceptance scenario had promised the
+  answer was stated**, "rather than left to the upstream library's defaults".
+  FR-012 said only what the wrapper does not add, which is the absence of a
+  behaviour rather than the behaviour.
+
+  The reading named the trap exactly: a reader taking that scenario at face
+  value mistakes "the corpus states this" for "this document states this". **A
+  promise in an acceptance scenario is the worst place for an unverified
+  claim**, because it reads as the test rather than as the assertion under test.
+
+  Fixed at specs#189. The code was read: the wrapper sets no reconnection
+  options and registers no handlers, so the upstream default governs and a
+  consumer is not notified — FR-012a. FR-012b records how the omission came to
+  exist, and the scenario now says the answer turned out to be exactly what it
+  had asserted it was not.
+
+  It also reported the document reads as a checklist with footnote-style prose
+  attached to each line rather than as continuous prose, with the
+  measure-and-admit-the-error theme as its only throughline. Same judgement
+  `osapi-justfiles`' reading returned, and it belongs to `system`'s 002 for the
+  same reason.
+
+  **What it proves and what it does not**: that two of three answers are in the
+  text. Not that a consuming maintainer would find them, and not that the third
+  would have been noticed by anybody who had already read the code.
 
 ______________________________________________________________________
 
