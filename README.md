@@ -55,6 +55,11 @@ detail in reference files an agent reads only when the question calls for them.
 
 ## The architecture documentation
 
+[osapi-io](https://github.com/osapi-io) makes a Linux host behave like an
+appliance: one binary and a config file give you a REST API and a CLI for
+reading and changing system configuration, over a fleet rather than one box. Six
+repositories build that.
+
 Each repository's memory is its architecture document, kept current as features
 land. Start with
 [how they fit together](system/.specify/memory/architecture.md), or go straight
