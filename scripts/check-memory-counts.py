@@ -77,7 +77,19 @@ def main() -> int:
         component = memory.parts[-4]
         target = REPO_PARENT / component
         rows = []
+        in_table = False
         for line in memory.read_text().splitlines():
+            # Only measurement tables are checked, and a measurement table
+            # declares a Command column in its header. Without that opt-in a
+            # table of recipe names reads as a table of commands, because both
+            # hold backticks and an integer.
+            if line.startswith("|") and "Command" in line and "Value" in line:
+                in_table = True
+                continue
+            if in_table and not line.startswith("|"):
+                in_table = False
+            if not in_table:
+                continue
             m = ROW.match(line)
             if not m:
                 continue
