@@ -64,6 +64,13 @@ OS      Arch          MinMemory    MinCPU      HasLabel
 Healthy FactEquals    HasCondition NoCondition MatchAll
 ```
 
+```sh
+grep -cE '^func \(s \*Step\) OnlyIf' pkg/orchestrator/step.go   # 8 guards
+grep -cE '^func \(s \*Step\) When' pkg/orchestrator/step.go     # 2, the predicate route
+grep -cE '^func \(s \*Step\) [A-Z]' pkg/orchestrator/step.go    # 15 methods on Step
+grep -cE '^func [A-Z][A-Za-z]*\(' pkg/orchestrator/predicate.go  # 10 predicates
+```
+
 `MatchAll` combines them. `FactEquals` reads a fact the agent gathered, which is
 what lets a step depend on something osapi discovered rather than something the
 consumer already knew.

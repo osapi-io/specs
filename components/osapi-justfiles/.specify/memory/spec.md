@@ -161,6 +161,7 @@ At `e765614`, 2026-09-29.
 | Go files                   |     0 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                                 |
 | Modules                    |     5 | `ls -d */ \| while read d; do [ -f "$d$(basename $d).just" ] && echo $d; done \| wc -l`              |
 | Override variables         |    20 | `grep -hcE '^[a-z_][a-z0-9_]* *:?= ' */*.just \| paste -sd+ - \| bc`                                 |
+| Recipes, all modules       |    38 | `for m in docusaurus go just md react; do just --justfile $m/$m.just --working-directory . --summary; done \| wc -w` |
 | `.just` lines, all modules |   487 | `wc -l */*.just \| tail -1`                                                                          |
 | Markdown files             |    11 | `find . -name '*.md' -not -path './.git/*' \| wc -l`                                                  |
 | Module READMEs             |     5 | `ls */README.md \| wc -l`                                                                            |

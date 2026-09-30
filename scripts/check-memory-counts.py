@@ -41,8 +41,18 @@ BACKTICKED = re.compile(r"`([^`]+)`")
 # Memory uses this form wherever a measurement does not belong in a table, so it
 # has to be checked the same way. Only an integer comment opts a line in; a
 # comment in words ("the same version twice") is prose and is left alone.
-FENCE = re.compile(r"^\s*```\s*(sh|bash|shell|console)?\s*$")
-ANNOTATED = re.compile(r"^(?P<cmd>[^#]+?)\s+#\s*(?P<value>\d[\d,]*)\s*$")
+# Every fence, with whatever language it declares. Matching only shell fences
+# desynchronizes the toggle: a ```go block's opening line would not match while
+# its closing ``` would, so everything after it reads as inside a shell block.
+FENCE = re.compile(r"^\s*```\s*(?P<lang>[A-Za-z0-9_+-]*)\s*$")
+SHELL_LANGS = {"", "sh", "bash", "shell", "console", "zsh"}
+# The comment may name what the number counts ("# 8 guards"), which reads better
+# than a bare figure. What it may not do is start with something that only looks
+# like a count: a version ("# 1.0.0"), a date, or a path are excluded by refusing
+# a digit run followed by . - / or :.
+ANNOTATED = re.compile(
+    r"^(?P<cmd>[^#]+?)\s+#\s*(?P<value>\d[\d,]*)(?![\d.\-/:])[ ,]*(?P<note>[A-Za-z][^#]*)?$"
+)
 
 
 def command_in(cell: str) -> str | None:
@@ -70,12 +80,18 @@ def annotated_counts(text: str) -> list[tuple[str, int, str]]:
     only place a count means anything.
     """
     out = []
-    in_block = False
+    in_block = False   # inside any fenced block
+    is_shell = False   # and that block declared a shell language
     for line in text.splitlines():
-        if FENCE.match(line):
-            in_block = not in_block
+        fence = FENCE.match(line)
+        if fence:
+            if in_block:
+                in_block = is_shell = False
+            else:
+                in_block = True
+                is_shell = fence.group("lang").lower() in SHELL_LANGS
             continue
-        if not in_block:
+        if not (in_block and is_shell):
             continue
         m = ANNOTATED.match(line)
         if not m:
