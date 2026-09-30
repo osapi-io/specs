@@ -137,12 +137,10 @@ At `cfe12f6`, 2026-09-30.
 | README lines                   |    62 | `wc -l README.md`                                                                                                   |
 | Runnable examples              |     5 | `ls -d examples/*/ \| wc -l`                                                                                        |
 
-Two of those commands need their exclusion and nothing warns you. Without
-`-not -path '*/node_modules/*'` the page count returns 9, because
-`docs/node_modules/prettier/README.md` is a vendored dependency's file. Without
-`-not -name '*_test.go'` the exported-type count returns 23, because fourteen
-`*TestSuite` types live in test files. That second one overstates the contract by
-more than half, in the direction that reads plausible.
+Both exclusions are load-bearing. `docs/node_modules/` holds a vendored
+`README.md`, so dropping the path exclusion returns 9 pages. Fourteen `*TestSuite`
+types live in test files, so dropping the name exclusion returns 23 exported types
+against a real 9.
 
 ## Known limitations
 

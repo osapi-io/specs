@@ -35,6 +35,22 @@ Show the thing where showing it is shorter than describing it. A configuration
 block, a directory tree, a response shape and a command are documentation; a
 paragraph about the shape of a configuration block is not.
 
+Memory is a tree, not a file. `spec.md` says what the repository is and links to
+the subjects. A subject with enough in it to explain gets its own document
+beside it, and a repository small enough to explain in one document keeps one.
+
+Archiving a feature places its content in the subject it belongs to. A change to
+how work is queued lands in the document about queuing work, beside what is
+already there, and `spec.md` gains a link at most. Appending every feature to
+one document produces a file that answers everything and explains nothing, which
+is what one repository's memory became after seven features: five subjects in
+266 lines, saying something about each and enough about none.
+
+The consolidation is the work. Two statements about the same mechanism become
+one statement, and the one that survives carries what both said. A document that
+grew by appending is a record of how it was written rather than a description of
+what is true.
+
 Memory is written in a human voice and checked for the tells that mark machine
 prose. Em dashes, bold labels that restate the line after them, title case
 headings, "serves as" where "is" would do, rule-of-three lists that were not

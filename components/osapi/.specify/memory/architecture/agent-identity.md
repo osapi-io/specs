@@ -32,6 +32,16 @@ it. Without verification, a second machine could publish the same hostname and
 receive work addressed to the first. **Targeting resolves only verified
 registrations**, so an unverified registration is not a candidate for work.
 
+What that looks like in a result depends on how the job was addressed. A job sent
+to a named host that has no verified registration fails to resolve a target. A
+broadcast is different: `ExpectedAgentHostnames` builds the expected set from
+verified registrations, so an unverified agent is **not in the set and produces no
+row at all**. It does not appear as `timeout`, because nothing was expecting it.
+
+That distinction matters when an enrollment has gone wrong. A broadcast returning
+nineteen rows for a twenty-machine fleet is the symptom, and the missing row is
+silent. `GET /agent` reporting `key_stored` and `verified` is where to look.
+
 ## Rotation without an outage
 
 A replaced key keeps its predecessor accepted for a grace period, so an agent

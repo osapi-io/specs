@@ -141,6 +141,50 @@ status events and its response do not age out independently of each other.
 and `agent-facts` holds what an agent gathers on its own schedule rather than in
 answer to a job.
 
+## One request, end to end
+
+Setting a sysctl value on twenty hosts, because a trace is worth more than the
+parts listed separately.
+
+1. **CLI or SDK** calls the endpoint with `_all` as the hostname, or a label
+   selector.
+2. **The handler** validates the input against the OpenAPI specification and
+   delegates. It does not touch the operating system, and it does not know what a
+   sysctl is.
+3. **The job client** writes the definition to `jobs.{job-id}`, then announces it.
+   `ExpectedAgentHostnames` fixes which agents the broadcast expects an answer
+   from, built only from verified registrations.
+4. **Each agent** receives a notification carrying the job's identity, fetches the
+   definition, and checks `HasJobResponse`. If it has answered this job before it
+   acknowledges and stops.
+5. **The sysctl provider** runs on the host. It manages its own configuration
+   files with a reserved filename prefix, so it will not clobber something an
+   operator wrote by hand, and it validates the key itself rather than trusting
+   that the request path did.
+6. **The result** carries the resource, whether anything changed, and a
+   per-resource error. The agent writes an append-only status event and the result
+   to `job-responses`, extending the ack deadline by keepalive while the work runs.
+7. **The controller** collects for up to `controller.api.job_timeout`, 30 seconds
+   by default, and returns a collection with one row per expected host.
+
+### Why a row might not say `ok`
+
+`skipped` means the host's OS family does not implement sysctl the way this
+provider does, so the provider returned the unsupported outcome. On a mixed fleet
+this is normal rather than a fault.
+
+`failed` means it ran on that host and did not succeed. The machine-readable cause
+beside the message says why.
+
+`timeout` means the **controller** stopped waiting. It says nothing about the host:
+the work may be finished, may still be running under its own 10-minute backstop,
+or may never have started. Cancelling the request would not have stopped it.
+
+**A missing row** is the one that is easy to overlook. Nineteen rows for twenty
+machines means an agent was not in the expected set, because its registration is
+not verified. That is not a timeout, because nothing was waiting for it. See
+[agent identity](agent-identity.md).
+
 ## Where this connects
 
 What a provider must return, and what makes an operation idempotent, is
