@@ -83,3 +83,34 @@ It classifies; it moves nothing. 002's FR-026 puts the baseline before the move
 and its FR-027 makes the move its own feature — which is the ordering osapi
 itself got wrong the first time, when three features relocated documentation and
 none of them wrote the document that says which pages are contributor-facing.
+
+## Found after the first pass, by looking wider
+
+`ui/docs/architecture.md` — 263 lines, beside the code rather than under `docs/`
+— is a second statement of the site's `architecture/ui.md`, and the two have
+diverged. FR-019 through FR-021 record it.
+
+The classification in FR-018 did not reach it, and the reason is worth stating
+plainly: it counted the 219 **published pages** under `docs/docs/`, which is the
+right answer to the question it asked and an incomplete answer to "what
+documentation does this repository carry". A baseline that counts pages and a
+baseline that inventories documentation are not the same document, and this one
+conflated them for one file.
+
+What makes it more than a miscount:
+
+|                                        | Last touched | Holds, that the other does not         |
+| -------------------------------------- | ------------ | -------------------------------------- |
+| `ui/docs/architecture.md`              | 2026-09-02   | `Feature flags`                        |
+| `docs/docs/sidebar/architecture/ui.md` | 2026-08-15   | `Configuration`, `Embedding Mechanism` |
+
+Two documents that were once the same, edited eighteen days apart, each having
+gained something the other never got. Their shared sections still agree in
+substance and differ in punctuation — a copy shortly before it stops agreeing at
+all. **This is the drift the one-statement rule exists to prevent, observed
+rather than argued for.**
+
+It also changes the move's subject from two statements to three, and FR-021
+records why the order matters: relocating only the site page would leave the
+divergent copy as the sole statement, and that copy is the one missing
+`Configuration` and `Embedding Mechanism`.
