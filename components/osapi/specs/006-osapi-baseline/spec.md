@@ -4,7 +4,10 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft
+**Status**: Draft — amended 2026-09-29 before planning: FR-019 through FR-021
+record a 263-line second statement of the UI architecture at
+`ui/docs/architecture.md`, which the page classification did not reach because
+it counted published pages. The two copies have already diverged.
 
 **Input**: osapi's memory holds 1,840 lines from five archived features and
 nowhere says what the repository is. Its `spec.md` sections are *The job
@@ -228,6 +231,46 @@ serves.
   osapi needs a move after all, so the programme is **twelve units, not
   eleven**, and 002 needs amending — in its own change, not this one.
 
+### The drift this inventory did not look for, and found anyway
+
+- **FR-019**: The corpus MUST record that `ui/docs/architecture.md` exists,
+  holds **263 lines** of contributor documentation, and is **a second statement
+  of the site's `architecture/ui.md`** — and that the two have already diverged.
+
+  This was outside FR-018's classification, which counted the 219 pages under
+  `docs/docs/` and therefore never reached a documentation file living beside
+  the code it describes. The count was right about published pages and
+  incomplete about the repository's documentation, which are different
+  questions.
+
+  The two files cover the same ground — tech stack, application structure,
+  authentication, SDK generation, component architecture, pages — and each now
+  holds a section the other does not:
+
+  |                                        | Last touched | Holds, that the other does not         |
+  | -------------------------------------- | ------------ | -------------------------------------- |
+  | `ui/docs/architecture.md`              | 2026-09-02   | `Feature flags`                        |
+  | `docs/docs/sidebar/architecture/ui.md` | 2026-08-15   | `Configuration`, `Embedding Mechanism` |
+
+  Verified: `git log -1 --format=%cs` on each, and a comparison of their `##`
+  headings. Their shared sections still agree in substance and differ in
+  punctuation, which is what a copy looks like shortly before it stops agreeing
+  at all.
+
+- **FR-020**: The corpus MUST state that this is **the drift the one-statement
+  rule exists to prevent, observed rather than hypothesised**. Two documents
+  were once the same, were edited eighteen days apart, and each gained content
+  the other never got. Nothing marked the moment they stopped agreeing, which is
+  the failure `global/documentation` describes and the reason the corpus holds
+  one statement and citations.
+
+- **FR-021**: The corpus MUST state that osapi's move therefore reconciles
+  **three** statements, not two: the site page, the file beside the code, and
+  the corpus statement that will replace both. A move that relocated only the
+  site page would leave the divergent copy in place and make it the sole
+  statement by default — the worse outcome, because the surviving copy is the
+  one missing `Configuration` and `Embedding Mechanism`.
+
 ### Section 7 — what this inventory excludes
 
 - **FR-017**: The corpus MUST state what it leaves out and why, so an omission
@@ -242,6 +285,11 @@ serves.
   - **The UI's internals.** They are FR-014's gap, and stating them here would
     be doing the move this feature is not.
   - **osapi's testing conventions.** Its own `CONTRIBUTING.md`'s, cited.
+  - **Documentation outside `docs/`, beyond the one file FR-019 records.** The
+    classification counted published pages; `ui/docs/architecture.md` was found
+    by looking wider and is recorded as a gap. `ui/AI_POLICY.md` and the
+    repository-root files are policy and process rather than architecture, and
+    are not inventoried.
 
 ### The classification of all 219 pages
 
