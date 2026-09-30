@@ -502,6 +502,74 @@ wrong.
   as a pattern rather than as two incidents, because the next baseline will
   offer the same opportunity.
 
+### Corrected: what the classifications found
+
+All five repositories with documentation have now been classified, at specs#169,
+#205, #206 and #207. FR-027's table predicted the result and was wrong about
+half of it.
+
+- **FR-035**: FR-027's table MUST be read with this correction. It is kept as
+  written because what it got wrong is the finding.
+
+  | Repository           | Pages | FR-027 predicted      | Classified                |
+  | -------------------- | ----: | --------------------- | ------------------------- |
+  | `osapi`              |   219 | needed, see FR-030    | **2 pages move**, 1 split |
+  | `osapi-orchestrator` |   140 | the largest remaining | **nothing moves**         |
+  | `gohai`              |    68 | needed                | **3 pages move**          |
+  | `nats-client`        |     8 | likely small          | **nothing moves**         |
+  | `nats-server`        |     5 | likely small          | **nothing moves**         |
+  | `osapi-justfiles`    |     0 | none, nothing to move | nothing to move           |
+
+  Three of the six rows are wrong, and the largest one is wrong by the largest
+  margin: 140 pages predicted to be the biggest move produce no move at all.
+  What actually moves in the whole programme is five pages, three from `gohai`
+  and two from `osapi`, plus the part of `osapi`'s `sdk/guidelines.md` that is
+  not a demonstration of rules the corpus already states.
+
+- **FR-036**: The corpus MUST state what predicts a move, since a page count
+  does not. What predicts it is **who the repository's documentation was written
+  for**, and that is a property of the tree as a whole rather than of its size.
+  Four of the five repositories wrote every page for the people importing the
+  package, and produced no move between them. `osapi` publishes a site aimed at
+  operators and put contributor architecture on it, which is why a tree a
+  quarter the size of `osapi-orchestrator`'s produced the only substantial move
+  in the programme.
+
+  Stated because the wrong prediction was not a slip. It was a reasonable
+  inference from the only figure available before anybody read the pages, and
+  the lesson is that the figure does not carry the information.
+
+- **FR-037**: The corpus MUST record the convention the classifications made
+  visible, which no repository owns and nothing states. Four repositories carry
+  the same `docs/README.md` shape: an index table pointing at one directory per
+  package, opening with the same sentence about `examples/` and
+  `CONTRIBUTING.md`, word for word.
+
+  ```sh
+  cd ~/git/osapi-io && for r in gohai osapi-orchestrator nats-client nats-server; do
+    grep -c 'Runnable programs live in' $r/docs/README.md
+  done   # 1 1 1 1
+  ```
+
+  `osapi`, the one with a published site, does not. So the organization has a
+  documentation layout that four repositories follow by copying each other, and
+  a fifth that diverges for a reason nothing records. This is a candidate for
+  `.charter/fragments/`, since it is a rule a repository can be measured
+  against, and it is left as a gap rather than written here: a fragment composed
+  into six constitutions is not a thing to add as a footnote to another
+  feature's correction. Owner: `system`, its own feature.
+
+- **FR-038**: This feature's **own task list** MUST agree with FR-031. FR-031
+  corrected the classification total from 442 to 440 and `tasks.md` still says
+  442 in two places, in T021 and in its closing figures. Corrected with this
+  amendment.
+
+  The 442 came from `osapi`'s 221 plus the other four repositories' 221, a
+  coincidence the task list called out as a coincidence. With `osapi` at 219 the
+  coincidence is gone, which is the only reason the stale figure is visible at
+  all. A number that was interesting for being equal stops being equal when it
+  is corrected, and that is a better alarm than most.
+
 ### What this feature does not do
 
 - **FR-016**: This specification MUST NOT write any of the five remaining
