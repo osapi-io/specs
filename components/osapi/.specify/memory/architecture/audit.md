@@ -59,17 +59,31 @@ full.
 the build says so. Adding a field that carries a secret means adding its name
 here, and there is no test that fails if you forget.
 
+**Nothing currently leaks.** Every secret-bearing field in every domain's request
+body today is covered: `password` is on the list, `content` is on the list, and
+`node/user`'s `key` is an SSH *public* key. `job`'s `data` never reaches redaction
+at all, because `Summarize` only ever sees a request body and that field is in a
+response. So this is a footgun rather than a defect, and it is recorded as
+osapi-io/osapi#551.
+
 The match is on the field name only. A secret in a field called `value`, or
 concatenated into a string that happens to be called something innocuous, is
 stored.
 
-## Summaries are capped, and say when they were
+## Two limits, and they behave differently
 
-2048 bytes. A file deploy or a template can carry far more than an audit trail
-needs, and an entry that grows without bound is an audit store that fills up.
+**64 KiB is the most the middleware will read.** A request body larger than that
+is **not recorded at all**: the summary becomes
+`[body over 65536 bytes, not recorded]` and nothing of the request is kept.
 
-A truncated summary **says that it was truncated**, so a reader does not mistake
-part of a request for the whole of it.
+**2048 bytes is the most a summary keeps.** A body under 64 KiB is parsed,
+redacted, and then truncated to this, and a truncated summary **says that it was
+truncated** so a reader does not mistake part of a request for the whole of it.
+
+The difference matters when reading an entry. A marker means the request was too
+large to look at; a truncation marker means it was looked at and abbreviated. A
+file deploy of a large template gets the first, so the audit trail records that it
+happened and nothing about what was deployed.
 
 ## Where entries go
 
