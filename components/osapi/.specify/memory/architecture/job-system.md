@@ -102,16 +102,20 @@ This is the part an operator misreads most often.
 | ---------------------------- | ------- | ----------------------------------------- |
 | `controller.api.job_timeout` | `30s`   | how long the controller waits for an answer |
 | the agent's command deadline | per operation | how long the work may run             |
-| `DefaultCommandTimeout`      | `10m`   | the backstop for a command with no deadline |
+| `DefaultCommandTimeout`      | `10m`   | the **ceiling** on any command, applied to all of them |
 
 **The gap between the first two is the point.** The controller stops waiting long
 before the work has to stop. So "timed out" means the controller gave up, and
 says nothing about whether the operation ran or is still running.
 
+The ten minutes is a ceiling rather than a fallback. `internal/exec` wraps every
+command's context in it unconditionally, so a caller can ask for less and cannot
+ask for more. See [running commands](exec.md).
+
 Cancelling the originating API request does not stop a running operation, and
 `job delete` removes the queue entry rather than the process. An operation stops
-for one of three reasons: its own deadline, the backstop, or the agent shutting
-down.
+for one of three reasons: its own deadline, the ten-minute ceiling, or the agent
+shutting down.
 
 ## What a caller gets back
 
@@ -177,8 +181,8 @@ this is normal rather than a fault.
 beside the message says why.
 
 `timeout` means the **controller** stopped waiting. It says nothing about the host:
-the work may be finished, may still be running under its own 10-minute backstop,
-or may never have started. Cancelling the request would not have stopped it.
+the work may be finished, may still be running under the 10-minute ceiling, or may
+never have started. Cancelling the request would not have stopped it.
 
 **A missing row** is the one that is easy to overlook. Nineteen rows for twenty
 machines means an agent was not in the expected set, because its registration is
