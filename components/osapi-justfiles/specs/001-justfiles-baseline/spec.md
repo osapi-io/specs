@@ -164,9 +164,16 @@ checked. The section headings below are the seven 002 fixes, in 002's order.
   other repository in the organization and is depended on by **seven**, itself
   among them — every non-archived public repository in the organization that has
   a justfile at all. It is the only node in the dependency graph with no
-  outgoing edge, which is the exact opposite of `osapi`'s position as the hub
-  with the most incoming *and* outgoing edges. Verified from every consumer's
-  `fetch` recipe, over the set
+  outgoing edge, which is the exact opposite of `osapi`'s position as the only
+  node with edges in **both** directions.
+
+  **Corrected 2026-09-30**: this said `osapi` is "the hub with the most incoming
+  *and* outgoing edges", which FR-004's table two requirements below
+  contradicts. `osapi-justfiles` has seven incoming edges; `osapi` has three of
+  any kind. The word "hub" was doing two jobs: most edges, which is this
+  repository, and on both sides of the graph, which is `osapi`. Only the second
+  reading makes `osapi` first in the order, so only the second is meant.
+  Verified from every consumer's `fetch` recipe, over the set
   `gh repo list osapi-io --no-archived --visibility public` returns rather than
   over a list written here: `grep -A8 '^fetch:' <repo>/justfile`. Only `.github`
   has no justfile.
@@ -561,7 +568,7 @@ the repository it is in.
 - **SC-004**: For each of the seven required sections, this specification says
   whether it was filled and what filled it; no section is absent without a
   stated reason.
-- **SC-005**: The three gaps are stated with both sides named and an owner, and
+- **SC-005**: The four gaps are stated with both sides named and an owner, and
   none is corrected here.
 - **SC-006**: `just test` passes in the specifications repository.
 - **SC-007**: Nothing in the `osapi-justfiles` repository changes.

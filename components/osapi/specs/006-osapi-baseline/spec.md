@@ -141,8 +141,8 @@ serves.
   bump want to land together.
 - **FR-005**: The corpus MUST state that osapi also depends on `osapi-justfiles`
   for its build, that this appears in no `go.mod` because it is fetched by a
-  justfile recipe, and that the fetch is unpinned. Owner of the pinning: those
-  repositories.
+  justfile recipe, and that the fetch is unpinned. Owner of the pinning:
+  `osapi-justfiles`.
 
 ### Section 3 — architecture
 
@@ -188,7 +188,7 @@ serves.
   | Count                    | Value | Command                                                                                                                   |
   | ------------------------ | ----- | ------------------------------------------------------------------------------------------------------------------------- |
   | Go files                 | 2,739 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                                                      |
-  | Go files excluding tests | 1,814 | the same, plus `-not -name '*_test.go'`                                                                                   |
+  | Go files excluding tests | 1,814 | `find . -name '*.go' -not -path './.git/*' -not -name '*_test.go' \| wc -l`                                               |
   | Site pages               | 219   | `find docs/docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                                      |
   | Files under `docs/`      | 221   | `find docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                                           |
   | Provider categories      | 6     | `ls -d internal/provider/*/ \| wc -l`                                                                                     |
@@ -334,7 +334,9 @@ serves.
 - **SC-002**: Every count in the baseline is paired with its command, and
   running the seven commands reproduces the seven values.
 - **SC-003**: No section transcribes a call chain or lists the exported surface.
-- **SC-004**: Section 7 is non-empty — five exclusions, each with a reason.
+- **SC-004**: Section 7 is non-empty — six exclusions, each with a reason. Five
+  when this was written; the 2026-09-29 amendment added the sixth and this
+  criterion was not updated with it.
 - **SC-005**: All 219 site pages are classified, and the three contributor pages
   are named with their line counts and what holds them.
 - **SC-006**: Nothing in the osapi repository changes. `git -C osapi status` is

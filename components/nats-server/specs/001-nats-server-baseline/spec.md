@@ -141,8 +141,8 @@ checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
   records for the other half of the transport.
 - **FR-005**: The corpus MUST state that it also depends on `osapi-justfiles`
   for its build, that this edge appears in no `go.mod` because a justfile recipe
-  fetches it, and that the fetch is unpinned. Owner of the pinning: those
-  repositories.
+  fetches it, and that the fetch is unpinned. Owner of the pinning:
+  `osapi-justfiles`.
 
 ### 3. Architecture
 
@@ -179,9 +179,9 @@ checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
   upstream option through it, and a change upstream changes this package's
   surface with no commit here. Verified: `pkg/server/types.go`.
 - **FR-012**: The corpus MUST state that the contract is otherwise one
-  constructor, two methods, and three exported types — `Server`, `Options` and
-  `SlogWrapper` — plus the one interface. Everything under `pkg/server/mocks/`
-  is generated and is not the contract.
+  constructor, two methods, and three exported types a consumer names —
+  `Server`, `Options` and `SlogWrapper` — plus the one interface. Everything
+  under `pkg/server/mocks/` is generated and is not the contract.
 - **FR-013**: The corpus MUST state what the contract does **not** let a
   consumer decide, because this is the part a signature does not show: whether
   debug and trace logging are on (they always are — FR-014), and whether the
@@ -192,18 +192,18 @@ checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
 - **FR-016**: The corpus MUST state each count with the command that reproduces
   it. Measured 2026-09-30 at `7ac142e`:
 
-  | Measurement                    | Value | Command                                                                                            |
-  | ------------------------------ | ----: | -------------------------------------------------------------------------------------------------- |
-  | Go files                       |    12 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                               |
-  | Go files excluding tests       |    10 | the same, plus `-not -name '*_test.go'`                                                            |
-  | Non-test files in `pkg/server` |     4 | `find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' \| wc -l`                         |
-  | Exported functions             |     1 | the same, with `grep -hE '^func [A-Z]'` — `New`                                                    |
-  | Exported methods               |     8 | the same, with `grep -hE '^func \([a-z]+ \*[A-Za-z]+\) [A-Z]'` — 2 on `Server`, 6 on `SlogWrapper` |
-  | Exported types                 |     4 | the same, with `grep -hE '^type [A-Z]'`                                                            |
-  | Interfaces                     |     1 | the same, with `grep -hE '^type [A-Z][A-Za-z]* interface'`                                         |
-  | Documentation pages            |     5 | `find docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                    |
-  | README lines                   |    58 | `wc -l README.md`                                                                                  |
-  | Runnable examples              |     4 | `ls -d examples/*/ \| wc -l`                                                                       |
+  | Measurement                    | Value | Command                                                                                                                                                                         |
+  | ------------------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | Go files                       |    12 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                                                                                                            |
+  | Go files excluding tests       |    10 | `find . -name '*.go' -not -path './.git/*' -not -name '*_test.go' \| wc -l`                                                                                                     |
+  | Non-test files in `pkg/server` |     4 | `find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' \| wc -l`                                                                                                      |
+  | Exported functions             |     1 | `find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^func [A-Z]' {} + \| wc -l`, which is `New`                                                    |
+  | Exported methods               |     8 | `find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^func \([a-z]+ \*[A-Za-z]+\) [A-Z]' {} + \| wc -l`, being 2 on `Server` and 6 on `SlogWrapper` |
+  | Exported types                 |     4 | `find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^type [A-Z]' {} + \| wc -l`                                                                    |
+  | Interfaces                     |     1 | `find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^type [A-Z][A-Za-z]* interface' {} + \| wc -l`                                                 |
+  | Documentation pages            |     5 | `find docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                                                                                                 |
+  | README lines                   |    58 | `wc -l README.md`                                                                                                                                                               |
+  | Runnable examples              |     4 | `ls -d examples/*/ \| wc -l`                                                                                                                                                    |
 
   The `node_modules` exclusion is load-bearing, which this requirement said it
   was not. **Corrected 2026-09-30**: it claimed the repository has no vendored
@@ -236,10 +236,13 @@ checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
 
 ### 6. Gaps
 
-Three, all found by reading `Start()`. **Two of the three are partly documented
-and the amendment below says exactly how far** — the original wording claimed
-all three were "stated in none of the five documentation pages", which was true
-of one and an overclaim about two. None is corrected here.
+Three, all found by reading `Start()`, and a fourth in section 5 that a count
+found rather than a reading: `docs/node_modules` is ignored by the developer's
+global gitignore rather than by this repository's, recorded under FR-016 because
+that is the count it corrects. **Two of the three are partly documented and the
+amendment below says exactly how far** — the original wording claimed all three
+were "stated in none of the five documentation pages", which was true of one and
+an overclaim about two. None is corrected here.
 
 - **FR-014**: The corpus MUST record that **debug and trace logging are enabled
   unconditionally**. `Start()` calls `SetLogger(wrapper, true, true)`, and

@@ -28,7 +28,7 @@ because it is the same mistake osapi's baseline made.
 **It is read while reading osapi's.** This repository exists to be imported, so
 its section 2 is written to be read alongside
 [osapi's baseline](../../../osapi/specs/006-osapi-baseline/spec.md), whose
-FR-115 states the same edge from the other end.
+FR-003 states the same edge from the other end.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -131,7 +131,7 @@ checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
   Verified from both ends — `grep -oE "osapi-io/[a-z-]+" go.mod` in this
   repository returns only its own module path, and the same command in
   `osapi/go.mod` returns `nats-client`.
-  [osapi's baseline FR-115](../../../osapi/specs/006-osapi-baseline/spec.md)
+  [osapi's baseline FR-003](../../../osapi/specs/006-osapi-baseline/spec.md)
   states the same edge from the other side.
 - **FR-004**: The corpus MUST state what breaks in that direction and **when**:
   a change to the exported surface of `pkg/client` breaks osapi's transport
@@ -142,7 +142,7 @@ checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
 - **FR-005**: The corpus MUST state that `nats-client` also depends on
   `osapi-justfiles` for its build — the `go`, `just` and `md` modules — that
   this edge appears in no `go.mod` because it is fetched by a justfile recipe,
-  and that the fetch is unpinned. Owner of the pinning: those repositories. See
+  and that the fetch is unpinned. Owner of the pinning: `osapi-justfiles`. See
   [osapi-justfiles' baseline FR-017](../../../osapi-justfiles/specs/001-justfiles-baseline/spec.md).
 
 ### 3. Architecture
@@ -240,11 +240,11 @@ what passes between parts, nothing a rename would falsify.
   | Measurement                    | Value | Command                                                                                                                     |
   | ------------------------------ | ----: | --------------------------------------------------------------------------------------------------------------------------- |
   | Go files                       |    33 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                                                        |
-  | Go files excluding tests       |    20 | the same, plus `-not -name '*_test.go'`                                                                                     |
+  | Go files excluding tests       |    20 | `find . -name '*.go' -not -path './.git/*' -not -name '*_test.go' \| wc -l`                                                 |
   | Non-test files in `pkg/client` |    11 | `find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' \| wc -l`                                                  |
   | `Client` methods               |    25 | `find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^func \(c \*Client\) [A-Z]' {} + \| wc -l` |
-  | Exported types in `pkg/client` |     9 | the same, with `grep -hE '^type [A-Z]'`                                                                                     |
-  | Exported functions             |     1 | the same, with `grep -hE '^func [A-Z]'` — `New`                                                                             |
+  | Exported types in `pkg/client` |     9 | `find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^type [A-Z]' {} + \| wc -l`                |
+  | Exported functions             |     1 | `find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^func [A-Z]' {} + \| wc -l` — `New`        |
   | Documentation pages            |     8 | `find docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                                             |
   | README lines                   |    62 | `wc -l README.md`                                                                                                           |
   | Runnable examples              |     5 | `ls -d examples/*/ \| wc -l`                                                                                                |
