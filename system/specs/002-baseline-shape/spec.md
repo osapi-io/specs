@@ -397,8 +397,11 @@ wrong.
   amendment rather than by this feature.
 - **SC-007**: Every documentation page in every repository is classified as
   user-facing or contributor-facing by that repository's baseline, and no page
-  is moved without its classification stating why. 221 pages across the five
-  repositories that have any.
+  is moved without its classification stating why. **442** pages across the five
+  repositories that have any. **Corrected**: this read 221, which is `osapi`'s
+  own page count and coincidentally also the total for the four repositories
+  still needing a move — two different quantities sharing one figure, which is
+  why the error read as consistent.
 - **SC-008**: After the moves, no contributor rule is stated in both a
   repository and the corpus. This is the one-statement rule applied across
   repositories rather than within one, and it is what the whole exercise is for.

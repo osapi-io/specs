@@ -49,8 +49,15 @@ become a second list that drifts, which is the failure `global/repositories`
 exists to prevent.
 
 **Scale/Scope**: One fragment. One map section. Nine new features and one
-amendment obliged across six projects. 221 documentation pages to be classified
+amendment obliged across six projects. 442 documentation pages to be classified
 by those features, none of them by this one.
+
+**A number collision worth naming, because it reads as consistent and is not.**
+`osapi` alone has 221 documentation pages, and the four repositories that still
+need a move total 221 as well — 68 plus 140 plus 8 plus 5. They are different
+quantities that happen to share a figure. What a baseline classifies is *every*
+page of its own repository, so the programme's total is 442: the five
+repositories that have any, `osapi` included.
 
 ## Constitution Check
 
