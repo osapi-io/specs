@@ -52,10 +52,10 @@ records it.
 
 ### User Story 1 - A consumer knows what it is depending on (Priority: P1)
 
-Somebody maintaining one of the five consuming repositories can state what
-`osapi-justfiles` gives them — which recipes exist, what each needs configured
-before the import, and what happens to their build when the module changes —
-without reading the `.just` files.
+Somebody maintaining one of the five *other* consuming repositories can state
+what `osapi-justfiles` gives them — which recipes exist, what each needs
+configured before the import, and what happens to their build when the module
+changes — without reading the `.just` files.
 
 **Why this priority**: every repository in the organization runs its tests
 through recipes that come from here. It is the one repository whose contract is
@@ -122,8 +122,8 @@ branch rather than from a release.
 
 - **A repository with no code still has an interface.** The shape's contract
   section was written expecting exported symbols. Here the contract is 38 recipe
-  names and about twenty variable names, which is an interface by every test
-  that matters: a consumer depends on it, renaming part of it breaks them, and
+  names and twenty variable names, which is an interface by every test that
+  matters: a consumer depends on it, renaming part of it breaks them, and
   nothing in the repository declares it. Stating it was possible; what had to
   change was the assumption that a contract means code.
 - **A repository that is its own consumer.** `osapi-justfiles` fetches its own
@@ -144,7 +144,7 @@ branch rather than from a release.
 Every requirement is *the corpus MUST state X*, and each names how it was
 checked. The section headings below are the seven 002 fixes, in 002's order.
 
-### 1. What the repository is
+### 1. What this repository is
 
 - **FR-001**: The corpus MUST state that `osapi-justfiles` is a library of
   shared `just` recipes — not a tool, not a service, and not a Go module. It
@@ -157,7 +157,7 @@ checked. The section headings below are the seven 002 fixes, in 002's order.
   made mechanical: the repositories do not each state the recipe, they each
   fetch it.
 
-### 2. Where it sits among the others
+### 2. Where it sits
 
 - **FR-003**: The corpus MUST state that `osapi-justfiles` depends on **no**
   other repository in the organization and is depended on by **all six**,
@@ -241,7 +241,7 @@ on both.
   `run` is possible. Recorded as an inconsistency in the contract, not as a
   defect to fix here.
 
-- **FR-013**: The corpus MUST state the **override variables and their
+- **FR-013**: The corpus MUST state the **twenty override variables and their
   defaults**, because they are the half of the contract a consumer must act on
   before the import rather than after:
 
@@ -268,6 +268,20 @@ on both.
   command and turned the caveat into a verified fact. A limit that can be tested
   is not a limit; it is a check nobody ran.
 
+- **FR-013b**: The corpus MUST state the variable count as **20** rather than as
+  "about twenty", and MUST carry the command that produces it. The figure is
+  exact, enumerable from FR-013's own table, and FR-013a has already established
+  that the table omits nothing — so there was never anything to approximate.
+
+  **Recorded rather than silently corrected, because the hedge is the
+  interesting part.** This specification stated "about twenty" in five places
+  while listing all twenty in a table two paragraphs away, and FR-016's
+  measurement table had no row for them at all. A count is the one thing this
+  repository's constitution says must never be a claim somebody typed, and the
+  approximation survived a specification, an amendment and a plan. It was found
+  by the consistency pass, not by re-reading. A hedge reads as caution and
+  functions as an unmeasured number.
+
 - **FR-014**: The corpus MUST state that **each module pins the tools it invokes
   while nothing pins the module**. `md` pins mdformat 1.0.0, mdformat-gfm 1.0.0
   and Python 3.13; `go` pins a coverage target of 100. So the inner versions are
@@ -283,7 +297,7 @@ on both.
   tomorrow. Inventing a compatibility policy the repository does not have would
   be the standard `global/correction` forbids.
 
-### 5. Measurements, and the commands that reproduce them
+### 5. Measurements
 
 - **FR-016**: The corpus MUST state each measurement with the command that
   produces it, per `global/baseline`. Measured 2026-09-29 at `e765614`:
@@ -293,6 +307,7 @@ on both.
   | Go files                   |     0 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                    |
   | Modules                    |     5 | `ls -d */ \| while read d; do [ -f "$d$(basename $d).just" ] && echo $d; done \| wc -l` |
   | Recipes, all modules       |    38 | `just --justfile <d>/<d>.just --working-directory . --summary` per module               |
+  | Override variables         |    20 | `grep -hcE '^[a-z_][a-z0-9_]* *:?= ' */*.just \| paste -sd+ - \| bc`                    |
   | `.just` lines, all modules |   487 | `wc -l */*.just`                                                                        |
   | Markdown files             |    11 | `find . -name '*.md' -not -path './.git/*' \| wc -l`                                    |
   | Module READMEs             |     5 | `wc -l */README.md`                                                                     |
@@ -300,8 +315,10 @@ on both.
   | Root README lines          |   112 | `wc -l README.md`                                                                       |
   | Documentation site pages   |     0 | no `docs/` tree exists                                                                  |
 
-  Per module: `docusaurus` 10 recipes / 83 lines / 64 README lines; `go` 16 /
-  215 / 93; `just` 2 / 41 / 39; `md` 2 / 60 / 100; `react` 8 / 88 / 57.
+  Per module, recipes / `.just` lines / README lines / variables: `docusaurus`
+  10 / 83 / 64 / 3; `go` 16 / 215 / 93 / 7; `just` 2 / 41 / 39 / 0; `md` 2 / 60
+  / 100 / 8; `react` 8 / 88 / 57 / 2. The variables are the column this table
+  originally had no row for, which is FR-013b.
 
 ### 6. Gaps
 
@@ -336,8 +353,8 @@ the repository it is in.
   the count-with-command rule, and both were directly usable. What it does not
   say is what a "contract" means for a repository that exposes no code — the
   word reads as though it presumes exported symbols, and this baseline had to
-  decide that 38 recipe names and twenty variable names are one. That decision
-  is recorded here rather than folded in silently, because the next non-Go
+  decide that 38 recipe names and 20 variable names are one. That decision is
+  recorded here rather than folded in silently, because the next non-Go
   repository will need the same one. Whether the fragment should say so is
   `system`'s to decide.
 
@@ -360,6 +377,24 @@ the repository it is in.
   - **Whether any recipe is correct.** This states what the contract is, not
     whether a recipe does what its name suggests.
 
+- **FR-021a**: The corpus MUST use `system`'s 002 FR-001 section names
+  **verbatim** — "What this repository is", "Where it sits", "Architecture",
+  "The contract", "Measurements", "Gaps", "What this inventory excludes" —
+  rather than names that merely mean the same thing.
+
+  **This baseline did not, and the correction is the point.** Three of its
+  headings were extended: "What *the* repository is", "Where it sits *among the
+  others*", and "Measurements\*, and the commands that reproduce them\*". Every
+  one was an improvement in isolation — clearer, more specific, better prose.
+  The order was right and so was the meaning, so nothing read as wrong.
+
+  It matters because this is the **first** baseline written to the shape, and
+  four more will be written by copying it rather than by re-reading 002. A
+  section name that drifts by one word per baseline is how six documents stop
+  being one set, and the whole argument for a fixed order is that a reader
+  moving between baselines finds the same answer in the same place. A heading is
+  where they look first.
+
 - **FR-022**: The corpus MUST state that **no section of the seven was
   omitted**, and MUST say what filled each, because that is this unit's second
   deliverable. Sections 1, 2, 5, 6 and 7 filled as they would for any
@@ -377,7 +412,7 @@ the repository it is in.
 - **Recipe**: One named entry point a consumer may invoke. 38 exist, 37 carrying
   their module's prefix.
 - **Override variable**: A value a consumer assigns before the import, which the
-  module's recipes read. About twenty, each with a default.
+  module's recipes read. Twenty, each with a default.
 - **Consumer**: A repository whose justfile fetches and imports at least one
   module. Six, including `osapi-justfiles` itself.
 
