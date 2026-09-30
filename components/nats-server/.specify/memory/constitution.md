@@ -47,6 +47,29 @@ pinned in one path and floating in the other guarantees divergence.
 A tool whose output is committed is pinned, so the committed artifact does not
 change under whoever runs the generator.
 
+### The language version
+
+A tool version and a language version are different promises. The tool version
+is what this repository builds with. The language version in `go.mod` is a
+floor: the oldest release a consumer may build with, and the only one of the two
+that binds somebody else.
+
+A repository supports the two most recent Go minor releases, so the directive
+names the older of them. Naming the newest drops support for the one before it,
+which is the opposite of the rule. Tool provisioning still tracks the latest
+release, because building with a newer toolchain than the floor is always
+allowed and surfaces new vet findings early.
+
+The floor is built in continuous integration, not only declared. A repository
+testing one version while promising two has not tested the promise, and the day
+a newer standard library call compiles locally is the day the floor breaks for
+every consumer with nothing reporting it. The job building the floor reads the
+version from `go.mod` rather than repeating it, so moving the directive moves
+the build with it.
+
+Which release is current is not recorded here. It is what the toolchain list
+returns, for the same reason the repository list is not recorded either.
+
 <!-- [F] global/correction SECTION -->
 
 ## Correction
@@ -81,6 +104,66 @@ The superpowers plugin is not used, and nothing it produces is committed. Its
 planning skills cover ground Spec Kit already owns, and its `docs/superpowers/`
 tree is a second planning record that drifts from the first.
 
+<!-- [F] global/repositories SECTION -->
+
+## Repositories
+
+The repositories in this organization are what
+`gh repo list osapi-io --no-archived --visibility public` returns. No document
+holds a copy of that list.
+
+A written list is correct when written and wrong after the next repository is
+added, and nothing marks the moment it turns. Work spanning repositories takes
+the set from the command each time, and narrows it at the point of use rather
+than by keeping a second list.
+
+What a command can produce is not recorded. A record of it is a cache that
+nothing refreshes and nothing checks, and it reads as current for exactly as
+long as nobody measures.
+
+<!-- [F] global/tracking SECTION -->
+
+## Tracking
+
+An issue records that something should change. A specification records what
+changing it means, and a task list records the order it is built in. These are
+stages of one piece of work, not three records of it: an issue is closed by the
+pull request that implements the specification it became, and a task is never
+mirrored into an issue, which is why `speckit-taskstoissues` is not used.
+
+An issue exists so an intent survives being put down. Work under way is tracked
+by its task list, which is authoritative while it runs; copying it into issues
+produces a second list that drifts from the first and is read by whoever finds
+it first.
+
+An issue is opened in the repository the change lands in, never in the design
+record, because that is where the reader of the code looks. Work spanning the
+organization therefore reads issues alongside pull requests and alerts, and an
+intent nobody wrote down as one is work nobody can find.
+
+Something exploitable is never an issue. An issue is public the moment it is
+opened, so it is reported as a draft advisory on the repository it affects.
+
+<!-- [F] global/baseline SECTION -->
+
+## Baseline
+
+A repository's memory states what the repository is before it states what was
+decided about it. What it is, where it sits among the others, how it is built,
+what a consumer may depend on, what was measured and the command that measures
+it again, where its own prose and its code disagree, and what the inventory
+leaves out.
+
+Memory filled only by archived features records a sequence of changes. It
+answers what was decided and never what the thing is, so a reader arriving at it
+learns how one mechanism works before learning what the repository is for. That
+is the state osapi's memory was in after five features: 1,840 lines, no
+statement of purpose, no dependency, no architecture.
+
+A count is written with the command that produces it. A number alone is a claim
+that was true when somebody typed it, and nothing marks the moment it stops
+being true.
+
 ---
 
-**Version**: 1.1.0 | **Ratified**: 2026-09-02 | **Last Amended**: 2026-09-02
+**Version**: 1.2.0 | **Ratified**: 2026-09-02 | **Last Amended**: 2026-09-29

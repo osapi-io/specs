@@ -2,6 +2,10 @@
 
 > **Revision**: 2026-09-02 — First archival. Seeded from `specs/001-repository-inventory`; every section was previously empty.
 
+> **Revision**: 2026-09-29 — Added the repository map, from
+> `specs/002-baseline-shape`. It is the graph every component baseline states its own
+> edges against.
+
 ## Summary
 
 The repository list comes from a command rather than a document. A charter
@@ -89,3 +93,43 @@ there is nothing to unit test.
 No constitution violations to justify.
 
 [Source: specs/001-repository-inventory/plan.md -> "Complexity Tracking"]
+
+## The Repository Map
+
+Six repositories. Read this for the graph, then read a baseline for a repository.
+`gohai`'s baseline is the worked example: it has no edges either way, so it can be
+read without holding another repository in mind.
+
+| Repository | Depends on | Depended on by | What it is |
+| --- | --- | --- | --- |
+| `osapi` | `nats-client`, `nats-server` | `osapi-orchestrator` | The API and the agent: manages Linux hosts over NATS |
+| `osapi-orchestrator` | `osapi` | — | Drives osapi's SDK to run ordered work across hosts |
+| `nats-client` | — | `osapi` | NATS client wrapper |
+| `nats-server` | — | `osapi` | Embedded NATS server |
+| `gohai` | — | — | SDK-first system fact collection, standalone |
+| `osapi-justfiles` | — | all six, by fetch | Shared justfile modules |
+
+**The commands that produce it**, because a written list is correct when written and
+wrong after the next dependency changes, and nothing marks the moment:
+
+```bash
+grep -oE "osapi-io/[a-z-]+" */go.mod      # the Go edges
+grep -n justfiles */justfile              # the build edge
+```
+
+**The build edge appears in no `go.mod`.** Every repository fetches
+`osapi-justfiles` through a justfile recipe rather than importing it, so a reader who
+ran only the first command would conclude it has no dependents. That is why it is
+listed separately rather than derived from the Go graph.
+
+**A finding, recorded and not fixed here.** That fetch takes
+`refs/heads/main` rather than a pinned ref. The Tooling principle says a tool whose
+output is committed is pinned. Owner: `osapi-justfiles` and each consumer, each in its
+own change — this feature changes no repository.
+
+**How this stays true.** Three things, and the third is what makes it more than a
+promise. The commands above re-derive it. Each component baseline states its own edges
+independently, so the map has six witnesses rather than being the only record. And
+[002's quickstart](../../specs/002-baseline-shape/quickstart.md) makes a disagreement
+between the map and the baselines a checkable failure rather than something a reader
+has to guess at.
