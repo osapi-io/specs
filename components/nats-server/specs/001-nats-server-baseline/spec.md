@@ -101,8 +101,9 @@ inherited them from a file that had already been corrected once.
 - **Trace and debug are indistinguishable downstream.** `SlogWrapper.Tracef`
   calls `logger.Debug`, so NATS trace output arrives in a consumer's logs at
   debug level with nothing marking it as trace. Deliberate — `slog` has no trace
-  level — and worth stating, because a consumer filtering on level cannot
-  separate them.
+  level — and **documented**: `docs/server/logging.md` carries the mapping
+  table. It is listed here because it compounds FR-014 rather than because it is
+  hidden: a consumer who cannot turn trace off also cannot filter it out.
 
 ## Requirements *(mandatory)*
 
@@ -213,8 +214,10 @@ checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
 
 ### 6. Gaps
 
-Three, all found by reading `Start()` and stated in none of the five
-documentation pages. None is corrected here.
+Three, all found by reading `Start()`. **Two of the three are partly documented
+and the amendment below says exactly how far** — the original wording claimed
+all three were "stated in none of the five documentation pages", which was true
+of one and an overclaim about two. None is corrected here.
 
 - **FR-014**: The corpus MUST record that **debug and trace logging are enabled
   unconditionally**. `Start()` calls `SetLogger(wrapper, true, true)`, and
@@ -223,18 +226,37 @@ documentation pages. None is corrected here.
   nothing in the repository warns them. Verified: `pkg/server/server.go:59`, and
   `grep -rn 'SetLogger' pkg/server/*.go` finds the one call site. Owner:
   `nats-server`.
+
+  **What the pages do say, and where the line falls.** `docs/server/logging.md`
+  documents the *mapping* — a table giving `Tracef()` → `slog.Debug()` alongside
+  the other five levels — so a reader learns where trace output lands. What no
+  page says is that trace is **switched on unconditionally**, which is the fact
+  that makes the mapping matter: a reader could reasonably take that table as
+  describing what happens *if* trace is enabled. Documenting where a signal goes
+  is not documenting that the signal is always on.
+
 - **FR-015**: The corpus MUST record that **the logger is attached after the
   server has started and become ready**, so everything logged during startup
   goes to the upstream default logger rather than the consumer's `slog`. A
   consumer debugging a server that failed to become ready finds their own logger
   empty and the reason on stderr. Verified: the statement order in `Start()`.
   Owner: `nats-server`.
+
 - **FR-016a**: The corpus MUST record that **`ReadyTimeout` has no default**.
   `New()` performs no defaulting, so a consumer who leaves it unset passes a
   zero duration to `ReadyForConnections`. All four examples set it to 5 seconds
   explicitly, which is how the absence stays invisible: every path a reader is
   shown supplies the value, so nothing reveals that the value is required.
   Owner: `nats-server`.
+
+  **What the pages do say, and the precise mechanism of the omission.**
+  `docs/server/configuration.md` documents the field — an `Options` table with
+  columns Field, Type and Description, giving `ReadyTimeout` as "Max wait time
+  for server readiness after start" — and its example sets it to 5 seconds.
+  **That table has no Default column.** So the omission is not carelessness in
+  the prose; it is structural. A table that cannot express a default cannot
+  record the absence of one, and a reader sees a documented field with an
+  example value and has no reason to ask.
 
 ### 7. What this inventory excludes
 
@@ -249,8 +271,9 @@ documentation pages. None is corrected here.
     and restating them here would drift — `global/documentation`.
   - **What each of the five documentation pages says.** They are cited as where
     configuration, lifecycle and logging are described for a consumer, not
-    copied. FR-014, FR-015 and FR-016a record that three facts are in none of
-    them.
+    copied. FR-014, FR-015 and FR-016a record what each page does and does not
+    say about the three findings — one is absent entirely, and two are partly
+    covered in a way that reads as complete.
   - **The generated mocks.** `pkg/server/mocks/` is generated and is not the
     contract.
   - **Whether embedding a NATS server is the right design for osapi.** That is
