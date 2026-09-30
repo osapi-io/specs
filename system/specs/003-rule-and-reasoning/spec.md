@@ -327,6 +327,13 @@ and a test applied four times beats a judgement made four times.
   the ten rules of FR-002 into rule and reasoning and states where each goes.
   This is the check that the test is usable by somebody who was not here.
 
+  **Failed on its first run, 2026-09-30, and is the reason FR-007 changed.** A
+  pass is not "ten sorted correctly". A sorter can reach ten correct answers by
+  pattern-matching causal connectives, which is what happened, so the criterion
+  has to ask **how** the reader sorted and not only what they concluded. A pass
+  is ten sorted with reasons that refer to what each statement is about. Any
+  rerun asks both questions.
+
 - **SC-004**: The eight rules `osapi` owes are listed by name, each with where
   its reasoning already lives, so the compliance PR has no discovery to do.
 
