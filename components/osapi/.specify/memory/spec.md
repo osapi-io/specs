@@ -27,6 +27,7 @@ through that same SDK.
 | [Building a domain](architecture/domains.md)   | What a new endpoint touches, in what order, and what is forced by tooling     |
 | [The embedded UI](architecture/ui.md)          | The dashboard compiled into the binary, and what it does not verify          |
 | [The Go SDK](architecture/sdk.md)              | What a service owes, the five naming rules, and the seven methods that break them |
+| [Running commands](architecture/exec.md)       | The six ways to run one, why ten minutes is a ceiling, and where a secret goes |
 
 ## Where it sits
 
