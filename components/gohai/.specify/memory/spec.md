@@ -10,13 +10,23 @@ undocumented shape breaks quietly when the shape changes.
 
 ## Where it sits
 
-Nothing in the organization depends on gohai, and gohai depends on nothing in the
-organization. It is the only component with no edge in either direction, which is
-why `system`'s repository map uses it as the worked example: you can read this
+No Go dependency runs in either direction. Nothing in the organization imports
+gohai, and gohai's `go.mod` names one `osapi-io` path, its own module line. That
+is why `system`'s repository map uses it as the worked example. You can read this
 document without holding another repository in your head.
 
-Its build fetches `osapi-justfiles` through a justfile recipe, from `main` rather
-than from a release. That edge is in no `go.mod`.
+One edge exists and no `go.mod` records it. gohai's build fetches the `go`, `just`
+and `md` modules from `osapi-justfiles` by `curl` from `main` rather than from a
+release, so a change there reaches gohai's next CI run with nothing recording
+which version built it.
+
+Isolation is not the same as doing a different job. gohai and `osapi` both read
+system facts from `gopsutil`, pinned to the same `v4.26.8`, gohai in 14 of its
+62 collector directories and osapi in 21 non-test files, most of them under
+`internal/provider/node/` and one of them in its published SDK at
+`pkg/sdk/platform`. Neither depends on the other and nothing states the
+relationship, so a contributor adding a collector cannot tell whether osapi is a
+consumer they are about to affect. It is not.
 
 ## The collector contract (`internal/collector/collector.go`)
 

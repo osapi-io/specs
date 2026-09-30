@@ -83,12 +83,13 @@ is downstream of it.
 
 ## What no single repository states
 
-Three facts live between repositories and belong here because no component's
+Four facts live between repositories and belong here because no component's
 memory owns them.
 
 **The dependency graph has one hub and one terminal.** osapi is the only
 repository with edges in both directions. osapi-orchestrator has an incoming Go
-edge and no outgoing one. gohai has neither.
+edge and no outgoing one. gohai has no Go edge in either direction, though its
+build fetches justfile modules like everything else.
 
 **A change's blast radius is not proportional to the repository's size.**
 `osapi-justfiles` has no Go at all and reaches seven repositories. `nats-server`
@@ -96,6 +97,19 @@ has twelve Go files and forces a logging decision on the largest one.
 
 **Two repositories wrap the same upstream library from opposite ends**, and the
 facts a consumer needs about reconnection and logging are split between them.
+
+**Two repositories read system facts from `gopsutil` independently**, pinned to
+the same `v4.26.8`. gohai does it in 14 of its 62 collector directories and osapi
+in 21 non-test files, mostly under `internal/provider/node/`. Neither imports the
+other. Whether that is duplication depends on what each needs, and the jobs do
+differ: gohai produces a fact catalogue in OCSF, and osapi wants a few host
+attributes for targeting. What is worth knowing is that the overlap exists, since
+a contributor in either repository would otherwise assume the other is a consumer
+or a supplier, and neither is.
+
+```sh
+grep -h gopsutil gohai/go.mod osapi/go.mod   # the same version twice
+```
 
 ## What is not here
 
