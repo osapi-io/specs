@@ -28,6 +28,7 @@ through that same SDK.
 | [The embedded UI](architecture/ui.md)          | The dashboard compiled into the binary, and what it does not verify          |
 | [The Go SDK](architecture/sdk.md)              | What a service owes, the five naming rules, and the seven methods that break them |
 | [Running commands](architecture/exec.md)       | The six ways to run one, why ten minutes is a ceiling, and where a secret goes |
+| [Permissions](architecture/permissions.md)     | The 37 permissions, the three roles, and why a direct permission overrides them |
 
 ## Where it sits
 
