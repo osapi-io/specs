@@ -4,8 +4,8 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft — amended 2026-09-29 before planning: FR-019 through FR-021
-record a 263-line second statement of the UI architecture at
+**Status**: Completed — amended 2026-09-29 before planning: FR-019 through
+FR-021 record a 263-line second statement of the UI architecture at
 `ui/docs/architecture.md`, which the page classification did not reach because
 it counted published pages. The two copies have already diverged.
 

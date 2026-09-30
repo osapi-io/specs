@@ -2,6 +2,67 @@
 
 ## Merged Features Log
 
+### A baseline for osapi — archived 2026-09-30
+
+**Branch:** `006-osapi-baseline`
+
+**Spec:** [specs/006-osapi-baseline/spec.md](../../specs/006-osapi-baseline/spec.md)
+
+**What was added:**
+
+- The frame this memory lacked. It held 1,840 lines from five archived features
+  and nowhere said what the repository is, so a reader learned how job delivery
+  works before learning what osapi is for. FR-113 through FR-133 answer that, and
+  they are placed **first** in the requirements — before FR-001 — because
+  `global/baseline` requires memory to state what the repository is before what was
+  decided about it.
+- What osapi is, who consumes it, where it sits in both directions and what breaks
+  each way, the six layers stated by what each is for, the request path, and why
+  the provider running on the agent is the fact that explains the whole design.
+- That **osapi's contract is already stated** across four archived features, so
+  the baseline's contract section is mostly citation and says so — the reverse of
+  every other component's baseline.
+- Seven counts with their commands, and why **219 and 221 are both right about
+  different questions**.
+- A classification of all 219 site pages: 216 stay, 3 move.
+- US16, US17, SC-030 to SC-036, AS-027 to AS-031.
+
+**Folded:** one story into US11, which already carried the operator's half of two
+earlier features.
+
+**What the baseline found that nothing was looking for:**
+
+- **Three contributor pages survived the corpus backfill**, because 003 named six
+  candidates and classified those. Two had no corpus counterpart at all — 464 lines
+  of contributor knowledge on an operator's site with nowhere to cite. That changed
+  the programme from eleven units to twelve.
+- `ui/docs/architecture.md`, a **263-line second statement** of the site's UI
+  architecture, already diverged from it, each copy holding a section the other
+  never got, edited eighteen days apart. It sat outside the 219-page
+  classification because that counted *published pages* and this file lives beside
+  the code. **The drift the one-statement rule exists to prevent, observed rather
+  than hypothesised.**
+
+**New Components:**
+
+- None. No Go code changed and nothing in the osapi repository changed.
+
+**Archived last of the seven, and out of order.** It had no `plan.md` for a day
+and the archival gate requires one, so six features reached this memory before the
+one that says what the repository is — including the embedded UI, whose own
+specification depends on this baseline's classification. **A baseline with no plan
+is not merely undocumented; it is unarchivable**, and nothing in the workflow says
+so. Recorded as AS-031.
+
+**Also worth keeping:** the classification summed to **217** on its first attempt,
+because two pages sit outside the subdirectory counts the table was built from. Two
+pages missing from a 219-page classification is invisible to every other check.
+
+**Still open:** `sdk/guidelines.md`'s remainder — the package structure and the
+response pattern — has no feature. `007` moved the two UI pages.
+
+**Tasks Completed:** 15/15 tasks
+
 ### The embedded UI — archived 2026-09-29
 **Branch:** `007-the-embedded-ui`
 **Spec:** [specs/007-the-embedded-ui/spec.md](../../specs/007-the-embedded-ui/spec.md)

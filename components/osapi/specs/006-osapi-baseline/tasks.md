@@ -127,11 +127,11 @@ ______________________________________________________________________
 ## Phase 6: Verification and archival
 
 - [x] T013 Run `cd specs && mise exec -- just test` — SC-007.
-- [ ] T014 Run `speckit-archive-run specs/006-osapi-baseline` once this branch
+- [x] T014 Run `speckit-archive-run specs/006-osapi-baseline` once this branch
   has merged. osapi's memory is **not** empty — it holds 1,840 lines from six
   archived features — so this run folds rather than seeds, and section 4's
   citations must not be expanded into statements while merging.
-- [ ] T015 Record in `system`'s 002 that this baseline is archived, and leave
+- [x] T015 Record in `system`'s 002 that this baseline is archived, and leave
   T023 open: it names three pages, `007` moved two, and the `sdk/guidelines.md`
   remainder has no feature yet.
 
