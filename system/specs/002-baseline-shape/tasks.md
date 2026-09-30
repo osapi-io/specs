@@ -225,10 +225,10 @@ against the right project, and stops there.
   `grep -c '^## Baseline' components/*/.specify/memory/constitution.md` — six
   files, one each.
 
-- [~] T015 [US3] Open `gohai`'s baseline **amendment** — not a new feature. It
+- [x] T015 [US3] Open `gohai`'s baseline **amendment** — not a new feature. It
   adds section 2, section 3, and the classification of its 68 documentation
-  pages. **The classification merged at specs#205; sections 2 and 3 are still
-  owed.** Splitting it that way was not the plan and is worth recording: the
+  pages. **Done.** The classification merged at specs#205 and sections 2 and 3
+  at #209. Splitting it that way was not the plan and is worth recording: the
   classification was self-contained and the two missing sections are not, so
   holding the smaller half back would have delayed a finding for nothing.
   gohai's memory already carries both subjects, written during the memory tree
@@ -464,6 +464,30 @@ reporting a pass against zero baselines.
   the state the programme exists to end and the only check that distinguishes a
   finished one from six inventories written beside the documentation they were
   meant to replace.
+
+  **Blocked, and the residue is measured, 2026-09-30.** The search runs; it
+  cannot pass, because two moves have not happened. What is still in a
+  repository after its own baseline classified it contributor-facing:
+
+  | Page                               | Lines | State                              |
+  | ---------------------------------- | ----: | ---------------------------------- |
+  | `gohai/docs/methodology.md`        |   382 | untouched                          |
+  | `gohai/docs/adding-a-collector.md` |   280 | untouched                          |
+  | `gohai/docs/ocsf-validation.md`    |   107 | untouched                          |
+  | `osapi`'s `sdk/guidelines.md`      |   227 | the non-demonstration part is owed |
+
+  ```sh
+  cd ~/git/osapi-io && wc -l gohai/docs/methodology.md \
+    gohai/docs/adding-a-collector.md gohai/docs/ocsf-validation.md \
+    osapi/docs/docs/sidebar/sdk/guidelines.md
+  ```
+
+  **osapi's UI move is done**, which this task list never recorded. Its three
+  statements were 264, 200 and 263 lines and are now 82, 52 and 9: the site page
+  reduced to the operator's half, the development page likewise, and
+  `ui/docs/architecture.md` a nine-line pointer whose own text says it is a
+  pointer and not a summary, and why. That is the shape FR-027 asks for, and it
+  is the only one of the moves carried out so far.
 
 ______________________________________________________________________
 

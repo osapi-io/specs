@@ -594,6 +594,46 @@ half of it.
   constitutions through `.charter/fragments/global/baseline.md`. Owner: this
   feature, in its own change, for the reason FR-037 gives about fragments.
 
+- **FR-040**: The corpus MUST record what a citation points at now that memory
+  is prose, because this feature changed the answer and did not say so.
+
+  `osapi`'s 005 FR-025 requires citations "named to a requirement rather than to
+  a document", and 003's citation contract gives the reason: "See the job system
+  specification" is a pointer, "FR-007" is a citation, and only the second tells
+  a reader whether what they want is there. That was right when memory held
+  numbered requirements. This feature made memory prose with no requirement
+  identifiers in it, which leaves a citation with two possible targets and no
+  rule choosing between them.
+
+  The count, measured 2026-09-30:
+
+  | Citing                                  | Links | Target                    |
+  | --------------------------------------- | ----: | ------------------------- |
+  | `osapi`'s published documentation pages |    31 | four of its feature specs |
+
+  ```sh
+  grep -rho 'specs/blob/main/components/osapi/specs/[0-9]*-[a-z-]*' \
+    --include='*.md' --include='*.mdx' osapi | sort | uniq -c
+  ```
+
+  `development/adding-an-api-domain.md` holds 16 of them as a table of `FR-001`
+  through `FR-024`, which is what 005's FR-026 deliberately reduced it to. It is
+  the shape that feature wanted and it now sends a contributor to a merged
+  feature specification when a current description of the same subject exists in
+  `architecture/domains.md`.
+
+  Both targets are defensible and they answer different questions. A feature
+  spec says what was decided and when, keeps its numbers forever, and is the
+  right target for provenance, which is why the skills cite it. Memory says what
+  is true today and is the right target for somebody about to write code. What
+  is missing is the sentence saying which one a published page cites.
+
+  Not decided here. Deciding it changes 31 links in `osapi` and the contract two
+  of its features depend on, so it is its own feature with its own review.
+  Owner: this project. Until then the links are correct against 005 and stale
+  against the shape this feature established, and that is worth knowing rather
+  than quietly fixing.
+
 ### What this feature does not do
 
 - **FR-016**: This specification MUST NOT write any of the five remaining
