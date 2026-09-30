@@ -4,7 +4,9 @@
 
 **Created**: 2026-09-29
 
-**Status**: Completed
+**Status**: Completed — amended 2026-09-30: FR-017 through FR-020 add the page
+classification this baseline owed, which `system`'s 002 requires of every
+baseline and which this one predates.
 
 **Input**: gohai's `.specify/memory/` is empty. Its constitution is composed
 from `.charter/` and so states what binds every repository and nothing about how
@@ -283,6 +285,82 @@ gohai's README.
   clean at the end of this feature.
 - **SC-006**: gohai's `.specify/memory/spec.md` is non-empty once this feature
   is archived, and every entry in it carries a source reference to this feature.
+
+### The classification this baseline owed
+
+- **FR-017**: The corpus MUST classify every one of gohai's 68 documentation
+  pages as user-facing or contributor-facing, **by who reads it** rather than by
+  where it sits. This baseline was written before `system`'s
+  [002](../../../../system/specs/002-baseline-shape/spec.md) fixed the shape and
+  carried no classification, which 002's FR-025 requires and its T021 records as
+  owed.
+
+  | Pages                        |   # | Reader      | Disposition                 |
+  | ---------------------------- | --: | ----------- | --------------------------- |
+  | `docs/collectors/*.md`       |  64 | consumer    | **stays**, per 002's FR-028 |
+  | `docs/README.md`             |   1 | consumer    | **stays**, it is the index  |
+  | `docs/adding-a-collector.md` |   1 | contributor | **moves**                   |
+  | `docs/methodology.md`        |   1 | contributor | **moves**                   |
+  | `docs/ocsf-validation.md`    |   1 | contributor | **moves**                   |
+  | **Total**                    |  68 |             | **65 stay, 3 move**         |
+
+  The 64 collector pages stay for the reason 002's FR-028 gives: each documents
+  what one collector returns, and its reader is somebody consuming the library
+  rather than changing it. Separating a collector's interface from its
+  description serves nobody.
+
+- **FR-018**: The corpus MUST state what the three contributor pages hold and
+  that **none has a corpus counterpart**, so this is 769 lines of contributor
+  knowledge on a consumer's documentation tree with nowhere to cite.
+
+  | Page                    | Lines | Holds                                                                                        |
+  | ----------------------- | ----: | -------------------------------------------------------------------------------------------- |
+  | `methodology.md`        |   382 | How gohai decides what a collector reads, which library it wraps, what its fields are called |
+  | `adding-a-collector.md` |   280 | The step-by-step walkthrough for building one                                                |
+  | `ocsf-validation.md`    |   107 | How to validate the OCSF output and vendor extension against the upstream schema             |
+
+  `methodology.md` is the substantive one, and it is **architecture rather than
+  a walkthrough**: what decides a collector's field names and which upstream
+  library it wraps is the design of the collection layer. gohai's memory
+  currently excludes "how any individual collector gathers its facts", which was
+  the right exclusion for 62 instances and the wrong one for the rule they
+  share.
+
+- **FR-019**: The corpus MUST record which of the three pages anything cites,
+  and it is not all of them.
+
+  | Page                    | Cited by `CONTRIBUTING.md`      | Cited by `docs/README.md` |
+  | ----------------------- | ------------------------------- | ------------------------- |
+  | `adding-a-collector.md` | lines 436 and 489               | yes                       |
+  | `methodology.md`        | line 8, as "reference material" | yes                       |
+  | `ocsf-validation.md`    | **nowhere**                     | yes                       |
+
+  ```sh
+  grep -nE 'methodology\.md|adding-a-collector\.md|ocsf-validation\.md' CONTRIBUTING.md
+  ```
+
+  Two of the three are load-bearing for a contributor, so a move relocates their
+  content and must leave those citations resolving. That is the obligation 003's
+  FR-006 placed on osapi's move.
+
+  `ocsf-validation.md` is reachable only from the index, which is a fourth
+  disposition the classification did not have a column for: not stranded, since
+  the index links it, but cited by nothing that tells a contributor when to read
+  it. It is a runbook nobody is sent to.
+
+- **FR-019a**: The corpus MUST record that `docs/README.md` **stays and is
+  edited**. It is the index and it links all four of its siblings, so three rows
+  leave it when the three pages move. A classification that calls the index
+  "stays" and stops there hides an edit inside a move, which is the shape of
+  defect osapi's 007 found four times.
+
+- **FR-020**: The corpus MUST record that the move is **a separate feature**,
+  per 002's FR-026 and FR-027: the baseline classifies and relocates nothing.
+  That feature is not open. Owner: this project.
+
+  It is also larger than osapi's was. osapi's move reconciled 464 lines across
+  two UI pages; this one is 769 across three, and one of them is architecture
+  the baseline explicitly excluded.
 
 ## Assumptions
 
