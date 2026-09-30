@@ -38,6 +38,20 @@
 > about; AS-003 had recorded it as out of scope and becoming its own feature, and
 > this is that feature.
 
+> **Revision**: 2026-09-30 — Added osapi's own baseline
+> (`specs/006-osapi-baseline`): 2 user stories as US16 and US17, 21 requirements as
+> FR-113–FR-133, 7 outcomes as SC-030–SC-036, 5 assumptions as AS-027–AS-031. One
+> story folded into US11. **Its requirements are placed first in the Functional
+> Requirements section, before FR-001**, because `global/baseline` requires memory
+> to state what the repository is before it states what was decided about it, and
+> everything below that point is a decision.
+
+> **Revision**: 2026-09-30 — Archived **last of the seven**, out of order, because
+> it had no plan for a day and the archival gate requires one. Six features reached
+> this memory before the one that says what the repository is — including the
+> embedded UI, whose specification depends on this baseline's classification.
+> Recorded as AS-031 rather than quietly corrected.
+
 > **Revision**: 2026-09-29 — Three of that feature's own claims were wrong and are
 > archived corrected, with what found each: a grep found a fourth copy of the
 > architecture the classification had missed, a line count found the pointer at ten
@@ -335,6 +349,11 @@ configures and sees, and reads as a whole page rather than a remainder.
 3. **Given** the site after the UI architecture moved, **When** an operator asks how
    to disable the UI, **Then** `controller.ui.enabled` and its default are still
    there. [Source: specs/007-the-embedded-ui/spec.md -> User Story 2]
+4. **Given** the site after the backfill, **When** somebody audits it, **Then**
+   every one of the 219 pages is classified by who reads it, so a contributor page
+   left behind is findable rather than invisible — three survived the backfill
+   because 003 named six candidates and these were not among them.
+   [Source: specs/006-osapi-baseline/spec.md -> User Story 3]
 
 ### User Story 12 - The rule has one home (Priority: P2)
 
@@ -410,6 +429,49 @@ winner would leave no trace that a rule had been in two places, and the next rea
 would have no reason to check. Distinct from US9, which is a document disagreeing
 with the *code*; this is two documents disagreeing with *each other*, which no gate
 detects and no reader of either one can see.
+
+### User Story 16 - Somebody learns what osapi is (Priority: P1)
+
+[Source: specs/006-osapi-baseline/spec.md -> User Story 1]
+
+Somebody arriving at osapi's memory learns what the repository is for, what it
+sits between, and how its parts fit — before learning how any one mechanism
+works.
+
+**Why this priority**: it is the gap. The memory is detailed and frameless — 1,840
+lines of decisions with no statement of purpose.
+
+**Independent Test**: a reader given the corpus alone states what osapi is for,
+names both its upstream dependencies and its downstream consumer, and describes
+the path a request takes without opening the code.
+
+**Acceptance Scenarios**:
+
+1. **Given** the corpus, **When** a reader asks what osapi is, **Then** the answer
+   is in the first requirements subsection rather than inferred from a requirement
+   about job delivery.
+2. **Given** the corpus, **When** a reader asks what would break if `nats-client`
+   changed, **Then** the direction and the consequence are both named.
+
+### User Story 17 - The architecture survives a rename (Priority: P1)
+
+[Source: specs/006-osapi-baseline/spec.md -> User Story 2]
+
+Somebody reads the architecture six months from now and finds it still true,
+because it states what each part is for rather than transcribing how it currently
+calls.
+
+**Why this priority**: osapi is 2,739 Go files. An architecture written at the
+level of function names would be wrong within a month, and a wrong statement
+carries the authority of a specification.
+
+**Independent Test**: no section names a function as the claim rather than as
+evidence for one, and nothing lists the code.
+
+**Acceptance Scenarios**:
+
+1. **Given** the architecture requirements, **When** a function is renamed,
+   **Then** they cite a stale path and remain true.
 
 ### Edge Cases
 
@@ -526,6 +588,105 @@ detects and no reader of either one can see.
 ## Requirements
 
 ### Functional Requirements
+
+#### What osapi is
+
+**This subsection is first deliberately.** `global/baseline` requires memory to
+state what the repository is before it states what was decided about it, and
+everything below this point is a decision. Memory held 1,840 lines of decisions
+and no statement of purpose until this was archived.
+
+- **FR-113**: osapi is two things that ship together: a controller exposing a
+  REST API, and an agent that runs on each managed host. Work reaches a host by
+  being **queued rather than called**. Evidence: `cmd/` holds both entry points;
+  `main.go` dispatches.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-001]
+- **FR-114**: Three kinds of consumer: an operator through the CLI, a program
+  through the Go SDK at `pkg/sdk/client`, and `osapi-orchestrator` through that
+  same SDK. Most of the published site serves the first.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-002]
+
+#### Where osapi sits
+
+- **FR-115**: Both directions of osapi's place in the graph. **Upstream**:
+  `nats-client` and `nats-server`, which it imports. **Downstream**:
+  `osapi-orchestrator`, which imports it. Reproduce with
+  `grep -oE "osapi-io/[a-z-]+" go.mod`.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-003]
+- **FR-116**: What breaks in each direction, because a dependency named without a
+  consequence is trivia. A change to either NATS repository can break osapi's
+  transport. A change to osapi's SDK surface breaks the orchestrator — which pins
+  a pseudo-version commit rather than a tag, so nothing breaks there until
+  somebody bumps it, which is why a rename and its bump want to land together.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-004]
+- **FR-117**: osapi also depends on `osapi-justfiles` for its build. That edge
+  appears in **no `go.mod`**, because it is fetched by a justfile recipe, and the
+  fetch is unpinned. Owner of the pinning: those repositories.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-005]
+
+#### How osapi is built
+
+- **FR-118**: Six layers, stated as **what each is for** rather than how it
+  currently calls: the CLI parses and prints; the REST API validates and
+  delegates; the job system carries work to a host; a provider does the work
+  there; the agent lifecycle registers providers and dispatches to them;
+  configuration is resolved once at startup. Evidence: the directory structure
+  under `cmd/`, `internal/controller/`, `internal/job/`, `internal/provider/`,
+  `internal/agent/`, `internal/config/`.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-006]
+- **FR-119**: The path a mutating request takes —
+  `CLI → SDK → REST API → job client → NATS → agent → provider` — and that **the
+  provider runs on the agent rather than the controller**, because that single
+  fact explains why the API cannot simply do the work.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-007]
+- **FR-120**: The architecture is stated without transcribing the call chain,
+  listing the exported surface, or walking the files. Where a symbol appears it is
+  evidence for a claim, never the claim. This is the level that survives a rename.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-008]
+- **FR-121**: Where the architecture reaches job delivery, provider behaviour,
+  agent identity or domain construction, it **cites** the requirements above
+  rather than summarising them — `#### The job system`,
+  `#### Building a domain` and `#### Where knowledge lives` are the destinations.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-009]
+
+#### osapi's contract, and where it already lives
+
+- **FR-122**: osapi's contract is **already stated**, across four archived
+  features: the provider contract, the agent key store, the job system, and
+  building a domain. This is why the baseline's own contract section is mostly
+  citation, and it says so — a reader must not read its brevity as an omission.
+  This is the reverse of every other component's baseline, where the contract
+  section is the substantive part.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-010]
+- **FR-123**: What an SDK consumer may depend on and what is free to change: the
+  **exported surface of `pkg/sdk/client` is the contract**, and everything under
+  `internal/` is not. Evidence: the package layout.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-011]
+
+#### What osapi measures, and the commands
+
+- **FR-124**: Each count with the command that reproduces it, and what each
+  counts — because two of them differ by a **definition** rather than by a
+  measurement. Measured 2026-09-29 and reproduced unchanged 2026-09-30:
+
+  | Count                    | Value | Command                                                                                                                   |
+  | ------------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------- |
+  | Go files                 | 2,739 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                                                      |
+  | Go files excluding tests | 1,814 | the same, plus `-not -name '*_test.go'`                                                                                   |
+  | Site pages               |   219 | `find docs/docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                                      |
+  | Files under `docs/`      |   221 | `find docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                                           |
+  | Provider categories      |     6 | `ls -d internal/provider/*/ \| wc -l`                                                                                     |
+  | API domains              |    24 | `ls -d internal/controller/api/node/*/ internal/controller/api/*/ \| grep -vE '/(gen\|mocks\|common\|apierr)/$' \| wc -l` |
+  | SDK methods              |   117 | `grep -cE '^func \(s \*[A-Za-z]+Service\)' pkg/sdk/client/*.go` summed                                                    |
+
+  [Source: specs/006-osapi-baseline/spec.md -> FR-012]
+- **FR-125**: **219 and 221 are different quantities.** 219 are site pages under
+  `docs/docs/`; 221 adds `docs/README.md` and `docs/SUPPORT.md`, which are the
+  Docusaurus project's own files rather than published pages. Both are right about
+  different questions, and a reader given only one will conclude the other is
+  broken. `system`'s 002 had recorded osapi at 221 and was amended.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-013]
+
 
 - **FR-001**: The corpus MUST state that a provider is the operations layer, runs
   in the agent process rather than the controller, receives its parameters from
@@ -669,6 +830,69 @@ detects and no reader of either one can see.
 - **FR-029**: The documentation MUST state the rollout order, the failure modes
   from FR-026, and what an operator does when an agent reports no stored key.
   [Source: specs/002-agent-key-store/spec.md -> FR-013]
+
+#### osapi's gaps, as the baseline found them
+
+- **FR-126**: **Three contributor pages survived the corpus backfill**, and why
+  they did: 003 named six candidate pages and classified those, so these three
+  were never candidates and nothing examined them.
+  `architecture/ui.md` at 264 lines, `development/ui-development.md` at 200, and
+  `sdk/guidelines.md` at 227. The two UI pages had **no corpus counterpart at
+  all** — 464 lines of contributor knowledge on an operator's site with nowhere to
+  cite, which is the state the backfill existed to end surviving in a corner it
+  never looked at.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-014]
+- **FR-127**: `sdk/guidelines.md` is a **different case from the other two**. Its
+  rules are already FR-073 and FR-074, and the page cites them and then
+  demonstrates them with worked examples — showing a rule working is not stating it
+  twice. What it holds beyond demonstration, the package structure and the response
+  pattern, is the part with no counterpart. **Still open**: `007` moved the two UI
+  pages and this remainder has no feature.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-015]
+- **FR-128**: That finding changed the programme's arithmetic. `system`'s 002 said
+  osapi's move was "already done, across three features", which was true of the six
+  pages 003 scoped and false of these three. The programme is **twelve units, not
+  eleven**, and 002 was amended in its own change.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-016]
+- **FR-129**: `ui/docs/architecture.md` held **263 lines** and was **a second
+  statement** of the site's `architecture/ui.md`, and the two had already diverged
+  — the file beside the code holding `Feature flags`, the site page holding
+  `Configuration` and `Embedding Mechanism`, last touched eighteen days apart.
+
+  It was outside the 219-page classification, which counted published pages and
+  therefore never reached a documentation file living beside the code it describes.
+  The count was right about published pages and incomplete about the repository's
+  documentation, which are different questions. Reproduce with
+  `git log -1 --format=%cs` on each and a comparison of their `##` headings.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-019]
+- **FR-130**: That is **the drift the one-statement rule exists to prevent,
+  observed rather than hypothesised.** Two documents were once the same, were
+  edited eighteen days apart, and each gained content the other never got. Nothing
+  marked the moment they stopped agreeing.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-020]
+- **FR-131**: osapi's move therefore had to reconcile **three** statements rather
+  than two, and relocating only the site page would have left the divergent copy as
+  the sole statement by default — the worse outcome, because the surviving copy was
+  the one missing two sections. Carried out by `007`.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-021]
+
+#### What osapi's baseline classified, and what it excluded
+
+- **FR-132**: Every one of the 219 site pages is classified as user-facing or
+  contributor-facing, **by who reads it rather than where it sits**. 216 stay and 3
+  move. The classification is the work rather than a by-product: osapi is where the
+  classification-before-move ordering was got wrong the first time, and the three
+  surviving pages are what that cost.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-018]
+- **FR-133**: What the baseline leaves out, so an omission is never mistaken for
+  an oversight: everything the archived features already state, cited not repeated;
+  how any individual provider or domain works, since the contract they share is
+  stated and the 24 domains and 6 provider categories are not; the CLI's full
+  command surface, 143 pages of reference where an operator should read it; the
+  UI's internals, which were FR-126's gap; osapi's testing conventions, which are
+  its own `CONTRIBUTING.md`'s; and documentation outside `docs/` beyond the one
+  file FR-129 records.
+  [Source: specs/006-osapi-baseline/spec.md -> FR-017]
 
 #### The job system
 
@@ -1244,6 +1468,32 @@ detects and no reader of either one can see.
 
 ## Assumptions
 
+- **SC-030**: A reader given the corpus alone states what osapi is for, names both
+  upstream dependencies and the downstream consumer, and describes the request
+  path.
+  [Source: specs/006-osapi-baseline/spec.md -> SC-001]
+- **SC-031**: Every count in osapi's baseline is paired with its command, and
+  running the seven commands reproduces the seven values. **Verified 2026-09-30**:
+  all seven reproduced unchanged.
+  [Source: specs/006-osapi-baseline/spec.md -> SC-002]
+- **SC-032**: No part of the architecture transcribes a call chain or lists the
+  exported surface.
+  [Source: specs/006-osapi-baseline/spec.md -> SC-003]
+- **SC-033**: The exclusions are non-empty — five, each with a reason — so an
+  omission is never mistaken for an oversight.
+  [Source: specs/006-osapi-baseline/spec.md -> SC-004]
+- **SC-034**: All 219 site pages are classified, and the three contributor pages
+  are named with their line counts and what holds them. **The classification summed
+  to 217 on its first attempt**, because two pages sit outside the subdirectory
+  counts the table was built from; two pages missing from a 219-page classification
+  is invisible to every other check.
+  [Source: specs/006-osapi-baseline/spec.md -> SC-005]
+- **SC-035**: Nothing in the osapi repository changed for the baseline.
+  [Source: specs/006-osapi-baseline/spec.md -> SC-006]
+- **SC-036**: `just test` passes in the specs repository.
+  [Source: specs/006-osapi-baseline/spec.md -> SC-007]
+
+
 - **AS-001**: The audience is contributors and agents working on osapi, not
   operators. What each domain does for a user stays in the published
   documentation; this states how a provider behaves. File paths and named errors
@@ -1349,6 +1599,29 @@ detects and no reader of either one can see.
   have had neither.
   [Source: specs/007-the-embedded-ui/spec.md -> "Counts were measured"]
   [Source: specs/007-the-embedded-ui/research.md -> "Decision 3"]
+- **AS-027**: The audience of osapi's baseline is a contributor or an agent
+  working on osapi, or somebody consuming its SDK. An operator is served by the
+  site, which is why 216 of 219 pages stay.
+  [Source: specs/006-osapi-baseline/spec.md -> "The audience is a contributor or an agent"]
+- **AS-028**: The baseline's counts were measured on `0cca62060` and reproduced
+  unchanged on 2026-09-30. They will date; the commands are what survives.
+  [Source: specs/006-osapi-baseline/spec.md -> "Counts were measured"]
+- **AS-029**: The three contributor pages the baseline found are **moved by
+  separate features**: the baseline classifies and relocates nothing. `007` moved
+  the two UI pages; `sdk/guidelines.md`'s remainder has no feature yet.
+  [Source: specs/006-osapi-baseline/spec.md -> "The three contributor pages are recorded here"]
+- **AS-030**: osapi's archived features stay exactly as they are. A baseline and
+  an archived feature answer different questions — what the repository is, and what
+  was decided about it — and neither replaces the other.
+  [Source: specs/006-osapi-baseline/spec.md -> "osapi's five archived features stay"]
+- **AS-031**: osapi's baseline was **archived last of the seven**, out of the
+  ascending order archival expects, because it had no `plan.md` for a day and the
+  archival gate requires one. Six features reached this memory before it, including
+  the embedded UI, whose own specification depends on the classification this
+  baseline produced. A baseline with no plan is not merely undocumented; it is
+  unarchivable, and nothing in the workflow says so.
+  [Source: specs/006-osapi-baseline/plan.md -> "Summary"]
+
 - **AS-026**: Three of that feature's own claims were wrong and were corrected before
   it was archived, and **each was found by a different one of its own checks, none by
   re-reading the specification**. A grep found a **fourth** copy of the architecture

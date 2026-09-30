@@ -204,6 +204,14 @@ against the right project, and stops there.
   4 is mostly citation and says why, which is what FR-010 of that baseline
   requires.
 
+  **Archived 2026-09-30, and last of the seven rather than first.** It had no
+  `plan.md` for a day — stage 1 merged and stages 3 and 4 were skipped — and the
+  archival gate requires one, so six features reached osapi's memory before the
+  one that says what the repository is, including the embedded UI whose
+  specification depends on this baseline's classification. Plan and tasks at
+  specs#186, archival at specs#187. FR-113 through FR-133 sit **first** in that
+  memory's requirements, before FR-001, because `global/baseline` requires it.
+
 - [x] T014 [US3] **After T013's baseline merges**, and not before, run T004's
   composition if it has not already run — see [research.md](research.md)
   Decision 5. The fragment lands between the first baseline and the remaining

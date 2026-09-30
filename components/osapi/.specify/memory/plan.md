@@ -18,7 +18,13 @@
 > after both backfill subjects, and the two-repository sequence. No new dependency
 > at runtime; `@docusaurus/plugin-client-redirects` added to the site.
 
-> **Revision**: 2026-09-29 — Composed the embedded UI
+> **Revision**: 2026-09-30 — Composed osapi's own baseline
+> (`specs/006-osapi-baseline`), which is the frame this plan described a corpus
+> backfill for and never described the repository of. Adds the Purpose and Place
+> section below, the request path, and what breaks in each direction of the
+> dependency graph. No scalar conflicts: every field composed.
+
+> **Revision**: 2026-09-30 — Composed the embedded UI
 > (`specs/007-the-embedded-ui`). The UI is the part of osapi this plan had never
 > described: Language/Version, Primary Dependencies, Project Type, Testing,
 > Constraints and Scale/Scope each now account for it, the structure gains `ui/`, and
@@ -35,6 +41,38 @@
 > **Revision**: 2026-09-28 — Composed the corpus backfill: the citation contract that
 > the skill linter enforces, and the two redirected addresses. Its two-repository
 > sequence was already here through its second subject, so nothing was restated.
+
+## What osapi Is, and Where It Sits
+
+**First, for the reason `global/baseline` gives**: memory states what the
+repository is before it states what was decided about it.
+
+osapi is a controller exposing a REST API and an agent running on each managed
+host, shipping together. **Work reaches a host by being queued rather than
+called**, which is the one fact that explains why the API cannot simply do the
+work: the provider runs on the agent. The path a mutating request takes is
+`CLI → SDK → REST API → job client → NATS → agent → provider`.
+
+Six layers, each stated by what it is for: the CLI parses and prints; the REST
+API validates and delegates; the job system carries work to a host; a provider
+does the work there; the agent lifecycle registers providers and dispatches to
+them; configuration is resolved once at startup.
+
+Three kinds of consumer — an operator through the CLI, a program through the Go
+SDK at `pkg/sdk/client`, and `osapi-orchestrator` through that same SDK. The
+exported surface of `pkg/sdk/client` is the contract; everything under
+`internal/` is not.
+
+**Where it sits**: it imports `nats-client` and `nats-server`, and
+`osapi-orchestrator` imports it. A change to either NATS repository can break
+osapi's transport. A change to osapi's SDK surface breaks the orchestrator —
+which pins a pseudo-version commit rather than a tag, so nothing breaks there
+until somebody bumps it, **which is why a rename and its bump want to land
+together**. It also depends on `osapi-justfiles` for its build, through a
+justfile fetch that appears in no `go.mod` and is unpinned.
+[Source: specs/006-osapi-baseline/spec.md -> FR-001]
+[Source: specs/006-osapi-baseline/spec.md -> FR-006]
+[Source: specs/006-osapi-baseline/spec.md -> FR-007]
 
 ## Summary
 
