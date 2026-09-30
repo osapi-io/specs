@@ -225,12 +225,28 @@ against the right project, and stops there.
   feature is not carrying it out, and the check belongs to the amendment's own
   task list.
 
-- [ ] T016 [US3] Open `osapi-justfiles`' baseline early rather than last, even
+- [x] T016 [US3] Open `osapi-justfiles`' baseline early rather than last, even
   though it is the smallest. It has no Go and no documentation pages, so it is
   the one repository that tests FR-011 and FR-013 — whether a section may be
   omitted and whether a contract can be stated for something that exposes no
   code. **If the shape cannot be filled there, the shape is wrong**, and finding
   that out after four conforming baselines is the expensive order.
+
+  **Done, and the shape held.** Specified at specs#178, planned and tasked at
+  #180, archived 2026-09-30. **No section was omitted**, so FR-011's allowance
+  was never exercised — and that is the answer this unit existed for. FR-013 was
+  the one that needed work: "the contract" reads as though it presumes exported
+  symbols, and the baseline had to decide that 38 recipe names and twenty
+  variable names are one. They are, by every test that matters, and the bound
+  stated so the word does not become unbounded for the four baselines after it
+  is *something a consumer's build breaks on*.
+
+  It also produced three amendments to this feature — FR-032, FR-033 and FR-034
+  at specs#184 — and one finding it handed back rather than fixing: whether
+  `global/baseline` should say what a contract means for a repository exposing
+  no code, and whether a baseline should carry the shape finding at all, since
+  the SC-001 reading judged that the two deliverables in one document serve a
+  consumer worse. Both are this feature's to decide.
 
 **Checkpoint**: the programme is running under a fixed shape, with its riskiest
 case tested early.

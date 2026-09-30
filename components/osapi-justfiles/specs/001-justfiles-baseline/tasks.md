@@ -223,13 +223,22 @@ ______________________________________________________________________
 
 ## Phase 7: Verification and archival
 
-- [ ] T018 Run `cd specs && mise exec -- just test` — SC-006.
-- [ ] T019 Run `speckit-archive-run specs/001-justfiles-baseline` once this
+- [x] T018 Run `cd specs && mise exec -- just test` — SC-006.
+
+- [x] T019 Run `speckit-archive-run specs/001-justfiles-baseline` once this
   branch has merged. It creates this project's `.specify/memory/spec.md` and
   `plan.md`, which do not exist yet — this is the project's first archival, so
   there is nothing to fold into and every requirement enters as a new entry
   under the feature's own IDs.
-- [ ] T020 Mark `system`'s 002 T016 done, which is what opened this unit. Do
+
+  **Archived 2026-09-30.** `.specify/memory/spec.md`, `plan.md` and
+  `changelog.md` all created; 29 requirements, 3 stories, 4 entities, 4 edge
+  cases, 7 outcomes and 5 assumptions as AS-001 to AS-005, each carrying an
+  item-level source ref. Nothing folded and nothing superseded, because there
+  was nothing there. No agent context file exists in this project, so that step
+  was skipped rather than guessed at.
+
+- [x] T020 Mark `system`'s 002 T016 done, which is what opened this unit. Do
   **not** mark T017 or any other unit: this is unit 6 of 12, and four baselines
   and two moves remain.
 
