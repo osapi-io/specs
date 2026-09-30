@@ -294,6 +294,12 @@ reporting a pass against zero baselines.
   evergreen bound guarantees every baseline excludes something, so a zero means
   the omission was not stated rather than that nothing was omitted.
 
+  **Unit 7 done, 2026-09-30.** `nats-client` baselined at specs#188, amended at
+  #189 and archived at #190. Its reading found something a command could not: an
+  acceptance scenario promising a behaviour the specification never stated. Two
+  counts were also wrong, both missing an exclusion. Remaining: `nats-server`,
+  `osapi-orchestrator`, gohai's amendment, and the moves.
+
 - [ ] T021 [P] SC-007: every documentation page in every repository was
   classified by that repository's baseline before any move touched it — 442
   pages across the five that have any.

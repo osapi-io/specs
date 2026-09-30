@@ -1,36 +1,21 @@
-# Feature Specification: A baseline for nats-client
+# Main Project Specification
 
-**Feature Branch**: `001-nats-client-baseline`
+> **Revision**: 2026-09-30 — Seeded from the NATS client baseline
+> (`specs/001-nats-client-baseline`): 3 user stories, 20 functional requirements,
+> 4 entities, 4 edge cases, 7 measurable outcomes, 4 assumptions. Nothing folded —
+> the project's first archival, so every entry is new under the feature's own IDs.
 
-**Created**: 2026-09-30
+> **Revision**: 2026-09-30 — Three of the baseline's own claims were wrong and are
+> archived corrected, each with what found it. Two were counts whose commands
+> lacked an exclusion: the documentation pages included a vendored file under
+> `docs/node_modules/`, and the exported types included fourteen `*TestSuite` types
+> from `_test.go` files, overstating the contract by more than half. The third was
+> not a count — **an acceptance scenario promised that the connection-drop
+> behaviour was stated, and nothing stated it**. FR-012a and FR-012b. A reading
+> found the third; running a command found the first two; re-reading found none of
+> them.
 
-**Status**: Completed
-
-**Input**: `nats-client`'s `.specify/memory/` holds only a constitution composed
-from `.charter/`, so it states what binds every repository and nothing about
-this one. Unit 7 of the baseline programme `system`'s
-[002](../../../../system/specs/002-baseline-shape/spec.md) defines, and the
-first of the two NATS repositories osapi imports.
-
-## What this specification is, and what it is not
-
-**Its subject is a description, not a change.** Nothing lands in the
-`nats-client` repository: no Go code changes, no method is renamed, no page
-moves. What this produces is an inventory of how the repository behaves today,
-which lives in this feature directory and reaches memory through archival.
-
-**Prose was a lead, never a source.** The repository carries a 62-line README
-and eight documentation pages. None was transcribed. Every count came from a
-command, the commands are given so a reader re-measures, and **the first attempt
-at one of them was wrong** — recorded in FR-016 rather than quietly corrected,
-because it is the same mistake osapi's baseline made.
-
-**It is read while reading osapi's.** This repository exists to be imported, so
-its section 2 is written to be read alongside
-[osapi's baseline](../../../osapi/specs/006-osapi-baseline/spec.md), whose
-FR-115 states the same edge from the other end.
-
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing
 
 ### User Story 1 - A consumer knows what the wrapper gives them (Priority: P1)
 
@@ -103,10 +88,13 @@ first baseline written after that was corrected.
   nothing from the organization. Its section 2 is therefore one edge, stated
   from both ends.
 
-## Requirements *(mandatory)*
 
-Every requirement is *the corpus MUST state X*, and each names how it was
-checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
+## Requirements
+
+### Functional Requirements
+
+The seven sections below are `system`'s 002 FR-001 order, under its names
+verbatim.
 
 ### 1. What this repository is
 
@@ -116,6 +104,8 @@ checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
   Verified:
   `find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' | wc -l`
   returns 11 files, and the only exported function is `New`.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-001]
+
 - **FR-002**: The corpus MUST state what the wrapper **adds** over the upstream
   library, because that is the only part a consumer cannot read in NATS' own
   documentation: a single `Client` holding connection and JetStream context
@@ -123,6 +113,8 @@ checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
   helpers for streams, consumers, key-value buckets and object stores. What it
   does not add is a new protocol, a new wire format, or any retry policy of its
   own.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-002]
+
 
 ### 2. Where it sits
 
@@ -133,17 +125,23 @@ checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
   `osapi/go.mod` returns `nats-client`.
   [osapi's baseline FR-115](../../../osapi/specs/006-osapi-baseline/spec.md)
   states the same edge from the other side.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-003]
+
 - **FR-004**: The corpus MUST state what breaks in that direction and **when**:
   a change to the exported surface of `pkg/client` breaks osapi's transport
   layer, but osapi pins a **pseudo-version commit rather than a tag**
   (`v0.0.0-20260412170202-5d1c1a26fa5a`), so nothing breaks there until somebody
   bumps it. The consequence is delayed rather than absent, which is why a rename
   and its bump want to land together.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-004]
+
 - **FR-005**: The corpus MUST state that `nats-client` also depends on
   `osapi-justfiles` for its build — the `go`, `just` and `md` modules — that
   this edge appears in no `go.mod` because it is fetched by a justfile recipe,
   and that the fetch is unpinned. Owner of the pinning: those repositories. See
   [osapi-justfiles' baseline FR-017](../../../osapi-justfiles/specs/001-justfiles-baseline/spec.md).
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-005]
+
 
 ### 3. Architecture
 
@@ -159,21 +157,29 @@ what passes between parts, nothing a rename would falsify.
   (`kv_stream.go`), object stores (`objectstore.go`), and the option and
   authentication types (`types.go`). A consumer holds one `Client` and reaches
   all of it.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-006]
+
 - **FR-007**: The corpus MUST state what passes across the boundary in each
   direction: an `Options` struct in, and **upstream NATS types out** —
   `jetstream.Msg` reaches a consumer's handler, and `nats.Conn` is reachable
   through the wrapper. The wrapper is therefore not an abstraction over NATS; it
   is a convenience layer that does not hide it, and a consumer who expected
   isolation would be wrong.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-007]
+
 - **FR-008**: The corpus MUST state that a `NATSConnector` interface exists so
   the connection can be substituted in tests, and that this is the **only** seam
   — everything else is concrete. Verified:
   `grep -hE '^type [A-Z][A-Za-z]* interface' pkg/client/*.go` returns one
   result.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-008]
+
 - **FR-009**: The corpus MUST state that the repository ships **five runnable
   examples** under `examples/`, one per authentication mode and one per
   JetStream pattern it supports, and that these are the executable form of the
   documentation rather than an extra to keep in step.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-009]
+
 
 ### 4. The contract
 
@@ -182,18 +188,24 @@ what passes between parts, nothing a rename would falsify.
   Everything under `pkg/client/mocks/` is generated and is not the contract.
   Verified with the test files excluded — see FR-016 for why that exclusion is
   not optional.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-010]
+
 
 - **FR-011**: The corpus MUST state the **three authentication modes** and what
   each requires, because they are the part of the contract a consumer must
   satisfy before anything else works: `NoAuth`; `UserPassAuth`, needing a
   username and password; and `NKeyAuth`, needing the path to an Ed25519 private
   seed file. Verified: `AuthType` and `AuthOptions` in `pkg/client/types.go`.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-011]
+
 
 - **FR-012**: The corpus MUST state what the contract does **not** promise: no
   retry or reconnection policy of the wrapper's own, no abstraction over the
   upstream types FR-007 names, and no stability guarantee beyond what the pin in
   FR-004 gives — the repository publishes no tags, so a consumer depends on a
   commit.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-012]
+
 
 - **FR-012a**: The corpus MUST state **what actually happens when the connection
   drops**, because FR-012 says only what the wrapper does not add and a reader
@@ -219,6 +231,8 @@ what passes between parts, nothing a rename would falsify.
   prose about another project's settings drifts while continuing to read as
   authoritative. What is stated here is that this wrapper contributes nothing to
   them.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-012a]
+
 
 - **FR-012b**: The corpus MUST record **how FR-012a came to exist**, because the
   omission was not random. The SC-001 reading asked what happens when the
@@ -231,6 +245,8 @@ what passes between parts, nothing a rename would falsify.
   claim, because it reads as the test rather than as the assertion under test.
   The scenario is corrected and this requirement records that a reading rather
   than a re-reading caught it.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-012b]
+
 
 ### 5. Measurements
 
@@ -248,6 +264,8 @@ what passes between parts, nothing a rename would falsify.
   | Documentation pages            |     8 | `find docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                                             |
   | README lines                   |    62 | `wc -l README.md`                                                                                                           |
   | Runnable examples              |     5 | `ls -d examples/*/ \| wc -l`                                                                                                |
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-013]
+
 
 ### 6. Gaps
 
@@ -258,12 +276,16 @@ what passes between parts, nothing a rename would falsify.
   to the same version", which has no mechanism here rather than a divergent one
   — the same shape `osapi-justfiles`' unpinned fetch has, and stated the same
   way. Owner: `nats-client`, with a bump in `osapi`.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-014]
+
 
 - **FR-015**: The corpus MUST record that the wrapper **leaks upstream types**
   (FR-007) and that this is a deliberate design rather than a defect — but that
   nothing in the repository says so, so a consumer who expected an abstraction
   learns otherwise by reading the signatures. Owner: `nats-client`, if it
   chooses to say so; this baseline records that it currently does not.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-015]
+
 
 - **FR-016**: The corpus MUST record that **two of this baseline's own
   measurements were wrong on the first attempt**, and what the error was in each
@@ -280,6 +302,8 @@ what passes between parts, nothing a rename would falsify.
 
   Both were caught by running the command rather than by re-reading a number,
   which is the argument for `global/baseline` pairing a count with its command.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-016]
+
 
 ### 7. What this inventory excludes
 
@@ -297,6 +321,8 @@ what passes between parts, nothing a rename would falsify.
     `CONTRIBUTING.md`, cited rather than copied.
   - **Whether the wrapper is the right shape.** This states what it is, not
     whether a consumer should want it.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-017]
+
 
 - **FR-018**: The corpus MUST state that **no section of the seven was
   omitted**, and that the section names are `system`'s 002 names verbatim. This
@@ -304,6 +330,8 @@ what passes between parts, nothing a rename would falsify.
   three headings had drifted; copying that corrected file rather than
   re-deriving the names is what kept them right, which is exactly the
   propagation FR-021a predicted.
+  [Source: specs/001-nats-client-baseline/spec.md -> FR-018]
+
 
 ### Key Entities
 
@@ -314,34 +342,53 @@ what passes between parts, nothing a rename would falsify.
 - **Leaked upstream type**: A NATS type reaching a consumer through the
   wrapper's signatures. `jetstream.Msg` and `nats.Conn` are the two that matter.
 
-## Success Criteria *(mandatory)*
+
+## Success Criteria
 
 ### Measurable Outcomes
 
 - **SC-001**: A reader given the corpus alone states what the wrapper adds over
   the upstream library, names the three authentication modes, and says which
   JetStream primitives it covers.
+  [Source: specs/001-nats-client-baseline/spec.md -> SC-001]
+
 - **SC-002**: Every count is paired with a command, and running the nine
   commands reproduces the nine values.
+  [Source: specs/001-nats-client-baseline/spec.md -> SC-002]
+
 - **SC-003**: A reader can state what breaks when `pkg/client`'s surface
   changes, and **when** it breaks — not at the change, but at the bump.
+  [Source: specs/001-nats-client-baseline/spec.md -> SC-003]
+
 - **SC-004**: The three gaps are stated with both sides named and an owner, and
   none is corrected here.
+  [Source: specs/001-nats-client-baseline/spec.md -> SC-004]
+
 - **SC-005**: All seven sections are present, in 002's order, under 002's names
   verbatim.
+  [Source: specs/001-nats-client-baseline/spec.md -> SC-005]
+
 - **SC-006**: `just test` passes in the specs repository.
+  [Source: specs/001-nats-client-baseline/spec.md -> SC-006]
+
 - **SC-007**: Nothing in the `nats-client` repository changes.
+  [Source: specs/001-nats-client-baseline/spec.md -> SC-007]
+
 
 ## Assumptions
 
-- The measurements are of `cfe12f6`. Counts will date; the commands are what
+- **AS-001**: The measurements are of `cfe12f6`. Counts will date; the commands are what
   survives, and FR-016 records that the commands are where the errors were.
-- The eight documentation pages stay where they are. Each documents one part of
+  [Source: specs/001-nats-client-baseline/spec.md -> "The measurements are of `cfe12f6`. Counts will"]
+- **AS-002**: The eight documentation pages stay where they are. Each documents one part of
   the package's surface for a consumer of the library, which is the same reason
   002's FR-028 leaves `gohai/docs/collectors/` in place.
-- `nats-server` is a separate repository with a separate baseline, unit 8. The
+  [Source: specs/001-nats-client-baseline/spec.md -> "The eight documentation pages stay where they"]
+- **AS-003**: `nats-server` is a separate repository with a separate baseline, unit 8. The
   two are read together by a reader of osapi's transport layer but neither
   imports the other.
-- Nothing about the missing tags is being proposed here. FR-014 records that a
+  [Source: specs/001-nats-client-baseline/spec.md -> "`nats-server` is a separate repository with a"]
+- **AS-004**: Nothing about the missing tags is being proposed here. FR-014 records that a
   consumer cannot name a version; what to do about it belongs to a change in the
   repository that owns it.
+  [Source: specs/001-nats-client-baseline/spec.md -> "Nothing about the missing tags is being proposed"]
