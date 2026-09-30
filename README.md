@@ -53,6 +53,30 @@ the next change, with nothing marking the moment.
 Each follows the [Agent Skills] format: a slim `SKILL.md` that routes, with the
 detail in reference files an agent reads only when the question calls for them.
 
+## The architecture documentation
+
+Each repository's memory is its architecture document, kept current as features
+land. Start with
+[how they fit together](system/.specify/memory/architecture.md), or go straight
+to one.
+
+| Repository                                                                  | Is                                           |
+| --------------------------------------------------------------------------- | -------------------------------------------- |
+| [osapi](components/osapi/.specify/memory/spec.md)                           | The API and the agent that manage a host     |
+| [osapi-orchestrator](components/osapi-orchestrator/.specify/memory/spec.md) | A declarative layer over osapi's SDK         |
+| [nats-client](components/nats-client/.specify/memory/spec.md)               | A wrapper over the NATS client               |
+| [nats-server](components/nats-server/.specify/memory/spec.md)               | A NATS server embedded in its consumer       |
+| [gohai](components/gohai/.specify/memory/spec.md)                           | A system fact collection library, standalone |
+| [osapi-justfiles](components/osapi-justfiles/.specify/memory/spec.md)       | Shared `just` recipes, consumed by all seven |
+
+osapi's is the one to read first, since five of the six either feed it or
+consume it. It links out to its own subjects: the job system, providers, agent
+identity, building a domain, and the embedded UI.
+
+The specifications under each `specs/` are the process that produced those
+documents. They record what a change was going to do and are not written to be
+read afterwards.
+
 ## Documentation
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers prerequisites, setup, how to operate
