@@ -80,10 +80,29 @@ ______________________________________________________________________
   default — but nothing produces the findings from scratch. Record that, because
   the temptation on the next thin wrapper will be to trust its size.
 
-- [ ] T008 [US1] Confirm all three facts are absent from all five documentation
+- [x] T008 [US1] Confirm all three facts are absent from all five documentation
   pages, and that the pages covering those subjects are `configuration.md`,
   `lifecycle.md` and `logging.md` — the three the findings fall under. Grep each
   page for `SetLogger`, `trace`, `ReadyTimeout` and `default`.
+
+  **The grep contradicted the specification, and the specification was wrong.**
+  It had claimed all three facts were "stated in none of the five documentation
+  pages". One is: `SetLogger` appears nowhere, so FR-015's finding stands as
+  written. The other two do not:
+
+  - `trace` is in `docs/server/logging.md`, which documents the `Tracef()` →
+    `slog.Debug()` mapping. So where trace output lands **is** documented; that
+    it is switched on unconditionally is not.
+  - `ReadyTimeout` is in `configuration.md`, `lifecycle.md` and
+    `server/README.md`, with a description and an example value. So the field
+    **is** documented; that it has no default is not — and the mechanism is that
+    the `Options` table has columns Field, Type and Description and **no Default
+    column at all**.
+
+  Both refinements make the findings sharper rather than weaker, and both were
+  corrected at specs#192 before archival. **The overclaim is the lesson**:
+  "stated nowhere" is a stronger claim than "the fact I care about is not
+  stated", and the first is easier to write and harder to defend.
 
 - [ ] T009 [US1] Run the SC-001 reading. Give somebody who has not opened
   `pkg/server` the specification alone and three questions: what does `Start()`
