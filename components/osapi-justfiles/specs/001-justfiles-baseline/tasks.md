@@ -33,7 +33,7 @@ ______________________________________________________________________
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm the specification and its amendment are both on `main` before
+- [x] T001 Confirm the specification and its amendment are both on `main` before
   re-measuring anything: `git -C specs log --oneline -3` must show specs#179
   above specs#178. Measuring against an unamended specification would re-find
   FR-011a as though it were new, which is how a correction gets recorded twice.
@@ -52,40 +52,47 @@ Run from `~/git/osapi-io/osapi-justfiles` at `e765614` or later. Where a later
 commit gives a different figure, the specification is amended in its own change
 before this list is completed.
 
-- [ ] T002 Zero Go files — FR-001:
+- [x] T002 Zero Go files — FR-001:
   `find . -name '*.go' -not -path './.git/*' | wc -l` → `0`. This is the
   measurement the whole unit rests on: it is why this repository tests the
   shape.
-- [ ] T003 Five modules, each with one `.just` file named for its directory —
+- [x] T003 Five modules, each with one `.just` file named for its directory —
   FR-006:
   `ls -d */ | while read d; do [ -f "$d$(basename $d).just" ] && echo $d; done | wc -l`
   → `5`.
-- [ ] T004 Thirty-eight recipes, **counted two ways that must agree** — FR-011.
+- [x] T004 Thirty-eight recipes, **counted two ways that must agree** — FR-011.
   By summary:
   `for d in docusaurus go just md react; do just --justfile $d/$d.just --working-directory . --summary; done | wc -w`
   → `38`. Then by grep for recipe headers, per module, and compare the two
   per-module figures rather than only the totals: two wrong numbers can sum to a
   right one. Expect 10, 16, 2, 2, 8.
-- [ ] T005 The unprefixed recipe is still exactly one, and still `run` — FR-012:
+- [x] T005 The unprefixed recipe is still exactly one, and still `run` — FR-012:
   list the 38 names and check which lack their module's prefix. If a second
   appears, the contract has changed shape and FR-012's count is wrong rather
   than merely dated.
-- [ ] T006 The two argument-taking recipes are still those two — FR-011a: `run`
+- [x] T006 The two argument-taking recipes are still those two — FR-011a: `run`
   variadic, `docusaurus-bump` requiring `version`, and the other 36 taking none.
   Read the recipe headers; a signature is not visible in `--summary` output,
   which is why FR-011a exists.
-- [ ] T007 The variables table is complete — FR-013a. For each module, compare
+- [x] T007 The variables table is complete — FR-013a. For each module, compare
   its `{{ variable }}` references against its assignment lines; the only
   references without an assignment must be the two recipe parameters from T006.
   **This is the check that was nearly left as a caveat**, so it is a task rather
   than a note.
-- [ ] T008 The pinned-inner-floating-outer shape holds — FR-014: `md.just` still
+- [x] T008 The pinned-inner-floating-outer shape holds — FR-014: `md.just` still
   pins mdformat, mdformat-gfm and Python by version, `go.just` still pins a
   coverage target, and nothing pins any module.
-- [ ] T009 Line and file counts — FR-016: `wc -l */*.just` → `487` total;
+- [x] T009 Line and file counts — FR-016: `wc -l */*.just` → `487` total;
   `find . -name '*.md' -not -path './.git/*' | wc -l` → `11`;
   `wc -l */README.md` → `353` total; `wc -l README.md` → `112`; and no `docs/`
   tree exists.
+
+**Phase 2 result, 2026-09-30.** Every figure reproduced exactly at `e765614`: 0
+Go files, 5 modules, 38 recipes agreeing per module by both methods
+(10/16/2/2/8), 487 `.just` lines, 11 markdown files, 353 + 112 README lines, 20
+variables, `run` still the only unprefixed recipe, `docusaurus-bump version` and
+`run *args` still the only two taking arguments, and T007 clean across all five
+modules. Nothing had moved.
 
 **Checkpoint**: every figure in the specification has been produced by a command
 rather than trusted. Anything that moved is recorded before Phase 3 begins.
@@ -99,7 +106,7 @@ repository.
 
 **Independent test**: SC-001's reading.
 
-- [ ] T010 [US1] Verify the edges from the consumers rather than from this
+- [x] T010 [US1] Verify the edges from the consumers rather than from this
   repository — FR-003 and FR-004: for each of `osapi`, `gohai`, `nats-client`,
   `nats-server`, `osapi-orchestrator` and `osapi-justfiles` itself, read the
   `fetch` recipe and record which modules it takes. Expect five for `osapi`,
@@ -108,13 +115,39 @@ repository.
   not from the specification's list — `global/repositories` says a written list
   is right when written and wrong afterwards, and this task is where that
   applies to this feature.
-- [ ] T011 [US1] Run the SC-001 reading. Give somebody who has not opened the
+
+- [x] T011 [US1] Run the SC-001 reading. Give somebody who has not opened the
   repository the specification alone and three questions: what are the five
   modules; which recipes does the `md` module supply; and what must a consumer
   set before importing `go`? A person is preferred; a fresh agent given only
   `spec.md` is the fallback. **Record what it proves and what it does not** —
   that the answers are in the text, not that a maintainer would enjoy finding
   them.
+
+  **Three of three answered, and it found three defects doing it.** A fresh
+  agent given only `spec.md` answered all three questions, but had to *infer*
+  what each module is for from its recipe prefixes — the specification named the
+  five modules in three places and said nowhere what any of them does. That is
+  now FR-006a, and it was a section 3 requirement unmet: naming the parts is not
+  stating what they are for.
+
+  It caught FR-013's table printing defaults for three of `go`'s seven variables
+  while FR-013a claimed all twenty have one. Both were true — the four unprinted
+  ones are computed or empty rather than absent — but **an empty default and a
+  missing default are indistinguishable in a table that prints neither, and they
+  are opposite facts.** All twenty are now printed.
+
+  And it reported the document reads as requirements plus self-referential
+  narrative rather than as one coherent whole, with the consumer-facing facts
+  outnumbered by commentary about writing the baseline. Recorded as FR-022a and
+  handed to `system`, because the fix is structural rather than editorial: one
+  document carrying both an inventory and a shape finding serves the first
+  reader worse.
+
+  **What it proves and what it does not.** That the answers are in the text, for
+  all three. Not that a maintainer mid-task would find them — the reading said
+  plainly they would have to read past several paragraphs of methodology to
+  reach what they came for.
 
 ______________________________________________________________________
 
@@ -126,18 +159,18 @@ that is not a Go library, before four more baselines are written to it.
 **Independent test**: SC-004 — each of the seven sections either filled, or
 absent with a stated reason.
 
-- [ ] T012 [US2] Confirm nothing changed in the inventoried repository — SC-007:
+- [x] T012 [US2] Confirm nothing changed in the inventoried repository — SC-007:
   `git -C ~/git/osapi-io/osapi-justfiles status --porcelain` is empty. A
   baseline that edited what it was describing would have measured its own
   change.
-- [ ] T013 [US2] Walk the seven sections against the specification and confirm
+- [x] T013 [US2] Walk the seven sections against the specification and confirm
   each is filled: what it is (FR-001, FR-002), where it sits (FR-003 to FR-005),
   architecture (FR-006 to FR-010), the contract (FR-011 to FR-015), measurements
   (FR-016), gaps (FR-017 to FR-020), exclusions (FR-021 to FR-022). **Zero
   omissions is the expected result**, and FR-022 states it — so this task
   confirms a claim rather than discovering one, and a section found empty means
   FR-022 is wrong.
-- [ ] T014 [US2] Confirm FR-020 says what the fragment did and did not give. It
+- [x] T014 [US2] Confirm FR-020 says what the fragment did and did not give. It
   must name the one thing `global/baseline` does not say — what "contract" means
   for a repository exposing no code — and must leave to `system` whether the
   fragment should say it. **It must not amend the fragment**, which is a change
@@ -150,7 +183,7 @@ ______________________________________________________________________
 
 **Goal**: somebody editing a module knows the reach before they edit.
 
-- [ ] T015 [US3] Confirm FR-005 and FR-017 together state reach and mechanism
+- [x] T015 [US3] Confirm FR-005 and FR-017 together state reach and mechanism
   without asserting a violation: that every consumer fetches from
   `refs/heads/main`, that nothing records which version a build used, and that
   the strained rule is `global/tooling`'s "both provisioning paths resolve to
@@ -163,7 +196,7 @@ ______________________________________________________________________
 
 ## Phase 6: Gaps, and what happens to them
 
-- [ ] T016 [P] Confirm each of the four gaps names both sides and an owner —
+- [x] T016 [P] Confirm each of the four gaps names both sides and an owner —
   FR-017 through FR-020 — and that none is corrected here. Two are
   `osapi-justfiles`', one is `system`'s, and one is a question handed to
   `system` about its own fragment.
