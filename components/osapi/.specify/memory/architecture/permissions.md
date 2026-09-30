@@ -5,6 +5,10 @@ roles resolve to a set of permissions, and the handler checks the one it needs.
 
 37 permissions, three built-in roles.
 
+```sh
+grep -cE '^\tPerm[A-Za-z]+ +Permission = ' pkg/sdk/client/permissions.go  # 37
+```
+
 ## The shape is `resource:verb`
 
 ```
@@ -30,6 +34,12 @@ permission it needs.
 | `admin` |          37 | everything, including `audit:read`                   |
 | `write` |          30 | read, write and execute, but not audit               |
 | `read`  |          17 | reads only                                           |
+
+```sh
+awk '/client.RoleAdmin: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^\t\tPerm'  # 37
+awk '/client.RoleWrite: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^\t\tPerm'  # 30
+awk '/client.RoleRead: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^\t\tPerm'   # 17
+```
 
 `write` is not `admin` minus one thing. The seven it lacks are the audit surface
 and the administrative operations, so a role that can restart a service cannot

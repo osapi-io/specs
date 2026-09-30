@@ -284,21 +284,71 @@ reporting a pass against zero baselines.
   individually correct, the graph still untraceable, because section 2 was
   filled in as a formality.
 
-- [ ] T018 [P] SC-002: every count in every baseline is paired with the command
+- [x] T018 [P] SC-002: every count in every baseline is paired with the command
   that reproduces it, and running the commands reproduces the counts or shows
   precisely which have drifted. A count whose command no longer reproduces it
   has **dated**, not failed; a count with no command beside it has failed.
 
-- [ ] T019 [P] SC-003: no baseline contains a transcribed call graph, an
+  **Done 2026-09-30.** 35 commands extracted from the six baselines and run in
+  the repository each describes. Every one reproduces its count except one,
+  which had failed rather than dated: `osapi`'s SDK method count gave
+  `grep -cE ... pkg/sdk/client/*.go` followed by the word "summed" outside the
+  backticks. `grep -c` over many files prints a count per file, so the command
+  as written produces no number at all. The count itself, 117, is right. Fixed
+  to `grep -hE ... | wc -l`.
+
+  The same pass found the count **hedged** in osapi's memory, as "roughly 110
+  exported methods" where the figure is exact and reproducible. That is the
+  defect `osapi-justfiles`' FR-013b recorded in its own variable count,
+  appearing a second time, which is the argument for a check rather than a
+  convention.
+
+  **The standing guarantee is memory's, not the baselines'.** A baseline records
+  what was true at a commit, so drift in it is expected and gating it would be
+  wrong. Memory is the current description, so `just memory-check` runs every
+  count in it on every test run. That check had two holes this task exposed:
+
+  | Hole                                          | Counts covered |
+  | --------------------------------------------- | -------------: |
+  | before                                        |             53 |
+  | it only read measurement **tables**           |             55 |
+  | its glob stopped at `memory/*.md`, not deeper |             62 |
+
+  The second was the serious one. Every subject document lives in
+  `memory/architecture/`, one directory below the pattern, so the check had
+  never looked at a single one of them while reporting a total that read as
+  complete.
+
+- [x] T019 [P] SC-003: no baseline contains a transcribed call graph, an
   exhaustive list of exported functions, or a file-by-file walkthrough. The
   check is the question in
   [contracts/section-order.md](contracts/section-order.md) under section 3,
   applied by a reviewer, because nothing automatable separates architecture from
   transcription.
 
-- [ ] T020 [P] SC-004: every baseline's section 7 is non-empty. FR-004's
+  **Passes, 2026-09-30, with one thing worth naming.** No baseline transcribes a
+  call graph or walks files. The largest surfaces are stated as rules rather
+  than as lists: `osapi`'s 117 SDK methods become five naming rules derived from
+  them, and `osapi-orchestrator`'s 101 operations become one sentence plus a
+  page each.
+
+  What comes closest to a list is an **enumerated vocabulary**: gohai's eight
+  registry functions, the orchestrator's eight guards and ten predicates. Each
+  is the complete set a consumer has to know, short enough to read, and closed
+  by constants in the code. The test that separates it from transcription is
+  whether a reader needs the whole set to use the thing. For a vocabulary they
+  do, and for 117 methods they do not.
+
+- [x] T020 [P] SC-004: every baseline's section 7 is non-empty. FR-004's
   evergreen bound guarantees every baseline excludes something, so a zero means
   the omission was not stated rather than that nothing was omitted.
+
+  **Passes, 2026-09-30.** All six, at 6, 9, 16, 19, 23 and 65 non-blank lines
+  for gohai, osapi-orchestrator, osapi, nats-client, nats-server and
+  osapi-justfiles. The order is worth a glance: `osapi-justfiles` has no Go at
+  all and excludes the most, because a repository whose contract is 38 recipe
+  names has to say what a recipe does *not* promise. Size predicted nothing here
+  either.
 
   **Unit 8 done, 2026-09-30.** `nats-server` baselined at specs#191, amended at
   #192, archived at #193. Its findings came from reading `Start()` in order

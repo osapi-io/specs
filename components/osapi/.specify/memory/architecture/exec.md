@@ -81,6 +81,10 @@ The executor is an interface, so a provider takes one rather than importing
 `os/exec`. That makes a provider testable without running anything, and it makes
 command construction reviewable in one place rather than in 224 provider files.
 
+```sh
+find internal/provider -name '*.go' -not -name '*_test.go' | wc -l  # 224
+```
+
 A provider that spawns a process directly loses the timeout ceiling, the argument
 logging, the stdin path for secrets, and its own testability, and nothing in the
 build will tell it.
