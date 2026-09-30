@@ -52,7 +52,7 @@ records it.
 
 ### User Story 1 - A consumer knows what it is depending on (Priority: P1)
 
-Somebody maintaining one of the five *other* consuming repositories can state
+Somebody maintaining one of the six *other* consuming repositories can state
 what `osapi-justfiles` gives them — which recipes exist, what each needs
 configured before the import, and what happens to their build when the module
 changes — without reading the `.just` files.
@@ -106,7 +106,7 @@ ______________________________________________________________________
 
 ### User Story 3 - A change here is recognised as the widest change in the organization (Priority: P2)
 
-Somebody editing a module knows, before they do, that it reaches six
+Somebody editing a module knows, before they do, that it reaches seven
 repositories' next continuous integration run with no release, no tag and
 nothing recording which version a build used.
 
@@ -115,8 +115,9 @@ what they state rather than a separate subject, but it is the fact about this
 repository that most changes behaviour once known.
 
 **Independent Test**: this specification states the dependency direction, the
-number of incoming edges, and that the propagation mechanism is a fetch from a
-branch rather than from a release.
+number of incoming edges — seven, taken from the command rather than from a list
+— and that the propagation mechanism is a fetch from a branch rather than from a
+release.
 
 ### Edge Cases
 
@@ -160,16 +161,59 @@ checked. The section headings below are the seven 002 fixes, in 002's order.
 ### 2. Where it sits
 
 - **FR-003**: The corpus MUST state that `osapi-justfiles` depends on **no**
-  other repository in the organization and is depended on by **all six**,
-  including itself. It is the only node in the dependency graph with no outgoing
-  edge, which is the exact opposite of `osapi`'s position as the hub with the
-  most incoming *and* outgoing edges. Verified from every consumer's `fetch`
-  recipe: `grep -A6 '^fetch:' <repo>/justfile`.
+  other repository in the organization and is depended on by **seven**, itself
+  among them — every non-archived public repository in the organization that has
+  a justfile at all. It is the only node in the dependency graph with no
+  outgoing edge, which is the exact opposite of `osapi`'s position as the hub
+  with the most incoming *and* outgoing edges. Verified from every consumer's
+  `fetch` recipe, over the set
+  `gh repo list osapi-io --no-archived --visibility public` returns rather than
+  over a list written here: `grep -A8 '^fetch:' <repo>/justfile`. Only `.github`
+  has no justfile.
+
 - **FR-004**: The corpus MUST state which modules each consumer takes, because
-  the blast radius of a change differs per module: `osapi` fetches all five;
-  `gohai`, `nats-client`, `nats-server` and `osapi-orchestrator` fetch three
-  each — `go`, `just` and `md`. So a change to `go.just` reaches five
-  repositories and a change to `react.just` reaches one.
+  the blast radius of a change differs per module:
+
+  | Consumer             | Modules | Which                                   |
+  | -------------------- | ------: | --------------------------------------- |
+  | `osapi`              |       5 | all                                     |
+  | `gohai`              |       3 | `go`, `just`, `md`                      |
+  | `nats-client`        |       3 | `go`, `just`, `md`                      |
+  | `nats-server`        |       3 | `go`, `just`, `md`                      |
+  | `osapi-orchestrator` |       3 | `go`, `just`, `md`                      |
+  | `specs`              |       2 | `just`, `md` — it has no Go and no site |
+  | `osapi-justfiles`    |       1 | `md`, from itself — FR-010              |
+
+  So a change to `md.just` reaches **all seven**, `just.just` reaches six,
+  `go.just` reaches five, and `react.just` and `docusaurus.just` reach one each.
+  `md` has the widest blast radius in the organization.
+
+- **FR-004a**: The corpus MUST record that **`specs` is a consumer, and that
+  this baseline originally said six consumers rather than seven.** The design
+  record fetches `md` and `just` — it has no Go and no documentation site, so it
+  takes the two modules that apply to any repository holding markdown and a
+  justfile.
+
+  **How it was missed, and what found it.** This specification was written from
+  the six repositories the baseline programme enumerates, which are the six
+  *components*. `specs` is not a component — it is where the components are
+  described — so it was never in the frame, despite being the repository the
+  specification was being written in and the one whose `just test` had been run
+  dozens of times while writing it. What found it was the task that says to take
+  the repository set from
+  `gh repo list osapi-io --no-archived --visibility public` rather than from a
+  list written here, which is `global/repositories` applied to this feature's
+  own verification. **A written list is right when written and wrong afterwards,
+  and the failure mode is not that the list ages — it is that the writer's frame
+  was never the whole set.**
+
+  The consequence is not only arithmetic. `specs`' `just test` is the gate for
+  every corpus change in the organization, and it depends on an unpinned fetch
+  of `md.just` — so the design record's own formatting gate can be changed by a
+  commit to the repository the design record describes. That circularity is
+  recorded with FR-017's gap rather than as a separate finding, because the fix
+  is the same one.
+
 - **FR-005**: The corpus MUST state that a change here is the **widest change
   available in the organization**, and why: it reaches every consumer's next
   continuous integration run with no release, no tag and no review in the
@@ -414,7 +458,8 @@ the repository it is in.
 - **Override variable**: A value a consumer assigns before the import, which the
   module's recipes read. Twenty, each with a default.
 - **Consumer**: A repository whose justfile fetches and imports at least one
-  module. Six, including `osapi-justfiles` itself.
+  module. Seven, `osapi-justfiles` and `specs` among them — every non-archived
+  public repository in the organization that has a justfile.
 
 ## Success Criteria *(mandatory)*
 
