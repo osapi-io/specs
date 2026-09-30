@@ -37,7 +37,7 @@ ______________________________________________________________________
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm the line ranges in [plan.md](plan.md) against
+- [x] T001 Confirm the line ranges in [plan.md](plan.md) against
   `osapi/docs/docs/sidebar/architecture/ui.md` as it stands: `12–53`, `54–68`,
   `69–102`, `103–114`, `115–153`, `154–159`, `160–175`, `176–190`, `191–231`,
   `232–264`. They must sum to 264 and each boundary must land on its heading. A
@@ -45,18 +45,29 @@ ______________________________________________________________________
   new range rather than working around it, which is how 004's Finding 2 was
   caught.
 
+  **Confirmed against the live file.** All ten boundaries land on their heading
+  — line 12 `## Embedding Mechanism`, 54 `## Configuration`, 69
+  `## Application Structure`, 103 `## Tech Stack`, 115
+  `## Component Architecture`, 154 `## Authentication & Authorization`, 160
+  `### Auth flow`, 176 `### RBAC model`, 191 `## SDK Generation`, 232 `## Pages`
+  — the ranges are contiguous, and they total 264. Nothing moved under the plan.
+
 ______________________________________________________________________
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T002 Confirm all three unshared sections are in the merged `spec.md`
-  before any file is touched: `Feature flags` (from `ui/docs/architecture.md`),
-  `Configuration` and `Embedding Mechanism` (from the site page). **This is the
-  task that makes the union real.** If one is missing and the osapi change
-  proceeds, that section exists nowhere afterwards — the corpus does not hold it
-  and both copies are gone.
+- [x] T002 SC-005: confirm all three unshared sections are in the merged
+  `spec.md` before any file is touched: `Feature flags` (from
+  `ui/docs/architecture.md`), `Configuration` and `Embedding Mechanism` (from
+  the site page). **This is the task that makes the union real.** If one is
+  missing and the osapi change proceeds, that section exists nowhere afterwards
+  — the corpus does not hold it and both copies are gone.
 
-**Checkpoint**: nothing can be lost by the deletions that follow.
+  **Passes.** All three are in the merged statement: `Feature flags`,
+  `Configuration` and `Embedding Mechanism`. Nothing can be lost by the
+  deletions in Phase 4 — the union is real before any file is touched, which is
+  the whole point of running this first. **Checkpoint**: nothing can be lost by
+  the deletions that follow.
 
 ______________________________________________________________________
 
@@ -67,16 +78,25 @@ replaced by.
 
 **Independent test**: SC-002's greps, run after Phase 4.
 
-- [ ] T003 [US1] Confirm the corpus statement cites rather than restates where
+- [x] T003 [US1] Confirm the corpus statement cites rather than restates where
   it reaches osapi's permission model — `resource:verb` and the three roles are
   osapi's and already stated — and where it reaches the generated client, which
   shares [005](../005-building-a-domain/spec.md)'s combined specification.
-- [ ] T004 [US1] Run `cd specs && mise exec -- just test`, then open and merge
+
+  **Confirmed.** FR-008 states the permission model is osapi's — three roles and
+  `resource:verb` — and says where it reaches what those permissions mean it
+  cites rather than restates. FR-005 cites 005's combined specification for the
+  generated client rather than describing generation again.
+
+- [x] T004 [US1] Run `cd specs && mise exec -- just test`, then open and merge
   the specs pull request. **Nothing in osapi may be touched before this merges**
   — the corpus statement is what the pointers point at.
 
-**Checkpoint**: the corpus states it. Three documents still state it too, which
-is the bounded window the backfill's sequencing accepts.
+  **Already satisfied by specs#172.** For a corpus feature the statement is
+  `spec.md`, which merged at stage 1 — there is no separate corpus pull request
+  to open. See the correction note below Phase 5. **Checkpoint**: the corpus
+  states it. Three documents still state it too, which is the bounded window the
+  backfill's sequencing accepts.
 
 ______________________________________________________________________
 
@@ -90,7 +110,8 @@ statements go.
 - [ ] T005 [US2] Remove lines `12–53`, `69–153`, `160–175` and `191–231` from
   `osapi/docs/docs/sidebar/architecture/ui.md` — the embedding mechanism,
   application structure, stack, component architecture, auth flow, SDK
-  generation and fetch mutator. 184 lines of 264.
+  generation and fetch mutator. 184 lines of 264. Carries FR-003 through
+  FR-007's move, and FR-014's split.
 - [ ] T006 [US2] Rewrite that page's introduction, one sentence, so it
   introduces an operator's page and says where the architecture went. **Deletion
   alone will not fix it**: the current introduction introduces a contributor's
@@ -104,20 +125,22 @@ statements go.
 - [ ] T008 [US2] Replace `osapi/docs/docs/sidebar/development/ui-development.md`
   with the three-part contributor index from [data-model.md](data-model.md):
   under ten lines of prose, a citation table by absolute GitHub address, and a
-  pointer to the justfile rather than the commands. One sentence must say why
-  the links are absolute — the corpus is a separate repository and is not
-  published as part of the site.
+  pointer to the justfile rather than the commands — FR-015, with FR-009 for why
+  the commands stay in the justfile. One sentence must say why the links are
+  absolute — the corpus is a separate repository and is not published as part of
+  the site.
 - [ ] T009 [US2] Replace `osapi/ui/docs/architecture.md` with the pointer from
   [data-model.md](data-model.md), under ten lines. It **must** include the
   sentence saying it is a pointer rather than a summary: a pointer is a file
   somebody can edit back into a document, and that sentence is the only thing
-  guarding against it — [research.md](research.md) Decision 2.
+  guarding against it — [research.md](research.md) Decision 2. FR-016.
 - [ ] T010 [US2] [P] Search the site for any link into a removed section:
   `grep -rn "ui.md#" docs/docs` and
   `grep -rn "ui-development" docs/docs docusaurus.config.ts`. A link to a moved
   anchor survives deletion and fails the build.
 - [ ] T011 [US2] Run
-  `cd osapi && mise exec -- just docusaurus-fmt-check && mise exec -- just docusaurus-build`.
+  `cd osapi && mise exec -- just docusaurus-fmt-check && mise exec -- just docusaurus-build`
+  — SC-006 — and confirm the diff is markdown only, which is SC-007.
 - [ ] T012 [US2] Confirm **all three** files are in the same commit before
   opening the pull request: the split page, the contributor index, and the
   pointer. Splitting them across changes leaves the divergent copy as the sole
@@ -146,6 +169,16 @@ ______________________________________________________________________
   T013 have merged, and mark `system`'s 002 T023 done. Archive after the
   implementation: what merged in `specs/` is the statement, and the outcome is
   only true once the three documents have changed.
+
+______________________________________________________________________
+
+**A correction to Phase 3, found by the analysis pass.** T004 says to "open and
+merge the specs pull request", as though the corpus statement were written
+during implementation. It was not: for a corpus feature the statement **is**
+`spec.md`, which merged at stage 1 as specs#172. Phase 3 therefore holds no
+writing — it is verification that the merged statement says what the move
+depends on, and T002 is the load-bearing one. The same was true of `004` and
+`005`, and neither plan said so.
 
 ______________________________________________________________________
 
