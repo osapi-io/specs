@@ -4,7 +4,9 @@
 
 **Created**: 2026-09-30
 
-**Status**: Draft
+**Status**: Completed, archived at specs#196. Amended 2026-09-30: FR-021 through
+FR-024 add the page classification every baseline owes, which this one was
+written before 002 required.
 
 **Input**: `osapi-orchestrator`'s `.specify/memory/` holds only a constitution.
 Unit 9 of the baseline programme `system`'s
@@ -199,11 +201,85 @@ The seven section names are `system`'s 002 FR-001 names verbatim.
   baseline from `nats-client`'s from `osapi-justfiles`', which is three hops
   without drift.
 
+### The classification this baseline owed
+
+- **FR-021**: The corpus MUST classify every one of the 140 documentation pages
+  as user-facing or contributor-facing, **by who reads it** rather than by where
+  it sits, which `system`'s 002 requires of every baseline and its T021 records
+  as owed here. Every page is user-facing, so **nothing moves**.
+
+  | Pages                |   # | Reader   | Why                                                     |
+  | -------------------- | --: | -------- | ------------------------------------------------------- |
+  | `docs/operations/**` | 125 | consumer | One page per operation: signature, options, idempotence |
+  | `docs/features/*.md` |  14 | consumer | How to write a plan with the DSL                        |
+  | `docs/README.md`     |   1 | consumer | The index                                               |
+  | **Total**            | 140 |          | **140 stay, 0 move**                                    |
+
+  Every page addresses somebody importing the library and writing a plan. An
+  operation page gives the constructor, its options table and whether the
+  operation is idempotent; a feature page shows the calls that compose a DAG.
+  Nothing tells a reader how to change the orchestrator. The sweep for the
+  markers that would say otherwise returns two files, and both are false
+  positives: `docs/README.md` points at `CONTRIBUTING.md`, and
+  `operations/security/user/add-key.md` says "Adding a key that already exists
+  returns an error", which is prose about the operation.
+
+  ```sh
+  grep -rlniE 'adding a|add a new|regenerate|codegen|go generate|contribut|internal/' \
+    docs --include='*.md'
+  ```
+
+- **FR-022**: The corpus MUST record that this **contradicts 002's own
+  prediction**. 002's FR-027 table calls this repository's move "needed, the
+  largest remaining" on the strength of its 140 pages, and the classification
+  says there is no move at all. Page count does not predict move size: what
+  predicts it is whether a repository's documentation was written for the people
+  using it, and this one's was, uniformly. osapi had a quarter of the volume in
+  contributor pages and a tenth the page count.
+
+  Owner: `system`'s 002. The prediction is wrong in a merged table and needs
+  correcting there rather than reinterpreted here.
+
+- **FR-023**: The corpus MUST record what the classification found while reading
+  every page, which is a disagreement about what the word "guard" means.
+
+  | Source                     | Guards | Where `When` and `WhenFact` sit    |
+  | -------------------------- | -----: | ---------------------------------- |
+  | `pkg/orchestrator/step.go` |      8 | "When adds a guard condition"      |
+  | `docs/features/guards.md`  |     10 | Task-level guards, in its table    |
+  | This project's memory      |      8 | Host predicates, reached by `When` |
+
+  The code and the page agree, and memory is the outlier. Memory's distinction
+  is worth keeping, because a condition on what earlier steps did and a
+  condition on what a machine is are genuinely different things and conflating
+  them is the mistake it warns about. What memory got wrong is implying the code
+  draws the line in the same place. It does not: `step.go:269` calls `When` a
+  guard, and `guards.md` follows it.
+
+  ```sh
+  grep -cE '^func \(s \*Step\) OnlyIf' pkg/orchestrator/step.go   # 8
+  grep -cE '^func \(s \*Step\) When' pkg/orchestrator/step.go     # 2
+  sed -n '269p' pkg/orchestrator/step.go
+  ```
+
+  Owner: this project, and its memory is corrected with this amendment rather
+  than after it. Memory is documentation, so a document known to be wrong is
+  fixed; scheduling the fix would leave the only current description of the
+  vocabulary disagreeing with the code it describes.
+
+- **FR-024**: The corpus MUST state what the classification does **not** cover:
+  `CONTRIBUTING.md`, `AGENTS.md` and the other convention files at the
+  repository root. `osapi-justfiles`' baseline settled this shape, deciding that
+  a file documenting the thing beside it stays beside it, and a convention file
+  documents the repository it sits in. 002's FR-025 asks about a `docs/` tree's
+  pages, and these are not pages in one.
+
 ### Key Entities
 
 - **Step**: The unit of work. Every operation returns one, and guards attach to
   it.
-- **Guard**: A condition on a `Step` asking what earlier work did. Eight.
+- **Guard**: A condition on a `Step` asking what earlier work did. Eight of
+  those; ten methods the repository itself calls guards, per FR-023.
 - **Host predicate**: A condition asking what a host is. Ten, combinable.
 - **Plan**: What the public package builds and the engine runs.
 
