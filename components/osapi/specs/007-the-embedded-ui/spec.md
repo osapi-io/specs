@@ -184,13 +184,19 @@ touched except for the documentation file it carries.
   a disagreement requiring judgement. A reader who finds the phrasing difference
   recorded as a conflict would look for a decision that was never needed.
 
-### What happens to the three documents
+### What happens to the four documents
 
 - **FR-014**: `docs/docs/sidebar/architecture/ui.md` MUST be **split**:
   `Configuration`, `Pages` and the RBAC model stay and must read as a whole page
   for an operator; the embedding mechanism, application structure, stack,
   component architecture, auth flow and SDK generation go to the corpus. Roughly
   60 lines stay of 264.
+- **FR-014a**: `docs/docs/sidebar/features/management-dashboard.md` MUST lose
+  its `## Architecture` section's account of the stack and the embedding
+  mechanism, which restates FR-003 and FR-006. What an operator acts on in that
+  section stays: that API endpoints are prefixed `/api/`. **This document was
+  missed by the classification below.** It was found by SC-002's grep after the
+  move had merged, which is the check working rather than the plan working.
 - **FR-015**: `development/ui-development.md` MUST move **entire**, its address
   keeping a short contributor index with a citation table — the shape
   `adding-an-api-domain.md` took.
@@ -250,3 +256,25 @@ touched except for the documentation file it carries.
   scope.
 - Counts were measured on `b003df6` in specs and `0cca62060` in osapi. The line
   counts will date; what the sections are will not.
+
+**Corrected 2026-09-29, after the implementation merged.** Two of this feature's
+own claims were wrong, and both were found by SC-002 and SC-004 rather than by
+re-reading this file. They are corrected here, ahead of archival, because a
+specification archived with a wrong inventory records the error as knowledge —
+the treatment [003](../003-corpus-backfill/spec.md) gave its three.
+
+| This said                                    | It is                                                                     | Found by                                  |
+| -------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------- |
+| Three documents state the architecture       | **Four.** `features/management-dashboard.md` held a fourth account of it  | SC-002's grep, run after osapi#549 merged |
+| `ui/docs/architecture.md` is under ten lines | **Ten**, until tightened. The bare corpus address wraps onto its own line | SC-004's `wc -l`                          |
+
+The first is the one worth naming. The classification read the two pages titled
+for the UI and the file beside the code, and stopped — a page in `features/`
+describing a feature for operators was not where a fourth statement of the stack
+was expected. It restated React, Vite and `//go:embed`, which FR-003 and FR-006
+now state, and it did so eight lines above a sentence this feature edited. Being
+in the file was not enough; only the grep was.
+
+This is the argument for SC-002 being a grep across a directory rather than a
+list of files. A classification enumerates what somebody thought of; a grep
+finds what is there.
