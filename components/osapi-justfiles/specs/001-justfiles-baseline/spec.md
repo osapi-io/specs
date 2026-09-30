@@ -230,21 +230,48 @@ what passes between parts, nothing a rename would falsify.
   after its directory and one `README.md`. There is no shared code between
   modules and no module imports another. A consumer takes the modules it wants
   and ignores the rest, which is why `nats-server` never sees a React recipe.
+
+- **FR-006a**: The corpus MUST state **what each module is for**, not only that
+  there are five of them. 002's FR-004 requires architecture at the level of
+  what a part is for, and naming the parts is not the same as saying what they
+  do:
+
+  | Module       | What it is for                                                          |
+  | ------------ | ----------------------------------------------------------------------- |
+  | `docusaurus` | Builds, serves, deploys and formats a Docusaurus documentation site     |
+  | `go`         | Builds, tests, formats, lints and measures coverage for a Go project    |
+  | `just`       | Formats and checks a repository's justfiles, using just's own formatter |
+  | `md`         | Formats every markdown file in a repository with mdformat               |
+  | `react`      | Builds, lints, formats and serves a React application                   |
+
+  **This was missing, and the SC-001 reading is what found it.** The
+  specification listed the five names in three places — FR-006, FR-011's recipe
+  table, FR-013's variable table — and said nowhere what any of them does. A
+  reader could infer it from the recipe prefixes, and the reading did,
+  correctly. That is the failure: an inventory whose reader has to infer the
+  purpose of a part from the names of its recipes has described the repository's
+  *shape* and not its *architecture*, which is the distinction 002's FR-004
+  draws. The purposes above were taken from each module's README and checked
+  against its recipe list.
+
 - **FR-007**: The corpus MUST state what passes between a module and its
   consumer, in both directions: **recipes** out, **variables** in. A consumer
   assigns the variables it needs to override, then imports the module; the
   module's recipes read those variables. Nothing else crosses the boundary — no
   configuration file, no environment contract, no generated artifact.
+
 - **FR-008**: The corpus MUST state the consumption mechanism, because it is
   architecture rather than detail: a consumer's `fetch` recipe `curl`s each
   module from `raw.githubusercontent.com` at `refs/heads/main` into
   `.just/remote/`, and `.just/` is gitignored in every consumer. So the modules
   are **fetched, not vendored**: nothing about which version a consumer has is
   recorded in that consumer.
+
 - **FR-009**: The corpus MUST state that the import is **optional** —
   `import? '.just/remote/<module>.just'` — so a consumer's justfile parses
   before `just fetch` has ever run, and a missing module surfaces as an unknown
   recipe rather than a parse error.
+
 - **FR-010**: The corpus MUST state that `osapi-justfiles` is **its own
   consumer, asymmetrically**: its root justfile fetches `md.just` from `main`
   and imports it, while invoking its `just` module directly from the working
@@ -289,13 +316,41 @@ on both.
   defaults**, because they are the half of the contract a consumer must act on
   before the import rather than after:
 
-  | Module       | Variables                                                                                                                                                                 |
-  | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | `docusaurus` | `docusaurus_dir` (`docs`), `docusaurus_host` (`localhost`), `docusaurus_port` (`3001`)                                                                                    |
-  | `go`         | `go_git_root`, `go_main_package` (`main.go`), `go_coverage_dir` (`.coverage`), `go_coverage_target` (`100`), `go_fmt_excludes`, `go_os_tags`, `go_packages`               |
-  | `md`         | `md_version` (`1.0.0`), `md_gfm_version` (`1.0.0`), `md_wrap` (`80`), `md_python` (`3.13`), `md_site_dir` (`docs`), `md_excludes`, `md_site_exclude`, `md_extra_excludes` |
-  | `react`      | `react_dir` (`.`), `react_fmt_pattern` (`src/**/*.{ts,tsx,css}`)                                                                                                          |
-  | `just`       | none — it takes no configuration                                                                                                                                          |
+  | Module       | Variable             | Default                                                   |
+  | ------------ | -------------------- | --------------------------------------------------------- |
+  | `docusaurus` | `docusaurus_dir`     | `docs`                                                    |
+  | `docusaurus` | `docusaurus_host`    | `localhost`                                               |
+  | `docusaurus` | `docusaurus_port`    | `3001`                                                    |
+  | `go`         | `go_git_root`        | **computed** — `git rev-parse --show-toplevel`            |
+  | `go`         | `go_main_package`    | `main.go`                                                 |
+  | `go`         | `go_coverage_dir`    | `.coverage`                                               |
+  | `go`         | `go_coverage_target` | `100`                                                     |
+  | `go`         | `go_fmt_excludes`    | **empty** — a consumer adds `! -path` clauses             |
+  | `go`         | `go_os_tags`         | **computed** — `-tags=ubuntu` on Ubuntu, empty elsewhere  |
+  | `go`         | `go_packages`        | **computed** — `go list ./...` less `node_modules`        |
+  | `md`         | `md_version`         | `1.0.0`                                                   |
+  | `md`         | `md_gfm_version`     | `1.0.0`                                                   |
+  | `md`         | `md_wrap`            | `80`                                                      |
+  | `md`         | `md_python`          | `3.13`                                                    |
+  | `md`         | `md_site_dir`        | `docs`                                                    |
+  | `md`         | `md_excludes`        | excludes `.claude`, `node_modules`, `.worktrees`, `.just` |
+  | `md`         | `md_site_exclude`    | **derived** from `md_site_dir`; empty when that is empty  |
+  | `md`         | `md_extra_excludes`  | **empty**                                                 |
+  | `react`      | `react_dir`          | `.`                                                       |
+  | `react`      | `react_fmt_pattern`  | `src/**/*.{ts,tsx,css}`                                   |
+  | `just`       | none                 | it takes no configuration                                 |
+
+  **Every default is stated, and four of them are not literals.** The table
+  originally printed defaults for only three of `go`'s seven variables while
+  FR-013a asserted that all twenty have one. Both were true — the four unprinted
+  ones are computed or empty rather than absent — but a reader comparing the
+  table against FR-013a's claim had no way to tell which. The SC-001 reading hit
+  exactly that and said so. **An empty default and a missing default look
+  identical in a table that prints neither, and they are opposite facts**: one
+  means a consumer need not act, the other means they must.
+
+  Nineteen of the twenty are declared in their module's header block;
+  `go_packages` is declared at `go/go.just:147`, beside the recipe that uses it.
 
 - **FR-013a**: The corpus MUST state that FR-013's table is **complete** — every
   variable any module's recipes read has an assignment with a default in that
@@ -448,6 +503,37 @@ the repository it is in.
   need not be code — the one place the shape had to be interpreted rather than
   followed. **The shape fits a repository with no Go code, and 002's FR-011 need
   not be exercised: no section had to be dropped.**
+
+- **FR-022a**: The corpus MUST record what the SC-001 reading said about this
+  document as a document, because it is a finding about the shape and not only
+  about this baseline.
+
+  The reading answered all three questions but reported that the file reads as
+  **a list of requirements with a layer of self-referential narrative**, not as
+  one coherent reader-facing document — and that the consumer-facing facts a
+  maintainer actually wants are interleaved with, and outnumbered by, commentary
+  about the specification-writing exercise. It named the passages: why this unit
+  is sixth, FR-004a's account of missing `specs`, FR-013b on the hedge, FR-021a
+  on the renamed headings, FR-020's verdict on the fragment.
+
+  **That is accurate, and it is not fixed by deleting them.** This document
+  carries two deliverables — the inventory for a consumer, and the shape finding
+  for the programme — and User Story 2 is the second one. The meta-narrative
+  *is* what FR-020 and FR-022 were asked to produce. What the reading exposes is
+  that one document serving both readers serves the first one worse, which is
+  the same structural problem the corpus backfill solved by splitting a page
+  rather than by editing it.
+
+  Recorded here rather than acted on, because the fix is not this baseline's: it
+  is whether `system`'s 002 should require the shape finding to live somewhere
+  other than the baseline a consumer reads. Owner: `system`'s 002, alongside
+  FR-020's question about the same fragment.
+
+  It also reported that the file assumes a reader knows what `just`, a recipe, a
+  justfile and `import?` are, and knows spec-kit's vocabulary — FR-, SC-, "the
+  seven sections", "unit 6". The first set is reasonable for a reader of a
+  justfile library. The second is not obviously reasonable for a maintainer of a
+  consuming repository, and no requirement here addresses it.
 
 ### Key Entities
 
