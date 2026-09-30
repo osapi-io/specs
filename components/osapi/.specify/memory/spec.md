@@ -28,6 +28,7 @@ through that same SDK.
 
 | Subject                                        | What it answers                                                              |
 | ---------------------------------------------- | ---------------------------------------------------------------------------- |
+| [The message bus](architecture/transport.md)    | What NATS carries, how it is namespaced, and the three things osapi cannot control |
 | [The job system](architecture/job-system.md)   | How work reaches a host, what is guaranteed, the three limits, the four statuses, and one request traced end to end |
 | [Providers](architecture/providers.md)         | How work gets done on the machine, the idempotency rule, the four patterns    |
 | [Agent identity](architecture/agent-identity.md) | Enrollment, signing, rotation, and why targeting needs verification         |
