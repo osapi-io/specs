@@ -29,6 +29,21 @@
 > put here, which is what a method feature archived after its subjects should look
 > like.
 
+> **Revision**: 2026-09-29 — Added the embedded UI (`specs/007-the-embedded-ui`):
+> 2 user stories as US14 and US15, 18 requirements as FR-095–FR-112, 4 entities, 3
+> edge cases, 4 outcomes and 4 assumptions. Four folded: an operator story into
+> US11, a split-page edge case into the backfill's paragraph case, and three
+> outcomes into SC-016, SC-021 and SC-024, which already generalised beyond the
+> subject that wrote them. The UI was the one part of osapi memory said nothing
+> about; AS-003 had recorded it as out of scope and becoming its own feature, and
+> this is that feature.
+
+> **Revision**: 2026-09-29 — Three of that feature's own claims were wrong and are
+> archived corrected, with what found each: a grep found a fourth copy of the
+> architecture the classification had missed, a line count found the pointer at ten
+> lines against a criterion of under ten, and the reading found FR-004 requiring a
+> statement it did not make. None was found by re-reading the specification.
+
 > **Revision**: 2026-09-28 — Added the SDK's method-naming convention as FR-094,
 > derived from the 31 services that exist rather than decided in the abstract, once
 > FR-073 had established that no convention was written anywhere. Its four deviations
@@ -306,7 +321,9 @@ not an improvement.
 [Source: specs/005-building-a-domain/spec.md -> User Story 2]
 
 **Independent Test**: every removed address still resolves, and no surviving
-operator page points into the corpus.
+operator page points into the corpus. For a split page: it answers what an operator
+configures and sees, and reads as a whole page rather than a remainder.
+[Source: specs/007-the-embedded-ui/spec.md -> User Story 2]
 
 **Acceptance Scenarios**:
 
@@ -315,6 +332,9 @@ operator page points into the corpus.
 2. **Given** a page whose contributor half was removed, **When** an operator reads
    it, **Then** what they need is still there and the page reads as a whole rather
    than as a remainder.
+3. **Given** the site after the UI architecture moved, **When** an operator asks how
+   to disable the UI, **Then** `controller.ui.enabled` and its default are still
+   there. [Source: specs/007-the-embedded-ui/spec.md -> User Story 2]
 
 ### User Story 12 - The rule has one home (Priority: P2)
 
@@ -356,6 +376,40 @@ questions from the corpus alone, without opening the site.
    the corpus, **Then** the answer is there rather than in a link to the site.
 2. **Given** a page that told a contributor how to build something, **When** it is
    read after the move, **Then** it cites the corpus rather than restating it.
+
+### User Story 14 - The UI's architecture is stated once (Priority: P1)
+
+[Source: specs/007-the-embedded-ui/spec.md -> User Story 1]
+
+Somebody changing the UI reads how it is built in one place, and what they read is
+not contradicted by a second document they did not know existed.
+
+**Why this priority**: two statements existed and they had diverged. Every day that
+held, the chance grew that somebody read the stale one. Distinct from US13, which
+asks *where* an answer lives; this asks *how many* answers exist.
+
+**Independent Test**: one statement of the UI's architecture exists across the
+corpus, the site and the repository; every other mention is a citation.
+
+**Acceptance Scenarios**:
+
+1. **Given** the corpus, **When** a contributor asks how the SPA reaches the binary,
+   **Then** the embedding mechanism is stated with the file that implements it.
+2. **Given** the repository, **When** somebody looks for UI architecture beside the
+   code, **Then** they find a pointer to the corpus rather than a second account.
+
+### User Story 15 - A disagreement between two documents is recorded, not silently resolved (Priority: P2)
+
+[Source: specs/007-the-embedded-ui/spec.md -> User Story 3]
+
+Somebody reading the corpus later can tell that two documents disagreed, which
+sections each was missing, and which way the disagreement was settled.
+
+**Why this priority**: the Correction principle. A merge that quietly picked a
+winner would leave no trace that a rule had been in two places, and the next reader
+would have no reason to check. Distinct from US9, which is a document disagreeing
+with the *code*; this is two documents disagreeing with *each other*, which no gate
+detects and no reader of either one can see.
 
 ### Edge Cases
 
@@ -436,11 +490,31 @@ questions from the corpus alone, without opening the site.
   gap rather than the page being silently corrected, so a reader can tell whether
   the page was wrong or they were.
   [Source: specs/005-building-a-domain/spec.md -> Edge Cases]
-- A page serves both readers in the same paragraph rather than in separate sections.
-  Splitting by section will not divide it: the paragraph is rewritten for the
-  operator and the contributor's half restated in the corpus, rather than the page
-  moving wholesale and taking operator content with it.
+- A page serves both readers. Where its sections divide them it is **split**: what
+  an operator configures and sees stays, how it is built goes, and the surviving
+  page must read as a page rather than a remainder — the shape
+  `system-architecture.md` and `architecture/ui.md` both took. Where a single
+  *paragraph* serves both, splitting by section will not divide it: the paragraph is
+  rewritten for the operator and the contributor's half restated in the corpus,
+  rather than the page moving wholesale and taking operator content with it.
   [Source: specs/003-corpus-backfill/spec.md -> Edge Cases]
+  [Source: specs/007-the-embedded-ui/spec.md -> "An operator section inside a contributor page"]
+- The same architecture is stated in two prose documents and they have **diverged by
+  addition**: each holds a section the other never got. There is no winner to pick,
+  because neither is a summary of the other and neither states a rule the other
+  denies. All the unshared sections are carried forward as a union, and the corpus
+  records which copy each came from. Choosing the newer file would have lost two
+  sections; choosing the site page would have lost one.
+  [Source: specs/007-the-embedded-ui/spec.md -> "A section only one copy has"]
+- Two copies share a section and word it differently. Where the substance agrees and
+  only punctuation and capitalisation differ, that is evidence of copying rather than
+  a disagreement to resolve: the corpus states the substance once and says the
+  difference was punctuation, so nobody looks for a decision that was never made.
+  [Source: specs/007-the-embedded-ui/spec.md -> "A section both have, worded differently"]
+- A page is wholly a contributor's. It moves entire and its address keeps a short
+  index — prose, a citation table, and a pointer to the tool rather than the tool's
+  commands. `adding-an-api-domain.md` and `ui-development.md` are both this shape.
+  [Source: specs/007-the-embedded-ui/spec.md -> "A page that is wholly contributor"]
 - A moved page is linked from outside the repository — a README, an issue, a
   bookmark, a search result. Deleting its address breaks those silently, and whoever
   moved it will not see the breakage.
@@ -888,6 +962,48 @@ questions from the corpus alone, without opening the site.
 - **FR-093**: The published site MUST NOT send an operator to the corpus. A citation is for contributors and agents; an operator page answering with "see the specifications repository" has lost its reader.
   [Source: specs/003-corpus-backfill/spec.md -> FR-012]
 
+#### The embedded UI
+
+- **FR-095**: osapi ships a single-page application embedded in the controller binary and served from the same host and port as the REST API, so enabling it adds no network configuration. Evidence: `ui/embed.go`, and the `controller.api.port` it shares.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-001]
+- **FR-096**: The UI is disabled by `controller.ui.enabled: false`; the default is true, and when disabled the controller skips registering the SPA handler and serves only the REST API. This is the one rule in the set an **operator** acts on, and it stays on the published site as well — cited there, stated here.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-002]
+- **FR-097**: The UI's stack is stated as what each part is for rather than as a version list: React with TypeScript for the application, Vite to build it, Tailwind for styling, React Router for navigation, and orval to generate the API client. Versions are evidence and date; the roles do not.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-003]
+- **FR-098**: There are four kinds of UI component, and **what separates them is what each one knows** rather than what it is called — which is the boundary a contributor places a new file against. A primitive knows no osapi resource: none of the 34 files in `ui/src/components/ui/` imports the generated client. A domain component knows exactly one: 38 of the 43 files in `ui/src/components/domain/` import the client or a hook. Layout knows none and holds the page's chrome. A hook holds state or fetches data and renders nothing — every one of the 14 files in `ui/src/hooks/` is `.ts` rather than `.tsx`, so none of them can contain markup. A new file goes where its knowledge puts it: markup with no resource is a primitive, markup with one resource is a domain component, a resource with no markup is a hook. Reproduce with `cd ui/src && grep -rl "sdk/" components/ui | wc -l` (expect 0), `grep -rl "sdk/\|hooks/" components/domain | wc -l` (expect 38 of 43), and `ls hooks | sed 's/.*\.//' | sort -u` (expect `ts`).
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-004]
+- **FR-099**: The UI's API client is **generated from the same specification as the Go SDK** — the combined file FR-058 defines — so an endpoint added to a domain reaches both, and a fetch mutator adapts it to the browser. This is the fact that makes the UI part of osapi rather than a separate application. Generation itself is FR-058's; this states the second consumer, not a second mechanism.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-005]
+- **FR-100**: The built assets are compiled into the Go binary, which is why there is no separate deployment. Evidence: `ui/embed.go`, `ui/dist/`.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-006]
+- **FR-101**: The UI authenticates with the same JWT the rest of osapi uses, and the asymmetry is stated plainly: the UI decodes the token client-side **without verifying it**, because verification is the server's job. A contributor who read only the client would otherwise take the decode for a check. Found by reading the code — the site page carried it as a parenthetical aside rather than a rule.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-007]
+- **FR-102**: The UI's permission model is osapi's, not a second one: three built-in roles and `resource:verb` permissions matching the Go model. Where this reaches what those permissions mean it cites rather than restates. **The statement it cites is on the published site**, in the surviving RBAC section of `architecture/ui.md`, because what the roles permit is what an operator configures; the corpus holds no second account of it.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-008]
+- **FR-103**: The UI's development obligations — where the dev server runs, how a production build is produced, the component and file-naming conventions, and what regenerating the SDK requires — are stated as the contract a contributor obeys rather than as a transcript of commands. Commands belong in the justfile: `global/documentation` says a rule a tool enforces is not restated as prose.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-009]
+- **FR-104**: `ui/` is excluded from the coverage gate by `.coverignore`, so the UI's correctness rests on its own checks rather than on Go coverage. Evidence: `/ui/` in `.coverignore`. A contributor who assumed the gate covered it would be wrong in a way nothing would tell them. Found by reading the code; stated in neither prose document.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-010]
+- **FR-105**: The UI's architecture was stated twice and the two copies had diverged before this was corrected. `docs/docs/sidebar/architecture/ui.md`, 264 lines, last touched 2026-08-15, held `Configuration` and `Embedding Mechanism`. `ui/docs/architecture.md`, 263 lines, last touched 2026-09-02, held `Feature flags`. Each held a section the other never got, eighteen days apart, and no gate detected it.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-011]
+- **FR-106**: The three unshared sections were carried forward as a **union rather than by choosing a winner**: `Feature flags` from the copy beside the code, `Configuration` and `Embedding Mechanism` from the site page. Recency tracks *editing*, not accuracy — the site page was not edited because nobody remembered it existed, which says nothing about whether what it held was still true.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-012]
+- **FR-107**: The two copies' shared sections agreed in substance and differed in punctuation, and that is recorded as evidence of copying rather than as a disagreement requiring judgement. A reader who found the phrasing difference logged as a conflict would look for a decision that was never needed.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-013]
+- **FR-108**: `docs/docs/sidebar/architecture/ui.md` was **split**. `Configuration`, the RBAC model and `Pages` stay and read as an operator's page; the embedding mechanism, application structure, stack, component architecture, auth flow and SDK generation went to the corpus. 82 lines of 264 remain — not the 80 the plan measured, because the `[orval]` link definition sat inside the staying range while its only reference sat inside the moving one, so removing the orphan took two lines the plan had counted as staying.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-014]
+  [Source: specs/007-the-embedded-ui/tasks.md -> T013]
+- **FR-109**: `docs/docs/sidebar/features/management-dashboard.md` lost its `## Architecture` account of the stack and the embedding mechanism, which restated FR-097 and FR-100. What an operator acts on there stays: the dashboard is served at `/` with an `index.html` fallback, which is why API endpoints are prefixed `/api/`. **This document was missed by the classification.** It was found by a grep after the move had merged, not by the plan — see AS-026.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-014a]
+- **FR-110**: `development/ui-development.md` moved **entire**, its address keeping a short contributor index with a citation table — the shape `adding-an-api-domain.md` took. Its links are absolute GitHub addresses, for the reason the citation contract's sanctioned exception gives, and the page says so.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-015]
+- **FR-111**: `ui/docs/architecture.md` was **replaced by a pointer** rather than deleted, and is the one place in the programme where a file beside the code survives that way: its location is its value. A contributor working in `ui/` looks for architecture beside the code, and an absent file there sends them searching. The pointer states that it is a pointer rather than a summary — a file somebody can edit back into a document, and that sentence is the only thing guarding against it.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-016]
+- **FR-112**: The `add-a-domain` skill gains no UI reference. A domain's UI work is not part of adding a domain today — no domain has any — and inventing a citation for work nobody does would be the rule invented to fill a template that `global/correction` warns about. If UI work becomes part of adding a domain, the citation is added by the change that makes it true.
+  [Source: specs/007-the-embedded-ui/spec.md -> FR-017]
+  [Source: specs/007-the-embedded-ui/research.md -> "Decision 4"]
+
+
 ### Key Entities
 
 - **Provider**: A domain's operations, running in the agent, selected by OS
@@ -965,6 +1081,21 @@ questions from the corpus alone, without opening the site.
   changes it. Every classification decision turns on which one is being served.
   [Source: specs/003-corpus-backfill/spec.md -> Key Entities]
 
+- **Embedded UI**: A single-page application compiled into the controller binary and
+  served from the REST API's port.
+  [Source: specs/007-the-embedded-ui/spec.md -> Key Entities]
+- **Component kind**: One of four — primitive, domain, layout, hook — the boundary a
+  new file is placed against, decided by what the file knows rather than what it is
+  called. [Source: specs/007-the-embedded-ui/spec.md -> Key Entities]
+- **Generated client**: The UI's API access, produced from the same OpenAPI
+  specification as the Go SDK.
+  [Source: specs/007-the-embedded-ui/spec.md -> Key Entities]
+- **Divergent copy**: One of two statements of the same architecture, each holding a
+  section the other lacked. Distinct from a *candidate page*, which is a page
+  classified by its reader: a divergent copy is identified by what it disagrees with,
+  and two of them can both be contributor pages.
+  [Source: specs/007-the-embedded-ui/spec.md -> Key Entities]
+
 ## Success Criteria
 
 ### Measurable Outcomes
@@ -1029,6 +1160,13 @@ questions from the corpus alone, without opening the site.
   [Source: specs/004-job-system/spec.md -> SC-004]
   This holds for every moved subject, not only the job system.
   [Source: specs/003-corpus-backfill/spec.md -> SC-004]
+  The probe is a **grep across the directories**, not a check of a list of files: for
+  the UI, grepping the stack terms, the moved headings and the embedding mechanism
+  across `docs/docs`, `ui/docs` and the corpus must return the corpus statement and
+  citations and nothing else. A classification enumerates what somebody thought of; a
+  grep finds what is there, which is how the fourth copy of the UI's architecture was
+  found after the move had merged.
+  [Source: specs/007-the-embedded-ui/spec.md -> SC-002]
 - **SC-017**: No job system requirement restates a rule the provider contract or the
   agent key store already states.
   [Source: specs/004-job-system/spec.md -> SC-005]
@@ -1050,6 +1188,11 @@ questions from the corpus alone, without opening the site.
 - **SC-021**: `just test` passes in the specifications repository, `skill-lint`
   resolving every citation into the corpus.
   [Source: specs/005-building-a-domain/spec.md -> SC-004]
+  In osapi, `just docusaurus-fmt-check` and `just docusaurus-build` pass — and, for a
+  change touching a markdown file outside `docs/`, `just md-fmt-check` as well. The
+  two formatters are divided by path and passing one says nothing about the other.
+  [Source: specs/007-the-embedded-ui/spec.md -> SC-006]
+  [Source: specs/007-the-embedded-ui/tasks.md -> T013]
 - **SC-022**: No rule the corpus states appears in restated form in the skill's
   references. The skill states a rule's name and where it lives.
   [Source: specs/005-building-a-domain/spec.md -> SC-005]
@@ -1061,6 +1204,13 @@ questions from the corpus alone, without opening the site.
   resolution does not cover: a page can resolve and still have lost what somebody
   needed from it.
   [Source: specs/003-corpus-backfill/spec.md -> SC-002]
+  A split page is checked by its headings and then read: the UI page must keep
+  exactly `Configuration`, `Authentication & Authorization` and `Pages`, and answer
+  how to disable the UI, what each screen shows and what the three roles permit. The
+  grep proves the sections; only a reader proves it holds together, and the
+  introduction is the part most likely to be wrong, because deletion alone leaves one
+  that still introduces a contributor's document.
+  [Source: specs/007-the-embedded-ui/spec.md -> SC-003]
 - **SC-025**: The `add-a-domain` skill shrinks, and what remains is routing plus
   citations rather than restated mechanics. Measured across both subjects its
   references went from 704 lines to 692, a net 12 — narrow, because five rules turned
@@ -1068,6 +1218,29 @@ questions from the corpus alone, without opening the site.
   rather than deleted to improve the figure. The measure that shows what the backfill
   achieved is the site, where 950 lines of contributor knowledge left `docs/`.
   [Source: specs/003-corpus-backfill/spec.md -> SC-005]
+
+- **SC-026**: A reader who has seen neither UI page answers three questions from the
+  corpus alone: how does the UI reach a user's browser, where does a new component
+  go, and what does the UI verify about a token? Each would mislead a contributor if
+  unanswered — a separate deployment assumed, a file placed wrongly, a client-side
+  decode taken for a check. **Two of the three passed on the first reading**; the
+  second failed, because FR-004 required a statement of what separates the component
+  kinds and did not make one. It has not been re-read since that was fixed.
+  [Source: specs/007-the-embedded-ui/spec.md -> SC-001]
+  [Source: specs/007-the-embedded-ui/tasks.md -> T015]
+- **SC-027**: `ui/docs/architecture.md` is a pointer of under ten lines. It is nine.
+  If it grows, it has stopped being a pointer and the UI's architecture is stated
+  twice again, which is why the file says so in its own text.
+  [Source: specs/007-the-embedded-ui/spec.md -> SC-004]
+- **SC-028**: Both disagreements between the two former copies are recorded with what
+  each held, and all three unshared sections survive in the corpus. The point is not
+  that they are mentioned but that none was lost to the merge: a merge picking either
+  copy as authoritative would have dropped one or two of them.
+  [Source: specs/007-the-embedded-ui/spec.md -> SC-005]
+- **SC-029**: The UI move changed no Go code. `git diff --stat` touches only
+  markdown, `ui/` included — the directory was touched for the documentation file it
+  carries and nothing else.
+  [Source: specs/007-the-embedded-ui/spec.md -> SC-007]
 
 ## Assumptions
 
@@ -1160,3 +1333,31 @@ questions from the corpus alone, without opening the site.
   inside two pages was taken from prose rather than measured. It is the argument for
   FR-090 written by the feature that stated it.
   [Source: specs/003-corpus-backfill/spec.md -> "Corrected 2026-09-28"]
+
+- **AS-023**: The union of the two UI copies' unshared sections needed no
+  adjudication. All three describe things that exist — feature flags, the enable
+  switch, the embedding — so none is a claim the other copy contradicted. The copies
+  diverged by addition rather than by disagreement, which is what made a union
+  correct rather than a compromise.
+  [Source: specs/007-the-embedded-ui/spec.md -> "The union of the unshared sections"]
+  [Source: specs/007-the-embedded-ui/research.md -> "Decision 1"]
+- **AS-024**: `ui/`'s own `AI_POLICY.md` is policy rather than architecture and was
+  out of scope. [Source: specs/007-the-embedded-ui/spec.md -> "ui/'s own AI_POLICY.md"]
+- **AS-025**: The UI move changed no Go code. It states what the code already does
+  and cites the file for each claim; two of its requirements came from the code
+  rather than from either prose document, and a reader who trusted the prose would
+  have had neither.
+  [Source: specs/007-the-embedded-ui/spec.md -> "Counts were measured"]
+  [Source: specs/007-the-embedded-ui/research.md -> "Decision 3"]
+- **AS-026**: Three of that feature's own claims were wrong and were corrected before
+  it was archived, and **each was found by a different one of its own checks, none by
+  re-reading the specification**. A grep found a **fourth** copy of the architecture
+  where the classification had recorded three — `features/management-dashboard.md`,
+  which sat eight lines above a sentence the same change had just edited, so being in
+  the file was not enough. A line count found the pointer at ten lines against a
+  criterion of under ten, the bare corpus address taking a line of its own once
+  mdformat wraps at 80. And the reading found FR-004 requiring the corpus to state
+  what separates the component kinds and then not stating it. Counts were measured on
+  `b003df6` in specs and `0cca62060` in osapi; the line counts will date, what the
+  sections are will not.
+  [Source: specs/007-the-embedded-ui/spec.md -> "Corrected 2026-09-29"]

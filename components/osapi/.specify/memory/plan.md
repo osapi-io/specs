@@ -18,6 +18,20 @@
 > after both backfill subjects, and the two-repository sequence. No new dependency
 > at runtime; `@docusaurus/plugin-client-redirects` added to the site.
 
+> **Revision**: 2026-09-29 — Composed the embedded UI
+> (`specs/007-the-embedded-ui`). The UI is the part of osapi this plan had never
+> described: Language/Version, Primary Dependencies, Project Type, Testing,
+> Constraints and Scale/Scope each now account for it, the structure gains `ui/`, and
+> Configuration gains the one knob an operator has over it. No scalar conflicts —
+> every field composed, because a plan describing a Go module and a corpus said
+> nothing the UI contradicts.
+
+> **Revision**: 2026-09-29 — Recorded two things the move taught rather than planned:
+> this repository has **two markdown formatters divided by path**, so the Docusaurus
+> gates passing says nothing about `md-fmt-check`, and a document may be a **pointer**
+> — a third disposition beside moving and staying, for a file whose location is its
+> value.
+
 > **Revision**: 2026-09-28 — Composed the corpus backfill: the citation contract that
 > the skill linter enforces, and the two redirected addresses. Its two-repository
 > sequence was already here through its second subject, so nothing was restated.
@@ -41,13 +55,20 @@ restating the mechanics.
 ## Technical Context
 
 **Language/Version**: Go, `go 1.26.0` directive, CI builds the floor and stable.
-The corpus itself is Markdown with no compiled artifact.
+TypeScript for the embedded UI under `ui/src/`, built by Vite. The corpus itself is
+Markdown with no compiled artifact.
 [Source: specs/002-agent-key-store/plan.md -> "Language/Version"]
 [Source: specs/001-provider-contract/plan.md -> "Language/Version"]
+[Source: specs/007-the-embedded-ui/spec.md -> FR-003]
 
 **Primary Dependencies**: NATS JetStream KV (`nats-io/nats.go/jetstream`),
-`crypto/ed25519`, and the sibling `osapi-io/nats-client`. The corpus itself
+`crypto/ed25519`, and the sibling `osapi-io/nats-client`. On the UI side, stated as
+what each part is for rather than as versions, because versions date and roles do
+not: React with TypeScript for the application, Vite to build it, Tailwind for
+styling, React Router for navigation, and orval to generate the API client from the
+same combined OpenAPI specification the Go SDK generates from. The corpus itself
 depends on nothing at runtime.
+[Source: specs/007-the-embedded-ui/spec.md -> FR-003]
 [Source: specs/002-agent-key-store/plan.md -> "Primary Dependencies"]
 [Source: specs/001-provider-contract/plan.md -> "Primary Dependencies"]
 
@@ -65,7 +86,10 @@ them. [Source: specs/002-agent-key-store/plan.md -> "Storage"]
 
 **Testing**: In osapi, `testify/suite` table tests with `validateFunc`, generated
 mocks only, and `just test` as the gate at 99.9% coverage; integration tests live
-under `test/integration` behind the `integration` build tag. In the specs
+under `test/integration` behind the `integration` build tag. **`ui/` is excluded from
+that gate** by `/ui/` in `.coverignore`, so the coverage figure says nothing about the
+UI and its correctness rests on its own checks.
+[Source: specs/007-the-embedded-ui/spec.md -> FR-010] In the specs
 repository, `just test` runs `mdformat --check`, `just-fmt-check`, and
 `scripts/validate-skills.py` over every `SKILL.md` and the relative links in its
 references. [Source: specs/002-agent-key-store/plan.md -> "Testing"]
@@ -76,8 +100,9 @@ corpus has no target platform — its readers are contributors and agents.
 [Source: specs/002-agent-key-store/plan.md -> "Target Platform"]
 [Source: specs/001-provider-contract/plan.md -> "Target Platform"]
 
-**Project Type**: Single Go module — controller, agent and shared packages —
-alongside a documentation corpus.
+**Project Type**: Single Go module — controller, agent and shared packages — with a
+React single-page application compiled into the binary, alongside a documentation
+corpus. [Source: specs/007-the-embedded-ui/spec.md -> FR-001]
 [Source: specs/002-agent-key-store/plan.md -> "Project Type"]
 [Source: specs/001-provider-contract/plan.md -> "Project Type"]
 
@@ -87,7 +112,12 @@ load is proportional to fleet size rather than throughput; a per-machine-ID cach
 invalidated on acceptance and removal keeps steady-state reads near zero.
 [Source: specs/002-agent-key-store/plan.md -> "Performance Goals"]
 
-**Constraints**: No new configuration knob — `ControllerPKI.Enabled`,
+**Constraints**: A document keeping its address must read as a whole page afterwards
+rather than as a remainder, and no requirement restates what the provider contract,
+the job system or building a domain already states — the UI's permission model cites
+osapi's rather than repeating it.
+[Source: specs/007-the-embedded-ui/plan.md -> "Constraints"]
+Separately: no new configuration knob — `ControllerPKI.Enabled`,
 `AgentPKI.Enabled` and `ControllerPKI.RotationGracePeriod` already cover
 enforcement and rotation. Behaviour with PKI disabled is byte-for-byte unchanged,
 and signature verification never fails open. Separately, a rule lives in exactly
@@ -96,8 +126,10 @@ one place: two copies drift, and the copy an agent happened to load wins.
 [Source: specs/001-provider-contract/plan.md -> "Constraints"]
 
 **Scale/Scope**: Fleets in the hundreds. One stored key per machine ID, plus at
-most one superseded key during a rotation grace period. The corpus side is sixteen
-requirements covering one layer of one repository.
+most one superseded key during a rotation grace period. 464 UI source files under
+`ui/src/`, by `find ui/src -type f \( -name '*.tsx' -o -name '*.ts' \) | wc -l`. The
+corpus side is sixteen requirements covering one layer of one repository.
+[Source: specs/007-the-embedded-ui/research.md -> "464 UI source files"]
 [Source: specs/002-agent-key-store/plan.md -> "Scale/Scope"]
 [Source: specs/001-provider-contract/plan.md -> "Scale/Scope"]
 
@@ -119,6 +151,17 @@ internal/job/
 
 internal/agent/heartbeat.go    signs the registration
 internal/validation/target.go  only verified registrations resolve
+
+ui/
+├── embed.go             //go:embed dist/* — what puts the SPA in the binary
+├── dist/                Vite production build output (generated)
+├── docs/architecture.md a pointer to the corpus, per FR-111
+└── src/
+    ├── components/ui/     primitives — no osapi resource
+    ├── components/domain/ one resource each
+    ├── components/layout/ the page's chrome
+    ├── hooks/             state and data, .ts so they cannot hold markup
+    └── sdk/               the generated client and its fetch mutator
 
 components/osapi/specs/001-provider-contract/spec.md    the provider contract
 components/osapi/.specify/memory/spec.md                where archival puts it
@@ -155,9 +198,30 @@ repository the pages live in, so a subject's two halves are each checked where t
 land.
 [Source: specs/004-job-system/plan.md -> "Testing"]
 
+**osapi has two markdown formatters, divided by path.** Prettier formats `docs/**`
+through the Docusaurus recipes; mdformat formats everything else, `ui/docs/` included,
+through `just md-fmt-check`. A change touching both needs both run, and the Docusaurus
+gates passing says nothing about the other — which is how a nine-line pointer passed
+review and failed CI.
+[Source: specs/007-the-embedded-ui/tasks.md -> T013]
+
+Neither gate catches what matters most about a split: the build fails on a link into
+removed content, and says nothing about whether the surviving page reads as a page.
+That is review. Nor does either catch a link that still **resolves** while describing
+content that has moved — three such sentences survived the UI move's build and were
+corrected by reading, not by a gate.
+[Source: specs/007-the-embedded-ui/plan.md -> "Testing"]
+
 ## Configuration
 
-No new configuration. `ControllerPKI.Enabled` governs controller-side enforcement,
+`controller.ui.enabled` turns the embedded UI off, defaulting to true; when it is
+false the controller skips registering the SPA handler and serves only the REST API.
+The UI shares `controller.api.port`, so enabling it adds no network configuration.
+This is the only setting an operator has over the UI, and the published site states
+it as well as the corpus — cited there, stated here.
+[Source: specs/007-the-embedded-ui/spec.md -> FR-002]
+
+Otherwise no new configuration. `ControllerPKI.Enabled` governs controller-side enforcement,
 `AgentPKI.Enabled` the agent side, and `ControllerPKI.RotationGracePeriod` how long
 a replaced agent key keeps verifying. All three already existed and were already
 documented as covering PKI enrollment and signing.
@@ -191,6 +255,26 @@ because the corpus is a separate repository and is not published as part of the
 site — the one place the relative-link rule cannot apply, and the domain index says
 so in a note rather than leaving it to look like an oversight.
 [Source: specs/005-building-a-domain/plan.md -> "Documentation Surface"]
+
+The UI move adds a third citing page — the UI development index — and a **third
+disposition**. Until it, a document either moved or stayed. `ui/docs/architecture.md`
+does neither: it is a **pointer**, kept for its location rather than its content,
+because a contributor working in `ui/` looks for architecture beside the code and an
+absent file there sends them searching. It is the only one in the programme, and the
+reason is specific to it rather than a precedent for keeping files.
+
+The risk that disposition accepts, named rather than hidden: a pointer is a file
+somebody can edit back into a document. Nothing prevents it except the file saying it
+is a pointer and where the statement lives — which is why that sentence is a
+requirement rather than a courtesy.
+[Source: specs/007-the-embedded-ui/research.md -> "Decision 2"]
+
+After the UI move, **585 more lines** of contributor knowledge have left osapi: the
+architecture page went 264 to 82, the development page 200 to 52, and the file beside
+the code 263 to 9. Four documents stated the UI's architecture when this started and
+one does now. Reproduce from `osapi/` with
+`wc -l docs/docs/sidebar/architecture/ui.md docs/docs/sidebar/development/ui-development.md ui/docs/architecture.md`.
+[Source: specs/007-the-embedded-ui/plan.md -> "Scale/Scope"]
 
 ## Routing & Navigation
 
@@ -249,6 +333,21 @@ gone first.
 
 Archival is third, after both. Running it earlier records intentions as outcomes.
 [Source: specs/005-building-a-domain/research.md -> "Decision 1"]
+
+Where the content being moved is stated in **two** places that have diverged, the
+order binds harder still, and a further rule applies: **the repository change is one
+commit.** Landing half of it leaves the divergent copy as the sole statement, and the
+copy left standing is the one missing sections — a worse state than doing none of it,
+and one no gate reports.
+[Source: specs/007-the-embedded-ui/tasks.md -> "Two repositories, and the order"]
+
+One thing this sequence does not cover, learned by getting it wrong: for a corpus
+feature there is **no second corpus pull request**. The statement is `spec.md`, which
+merged at stage 1, so the corpus half of the sequence is already done before
+implementation starts and its tasks are verification rather than writing. A plan that
+schedules a corpus pull request during implementation is describing a step that
+cannot happen.
+[Source: specs/007-the-embedded-ui/tasks.md -> "A correction to Phase 3"]
 
 ## What a Citation Is, and What Checks It
 
