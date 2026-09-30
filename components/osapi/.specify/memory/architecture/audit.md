@@ -7,7 +7,12 @@ role can see and the other cannot.
 
 ## What an entry holds
 
-Fourteen fields.
+Thirteen fields, in twelve rows below because `method` and `path` describe one
+thing.
+
+```sh
+awk '/^type Entry struct/,/^}/' internal/audit/types.go | grep -cE '^\t[A-Z]'  # 13
+```
 
 | Field             | Is                                                     |
 | ----------------- | ------------------------------------------------------ |
@@ -49,7 +54,13 @@ token       private_key     privatekey     key_data
 stdin       content         authorization
 ```
 
-Eleven names. `stdin` and `content` are the two that connect elsewhere: `stdin` is
+Eleven names.
+
+```sh
+awk '/^var sensitiveFields/,/^}/' internal/audit/summary.go | grep -cE '^\t"'  # 11
+```
+
+`stdin` and `content` are the two that connect elsewhere: `stdin` is
 how [running commands](exec.md) keeps a secret out of a command's arguments, and
 `content` is a file body going to the deployer. Both would otherwise be stored in
 full.

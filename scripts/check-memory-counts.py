@@ -34,6 +34,16 @@ SPECS = Path(__file__).resolve().parent.parent
 ROW = re.compile(r"^\|\s*(?P<label>[^|]+?)\s*\|\s*(?P<value>[\d,]+)\s*\|\s*(?P<cmd>.+?)\s*\|\s*$")
 BACKTICKED = re.compile(r"`([^`]+)`")
 
+# A count inside a shell block, written as the command and its expected value:
+#
+#     grep -c foo bar.go   # 8
+#
+# Memory uses this form wherever a measurement does not belong in a table, so it
+# has to be checked the same way. Only an integer comment opts a line in; a
+# comment in words ("the same version twice") is prose and is left alone.
+FENCE = re.compile(r"^\s*```\s*(sh|bash|shell|console)?\s*$")
+ANNOTATED = re.compile(r"^(?P<cmd>[^#]+?)\s+#\s*(?P<value>\d[\d,]*)\s*$")
+
 
 def command_in(cell: str) -> str | None:
     """The runnable command a table cell holds, or None.
@@ -50,6 +60,31 @@ def command_in(cell: str) -> str | None:
         return None
     # Markdown escapes a pipe inside a table cell. Undo that before running.
     return max(parts, key=len).replace(r"\|", "|")
+
+
+def annotated_counts(text: str) -> list[tuple[str, int, str]]:
+    """Every `command  # N` line inside a fenced shell block.
+
+    A command that changes directory or reaches outside the repository is left
+    alone: it cannot be run in the repository the memory describes, which is the
+    only place a count means anything.
+    """
+    out = []
+    in_block = False
+    for line in text.splitlines():
+        if FENCE.match(line):
+            in_block = not in_block
+            continue
+        if not in_block:
+            continue
+        m = ANNOTATED.match(line)
+        if not m:
+            continue
+        cmd = m.group("cmd").strip()
+        if cmd.startswith("cd ") or cmd.startswith("for ") or "~/" in cmd:
+            continue
+        out.append((cmd[:60], int(m.group("value").replace(",", "")), cmd))
+    return out
 
 
 def run(cmd: str, cwd: Path) -> tuple[int | None, str]:
@@ -73,8 +108,11 @@ def run(cmd: str, cwd: Path) -> tuple[int | None, str]:
 def main() -> int:
     checked = moved = broken = skipped = 0
     partial: list[tuple[str, str]] = []
-    for memory in sorted(SPECS.glob("components/*/.specify/memory/*.md")):
-        component = memory.parts[-4]
+    # rglob, not glob: the subject documents live a directory deeper than the
+    # entry point, and a pattern that stops at `memory/*.md` checks only the
+    # entry points while reporting a total that looks complete.
+    for memory in sorted(SPECS.glob("components/*/.specify/memory/**/*.md")):
+        component = memory.relative_to(SPECS / "components").parts[0]
         target = REPO_PARENT / component
         rows = []
         in_table = False
@@ -107,6 +145,7 @@ def main() -> int:
                     partial.append((component, label))
                 continue
             rows.append((label, expected, cmd))
+        rows.extend(annotated_counts(memory.read_text()))
         if not rows:
             continue
         if not target.is_dir():

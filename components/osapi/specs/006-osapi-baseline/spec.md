@@ -193,7 +193,7 @@ serves.
   | Files under `docs/`      | 221   | `find docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                                           |
   | Provider categories      | 6     | `ls -d internal/provider/*/ \| wc -l`                                                                                     |
   | API domains              | 24    | `ls -d internal/controller/api/node/*/ internal/controller/api/*/ \| grep -vE '/(gen\|mocks\|common\|apierr)/$' \| wc -l` |
-  | SDK methods              | 117   | `grep -cE '^func \(s \*[A-Za-z]+Service\)' pkg/sdk/client/*.go` summed                                                    |
+  | SDK methods              | 117   | `grep -hE '^func \(s \*[A-Za-z]+Service\)' pkg/sdk/client/*.go \| wc -l`                                                  |
 
 - **FR-013**: The corpus MUST state that **219 and 221 are different
   quantities**: 219 are site pages under `docs/docs/`, and 221 adds
