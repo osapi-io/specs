@@ -53,11 +53,27 @@ amendment obliged across six projects. 442 documentation pages to be classified
 by those features, none of them by this one.
 
 **A number collision worth naming, because it reads as consistent and is not.**
-`osapi` alone has 221 documentation pages, and the four repositories that still
-need a move total 221 as well — 68 plus 140 plus 8 plus 5. They are different
-quantities that happen to share a figure. What a baseline classifies is *every*
-page of its own repository, so the programme's total is 442: the five
+`osapi` was measured at 221 documentation pages, and the four repositories that
+still need a move total 221 as well — 68 plus 140 plus 8 plus 5. They are
+different quantities that happened to share a figure. What a baseline classifies
+is *every* page of its own repository, so the programme's total is the five
 repositories that have any, `osapi` included.
+
+**Corrected after osapi's baseline.** osapi has **219** published pages, not
+221: the 221 counted the Docusaurus project's own `README.md` and `SUPPORT.md`.
+The programme's total is therefore **440**, and the collision this paragraph
+warns about turns out to have been a coincidence between a wrong number and a
+right one. Reproduce from `osapi/` with
+`find docs/docs -name '*.md' -not -path '*/node_modules/*' | wc -l` for 219, and
+`find docs -name '*.md' -not -path '*/node_modules/*' | wc -l` for 221. Both
+still hold after the UI move, because no page was deleted — the two relocated
+pages kept their addresses. Recorded here rather than silently rewritten,
+because the collision is still the lesson.
+
+The command matters as much as the number. A first attempt at it added
+`-o -name '*.mdx'` and returned 393, because the generated API reference is 174
+`.mdx` files. A count is only evidence with the command beside it, and a command
+is only evidence once it has been run.
 
 ## Constitution Check
 
