@@ -30,6 +30,8 @@ through that same SDK.
 | [Running commands](architecture/exec.md)       | The six ways to run one, why ten minutes is a ceiling, and where a secret goes |
 | [Permissions](architecture/permissions.md)     | The 37 permissions, the three roles, and why a direct permission overrides them |
 | [The audit trail](architecture/audit.md)       | What is recorded, why redaction is a denylist, and what a read does not capture |
+| [Configuration](architecture/configuration.md) | Where a value comes from, and how secrets stay out of the log                 |
+| [Observability](architecture/observability.md) | Tracing across the queue, metrics on their own port, conditions              |
 
 ## Where it sits
 
