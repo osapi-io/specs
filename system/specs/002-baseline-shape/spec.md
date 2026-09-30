@@ -260,16 +260,42 @@ whoever writes the next one.
      `MUST` belongs to the feature specification, where it obliges somebody to
      write something. In memory the writing has happened, so the obligation is
      spent and only the fact remains.
+
   2. **No feature-process furniture.** User stories, priorities, acceptance
      scenarios and success criteria do not reach memory. They record how a
      change was reviewed; the changelog already records that the change
-     happened.
-  3. **Source refs stay on every statement.** They are the traceability the
-     whole corpus rests on, and they are the one part of the current form worth
-     keeping.
+     happened. Neither do **requirement identifiers in the body**. `FR-` labels
+     were kept on the first attempt, justified by site pages and skills citing
+     the corpus by requirement ID — and checking that showed the citations point
+     at *feature specifications*, 22 of them across the skills, and that
+     **nothing anywhere cites a memory requirement number**. The justification
+     was a guess about where a verified fact applied.
 
-  A reader arriving at `memory/spec.md` should find seven headings and be able
-  to read straight down. That is the test.
+  3. **Traceability is one line at the end, not a footer on every paragraph.**
+     Memory names the feature it came from once. A reader who wants to know
+     which requirement obliged a sentence reads that feature.
+
+  4. **The voice is the architecture documentation this programme has been
+     moving.** `global/baseline` carries it in full. In short: a heading names
+     the thing, with its path where a path helps; a statement is present tense
+     and made once; a design decision carries its reason beside the thing it
+     explains; and commentary about the document never appears — not how a fact
+     was found, not that a fact is important, not what an earlier version said.
+     Show a configuration block, a directory tree or a command where showing it
+     is shorter than describing it.
+
+     The calibration is osapi's `system-architecture.md`, which explains that
+     the liveness probe is deliberately trivial because dependency checks there
+     would make orchestrators restart the process during a transient NATS outage
+     — a restart storm on top of the original problem — and then tells the
+     reader to use readiness for load balancing instead. One sentence of reason
+     about the system, and guidance that can be acted on.
+
+  A reader arriving at `memory/spec.md` should be able to read straight down and
+  learn the system. **Seven headings in the right order is not sufficient to
+  pass that test**: the first attempt produced exactly that, filled with
+  labelled requirement bullets and citation footers, and it read as a
+  specification with better navigation.
 
 ### What stitches the set together
 
