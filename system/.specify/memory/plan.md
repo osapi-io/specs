@@ -1,152 +1,92 @@
-# Main Implementation Plan
+# How these agreements were reached
 
-> **Revision**: 2026-09-02 — First archival. Seeded from `specs/001-repository-inventory`; every section was previously empty.
+Each one started as something going wrong in a repository, which is why they are
+worth keeping rather than being the rules anybody would have guessed.
 
-> **Revision**: 2026-09-29 — Added the repository map, from
-> `specs/002-baseline-shape`. It is the graph every component baseline states its own
-> edges against.
+## The list rule came from a deletion
 
-## Summary
+`dependencies.md` held a hand-maintained dependency graph. It was accurate when
+written. The question that killed it was not whether it was wrong but what would
+tell anybody when it became wrong, and the answer was nothing.
 
-The repository list comes from a command rather than a document. A charter
-fragment states it, the constitution carries it into every session, and the one
-file that kept its own copy is gone.
+The graph was already derivable from `go.mod` files and justfiles, so the document
+was a cache that nothing refreshed and nothing checked. Deleting it and stating the
+command was the whole change.
 
-[Source: specs/001-repository-inventory/plan.md -> "Summary"]
+## The shape came from a baseline that was already wrong for the goal
 
-## Technical Context
+gohai's was written first and deliberately excluded architecture, on the reasoning
+that the contract was what mattered. That is defensible for one repository and
+fatal for a set: the goal is that somebody reads all six and understands how the
+organisation fits together, and an inventory that states a contract and omits the
+architecture cannot do that.
 
-**Language/Version**: N/A — Markdown and shell commands
-[Source: specs/001-repository-inventory/plan.md -> "Language/Version"]
+Five more in that shape would have made the inconsistency permanent. So the shape
+was fixed before the second baseline rather than after the sixth, and gohai's
+amendment is still owed.
 
-**Primary Dependencies**: `gh` CLI, authenticated. Installed by hand via
-`brew`, not by `mise`, which resolves it through `aqua` whose attestation check
-fails for that package.
-[Source: specs/001-repository-inventory/plan.md -> "Primary Dependencies"]
+## The riskiest case was taken sixth on purpose
 
-**Testing**: `just test` covers Markdown and justfile formatting. Rules stated
-in the constitution are verified by reading the generated file and running the
-command they name.
-[Source: specs/001-repository-inventory/plan.md -> "Testing"]
+`osapi-justfiles` has no Go at all. If the seven-section shape could not be filled
+there, the shape was wrong, and finding that out after four conforming baselines is
+the expensive order.
 
-**Project Type**: Documentation and configuration, in this repository.
-[Source: specs/001-repository-inventory/plan.md -> "Project Type"]
+It fits. What it cost was one interpretation, recorded with the two readings
+rejected: "the contract" had to mean what a consumer may depend on rather than
+exported symbols.
 
-**Constraints**: `constitution.md` is generated from fragments in `.charter/`.
-It must be regenerated with `/speckit-charter-compose` then
-`/speckit-constitution`, never edited — a direct edit is lost at the next
-compose.
-[Source: specs/001-repository-inventory/plan.md -> "Constraints"]
+## The documentation contract came from three readings saying the same thing
 
-**Scale/Scope**: One repository.
-[Source: specs/001-repository-inventory/plan.md -> "Scale/Scope"]
+Each baseline gets a reading by somebody who has seen nothing else. Three of them
+reported that memory read as a checklist with footnotes, and each time it was
+recorded as a finding for this feature to decide rather than fixed.
 
-## Project Structure
+That was wrong. It was a visible, actionable form problem filed as somebody else's
+decision, and the rule that forbade it already existed: FR-017 said a baseline must
+not use "checklist scaffolding, or any other testing formalism as its body". Five
+archivals read that as binding the feature specification rather than what archival
+writes into memory.
 
-```text
-specs/
-├── .charter/
-│   ├── manifest.yml                      # fragments the registry offers
-│   └── fragments/global/                 # shared by system and every component
-│       ├── documentation.md
-│       ├── verification.md
-│       ├── tooling.md
-│       ├── correction.md
-│       ├── workflow.md
-│       └── repositories.md
-└── system/.specify/
-    ├── charter/
-    │   ├── state.yml                     # fragments this project composes
-    │   └── snapshots/fragment/global/    # one per composed fragment
-    └── memory/
-        ├── constitution.md               # generated; never hand-edited
-        ├── spec.md                       # this document's sibling
-        └── plan.md
-```
+## Every reading has found something
 
-**Structure Decision**: Charter fragments live at the repository root, in
-`.charter/`, because they are shared by `system` and every project under
-`components/`. Each project's `state.yml` selects the subset it composes.
+Nine of them now, and none has come back clean on the first attempt.
 
-[Source: specs/001-repository-inventory/plan.md -> "Structure Decision"]
+A promised answer that did not exist. Five modules named in three places and
+explained in none. An overclaim about what five documentation pages omitted. A
+count hedged as "about twenty" beside a table enumerating exactly 20. A consumer
+list that was wrong when written.
 
-## Configuration
+The most recent read all thirteen documents and answered all five of its questions,
+and still found six defects: a six-versus-seven count that reads as a
+contradiction, an undefined term, a result status nobody had stated, no document
+tracing one request end to end, and the same rhetorical device in two unrelated
+documents. That last one is the machine tell that survives every other pass.
 
-`.mise.toml` provisions `just` and `uv`. `gh` is installed by hand alongside
-`mise`; it cannot be provisioned by `mise`, whose `aqua` backend fails release
-attestation for that package, and adding it makes `mise exec -- gh` fail where
-it otherwise resolves from `PATH`.
+**The reading is the only check on the prose.** `memory-check` catches a count that
+moved and `check-memory-docs.py` catches specification form creeping back, and
+neither can tell whether a paragraph is true or readable.
 
-[Source: specs/001-repository-inventory/plan.md -> "Primary Dependencies"]
+## What is enforced, and what is not
 
-## Testing Strategy
+| Check                     | Catches                                                    |
+| ------------------------- | ---------------------------------------------------------- |
+| `just memory-check`       | a count whose command no longer produces it                |
+| `just memory-docs`        | `MUST`, `FR-` labels, user stories, em dashes, broken links, an unlinked subject |
+| `just skill-lint`         | a citation into the corpus that stopped resolving          |
+| a reading                 | everything else, and it has never come back clean          |
 
-`just test` runs `md-fmt-check` and `just-fmt-check`, the same checks CI runs.
-A rule that lives in the constitution is verified by reading the generated
-`constitution.md` for its section and running the command the rule names —
-there is nothing to unit test.
+## What is still owed
 
-[Source: specs/001-repository-inventory/plan.md -> "Testing"]
+gohai's amendment, which needs sections 2 and 3 and the classification of its 68
+documentation pages. The orchestrator's 140 pages are unclassified too, so nobody
+has checked whether either repository is sitting on contributor knowledge the way
+osapi was.
 
-## Complexity Tracking
+`sdk/guidelines.md`'s remainder in osapi, the package structure and the response
+pattern, has no corpus counterpart and no feature open for it.
 
-No constitution violations to justify.
-
-[Source: specs/001-repository-inventory/plan.md -> "Complexity Tracking"]
-
-## The Repository Map
-
-Six components, in eight repositories. The table below is the six the baseline
-programme covers; `specs` and `.github` are the other two, and only the first of
-them appears in the graph — as a *consumer* of `osapi-justfiles`, which is the edge
-this map originally missed. Read this for the graph, then read a baseline for a
-repository. `gohai`'s baseline is the worked example: it has no edges either way,
-so it can be read without holding another repository in mind.
-
-| Repository | Depends on | Depended on by | What it is |
-| --- | --- | --- | --- |
-| `osapi` | `nats-client`, `nats-server` | `osapi-orchestrator` | The API and the agent: manages Linux hosts over NATS |
-| `osapi-orchestrator` | `osapi` | — | Drives osapi's SDK to run ordered work across hosts |
-| `nats-client` | — | `osapi` | NATS client wrapper |
-| `nats-server` | — | `osapi` | Embedded NATS server |
-| `gohai` | — | — | SDK-first system fact collection, standalone |
-| `osapi-justfiles` | — | all seven, by fetch | Shared justfile modules |
-
-**The commands that produce it**, because a written list is correct when written and
-wrong after the next dependency changes, and nothing marks the moment:
-
-```bash
-grep -oE "osapi-io/[a-z-]+" */go.mod      # the Go edges
-grep -n justfiles */justfile              # the build edge
-```
-
-**The build edge appears in no `go.mod`.** Every repository fetches
-`osapi-justfiles` through a justfile recipe rather than importing it, so a reader who
-ran only the first command would conclude it has no dependents. That is why it is
-listed separately rather than derived from the Go graph.
-
-**And the fetch reaches seven repositories, not six.** `specs` takes the `just` and
-`md` modules; only `.github` has no justfile at all. This map said six until
-`osapi-justfiles`' baseline measured it (specs#182, amended into 002 as FR-033), and
-the correction is worth more than the number: **the command above returns `specs`.**
-It was written here, beside a figure that disagreed with it, and the disagreement
-survived because the frame was the six components rather than the repositories the
-command returns. A count paired with its command is only evidence once somebody runs
-the command.
-
-Per module, since the blast radius differs: `md` reaches all seven, `just` six, `go`
-five, and `react` and `docusaurus` one each. `md` is the widest change available in
-the organization — and `specs`' `just test`, which gates every corpus change, is
-downstream of it.
-
-**A finding, recorded and not fixed here.** That fetch takes
-`refs/heads/main` rather than a pinned ref. The Tooling principle says a tool whose
-output is committed is pinned. Owner: `osapi-justfiles` and each consumer, each in its
-own change — this feature changes no repository.
-
-**How this stays true.** Three things, and the third is what makes it more than a
-promise. The commands above re-derive it. Each component baseline states its own edges
-independently, so the map has six witnesses rather than being the only record. And
-[002's quickstart](../../specs/002-baseline-shape/quickstart.md) makes a disagreement
-between the map and the baselines a checkable failure rather than something a reader
-has to guess at.
+Six of osapi's subsystems have no document: `audit`, `telemetry`, `exec`, `cli`,
+`authtoken` and `config`. None has a feature behind it, so none was ever
+backfilled. `exec` matters most, because the rule that a secret never reaches a
+command through its arguments lives there and `providers.md` points at it without
+explaining it.

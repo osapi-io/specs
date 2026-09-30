@@ -46,6 +46,10 @@ skill-lint:
 memory-check:
     python3 scripts/check-memory-counts.py
 
+# Hold the documentation contract global/baseline states
+memory-docs:
+    python3 scripts/check-memory-docs.py
+
 # --- Top-level orchestration ---
 
 # Run all checks
@@ -54,6 +58,7 @@ test:
     just just-fmt-check
     just skill-lint
     just memory-check
+    just memory-docs
 
 # Format and lint before committing
 ready:
@@ -61,3 +66,4 @@ ready:
     just just-fmt
     just skill-lint
     just memory-check
+    just memory-docs
