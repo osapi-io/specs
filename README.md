@@ -76,9 +76,9 @@ to one.
 
 osapi's is the one to read first, since four of the other five either feed it or
 consume it. gohai is the exception and reads standalone. osapi links out to
-eleven subjects of its own: the job system, providers, building a domain, agent
-identity, permissions, the audit trail, running commands, the Go SDK, the
-embedded UI, configuration and observability.
+twelve subjects of its own: the message bus, the job system, providers, building
+a domain, agent identity, permissions, the audit trail, running commands, the Go
+SDK, the embedded UI, configuration and observability.
 
 The specifications under each `specs/` are the process that produced those
 documents. They record what a change was going to do and are not written to be

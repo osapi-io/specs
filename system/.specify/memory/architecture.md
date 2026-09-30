@@ -106,6 +106,11 @@ has twelve Go files and forces a logging decision on the largest one.
 
 **Two repositories wrap the same upstream library from opposite ends**, and the
 facts a consumer needs about reconnection and logging are split between them.
+osapi is the only consumer of either, and it now holds both in one place:
+[the message bus](../../../components/osapi/.specify/memory/architecture/transport.md).
+Recording them only here was a correct finding filed in the wrong repository, which
+an onboarding reading caught by needing them and not finding them where a
+contributor would look.
 
 **Two repositories read system facts from `gopsutil` independently**, pinned to
 the same `v4.26.8`. gohai does it in 14 of its 62 collector directories and osapi
