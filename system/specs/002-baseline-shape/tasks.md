@@ -204,11 +204,18 @@ against the right project, and stops there.
   4 is mostly citation and says why, which is what FR-010 of that baseline
   requires.
 
-- [ ] T014 [US3] **After T013's baseline merges**, and not before, run T004's
+- [x] T014 [US3] **After T013's baseline merges**, and not before, run T004's
   composition if it has not already run — see [research.md](research.md)
   Decision 5. The fragment lands between the first baseline and the remaining
   four: earlier binds six repositories to an untested shape, later leaves five
   baselines written against a specification rather than a rule.
+
+  **Already satisfied, and in the right order.** T004 composed the fragment into
+  all six constitutions and T005 confirmed it. osapi's baseline merged at
+  specs#169 before that, so the ordering Decision 5 requires held without a
+  second composition being needed. Verify with
+  `grep -c '^## Baseline' components/*/.specify/memory/constitution.md` — six
+  files, one each.
 
 - [ ] T015 [US3] Open `gohai`'s baseline **amendment** — not a new feature. It
   adds section 2, section 3, and the classification of its 68 documentation
@@ -273,6 +280,16 @@ reporting a pass against zero baselines.
   `sdk/guidelines.md` that is not a demonstration of rules the corpus already
   states. Driven by the classification in specs#169, which is the ordering
   FR-026 requires and the one osapi got wrong the first time.
+
+  **Two of three pages done, and the box stays open until the third is.**
+  `007-the-embedded-ui` moved the two UI pages: specified at specs#172, planned
+  at specs#173, implemented at osapi#549, corrected at specs#175 and osapi#550.
+  It did **not** touch `sdk/guidelines.md`, which 006's FR-015 classifies as
+  *partly* moving — its rules are 005's FR-019 and FR-020 and the page rightly
+  demonstrates them, but the package structure and the response pattern have no
+  counterpart anywhere. That remainder is a feature of its own and it is not
+  open yet. Ticking this on the UI move alone would have recorded a third of a
+  page family as a whole one.
 
 - [ ] T022 The SC-008 search: every documentation page still present in a
   repository is one its own baseline classified **user-facing**. Anything

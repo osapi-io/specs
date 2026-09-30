@@ -23,6 +23,12 @@ features and none of them wrote the document that says which pages are
 contributor-facing. These two UI pages are what that omission cost — they were
 never candidates, so nothing examined them.
 
+**Two claims in this specification were wrong and are corrected at the bottom,
+under Assumptions.** There were four copies rather than three, and the pointer
+landed at ten lines rather than under ten. Read that block before trusting a
+count here: the corrections are at the end because that is when they were found,
+not because they matter less.
+
 ## What makes this move different from the backfill's
 
 The backfill reconciled a site page against the code. This reconciles **three
@@ -136,8 +142,19 @@ touched except for the documentation file it carries.
   uses. Versions are evidence and date; the roles do not.
 - **FR-004**: The corpus MUST state the four kinds of component and what
   separates them — primitives, domain components, layout, and hooks — because
-  that boundary is the one a contributor has to place a new file against.
-  Evidence: `ui/src/components/{ui,domain,layout}/` and `ui/src/hooks/`.
+  that boundary is the one a contributor has to place a new file against. **What
+  separates them is what each one knows**, not what it is called. A primitive
+  knows no osapi resource: none of the 34 files in `ui/src/components/ui/`
+  imports the generated client. A domain component knows exactly one: 38 of the
+  43 files in `ui/src/components/domain/` import the client or a hook. Layout
+  knows none and holds the page's chrome. A hook holds state or fetches data and
+  renders nothing — every one of the 14 files in `ui/src/hooks/` is `.ts` rather
+  than `.tsx`, so none of them can contain markup. A new file goes where its
+  knowledge puts it: markup with no resource is a primitive, markup with one
+  resource is a domain component, a resource with no markup is a hook. Reproduce
+  with `cd ui/src && grep -rl "sdk/" components/ui | wc -l` (expect 0),
+  `grep -rl "sdk/\|hooks/" components/domain | wc -l` (expect 38 of 43), and
+  `ls hooks | sed 's/.*\.//' | sort -u` (expect `ts`).
 - **FR-005**: The corpus MUST state that the UI's API client is **generated from
   the same specification as the Go SDK**, so an endpoint added to a domain
   reaches both, and that a fetch mutator adapts it to the browser. This is the
@@ -268,12 +285,26 @@ the treatment [003](../003-corpus-backfill/spec.md) gave its three.
 | Three documents state the architecture       | **Four.** `features/management-dashboard.md` held a fourth account of it  | SC-002's grep, run after osapi#549 merged |
 | `ui/docs/architecture.md` is under ten lines | **Ten**, until tightened. The bare corpus address wraps onto its own line | SC-004's `wc -l`                          |
 
-The first is the one worth naming. The classification read the two pages titled
-for the UI and the file beside the code, and stopped — a page in `features/`
-describing a feature for operators was not where a fourth statement of the stack
-was expected. It restated React, Vite and `//go:embed`, which FR-003 and FR-006
-now state, and it did so eight lines above a sentence this feature edited. Being
-in the file was not enough; only the grep was.
+The SC-001 reading found a third, and it was not a count. **FR-004 required the
+corpus to state what separates the four kinds of component and then did not
+state it.** It named the four and gave the directories, which is a requirement
+about a requirement: a reader learned there are four buckets and where they sit
+on disk, not how to decide which bucket a new file belongs in. That is the one
+question of the three the reading could not answer, and FR-004 now carries the
+separation, measured from the code.
+
+Worth recording about the reading itself: it also reported that this correction
+block reads as an appendix and is easy to stop short of, so a reader can leave
+with the wrong count. A pointer to it now sits under the summary. The reading
+found in one pass what re-reading the file three times did not, which is the
+argument for SC-001 being a reading by somebody who has seen nothing else.
+
+The first count is the one worth naming. The classification read the two pages
+titled for the UI and the file beside the code, and stopped — a page in
+`features/` describing a feature for operators was not where a fourth statement
+of the stack was expected. It restated React, Vite and `//go:embed`, which
+FR-003 and FR-006 now state, and it did so eight lines above a sentence this
+feature edited. Being in the file was not enough; only the grep was.
 
 This is the argument for SC-002 being a grep across a directory rather than a
 list of files. A classification enumerates what somebody thought of; a grep

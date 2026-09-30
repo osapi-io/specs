@@ -154,17 +154,56 @@ ______________________________________________________________________
 
 ## Phase 5: Verification and archival
 
-- [ ] T014 [P] Run SC-002's greps from [quickstart.md](quickstart.md): the stack
+- [x] T014 [P] Run SC-002's greps from [quickstart.md](quickstart.md): the stack
   terms and the three moved headings must appear in the corpus and nowhere under
   `osapi/docs/docs` or `osapi/ui/docs`. The stack is the sharpest probe — it is
   the section both former copies held and neither needed.
-- [ ] T015 [P] Run the SC-001 reading with somebody who has seen neither UI
+
+  **Failed on the first run, and the failure is the finding.** The stack grep
+  returned a hit in `features/management-dashboard.md` — a **fourth** copy of
+  the architecture, holding React 19, Vite and `//go:embed`. The feature
+  classified three documents and there were four. It sat eight lines above a
+  sentence this feature had just edited, so being in the file was not enough;
+  only the grep was. Recorded as FR-014a at specs#175 and removed at osapi#550.
+  SC-004 failed at the same time — the pointer was ten lines against a criterion
+  of under ten, because the bare corpus address takes a line of its own once
+  mdformat wraps at 80. Tightened to nine rather than relaxing the criterion.
+
+  **Passes now.** The stack terms, the three moved headings and `go:embed`
+  return nothing under `osapi/docs/docs` or `osapi/ui/docs`; the three site
+  headings are exactly `Configuration`, `Authentication & Authorization` and
+  `Pages`; the pointer is 9 lines.
+
+- [x] T015 [P] Run the SC-001 reading with somebody who has seen neither UI
   page, asking the three fixed questions from [quickstart.md](quickstart.md).
   The third is the one to watch: a reader who learned only that the client
   "decodes" the token, and not that it does not verify it, has been misled in a
   security-shaped way. A person is preferred; a fresh agent given only `spec.md`
   is the fallback. **Record what it proves and what it does not** — that the
   answers are in the text, not that a contributor would find them pleasant.
+
+  **Two of three, and the third is a real defect.** A fresh agent given only
+  `spec.md` — no repository, no site, no session context — answered question 1
+  from FR-001 and FR-006, and question 3 from FR-007, both plainly. It could not
+  answer question 2: **FR-004 required the corpus to state what separates the
+  four kinds of component and then did not state it.** It named the four and
+  gave the directories, so a reader learned there are four buckets and where
+  they sit on disk, not how to decide which bucket a new file belongs in — a
+  requirement about a requirement. Fixed in this branch, measured from the code
+  rather than reasoned: a primitive imports no generated client (0 of 34), a
+  domain component imports the client or a hook (38 of 43), and every hook is
+  `.ts` rather than `.tsx` so none can hold markup.
+
+  It also reported that the correction block reads as an appendix and is easy to
+  stop short of, so a reader can finish holding the wrong document count. A
+  pointer to it now sits under the summary.
+
+  **What this proves and what it does not.** That the answers are in the text,
+  for two of three. Not that a contributor mid-task would find them — an agent
+  is more patient than a person — and not that the prose is good. It found in
+  one pass what re-reading the file did not, which is the argument for the
+  reading being done by somebody who has seen nothing else.
+
 - [ ] T016 Run `/speckit-archive-run specs/007-the-embedded-ui` once T004 and
   T013 have merged, and mark `system`'s 002 T023 done. Archive after the
   implementation: what merged in `specs/` is the statement, and the outcome is
