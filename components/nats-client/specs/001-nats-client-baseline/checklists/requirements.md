@@ -1,6 +1,7 @@
 # Specification Quality Checklist: A baseline for nats-client
 
-**Purpose**: Validate specification completeness and quality before proceeding to planning
+**Purpose**: Validate specification completeness and quality before proceeding
+to planning
 
 **Created**: 2026-09-30
 
@@ -43,5 +44,5 @@ recording it keeps a deliberate departure distinguishable from an oversight.
 One item is worth naming because the check found something. **Requirements are
 testable** passes only because FR-016 states what two of the measurements
 returned before their exclusions were added. Without it, the corrected figures
-would be indistinguishable from figures that had been right the first time, and a
-reader could not tell whether the commands had ever been run.
+would be indistinguishable from figures that had been right the first time, and
+a reader could not tell whether the commands had ever been run.
