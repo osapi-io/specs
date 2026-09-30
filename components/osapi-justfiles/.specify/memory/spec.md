@@ -1,54 +1,20 @@
-# Feature Specification: A baseline for osapi-justfiles
+# Main Project Specification
 
-**Feature Branch**: `001-justfiles-baseline`
+> **Revision**: 2026-09-30 — Seeded from the justfiles baseline
+> (`specs/001-justfiles-baseline`): 3 user stories, 29 functional requirements, 4
+> entities, 4 edge cases, 7 measurable outcomes, 5 assumptions. Nothing folded —
+> this is the project's first archival and memory held only a constitution, so
+> every entry is new and carries the feature's own IDs unchanged.
 
-**Created**: 2026-09-29
+> **Revision**: 2026-09-30 — Three of those requirements exist because the
+> feature's own checks contradicted it after it merged, and each is archived with
+> what found it: a consistency pass found a count hedged as "about twenty" when it
+> was exactly 20 and enumerable; the task that takes the repository set from a
+> command found a seventh consumer where the specification had listed six; and the
+> reading found the five modules named in three places and explained in none. None
+> was found by re-reading the specification. That is the transferable part.
 
-**Status**: Completed
-
-**Input**: `osapi-justfiles`' `.specify/memory/` holds only a constitution, and
-that constitution is composed from `.charter/` — so it states what binds every
-repository and nothing about this one. This is unit 6 of the baseline programme
-`system`'s [002](../../../../system/specs/002-baseline-shape/spec.md) defines,
-taken deliberately out of order.
-
-## Why this one is sixth rather than last
-
-It is the smallest repository in the organization and the largest risk to the
-*shape*. 002's FR-011 and FR-013 ask two questions no baseline has yet had to
-answer: may a required section be omitted, and can a contract be stated for
-something that exposes no code? `osapi-justfiles` has **zero Go files**, no
-`docs/` tree and no documentation site. If the seven-section shape cannot be
-filled here, the shape is wrong — and 002's own task list says finding that out
-after four conforming baselines is the expensive order.
-
-So this specification has two deliverables, not one. The inventory is the
-obvious half. The other is the answer, section by section, to whether the shape
-fits a repository that is not a Go library — and that answer is recorded here as
-evidence about the shape rather than left as a feeling that it went fine.
-
-## What this specification is, and what it is not
-
-**Its subject is a description, not a change.** Nothing lands in the
-`osapi-justfiles` repository: no recipe is added, renamed or removed, no fetch
-is pinned, no README moves. What this produces is an inventory of how the
-repository behaves today, which lives in this feature directory and reaches
-memory through archival like any other feature. Step 2 of CONTRIBUTING's
-"Closing a change" does not apply.
-
-**Prose was a lead, never a source.** The repository carries a 112-line root
-README and five module READMEs totalling 353 lines. None of it was transcribed.
-Every count below came from a command, the commands are given so a reader
-re-measures rather than trusting this file, and where a count could be taken two
-ways it was taken both ways and the results compared.
-
-**This is the first baseline written against `global/baseline`.** That fragment
-was composed into all six constitutions by 002 and no baseline had yet been
-written under it — gohai's predates it. Whether the fragment was sufficient to
-write a baseline from is therefore evidence about the fragment, and FR-020
-records it.
-
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing
 
 ### User Story 1 - A consumer knows what it is depending on (Priority: P1)
 
@@ -140,10 +106,13 @@ release.
   recipes are prefixed with their module, so an import adds a predictable
   namespace. One is not, and it is in the most widely imported module.
 
-## Requirements *(mandatory)*
 
-Every requirement is *the corpus MUST state X*, and each names how it was
-checked. The section headings below are the seven 002 fixes, in 002's order.
+## Requirements
+
+### Functional Requirements
+
+The seven sections below are `system`'s 002 FR-001 order, and the names are its
+names verbatim — see FR-021a for why that matters more than it reads.
 
 ### 1. What this repository is
 
@@ -152,11 +121,15 @@ checked. The section headings below are the seven 002 fixes, in 002's order.
   contains **zero Go files**, and its only executable content is `just` recipes
   and the shell they invoke. Verified:
   `find . -name '*.go' -not -path './.git/*' | wc -l` returns 0.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-001]
+
 - **FR-002**: The corpus MUST state that it exists so that a convention binding
   several repositories is written once. That is `global/documentation`'s "where
   a convention binds several repositories, each states it in the same words"
   made mechanical: the repositories do not each state the recipe, they each
   fetch it.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-002]
+
 
 ### 2. Where it sits
 
@@ -170,6 +143,8 @@ checked. The section headings below are the seven 002 fixes, in 002's order.
   `gh repo list osapi-io --no-archived --visibility public` returns rather than
   over a list written here: `grep -A8 '^fetch:' <repo>/justfile`. Only `.github`
   has no justfile.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-003]
+
 
 - **FR-004**: The corpus MUST state which modules each consumer takes, because
   the blast radius of a change differs per module:
@@ -187,6 +162,8 @@ checked. The section headings below are the seven 002 fixes, in 002's order.
   So a change to `md.just` reaches **all seven**, `just.just` reaches six,
   `go.just` reaches five, and `react.just` and `docusaurus.just` reach one each.
   `md` has the widest blast radius in the organization.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-004]
+
 
 - **FR-004a**: The corpus MUST record that **`specs` is a consumer, and that
   this baseline originally said six consumers rather than seven.** The design
@@ -213,12 +190,16 @@ checked. The section headings below are the seven 002 fixes, in 002's order.
   commit to the repository the design record describes. That circularity is
   recorded with FR-017's gap rather than as a separate finding, because the fix
   is the same one.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-004a]
+
 
 - **FR-005**: The corpus MUST state that a change here is the **widest change
   available in the organization**, and why: it reaches every consumer's next
   continuous integration run with no release, no tag and no review in the
   consuming repository. This is a statement about reach, not a criticism of the
   mechanism; FR-016 records the gap.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-005]
+
 
 ### 3. Architecture
 
@@ -230,6 +211,8 @@ what passes between parts, nothing a rename would falsify.
   after its directory and one `README.md`. There is no shared code between
   modules and no module imports another. A consumer takes the modules it wants
   and ignores the rest, which is why `nats-server` never sees a React recipe.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-006]
+
 
 - **FR-006a**: The corpus MUST state **what each module is for**, not only that
   there are five of them. 002's FR-004 requires architecture at the level of
@@ -253,12 +236,16 @@ what passes between parts, nothing a rename would falsify.
   *shape* and not its *architecture*, which is the distinction 002's FR-004
   draws. The purposes above were taken from each module's README and checked
   against its recipe list.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-006a]
+
 
 - **FR-007**: The corpus MUST state what passes between a module and its
   consumer, in both directions: **recipes** out, **variables** in. A consumer
   assigns the variables it needs to override, then imports the module; the
   module's recipes read those variables. Nothing else crosses the boundary — no
   configuration file, no environment contract, no generated artifact.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-007]
+
 
 - **FR-008**: The corpus MUST state the consumption mechanism, because it is
   architecture rather than detail: a consumer's `fetch` recipe `curl`s each
@@ -266,11 +253,15 @@ what passes between parts, nothing a rename would falsify.
   `.just/remote/`, and `.just/` is gitignored in every consumer. So the modules
   are **fetched, not vendored**: nothing about which version a consumer has is
   recorded in that consumer.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-008]
+
 
 - **FR-009**: The corpus MUST state that the import is **optional** —
   `import? '.just/remote/<module>.just'` — so a consumer's justfile parses
   before `just fetch` has ever run, and a missing module surfaces as an unknown
   recipe rather than a parse error.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-009]
+
 
 - **FR-010**: The corpus MUST state that `osapi-justfiles` is **its own
   consumer, asymmetrically**: its root justfile fetches `md.just` from `main`
@@ -278,6 +269,8 @@ what passes between parts, nothing a rename would falsify.
   tree with `just --justfile just/just.just`. So one half of its own `test`
   recipe checks the code in front of you and the other half checks whatever
   `main` holds. Verified: the repository's root `justfile`.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-010]
+
 
 ### 4. The contract
 
@@ -296,6 +289,8 @@ on both.
   | `just`       |       2 | `just-fmt`, `just-fmt-check`                                                                                                                                                                                                     |
   | `md`         |       2 | `md-fmt`, `md-fmt-check`                                                                                                                                                                                                         |
   | `react`      |       8 | `react-build`, `react-deps`, `react-dev`, `react-fmt`, `react-fmt-check`, `react-generate`, `react-lint`, `react-test`                                                                                                           |
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-011]
+
 
 - **FR-011a**: The corpus MUST state that **two of the 38 recipes take
   arguments**, because a recipe's signature is part of what a consumer invokes
@@ -304,6 +299,8 @@ on both.
   36 take none. Verified by reading each module's recipe headers; the two appear
   as `{{ version }}` and `{{ args }}` in their bodies, which is how they were
   found — see FR-013a.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-011a]
+
 
 - **FR-012**: The corpus MUST state that **37 of the 38 recipes are prefixed
   with their module's name and one is not**: `run`, in the `go` module. A
@@ -311,6 +308,8 @@ on both.
   most widely imported module, where a name collision with the consumer's own
   `run` is possible. Recorded as an inconsistency in the contract, not as a
   defect to fix here.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-012]
+
 
 - **FR-013**: The corpus MUST state the **twenty override variables and their
   defaults**, because they are the half of the contract a consumer must act on
@@ -351,6 +350,8 @@ on both.
 
   Nineteen of the twenty are declared in their module's header block;
   `go_packages` is declared at `go/go.just:147`, beside the recipe that uses it.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-013]
+
 
 - **FR-013a**: The corpus MUST state that FR-013's table is **complete** — every
   variable any module's recipes read has an assignment with a default in that
@@ -366,6 +367,8 @@ on both.
   of the inventory — a caveat, stated and left. Running the comparison took one
   command and turned the caveat into a verified fact. A limit that can be tested
   is not a limit; it is a check nobody ran.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-013a]
+
 
 - **FR-013b**: The corpus MUST state the variable count as **20** rather than as
   "about twenty", and MUST carry the command that produces it. The figure is
@@ -380,12 +383,16 @@ on both.
   approximation survived a specification, an amendment and a plan. It was found
   by the consistency pass, not by re-reading. A hedge reads as caution and
   functions as an unmeasured number.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-013b]
+
 
 - **FR-014**: The corpus MUST state that **each module pins the tools it invokes
   while nothing pins the module**. `md` pins mdformat 1.0.0, mdformat-gfm 1.0.0
   and Python 3.13; `go` pins a coverage target of 100. So the inner versions are
   fixed and the outer one floats, which is the reverse of what a reader would
   assume from either half alone.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-014]
+
 
 - **FR-015**: The corpus MUST state what stability a consumer may actually
   expect, and MUST state it as what is true rather than as what would be
@@ -395,6 +402,8 @@ on both.
   depend on the names above being what `main` holds today and on nothing about
   tomorrow. Inventing a compatibility policy the repository does not have would
   be the standard `global/correction` forbids.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-015]
+
 
 ### 5. Measurements
 
@@ -418,6 +427,8 @@ on both.
   10 / 83 / 64 / 3; `go` 16 / 215 / 93 / 7; `just` 2 / 41 / 39 / 0; `md` 2 / 60
   / 100 / 8; `react` 8 / 88 / 57 / 2. The variables are the column this table
   originally had no row for, which is FR-013b.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-016]
+
 
 ### 6. Gaps
 
@@ -434,11 +445,15 @@ the repository it is in.
   bite, because `.just/` is gitignored rather than committed. Owner:
   `osapi-justfiles`, with a change in each consumer. First recorded by
   `system`'s 002.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-017]
+
 - **FR-018**: The corpus MUST record the **self-consumption asymmetry** FR-010
   states as a gap as well as architecture: the repository supplying the modules
   checks its own markdown against whatever `main` holds rather than against the
   file in its working tree, so a change to `md.just` cannot be tested by the
   repository that owns it before it is on `main`. Owner: `osapi-justfiles`.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-018]
+
 - **FR-019**: The corpus MUST record that **002's own inventory has a gap this
   baseline found**. 002's FR-031 records `osapi-justfiles` as having 0
   documentation pages, which is true of pages and misleading as a statement
@@ -446,6 +461,8 @@ the repository it is in.
   five of them documenting one module each. The correct statement is that it has
   **no documentation pages and six documentation files**. Owner: `system`'s 002,
   amended in its own change — not here, and not by reinterpreting the figure.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-019]
+
 - **FR-020**: The corpus MUST record whether `global/baseline` was sufficient to
   write this baseline from, since this is the first written under it. **It was,
   with one thing it does not say.** The fragment names the seven subjects and
@@ -456,6 +473,8 @@ the repository it is in.
   recorded here rather than folded in silently, because the next non-Go
   repository will need the same one. Whether the fragment should say so is
   `system`'s to decide.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-020]
+
 
 ### 7. What this inventory excludes
 
@@ -475,6 +494,8 @@ the repository it is in.
     contain is not inventoried here.
   - **Whether any recipe is correct.** This states what the contract is, not
     whether a recipe does what its name suggests.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-021]
+
 
 - **FR-021a**: The corpus MUST use `system`'s 002 FR-001 section names
   **verbatim** — "What this repository is", "Where it sits", "Architecture",
@@ -493,6 +514,8 @@ the repository it is in.
   being one set, and the whole argument for a fixed order is that a reader
   moving between baselines finds the same answer in the same place. A heading is
   where they look first.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-021a]
+
 
 - **FR-022**: The corpus MUST state that **no section of the seven was
   omitted**, and MUST say what filled each, because that is this unit's second
@@ -503,6 +526,8 @@ the repository it is in.
   need not be code — the one place the shape had to be interpreted rather than
   followed. **The shape fits a repository with no Go code, and 002's FR-011 need
   not be exercised: no section had to be dropped.**
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-022]
+
 
 - **FR-022a**: The corpus MUST record what the SC-001 reading said about this
   document as a document, because it is a finding about the shape and not only
@@ -534,6 +559,8 @@ the repository it is in.
   seven sections", "unit 6". The first set is reasonable for a reader of a
   justfile library. The second is not obviously reasonable for a maintainer of a
   consuming repository, and no requirement here addresses it.
+  [Source: specs/001-justfiles-baseline/spec.md -> FR-022a]
+
 
 ### Key Entities
 
@@ -547,40 +574,60 @@ the repository it is in.
   module. Seven, `osapi-justfiles` and `specs` among them — every non-archived
   public repository in the organization that has a justfile.
 
-## Success Criteria *(mandatory)*
+
+## Success Criteria
 
 ### Measurable Outcomes
 
 - **SC-001**: A reader who has not opened the repository names the five modules,
   says which recipes a named module supplies, and states what must be configured
   before importing the `go` module — from this specification alone.
+  [Source: specs/001-justfiles-baseline/spec.md -> SC-001]
+
 - **SC-002**: Every count in this specification is paired with a command, and
   running that command reproduces the figure.
+  [Source: specs/001-justfiles-baseline/spec.md -> SC-002]
+
 - **SC-003**: A reader can state what happens to their build when a module
   changes, and that nothing records which version their last build used.
+  [Source: specs/001-justfiles-baseline/spec.md -> SC-003]
+
 - **SC-004**: For each of the seven required sections, this specification says
   whether it was filled and what filled it; no section is absent without a
   stated reason.
+  [Source: specs/001-justfiles-baseline/spec.md -> SC-004]
+
 - **SC-005**: The three gaps are stated with both sides named and an owner, and
   none is corrected here.
+  [Source: specs/001-justfiles-baseline/spec.md -> SC-005]
+
 - **SC-006**: `just test` passes in the specifications repository.
+  [Source: specs/001-justfiles-baseline/spec.md -> SC-006]
+
 - **SC-007**: Nothing in the `osapi-justfiles` repository changes.
+  [Source: specs/001-justfiles-baseline/spec.md -> SC-007]
+
 
 ## Assumptions
 
-- The measurements are of `e765614`. Line and recipe counts will date; the
+- **AS-001**: The measurements are of `e765614`. Line and recipe counts will date; the
   commands are given so a reader re-measures rather than trusting them, and what
   the modules are for will outlast both.
-- A README is documentation and a `.just` file is not, for the purpose of
+  [Source: specs/001-justfiles-baseline/spec.md -> "The measurements are of `e765614`. Line and recipe"]
+- **AS-002**: A README is documentation and a `.just` file is not, for the purpose of
   FR-019's classification. The README describes an interface for a reader; the
   `.just` file is the interface.
-- The five module READMEs stay where they are. A module's README documents the
+  [Source: specs/001-justfiles-baseline/spec.md -> "A README is documentation and a `.just` file is"]
+- **AS-003**: The five module READMEs stay where they are. A module's README documents the
   file beside it and its reader is a contributor in a consuming repository;
   moving it to the corpus would separate an interface from its description,
   which is the opposite of what the programme is for. This is the same reasoning
   002's FR-028 applied to `gohai/docs/collectors/`.
-- Nothing about the fetch mechanism is being proposed, defended or condemned
+  [Source: specs/001-justfiles-baseline/spec.md -> "The five module READMEs stay where they are. A"]
+- **AS-004**: Nothing about the fetch mechanism is being proposed, defended or condemned
   here. FR-017 records that nothing pins it; what to do about that belongs to a
   change in the repository that owns it.
-- The dependency graph is the one `system`'s memory states, and this baseline
+  [Source: specs/001-justfiles-baseline/spec.md -> "Nothing about the fetch mechanism is being"]
+- **AS-005**: The dependency graph is the one `system`'s memory states, and this baseline
   states only its own edges, per 002's FR-019.
+  [Source: specs/001-justfiles-baseline/spec.md -> "The dependency graph is the one `system`'s memory"]
