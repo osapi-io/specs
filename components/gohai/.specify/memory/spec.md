@@ -110,13 +110,20 @@ deliberately unimplemented entries that do not: `rackspace`, `softlayer` and
 
 ```sh
 grep -cE '^\| (\[|[a-z])' docs/collectors/README.md   # 65, both kinds of row
-grep -c '^\| \[' docs/collectors/README.md             # 62, the linked ones
+grep -c '^| \[' docs/collectors/README.md             # 62, the linked ones
 ```
 
 That pair sits in a code block rather than in the table below because a command
 holding a regex alternation cannot survive a markdown table cell. The table
 escapes a pipe as a backslash-pipe and so does the alternation, so nothing can
 tell them apart afterwards.
+
+Moving it out was not enough on its own. The second command carried the table's
+escaping with it and read `'^\| \['`, where basic grep treats `\|` as the
+alternation operator rather than a literal pipe. The pattern then means "an empty
+string or a bracket", every line matches, and it returned 180 instead of 62. The
+fix is the pipe unescaped, since a code block needs no escaping
+and the two conventions mean opposite things by the same two characters.
 
 A reader who compares `ls` against the catalogue and has been told only one of
 the figures concludes something is broken. Nothing is. The catalogue documents
