@@ -10,7 +10,7 @@ want the product rather than the conventions.
 
 ## The repository list is a command, not a document
 
-The repositories in this organisation are what this returns:
+The repositories in this organization are what this returns:
 
 ```sh
 gh repo list osapi-io --no-archived --visibility public
@@ -22,7 +22,7 @@ turns. So work spanning repositories takes the set from the command each time an
 narrows it at the point of use.
 
 `--no-archived` matters. Archived repositories hold Dependabot pull requests that
-can never merge, and a search across the organisation counts them.
+can never merge, and a search across the organization counts them.
 
 This rule started as a deletion. `system/.specify/memory/dependencies.md` held a
 hand-maintained dependency graph, and the graph was already derivable from
@@ -35,10 +35,10 @@ justfile modules too, and the list was written from the six *components* rather
 than from what the command returns. **It was wrong when written, not stale.**
 Ageing was never the failure mode; the writer's frame was.
 
-## Every component's memory has the same shape
+## Every component answers the same seven questions
 
-A reader moving between repositories finds the same answer in the same place. Seven
-subjects, in this order:
+A reader moving between repositories finds the same answers in the same order.
+Seven subjects:
 
 | # | Subject                      | Answers                                                     |
 | - | ---------------------------- | ----------------------------------------------------------- |
@@ -50,9 +50,26 @@ subjects, in this order:
 | 6 | Gaps                          | Where the repository's prose and its code disagree, with an owner |
 | 7 | What this inventory excludes  | Named omissions, so a gap is never mistaken for an oversight |
 
-The names are fixed. `osapi-justfiles`' baseline extended three of them, each an
-improvement in isolation, and the drift would have propagated to every baseline
-written by copying it. They are verbatim now.
+**The fixed names belong to the baselines, not to memory.** A baseline is a review
+artifact and its headings are the seven above, verbatim: `osapi-justfiles`' baseline
+extended three of them, each an improvement in isolation, and the drift would have
+propagated to every baseline written by copying it.
+
+Memory answers the same seven questions under headings that name the thing rather
+than the section. "What was measured" rather than "Measurements", "Known
+limitations" rather than "Gaps", "Not covered here" rather than "What this
+inventory excludes", and in between, headings like "The collector contract" or
+"Guards ask what happened; predicates ask what a host is" that say what the section
+is about. That is deliberate. A document whose headings are a numbered list of
+sections reads as a specification, which is what memory stopped being.
+
+So the order is stable and the wording is not, and two of the seven are answered
+somewhere other than under a heading of their own. `osapi`'s contract is the SDK
+and is answered in [its own document](../../../components/osapi/.specify/memory/architecture/sdk.md)
+rather than in its entry point; `gohai` answers its gaps inside the sections that
+found them. A reader looking for a question rather than a heading finds it; a
+reader expecting seven headings does not, which is worth saying once here rather
+than surprising them six times.
 
 **The shape survived a repository with no code.** `osapi-justfiles` has no Go, no
 `docs/` tree and no documentation site, and it was baselined sixth deliberately to

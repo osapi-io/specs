@@ -41,12 +41,24 @@ awk '/client.RoleWrite: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE
 awk '/client.RoleRead: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^\t\tPerm'   # 17
 ```
 
-`write` is not `admin` minus one thing. The seven it lacks are the audit surface
-and the administrative operations, so a role that can restart a service cannot
-read who else did.
+`write` is not `admin` minus one thing. The seven it lacks:
 
-`read` at 17 of 37 is fewer than half, because most domains expose both a read
-and a write and the write side is the larger half.
+```
+agent:write       audit:read        power:execute     process:execute
+command:execute   command:shell     docker:execute
+```
+
+Seven is 37 minus 30, both of which carry their command above. The names come
+from reading the two blocks in `internal/authtoken/permissions.go` side by side.
+
+Reading the list is the fastest way to understand the role: `write` can change
+configuration and cannot make anything *happen*. It restarts nothing, runs no
+command, reboots nothing, and cannot read who did. Every one of the seven is
+either executing something or seeing who executed something.
+
+`read` holds 17 of 37, so the 20 it lacks are the writes and the seven above. A
+domain typically exposes one read and one write, which is why the two sides are
+close in size rather than one dominating.
 
 ## How a token resolves to a permission set
 

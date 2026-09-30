@@ -56,7 +56,4 @@ metrics, stay on the published site where an operator will look.
 
 ______________________________________________________________________
 
-Written from `internal/telemetry/` rather than from a feature. This document is
-the shortest of the set because the subsystems are thin and mostly wire
-OpenTelemetry rather than adding behaviour of their own. Where that is all a
-package does, saying so is more useful than describing the wiring.
+Written from `internal/telemetry/` rather than from a feature.

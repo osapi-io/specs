@@ -134,9 +134,8 @@ because the registry handles dispatch and facts wiring.
 
 ## Permissions
 
-A permission is chosen by **blast radius, not by endpoint group**. Two operations
-that differ in how much damage they can do want two permissions however similar
-their shape.
+How to choose one is [permissions](permissions.md)' subject, in a sentence there
+about blast radius. What belongs here is the mechanics.
 
 A new one has to be added in four places, and [permissions](permissions.md) says
 what each omission costs. **A permission that exists in the specification and in

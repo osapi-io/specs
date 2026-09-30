@@ -77,7 +77,7 @@ here and three there is the whole cost, and it only grows.
 
 **Type exposure, JSON tags on result fields, and error wrapping** are stated
 where the site's SDK guidelines page demonstrates each one working. Showing a
-rule work is not stating it twice, so those are cited rather than repeated here.
+rule working is not stating it twice, so those are cited rather than repeated here.
 
 ## What was deferred to nothing
 

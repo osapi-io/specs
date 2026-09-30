@@ -1,9 +1,9 @@
 # The audit trail
 
 Every request to an authenticated endpoint is recorded: who made it, what they
-asked for, what came back, and which job it created. `audit:read` is the
-permission that distinguishes `admin` from `write`, so what lands here is what one
-role can see and the other cannot.
+asked for, what came back, and which job it created. `audit:read` is one of the
+seven [permissions](permissions.md) `write` does not hold, so what lands here is
+something `admin` can see and `write` cannot.
 
 ## What an entry holds
 

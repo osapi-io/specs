@@ -94,7 +94,7 @@ An operation that outlives `AckWait` is **not** redelivered mid-flight, because
 the agent extends the deadline while the work runs. The keepalive in
 `internal/agent/handler.go` does that.
 
-## Two clocks, bounding different things
+## Three limits, bounding different things
 
 This is the part an operator misreads most often.
 
@@ -139,8 +139,18 @@ recognise is still a cause and should be surfaced rather than swallowed.
 
 ## Bucket lifetimes
 
-TTLs are configured per bucket rather than per status, so a job's definition, its
-status events and its response do not age out independently of each other.
+One setting, `nats.kv.ttl`, is passed to both `job-queue` and `job-responses`, so
+a job's definition, its status events and its response age out together. Per-bucket
+configuration is what would let them diverge, and there is none: `BuildJobKVConfig`
+and `BuildResponseKVConfig` in `internal/cli/nats.go` read the same field.
+
+The shipped `osapi.yaml` sets it to one hour. `osapi.dev.yaml` omits it, and the
+parse error is discarded, so a deployment from that file gets no expiry at all
+rather than a default.
+
+```sh
+sed -n '/^  kv:/,/^  [a-z]/p' configs/osapi.dev.yaml   # no ttl line
+```
 `job-queue` holds definitions and status events, `job-responses` holds results,
 and `agent-facts` holds what an agent gathers on its own schedule rather than in
 answer to a job.

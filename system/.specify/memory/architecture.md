@@ -36,8 +36,9 @@ is why the blast radius of a justfiles change is seven and not six.
 
 ## Where to start
 
-**Start with osapi.** Five of the six either feed it or consume it, so its
-document is the one that makes the others legible. Read its
+**Start with osapi.** Four of the other five either feed it or consume it, so its
+document is the one that makes the rest legible. gohai is the fifth and is the
+exception, below. Read its
 [job system](../../../components/osapi/.specify/memory/architecture/job-system.md)
 next, because the queue is the mechanism the whole product is built on.
 
@@ -65,13 +66,13 @@ transport problem needs both.
 ### The SDK surface
 
 `pkg/sdk/client` is the contract between osapi and its orchestrator. A change to
-it is the widest-reaching code change in the organisation after a justfile change.
+it is the widest-reaching code change in the organization after a justfile change.
 
 The orchestrator pins osapi by **pseudo-version commit rather than tag**, so the
 break is delayed rather than absent: a rename lands green in osapi and fails in
 the orchestrator at whatever later moment somebody bumps the pin. **Land a rename
 and its bump together** is the rule that follows, and it is the only coordination
-rule in this organisation that spans repositories.
+rule in this organization that spans repositories.
 
 The coupling reaches further than the layer built for it. The orchestrator's
 `internal/engine` imports osapi's SDK directly, so `internal` there describes
@@ -86,7 +87,7 @@ and `.just/` is gitignored everywhere.
 
 `md` reaches all seven consumers, `just` six, `go` five, and `react` and
 `docusaurus` one each. So **`md.just` is the widest change available in the
-organisation.** The specs repository, whose `just test` gates every corpus change,
+organization.** The specs repository, whose `just test` gates every corpus change,
 is downstream of it.
 
 ## What no single repository states
@@ -123,7 +124,7 @@ grep -h gopsutil gohai/go.mod osapi/go.mod   # the same version twice
 
 How any one repository works. That is its own document, linked above.
 
-Anything about `specs` or `.github`, which are the organisation's own repositories
+Anything about `specs` or `.github`, which are the organization's own repositories
 rather than components. `specs` is where components are described; `.github` holds
 shared configuration and has no justfile.
 

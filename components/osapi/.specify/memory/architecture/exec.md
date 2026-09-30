@@ -8,7 +8,7 @@ advisories were about how a command was constructed, and both fixes live here.
 out, err := e.RunPrivilegedCmd(ctx, "sysctl", "-w", key+"="+value)
 ```
 
-## Six ways to run something
+## Five ways to run something, and the one they share
 
 | Method                       | For                                                       |
 | ---------------------------- | --------------------------------------------------------- |
@@ -17,7 +17,7 @@ out, err := e.RunPrivilegedCmd(ctx, "sysctl", "-w", key+"="+value)
 | `RunCmdFull`                 | a caller supplying its own timeout in seconds             |
 | `RunPrivilegedCmd`           | a command needing root                                    |
 | `RunPrivilegedCmdWithStdin`  | a command needing root **and** a secret                   |
-| `RunCmdImpl`                 | the implementation the others call                        |
+| `RunCmdImpl`                 | not an entry point: what the five above call              |
 
 "Privileged" means sudo when sudo is enabled: the command becomes an argument to
 `sudo` rather than being invoked directly. When it is not enabled the command runs

@@ -594,6 +594,109 @@ half of it.
   constitutions through `.charter/fragments/global/baseline.md`. Owner: this
   feature, in its own change, for the reason FR-037 gives about fragments.
 
+- **FR-040**: The corpus MUST record what a citation points at now that memory
+  is prose, because this feature changed the answer and did not say so.
+
+  `osapi`'s 005 FR-025 requires citations "named to a requirement rather than to
+  a document", and 003's citation contract gives the reason: "See the job system
+  specification" is a pointer, "FR-007" is a citation, and only the second tells
+  a reader whether what they want is there. That was right when memory held
+  numbered requirements. This feature made memory prose with no requirement
+  identifiers in it, which leaves a citation with two possible targets and no
+  rule choosing between them.
+
+  The count, measured 2026-09-30:
+
+  | Citing                                  | Links | Target                    |
+  | --------------------------------------- | ----: | ------------------------- |
+  | `osapi`'s published documentation pages |    31 | four of its feature specs |
+
+  ```sh
+  grep -rho 'specs/blob/main/components/osapi/specs/[0-9]*-[a-z-]*' \
+    --include='*.md' --include='*.mdx' osapi | sort | uniq -c
+  ```
+
+  `development/adding-an-api-domain.md` holds 16 of them as a table of `FR-001`
+  through `FR-024`, which is what 005's FR-026 deliberately reduced it to. It is
+  the shape that feature wanted and it now sends a contributor to a merged
+  feature specification when a current description of the same subject exists in
+  `architecture/domains.md`.
+
+  Both targets are defensible and they answer different questions. A feature
+  spec says what was decided and when, keeps its numbers forever, and is the
+  right target for provenance, which is why the skills cite it. Memory says what
+  is true today and is the right target for somebody about to write code. What
+  is missing is the sentence saying which one a published page cites.
+
+  Not decided here. Deciding it changes 31 links in `osapi` and the contract two
+  of its features depend on, so it is its own feature with its own review.
+  Owner: this project. Until then the links are correct against 005 and stale
+  against the shape this feature established, and that is worth knowing rather
+  than quietly fixing.
+
+- **FR-041**: The corpus MUST record what an onboarding reading of the memory
+  tree found, because it is the first reading of the documentation rather than
+  of the baselines, and it answered all five of its questions.
+
+  The reading was given `README.md`, `system`'s two memory documents, the six
+  component entry points and `osapi`'s eleven subject documents, and nothing
+  else. Its verdict: better than the median hand-written architecture corpus,
+  and unusually honest. Zero em dashes across 18 files, sentence case
+  throughout, and the thing it named as the reason it worked is that the
+  documents explain a decision rather than describe a structure, several by
+  naming the incident that produced the decision.
+
+  **Thirteen defects, fixed at specs#215.** The ones that mattered:
+
+  | Defect                                                                 | Where                 |
+  | ---------------------------------------------------------------------- | --------------------- |
+  | `audit:read` called **the** permission separating `admin` from `write` | `audit.md`; seven do  |
+  | A count explained by "the write side is the larger half"               | `permissions.md`      |
+  | Bucket TTLs said to be per bucket; one setting covers both             | `job-system.md`       |
+  | "Five of the six either feed it or consume it"; four do                | `README.md`, `system` |
+  | Eleven subject documents advertised as five                            | `README.md`           |
+  | "Removal happens on reject and on removal"                             | `agent-identity.md`   |
+  | A four-kind taxonomy whose summary names three                         | `ui.md`               |
+  | British and American spelling, five files against six                  | across memory         |
+
+  The `permissions.md` one is worth keeping as an example of what a reading
+  catches and a checker cannot. "`read` at 17 of 37 is fewer than half, because
+  most domains expose both a read and a write and the write side is the larger
+  half" is three failures in one sentence: halves are equal, the stated cause
+  would produce parity rather than 17 against 20, and the document's own numbers
+  make the read side the larger group. Every number in it was correct and
+  checked. The sentence joining them was invented.
+
+- **FR-042**: The corpus MUST record the two structural findings that are not
+  defects and are not fixed, because each is a piece of work rather than an
+  edit.
+
+  **`system`'s memory claimed a shape memory does not have.** It said every
+  component's memory has the same seven sections and that "the names are fixed,
+  they are verbatim now". No component's memory uses them. That is correct by
+  design, because the seven verbatim names belong to the baselines and a
+  document whose headings are a numbered list of sections reads as a
+  specification, which is what memory stopped being. The claim was the last
+  place in the corpus still conflating the two artifacts, which is the
+  conflation this whole programme has been unpicking. Reworded at specs#215 to
+  say the order is stable and the wording is not, and that two of the seven are
+  answered somewhere other than under a heading.
+
+  **There is no document for the message bus, and it is the largest hole.** The
+  bus is the mechanism the product rests on. It has an embedded server, a client
+  wrapper, two KV buckets, a JetStream stream, a subject namespace and a
+  signature scheme, and no subject document. What follows from that is precise:
+  the two facts an operator most needs when the bus misbehaves, that
+  `nats-client` registers no reconnection callbacks so osapi is never told of a
+  drop or a recovery, and that `nats-server` forces trace logging on unturnably
+  and attaches the logger after the server is already accepting connections, are
+  recorded in `system/.specify/memory/architecture.md` as the observation that
+  **osapi's own memory mentions neither**. That is a correct diagnosis filed in
+  the wrong repository, and the reading found it by needing the facts and not
+  finding them where a contributor would look.
+
+  Owner: `osapi`. A transport subject document, in its own change.
+
 ### What this feature does not do
 
 - **FR-016**: This specification MUST NOT write any of the five remaining

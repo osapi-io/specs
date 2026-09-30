@@ -18,7 +18,7 @@ command was the whole change.
 gohai's was written first and deliberately excluded architecture, on the reasoning
 that the contract was what mattered. That is defensible for one repository and
 fatal for a set: the goal is that somebody reads all six and understands how the
-organisation fits together, and an inventory that states a contract and omits the
+organization fits together, and an inventory that states a contract and omits the
 architecture cannot do that.
 
 Five more in that shape would have made the inconsistency permanent. So the shape
