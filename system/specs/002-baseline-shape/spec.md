@@ -376,6 +376,47 @@ wrong.
   FR-026 puts the baseline before the move rather than treating a completed move
   as evidence that nothing remains.
 
+- **FR-032**: `osapi-justfiles` has **no documentation pages and six
+  documentation files**, and FR-023's table recording 0 for it answers only the
+  first half. There is no `docs/` tree, so 0 is exactly right about pages — and
+  misleading as an answer to "what documentation does this repository have",
+  because five module READMEs and a root README are its documentation. They stay
+  where they are, for FR-028's reason: a module's README documents the interface
+  of the file beside it, and moving it would separate an interface from its
+  description.
+
+  Found by `osapi-justfiles`' own baseline, specs#178, and recorded there as its
+  FR-019 before being amended here.
+
+- **FR-033**: `osapi-justfiles` is depended on by **seven** repositories, not
+  six. FR-019's map and this specification both said six, meaning the six
+  components; the seventh is **`specs`**, the design record, which fetches the
+  `just` and `md` modules. Only `.github` has no justfile.
+
+  **The map carried the command that would have produced the right answer.**
+  `grep -n justfiles */justfile`, run from the directory holding the clones,
+  returns `specs` among the rest. The figure beside it said six. So this is not
+  the failure `global/repositories` describes — a written list correct when
+  written and wrong afterwards — it is a list that was **wrong when written**,
+  because the writer's frame was the six components rather than the repositories
+  the command returns. Ageing was not the problem. Nobody running the command
+  was.
+
+  It changes which module matters most: `md` reaches all seven, `just` six, `go`
+  five, and `react` and `docusaurus` one each. And it puts the design record's
+  own formatting gate downstream of an unpinned fetch — `specs`' `just test`
+  gates every corpus change in the organization, and a commit to
+  `osapi-justfiles` changes it. That is FR-024's existing finding reaching
+  further than FR-024 said.
+
+- **FR-034**: The programme's scope is the **six components**, and the
+  organization has **eight** non-archived public repositories. The two outside
+  the programme are `specs`, which is where components are described rather than
+  a component, and `.github`, which holds shared configuration and no justfile.
+  Neither gets a baseline, and this is stated because FR-033 shows what happens
+  when the difference between "the six" and "the repositories" is left implicit:
+  it was the frame that produced the wrong consumer count.
+
 - **FR-031**: `osapi`'s page count is **219 published pages**, not 221. FR-023's
   table records 221, which counts `docs/README.md` and `docs/SUPPORT.md` — the
   Docusaurus project's own files rather than published pages. Both figures are

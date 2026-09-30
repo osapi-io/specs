@@ -200,7 +200,7 @@ ______________________________________________________________________
   FR-017 through FR-020 — and that none is corrected here. Two are
   `osapi-justfiles`', one is `system`'s, and one is a question handed to
   `system` about its own fragment.
-- [ ] T017 Open the amendment `system`'s 002 needs for FR-019, or record that it
+- [x] T017 Open the amendment `system`'s 002 needs for FR-019, or record that it
   is not opened. 002's FR-031 records this repository as having 0 documentation
   pages, which is true of pages and misleading as a statement about
   documentation: it has **no documentation pages and six documentation files**.
