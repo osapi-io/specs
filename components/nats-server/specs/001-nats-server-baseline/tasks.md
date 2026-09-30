@@ -30,7 +30,7 @@ ______________________________________________________________________
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm the measurements are against the commit the specification
+- [x] T001 Confirm the measurements are against the commit the specification
   names: `git -C ~/git/osapi-io/nats-server log --oneline -1` shows `7ac142e` or
   later. A figure that has moved is recorded as a new measurement with its date.
 
@@ -40,12 +40,12 @@ ______________________________________________________________________
 
 Run from `~/git/osapi-io/nats-server`. Each command is from FR-016.
 
-- [ ] T002 The Go counts: `find . -name '*.go' -not -path './.git/*' | wc -l` →
+- [x] T002 The Go counts: `find . -name '*.go' -not -path './.git/*' | wc -l` →
   `12`, and with `-not -name '*_test.go'` → `10`.
-- [ ] T003 The package's shape and surface, tests excluded: 4 non-test files, 1
+- [x] T003 The package's shape and surface, tests excluded: 4 non-test files, 1
   exported function, 8 exported methods (2 on `Server`, 6 on `SlogWrapper`), 4
   exported types, 1 interface.
-- [ ] T004 [P] The documentation and example counts: 5 pages with the
+- [x] T004 [P] The documentation and example counts: 5 pages with the
   `node_modules` exclusion, 58 README lines, 4 runnable examples. The exclusion
   is unnecessary here and carried on purpose — `nats-client`'s baseline got that
   count wrong for want of it, and two sibling baselines using different commands
@@ -55,15 +55,15 @@ ______________________________________________________________________
 
 ## Phase 3: User Story 1 — a consumer knows what embedding costs them (Priority: P1)
 
-- [ ] T005 [US1] Confirm FR-002 states the four things the package does rather
+- [x] T005 [US1] Confirm FR-002 states the four things the package does rather
   than what it exposes. A wrapper this thin is described by what it decides, not
   by its surface.
 
-- [ ] T006 [US1] Confirm FR-007 states the **order** `Start()` performs those
+- [x] T006 [US1] Confirm FR-007 states the **order** `Start()` performs those
   four things in, because two of the three gaps are consequences of the order
   and neither is visible from a signature.
 
-- [ ] T007 [US1] **Read `pkg/server/server.go`'s `Start()` in order** and
+- [x] T007 [US1] **Read `pkg/server/server.go`'s `Start()` in order** and
   confirm all three findings against it:
 
   1. `SetLogger(slogWrapper, true, true)` — debug and trace are literals, and
@@ -104,7 +104,7 @@ ______________________________________________________________________
   "stated nowhere" is a stronger claim than "the fact I care about is not
   stated", and the first is easier to write and harder to defend.
 
-- [ ] T009 [US1] Run the SC-001 reading. Give somebody who has not opened
+- [x] T009 [US1] Run the SC-001 reading. Give somebody who has not opened
   `pkg/server` the specification alone and three questions: what does `Start()`
   do and in what order; what logging will a consumer get; and what must they set
   in `Options`? **The second is the one to watch** — a reader who learns only
@@ -113,20 +113,50 @@ ______________________________________________________________________
   preferred; a fresh agent given only `spec.md` is the fallback. **Record what
   it proves and what it does not.**
 
+  **Three of three — the first clean reading in the programme.** A fresh agent
+  given only `spec.md` answered the order `Start()` works in (FR-007, and it
+  noted the order is stated three times in the document), what logging a
+  consumer gets, and what must be set in `Options`.
+
+  On the second question it reported precisely what this task was watching for:
+  FR-002 alone gives **only the reassuring half** — "routes the server's own
+  logging into the consumer's slog" — and the full picture required FR-013,
+  FR-014, FR-015 and an edge case. It assembled it correctly, and recorded that
+  the answer is distributed across four places rather than stated in one.
+
+  Two observations worth keeping:
+
+  - **The amendment paragraphs are easy to skim past.** FR-014 and FR-016a each
+    carry the finding in a bolded sentence with the narrowing directly beneath
+    it, so a reader taking only the bold text would leave with the overclaim the
+    amendment removed. Recorded rather than restructured — the alternative is
+    burying the finding to protect the caveat.
+  - **It judged the document to read as one argument rather than a checklist
+    with footnotes**, explicitly contrasting it with the two baselines before
+    it, which both drew that verdict. Its reason: one thread runs from the Input
+    section through the priority-1 story, the edge cases, four requirements and
+    the success criteria, and the Gaps section narrates its own prior overclaim
+    rather than footnoting it. The requirement-list skeleton is still there;
+    what changed is that the prose connects evidence to conclusion.
+
+  **What it proves and what it does not.** That all three answers are in the
+  text. Not that a consuming maintainer would assemble the second one — the
+  reading was told to watch for it.
+
 ______________________________________________________________________
 
 ## Phase 4: User Story 2 — the contract is mostly somebody else's (Priority: P1)
 
-- [ ] T010 [US2] Confirm FR-011 states that `Options` **embeds**
+- [x] T010 [US2] Confirm FR-011 states that `Options` **embeds**
   `*natsserver.Options` rather than wrapping or copying it, and what follows: a
   consumer can reach every upstream option through it, and a change upstream
   changes this package's surface with no commit here. Verified in
   `pkg/server/types.go`, which is four lines long and is the most consequential
   file in the repository.
-- [ ] T011 [US2] Confirm the single edge from **both ends** — `go.mod` here and
+- [x] T011 [US2] Confirm the single edge from **both ends** — `go.mod` here and
   `osapi/go.mod` — and that FR-004 states **when** a break arrives: at the bump,
   not at the change, because osapi pins a commit.
-- [ ] T012 [US2] Confirm FR-013 states what the contract does **not** let a
+- [x] T012 [US2] Confirm FR-013 states what the contract does **not** let a
   consumer decide. A contract stated only as what it offers is half a contract
   when two of its decisions are unreachable.
 
@@ -134,14 +164,14 @@ ______________________________________________________________________
 
 ## Phase 5: User Story 3 — the two NATS baselines read as a pair (Priority: P2)
 
-- [ ] T013 [US3] Confirm the seven section names are 002's verbatim and all
+- [x] T013 [US3] Confirm the seven section names are 002's verbatim and all
   seven are present in order — FR-018 and SC-005. These were inherited from
   `nats-client`'s baseline, which inherited them from `osapi-justfiles`' after
   that one recorded three drifting. **Two hops without drift** is the first
   evidence the correction holds rather than merely having been made once. Also
   confirm nothing changed in the inventoried repository:
   `git -C ~/git/osapi-io/nats-server status --porcelain` is empty.
-- [ ] T014 [US3] Read `nats-client`'s baseline and this one back to back and
+- [x] T014 [US3] Read `nats-client`'s baseline and this one back to back and
   confirm a reader can see that the two wrap opposite ends of the same library.
   This is the pair test, and it is the smallest version of the programme's whole
   purpose — SC-001 of `system`'s 002 asks it of all six.
@@ -150,11 +180,11 @@ ______________________________________________________________________
 
 ## Phase 6: Verification and archival
 
-- [ ] T015 Run `cd specs && mise exec -- just test` — SC-006.
-- [ ] T016 Run `speckit-archive-run specs/001-nats-server-baseline` once this
+- [x] T015 Run `cd specs && mise exec -- just test` — SC-006.
+- [x] T016 Run `speckit-archive-run specs/001-nats-server-baseline` once this
   branch has merged. This project's memory holds only a constitution, so the run
   **seeds** rather than folds.
-- [ ] T017 Mark `system`'s 002 as having unit 8 done. Remaining after it:
+- [x] T017 Mark `system`'s 002 as having unit 8 done. Remaining after it:
   `osapi-orchestrator` (unit 9, the largest), gohai's amendment (unit 10), and
   two moves.
 
