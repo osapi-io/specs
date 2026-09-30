@@ -4,9 +4,10 @@
 
 **Created**: 2026-09-29
 
-**Status**: Completed — amended 2026-09-30: FR-017 through FR-020 add the page
-classification this baseline owed, which `system`'s 002 requires of every
-baseline and which this one predates.
+**Status**: Completed — amended 2026-09-30 twice. FR-017 through FR-020 add the
+page classification this baseline owed; FR-021 through FR-025 add section 2 and
+identify section 3. Both are things `system`'s 002 requires of every baseline
+and this one predates.
 
 **Input**: gohai's `.specify/memory/` is empty. Its constitution is composed
 from `.charter/` and so states what binds every repository and nothing about how
@@ -137,6 +138,101 @@ gohai's README.
   its command, not as a number alone: 314 Go files, of which 205 are not tests.
   Verified: `find . -name '*.go' -not -path './.git/*' | wc -l` and the same
   with `-not -name '*_test.go'`.
+
+### Where it sits
+
+- **FR-021**: The corpus MUST state gohai's position in the organization, which
+  002's FR-001 makes section 2 of every baseline and this one was written
+  without. gohai has **no dependency edge in either direction**. Its `go.mod`
+  names one `osapi-io` path, its own module line, and no other repository's
+  `go.mod` or Go source names gohai.
+
+  ```sh
+  grep -n osapi-io gohai/go.mod                    # 1 line: the module itself
+  grep -rn 'osapi-io/gohai' --include='*.go' --include='go.mod' \
+    osapi osapi-orchestrator nats-client nats-server   # nothing
+  ```
+
+- **FR-022**: The corpus MUST state the one edge gohai does have, which no
+  `go.mod` records. Its justfile fetches three modules from `osapi-justfiles`,
+  by `curl` from `refs/heads/main` rather than from a release:
+
+  ```sh
+  grep -oE 'refs/heads/main/[a-z]+/[a-z]+\.just' justfile
+  # go/go.just  just/just.just  md/md.just
+  ```
+
+  So a change to one of those modules reaches gohai's next CI run with nothing
+  recording which version built it. That is `osapi-justfiles`' finding rather
+  than gohai's, and it is restated here because a reader of this section would
+  otherwise conclude gohai depends on nothing at all.
+
+- **FR-023**: The corpus MUST state what that isolation does **not** mean, which
+  is the more useful half of section 2. gohai and `osapi` gather system facts
+  from **the same upstream library at the same pinned version**, independently.
+
+  | Repository | `gopsutil` | Where                                                                                |
+  | ---------- | ---------- | ------------------------------------------------------------------------------------ |
+  | `gohai`    | `v4.26.8`  | 14 of its 62 collector directories, 35 non-test files                                |
+  | `osapi`    | `v4.26.8`  | 21 non-test files, across `node/{disk,host,load,mem,process}` and `pkg/sdk/platform` |
+
+  ```sh
+  grep -h gopsutil gohai/go.mod osapi/go.mod   # the same version twice
+  grep -rl gopsutil gohai/pkg/gohai/collectors/ | sed 's|/[^/]*$||' | sort -u | wc -l
+  grep -rl gopsutil --include='*.go' gohai/pkg/gohai/collectors/ | grep -cv _test
+  grep -rl gopsutil --include='*.go' osapi/internal osapi/pkg | grep -cv _test
+  ```
+
+  14 of 62 is worth stating rather than rounding to "gohai uses gopsutil". Most
+  collectors read a file, a socket or a command, and the ones wrapping this
+  library are the ones covering what it covers, which is also the ground osapi
+  needs.
+
+  Whether that is duplication or two different jobs is not this baseline's
+  question, and the honest answer needs both repositories' requirements rather
+  than one's inventory: gohai produces a fact catalogue in OCSF, and osapi needs
+  a handful of host attributes for targeting and reporting. What matters here is
+  that **the relationship is stated nowhere**, so a contributor adding a
+  collector cannot tell whether osapi is a consumer they are about to affect. It
+  is not, today.
+
+  Owner: `system`, because a relationship between two repositories is not in
+  either one's memory by construction.
+
+### Architecture, and where this baseline already stated it
+
+- **FR-024**: The corpus MUST identify its section 3, which exists under three
+  headings that predate 002's fixed names. The content is not missing; the label
+  is. The mapping:
+
+  | 002's section      | This baseline's heading                      | Requirements     |
+  | ------------------ | -------------------------------------------- | ---------------- |
+  | 1 What it is       | What gohai is                                | FR-001, FR-002   |
+  | 2 Where it sits    | **added by this amendment**                  | FR-021 to FR-023 |
+  | 3 Architecture     | The collector contract, The registry, Output | FR-003 to FR-013 |
+  | 4 The contract     | The collector contract                       | FR-003 to FR-008 |
+  | 5 Measurements     | Counts, and where the prose disagrees        | FR-014, FR-015   |
+  | 6 Gaps             | folded into 5                                | FR-014, FR-015   |
+  | 7 What is excluded | What this inventory does not cover           | FR-016           |
+
+  Sections 3 and 4 share a heading, and so do 5 and 6. The headings are not
+  being rewritten, because renaming the sections of a merged and archived
+  specification changes the document a reader was pointed at without changing
+  what it says. What 002 wanted from the fixed names is that a reader can find
+  each section; a table that says where each one went does that, and leaves the
+  record intact.
+
+- **FR-025**: The corpus MUST record what section 3 was actually missing, as
+  opposed to mislabelled. FR-016 excludes "how any individual collector gathers
+  its facts", which was right for 62 instances and wrong for the rule they
+  share. `docs/methodology.md` states that rule in 382 lines: how a collector
+  decides what to read, which library to wrap, and what its fields are called.
+  FR-018 of this amendment classifies that page as contributor-facing, so the
+  rule is architecture that sits outside the corpus.
+
+  The move feature FR-020 names is what closes this. Recorded here so the gap
+  between "62 collectors are excluded" and "the rule all 62 follow is excluded"
+  is visible in the section that should have held it.
 
 ### The collector contract
 
