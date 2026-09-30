@@ -305,6 +305,50 @@ what passes between parts, nothing a rename would falsify.
   re-deriving the names is what kept them right, which is exactly the
   propagation FR-021a predicted.
 
+### The classification this baseline owed
+
+- **FR-019**: The corpus MUST classify every one of the 8 documentation pages as
+  user-facing or contributor-facing, **by who reads it** rather than by where it
+  sits, which `system`'s 002 FR-025 requires of every baseline. Every page is
+  user-facing, so **nothing moves**.
+
+  | Pages            |   # | Reader   | Why                                     |
+  | ---------------- | --: | -------- | --------------------------------------- |
+  | `docs/client/**` |   7 | consumer | One page per part of the client package |
+  | `docs/README.md` |   1 | consumer | The index                               |
+  | **Total**        |   8 |          | **8 stay, 0 move**                      |
+
+  Each page documents one part of the client surface: connecting and
+  authenticating, JetStream, consumers, the KV bucket and the object store.
+  Every one addresses somebody importing the package. Nothing tells a reader how
+  to change it, and the sweep for the markers that would say otherwise returns
+  only `docs/README.md`, which points at `CONTRIBUTING.md`.
+
+  ```sh
+  grep -rlniE 'adding a|regenerate|codegen|go generate|contribut|internal/' \
+    docs --include='*.md' | grep -v node_modules
+  ```
+
+  The count excludes `docs/node_modules/`, which Prettier installs and which
+  holds one vendored `README.md`. Section 5's page count carries the same
+  exclusion, so the two figures are the same figure.
+
+- **FR-020**: The corpus MUST record that this `docs/` tree is **the
+  organization's shape rather than this repository's invention**. Four
+  repositories carry the same index sentence verbatim, and the one with a
+  published site does not:
+
+  ```sh
+  cd ~/git/osapi-io && for r in gohai osapi-orchestrator nats-client nats-server; do
+    grep -c 'Runnable programs live in' $r/docs/README.md
+  done
+  ```
+
+  A convention four repositories follow and nothing states is a convention that
+  drifts the first time somebody adds a fifth tree without reading a fourth.
+  Owner: `system`. Recorded here because the classification is what made four
+  identical trees visible at once.
+
 ### Key Entities
 
 - **Client**: The one type a consumer holds. Carries connection and JetStream

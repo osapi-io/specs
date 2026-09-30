@@ -205,12 +205,34 @@ checked. The seven section names below are `system`'s 002 FR-001 names verbatim.
   | README lines                   |    58 | `wc -l README.md`                                                                                  |
   | Runnable examples              |     4 | `ls -d examples/*/ \| wc -l`                                                                       |
 
-  The `node_modules` exclusion is carried deliberately. It is not needed here —
-  this repository has no vendored markdown — but
+  The `node_modules` exclusion is load-bearing, which this requirement said it
+  was not. **Corrected 2026-09-30**: it claimed the repository has no vendored
+  markdown. Git tracks five pages, and a working tree that has run Prettier
+  holds six, because `docs/node_modules/prettier/README.md` is one of them. The
+  command runs against a working tree, so without the exclusion it returns 6.
+
+  ```sh
+  find docs -name '*.md' | wc -l                              # 6
+  find docs -name '*.md' -not -path '*/node_modules/*' | wc -l # 5
+  git ls-files 'docs/**.md' | wc -l                            # 5
+  ```
+
+  The reason the mistake was easy to make is the second half of it.
+  `docs/node_modules` is ignored by the developer's **global** gitignore rather
+  than by this repository's own, so it never appears in `git status` and reads
+  as though it is not there. `gohai` and `osapi-orchestrator` both carry the
+  entry in their own `.gitignore`; this repository and `nats-client` do not.
+  Owner: those two repositories. Recorded rather than fixed here.
+
+  ```sh
+  cd ~/git/osapi-io && for r in nats-server nats-client gohai osapi-orchestrator; do
+    grep -c node_modules $r/.gitignore
+  done                                                         # 0 0 1 1
+  ```
+
   [nats-client's baseline FR-016](../../../nats-client/specs/001-nats-client-baseline/spec.md)
-  records a count that was wrong for exactly that reason, and a command that
-  differs between two sibling baselines invites the reader to wonder which one
-  is right.
+  records a count that was wrong for exactly this reason, which is why the
+  exclusion is written the same way in both.
 
 ### 6. Gaps
 
@@ -285,6 +307,50 @@ of one and an overclaim about two. None is corrected here.
   `osapi-justfiles`' after that one recorded three of them drifting. Two hops
   without drift is the first evidence the correction holds rather than merely
   having been made once.
+
+### The classification this baseline owed
+
+- **FR-019**: The corpus MUST classify every one of the 5 documentation pages as
+  user-facing or contributor-facing, **by who reads it** rather than by where it
+  sits, which `system`'s 002 FR-025 requires of every baseline. Every page is
+  user-facing, so **nothing moves**.
+
+  | Pages            |   # | Reader   | Why                                     |
+  | ---------------- | --: | -------- | --------------------------------------- |
+  | `docs/server/**` |   4 | consumer | One page per part of the server package |
+  | `docs/README.md` |   1 | consumer | The index                               |
+  | **Total**        |   5 |          | **5 stay, 0 move**                      |
+
+  Each page documents one part of embedding the server: its options, its
+  lifecycle, and how its logging reaches a consumer's `slog` handler. Every one
+  addresses somebody importing the package. Nothing tells a reader how to change
+  it, and the sweep for the markers that would say otherwise returns only
+  `docs/README.md`, which points at `CONTRIBUTING.md`.
+
+  ```sh
+  grep -rlniE 'adding a|regenerate|codegen|go generate|contribut|internal/' \
+    docs --include='*.md' | grep -v node_modules
+  ```
+
+  The count excludes `docs/node_modules/`, which Prettier installs and which
+  holds one vendored `README.md`. Section 5's page count carries the same
+  exclusion, so the two figures are the same figure.
+
+- **FR-020**: The corpus MUST record that this `docs/` tree is **the
+  organization's shape rather than this repository's invention**. Four
+  repositories carry the same index sentence verbatim, and the one with a
+  published site does not:
+
+  ```sh
+  cd ~/git/osapi-io && for r in gohai osapi-orchestrator nats-client nats-server; do
+    grep -c 'Runnable programs live in' $r/docs/README.md
+  done
+  ```
+
+  A convention four repositories follow and nothing states is a convention that
+  drifts the first time somebody adds a fifth tree without reading a fourth.
+  Owner: `system`. Recorded here because the classification is what made four
+  identical trees visible at once.
 
 ### Key Entities
 
