@@ -37,7 +37,11 @@ results, each of which succeeded, failed, changed or was skipped independently.
 
 ## Guards ask what happened; predicates ask what a host is
 
-Conflating these is the most likely mistake, so they are named separately.
+Conflating these is the most likely mistake, so they are named separately. The
+code draws the line elsewhere. `step.go` calls `When` a guard as well, and
+`docs/features/guards.md` follows it, so the repository calls ten methods guards
+while eight of them ask what earlier work did. What follows sorts conditions by
+what each one inspects rather than by what it is called.
 
 **Guards** look at earlier work. Eight of them:
 
@@ -52,7 +56,8 @@ The per-host variants exist because a step spanning twenty machines has twenty
 outcomes, and "any host failed" and "all hosts failed" want different follow-up.
 
 **Host predicates** look at the machine. Ten of them, reaching a step through
-`When` and `WhenFact`:
+`When` and `WhenFact`, the two methods the code counts as guards and this
+distinction does not:
 
 ```
 OS      Arch          MinMemory    MinCPU      HasLabel
