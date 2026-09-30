@@ -28,8 +28,8 @@ that happens to call it.
 
 ## The four kinds of component
 
-What separates them is **what each one knows**, not what it is called. A new file
-goes where its knowledge puts it.
+What separates them is **what each one knows and whether it renders**, not what it
+is called. A new file goes where those two answers put it.
 
 | Kind             | Knows                        | Lives in                  |
 | ---------------- | ---------------------------- | ------------------------- |
@@ -38,8 +38,11 @@ goes where its knowledge puts it.
 | layout           | none; it holds page chrome   | `ui/src/components/layout/` |
 | hook             | a resource, and renders nothing | `ui/src/hooks/`        |
 
-So: markup with no resource is a primitive, markup with one resource is a domain
-component, a resource with no markup is a hook.
+So: markup with one resource is a domain component, a resource with no markup is a
+hook, and markup with no resource is a primitive unless it is page chrome, which is
+a layout. Primitive and layout are the pair the knowledge column cannot separate,
+because neither knows a resource; what separates them is that a primitive is reused
+anywhere and a layout exists to position pages.
 
 The hook rule is enforced by the file extension. Every file in `ui/src/hooks/` is
 `.ts` rather than `.tsx`, so a hook **cannot** contain markup.

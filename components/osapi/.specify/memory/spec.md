@@ -28,7 +28,7 @@ through that same SDK.
 
 | Subject                                        | What it answers                                                              |
 | ---------------------------------------------- | ---------------------------------------------------------------------------- |
-| [The job system](architecture/job-system.md)   | How work reaches a host, what is guaranteed, the two clocks, the four statuses, and one request traced end to end |
+| [The job system](architecture/job-system.md)   | How work reaches a host, what is guaranteed, the three limits, the four statuses, and one request traced end to end |
 | [Providers](architecture/providers.md)         | How work gets done on the machine, the idempotency rule, the four patterns    |
 | [Agent identity](architecture/agent-identity.md) | Enrollment, signing, rotation, and why targeting needs verification         |
 | [Building a domain](architecture/domains.md)   | What a new endpoint touches, in what order, and what is forced by tooling     |
@@ -57,7 +57,7 @@ Its build fetches
 [osapi-justfiles](../../../osapi-justfiles/.specify/memory/spec.md) through a
 justfile recipe, from `main`. That edge is in no `go.mod`.
 
-The organisation-wide picture is
+The organization-wide picture is
 [system's architecture](../../../../system/.specify/memory/architecture.md).
 
 ## The six layers

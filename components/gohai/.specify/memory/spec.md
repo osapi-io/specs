@@ -20,13 +20,12 @@ and `md` modules from `osapi-justfiles` by `curl` from `main` rather than from a
 release, so a change there reaches gohai's next CI run with nothing recording
 which version built it.
 
-Isolation is not the same as doing a different job. gohai and `osapi` both read
-system facts from `gopsutil`, pinned to the same `v4.26.8`, gohai in 14 of its
-62 collector directories and osapi in 21 non-test files, most of them under
-`internal/provider/node/` and one of them in its published SDK at
-`pkg/sdk/platform`. Neither depends on the other and nothing states the
-relationship, so a contributor adding a collector cannot tell whether osapi is a
-consumer they are about to affect. It is not.
+Isolation is not the same as doing a different job. gohai and `osapi` read system
+facts from the same upstream library at the same pinned version, independently,
+which is a fact between repositories and so lives in
+[how they fit together](../../../../system/.specify/memory/architecture.md). What
+matters for anybody working here: osapi is not a consumer of gohai and will not
+break if a collector changes.
 
 ## The collector contract (`internal/collector/collector.go`)
 
@@ -170,6 +169,7 @@ gohai's testing conventions, which are its own `CONTRIBUTING.md`'s.
 
 ______________________________________________________________________
 
-Traced to `specs/001-gohai-baseline/`. That baseline predates the seven section
-shape `system`'s 002 fixes and carries no dependency section or architecture
-section of its own, which 002 records as an amendment still owed.
+Traced to `specs/001-gohai-baseline/`, amended twice on 2026-09-30 to add the
+dependency section and the page classification the shape requires. What the
+baseline still lacks is a section naming this repository's own gaps; the
+registration footgun above is the one that would go in it.

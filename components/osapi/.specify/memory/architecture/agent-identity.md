@@ -15,7 +15,10 @@ Not a message signed with a different key, not a re-registration, not a restart.
 So an attacker who can publish to the bus cannot rotate a key by publishing, and
 the trust anchor stays where an operator put it.
 
-Removal happens on reject and on removal. It is immediate.
+A key is destroyed on two events and no others: an operator rejecting a pending
+enrollment, and an operator removing an enrolled agent. Both take effect
+immediately, with no interval in which a removed agent's signature still
+verifies.
 
 ## What gets verified
 

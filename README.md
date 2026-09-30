@@ -65,18 +65,20 @@ land. Start with
 [how they fit together](system/.specify/memory/architecture.md), or go straight
 to one.
 
-| Repository                                                                  | Is                                           |
-| --------------------------------------------------------------------------- | -------------------------------------------- |
-| [osapi](components/osapi/.specify/memory/spec.md)                           | The API and the agent that manage a host     |
-| [osapi-orchestrator](components/osapi-orchestrator/.specify/memory/spec.md) | A declarative layer over osapi's SDK         |
-| [nats-client](components/nats-client/.specify/memory/spec.md)               | A wrapper over the NATS client               |
-| [nats-server](components/nats-server/.specify/memory/spec.md)               | A NATS server embedded in its consumer       |
-| [gohai](components/gohai/.specify/memory/spec.md)                           | A system fact collection library, standalone |
-| [osapi-justfiles](components/osapi-justfiles/.specify/memory/spec.md)       | Shared `just` recipes, consumed by all seven |
+| Repository                                                                  | Is                                                                 |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [osapi](components/osapi/.specify/memory/spec.md)                           | The API and the agent that manage a host                           |
+| [osapi-orchestrator](components/osapi-orchestrator/.specify/memory/spec.md) | A declarative layer over osapi's SDK                               |
+| [nats-client](components/nats-client/.specify/memory/spec.md)               | A wrapper over the NATS client                                     |
+| [nats-server](components/nats-server/.specify/memory/spec.md)               | A NATS server embedded in its consumer                             |
+| [gohai](components/gohai/.specify/memory/spec.md)                           | A system fact collection library, standalone                       |
+| [osapi-justfiles](components/osapi-justfiles/.specify/memory/spec.md)       | Shared `just` recipes, fetched by every repository with a justfile |
 
-osapi's is the one to read first, since five of the six either feed it or
-consume it. It links out to its own subjects: the job system, providers, agent
-identity, building a domain, and the embedded UI.
+osapi's is the one to read first, since four of the other five either feed it or
+consume it. gohai is the exception and reads standalone. osapi links out to
+eleven subjects of its own: the job system, providers, building a domain, agent
+identity, permissions, the audit trail, running commands, the Go SDK, the
+embedded UI, configuration and observability.
 
 The specifications under each `specs/` are the process that produced those
 documents. They record what a change was going to do and are not written to be

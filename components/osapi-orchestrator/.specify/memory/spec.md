@@ -93,7 +93,7 @@ independence. See the limitations below.
 ## Where it sits
 
 It depends on [osapi](../../../osapi/.specify/memory/spec.md). **Nothing in the
-organisation depends on it**, which makes it the only component with an incoming
+organization depends on it**, which makes it the only component with an incoming
 Go edge and no outgoing one.
 
 It pins osapi by pseudo-version commit rather than tag, so an SDK change does not
@@ -104,7 +104,7 @@ Its build fetches
 [osapi-justfiles](../../../osapi-justfiles/.specify/memory/spec.md) through a
 justfile recipe, from `main`. That edge is in no `go.mod`.
 
-The organisation-wide picture is
+The organization-wide picture is
 [system's architecture](../../../../system/.specify/memory/architecture.md).
 
 ## The contract
@@ -140,7 +140,7 @@ for m in $(grep -oE '^func \(o \*Orchestrator\) [A-Z][A-Za-z]*' pkg/orchestrator
 done
 ```
 
-It is the only documentation set in the organisation that reconciles. **Nothing
+It is the only documentation set in the organization that reconciles. **Nothing
 enforces it**, which is the limitation below.
 
 ## What was measured
@@ -179,7 +179,7 @@ client could not.
 
 **Nothing verifies the documentation mapping.** It holds today and was checked by
 hand. The 102nd operation can be added without a page and no gate will say so, so
-the repository with the best documentation coverage in the organisation has no
+the repository with the best documentation coverage in the organization has no
 mechanism protecting it.
 
 ## Not covered here
