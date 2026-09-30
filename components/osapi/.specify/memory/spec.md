@@ -29,6 +29,7 @@ through that same SDK.
 | [The Go SDK](architecture/sdk.md)              | What a service owes, the five naming rules, and the seven methods that break them |
 | [Running commands](architecture/exec.md)       | The six ways to run one, why ten minutes is a ceiling, and where a secret goes |
 | [Permissions](architecture/permissions.md)     | The 37 permissions, the three roles, and why a direct permission overrides them |
+| [The audit trail](architecture/audit.md)       | What is recorded, why redaction is a denylist, and what a read does not capture |
 
 ## Where it sits
 
