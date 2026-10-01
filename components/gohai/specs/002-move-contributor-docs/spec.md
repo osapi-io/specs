@@ -4,7 +4,13 @@
 
 **Created**: 2026-09-30
 
-**Status**: Draft
+**Status**: Implemented 2026-09-30. The design rules are in
+`components/gohai/.specify/memory/architecture/collectors.md`. The three
+one-line rules stay in `docs/methodology.md` where a contributor with one
+checkout meets them, which is what `system`'s 003 arrived at and what unblocked
+the plan. FR-009 is answered: the field naming counts are 107, 91 and 752,
+measured from the Tier column of `schemas/field-mapping.md`, and the page's
+roughly 108, 74 and 768 summed correctly while every figure was wrong.
 
 **Input**: Move the three pages gohai's baseline classified contributor-facing.
 This is the move `system`'s 002 FR-027 requires as its own feature, authorized

@@ -441,7 +441,7 @@ reporting a pass against zero baselines.
   contradict FR-027's prediction for three of six repositories and are recorded
   as FR-035.
 
-- [ ] T023 Open `osapi`'s **move** — the twelfth unit, which FR-027's table
+- [~] T023 Open `osapi`'s **move** — the twelfth unit, which FR-027's table
   originally said was unnecessary. It relocates `architecture/ui.md` and
   `development/ui-development.md` into the corpus, and the part of
   `sdk/guidelines.md` that is not a demonstration of rules the corpus already
@@ -457,6 +457,12 @@ reporting a pass against zero baselines.
   counterpart anywhere. That remainder is a feature of its own and it is not
   open yet. Ticking this on the UI move alone would have recorded a third of a
   page family as a whole one.
+
+  **Partly done, 2026-09-30.** The UI half is carried out: three statements of
+  264, 200 and 263 lines are now 82, 52 and 9, the last a pointer whose own text
+  says it is a pointer. What remains is `sdk/guidelines.md`'s non-demonstration
+  part, roughly 100 lines of package structure and response pattern, which has
+  no corpus counterpart and no feature open. Owner: `osapi`.
 
 - [ ] T022 The SC-008 search: every documentation page still present in a
   repository is one its own baseline classified **user-facing**. Anything

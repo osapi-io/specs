@@ -4,7 +4,11 @@
 
 **Created**: 2026-09-30
 
-**Status**: Draft
+**Status**: Closed 2026-09-30 without a charter change. The obligation it
+arrived at is recorded in `system`'s memory, and gohai's move honoured it by
+leaving the one-line rules where a contributor meets them. The two failed
+attempts at a sorting test are kept in [tasks.md](tasks.md) because they are the
+argument for the obligation being worded the way it is.
 
 **Input**: Resolve the conflict between `global/documentation` and
 `global/baseline` that blocked gohai's move at specs#219, and state the
