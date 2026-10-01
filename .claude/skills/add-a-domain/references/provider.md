@@ -10,7 +10,7 @@ CLI -> SDK -> REST API -> job client -> NATS -> agent -> provider
 ## The contract is in the corpus, not here
 
 Every rule a provider obeys is stated in
-[001-provider-contract](../../../../components/osapi/specs/001-provider-contract/spec.md).
+[001-provider-contract](../../../../components/osapi/providers.md).
 Read it before writing one. This file holds only what that specification does
 not: where the files go, what they are called, and the scaffolding to start
 from.

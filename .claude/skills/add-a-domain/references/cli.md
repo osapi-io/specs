@@ -6,7 +6,7 @@ the SDK, print.
 ## The rules are in the corpus, not here
 
 The obligations this layer carries are stated in
-[005-building-a-domain](../../../../components/osapi/specs/005-building-a-domain/spec.md).
+[005-building-a-domain](../../../../components/osapi/domains.md).
 
 | What you need to know | Where |
 | --- | --- |

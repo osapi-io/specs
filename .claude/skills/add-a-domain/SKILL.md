@@ -25,7 +25,7 @@ grep -rl 'sysctl\|Sysctl' --include='*.go' --include='*.yaml' --include='*.md' .
 That list is the specification for the new domain. It ran to 81 files in
 September 2026. The codebase is the reference, not this skill: where they
 disagree, read the code and fix the skill
-([why](../../../.charter/fragments/global/correction.md)).
+([why](../../../CONSTITUTION.md)).
 
 Never copy a domain's files wholesale. Read one, then write the new one.
 

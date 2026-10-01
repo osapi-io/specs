@@ -6,7 +6,7 @@ An issue is an intent nobody is working on yet: something that should change,
 recorded so it survives being put down. Work under way is tracked by its Spec Kit
 task list instead, so an issue with a pull request already open against it is not
 waiting on anyone
-([why](../../../../.charter/fragments/global/tracking.md)).
+([why](../../../../CONSTITUTION.md)).
 
 ## What is open
 

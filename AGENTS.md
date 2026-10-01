@@ -2,9 +2,9 @@
 
 Test: `just test` | Format: `just md-fmt`
 
-Read @CONTRIBUTING.md first. It covers prerequisites, setup, the workflow end to
-end, and every convention. All of it applies to agents exactly as it applies to
-people. This file has only what is specific to agents.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first, then
+[CONSTITUTION.md](CONSTITUTION.md). This file has only what is specific to
+agents.
 
 ## Running tools
 
@@ -16,71 +16,40 @@ mise exec -- just test
 
 `mise` is active in a person's shell and supplies the versions `.mise.toml`
 declares. An agent's shell has no activation, so a bare `just` resolves to
-whatever is installed globally, usually an older version.
+whatever is installed globally, usually an older version. The symptom is a check
+that fails here and passes in continuous integration, on a file nobody edited.
 
-The symptom is a check that fails here and passes in continuous integration, on
-a file nobody edited. When that happens, establish which version ran before
-treating the failure as real.
+## Read the documents before changing them
 
-## Read the constitution first
+Read the component's page under `components/` and the subjects it links. That is
+the standing description of how the component behaves and it is more current
+than any prose written about it elsewhere, including anything in `history/`.
 
-Before starting work in a project, read its `.specify/memory/constitution.md`,
-then the rest of `.specify/memory/`. That is where completed work is
-consolidated, and it is more current than any prose written about it elsewhere.
+Read [ARCHITECTURE.md](ARCHITECTURE.md) when the work touches how repositories
+fit together. A component's page describes only its own behaviour, so an
+agreement between components is not in it and its absence there is not evidence
+the agreement does not exist.
 
-Read `system/.specify/memory/` too when the work touches how repositories fit
-together. A component's memory describes only its own behavior, so an agreement
-between components is not in it and its absence there is not evidence the
-agreement does not exist.
+Nothing here authorizes work the constitution forbids. When you cannot satisfy
+both a request and the constitution, say so rather than picking one silently.
 
-Nothing in this repository authorizes work that the constitution forbids. When
-you cannot satisfy both a request and the constitution, say so rather than
-picking one silently.
+## Writing a page
 
-## The planning boundary
+**Run `unslop` over anything you write.** It applies to prose here the way
+`mdformat` applies to formatting. Em dashes are the tell it catches most often.
 
-@CONTRIBUTING.md gives the workflow under "The lifecycle of a change". Two
-things in it bind agents specifically:
+**A page explains a system to somebody who has to work on it.** No requirement
+identifiers, no "MUST", no user stories, no acceptance scenarios.
+`just check-docs` fails on all of those.
 
-**Producing planning artifacts ends the response.** Do not edit code in the same
-response that runs `speckit-specify`, `speckit-plan`, or `speckit-tasks`, even
-when the request was phrased as "build" or "fix". The request that triggered
-planning does not authorize implementation.
+**Every count carries the command that produces it.** `just check-counts` runs
+all of them against the repository each page describes, so a count without a
+command, or with a command that needs the line above it, fails.
 
-**Choose the project before writing anything.** @CONTRIBUTING.md gives the test
-under "Where a change belongs". Guessing puts a design where nobody looks for
-it, which is harder to notice than putting it nowhere.
-
-**A merged spec is the authorization; a branch is not.** Wait for the spec PR to
-merge before implementing against it.
-
-## Writing memory
-
-`.specify/memory/` is documentation, not a specification. `global/baseline` in
-every constitution says what that means; two things bind mechanically:
-
-**Run `unslop` over anything you write into `.specify/memory/` before committing
-it.** It is a user skill and it applies to prose in this repository the way
-`mdformat` applies to formatting. Em dashes are the tell it catches most often
-here, and requirement prose survives conversion as bold labels restating the
-line after them.
-
-**Place content in the subject it belongs to, not in `spec.md`.** `spec.md` is
-an entry point: what the repository is, and a table linking to its subjects. A
-feature about queuing work is archived into the document about queuing work,
-merged with what is there rather than appended after it. `spec.md` gains a link
-at most. `components/osapi/.specify/memory/` is the worked example.
-
-**Never carry feature scaffolding into memory.** No `FR-` labels in the body, no
-`MUST`, no user stories, no acceptance scenarios, no success criteria, and no
-per-paragraph source footer. Those belong to the feature that produced the
-knowledge. Memory names the feature once, at the end.
-
-The calibration is the architecture documentation this organization already
-wrote: `osapi/docs/docs/sidebar/architecture/system-architecture.md` explains
-why its liveness probe checks nothing, in one sentence, next to the liveness
-probe, and then tells the reader what to use instead. Reason about the system,
-stated once, beside the thing it explains. Nothing about the document.
+**Place content in the subject it belongs to.** A component's README is an
+index: what the repository is, and a table linking its subjects. Something about
+queuing work goes in the page about queuing work, merged with what is there
+rather than appended after it.
 
 ## Commit trailer
 

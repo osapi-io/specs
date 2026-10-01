@@ -7,8 +7,8 @@ dispatch and facts wiring.
 
 | What you need to know | Where |
 | --- | --- |
-| Two files connect a provider, and what does **not** change — `agent/types.go`, `agent/agent.go`, the `JobClient` interface | [FR-009](../../../../components/osapi/specs/005-building-a-domain/spec.md) |
-| The `FactsAware` obligation: embed it, add the compile-time `FactsSetter` check | [FR-010](../../../../components/osapi/specs/005-building-a-domain/spec.md) |
+| Two files connect a provider, and what does **not** change — `agent/types.go`, `agent/agent.go`, the `JobClient` interface | [FR-009](../../../../components/osapi/domains.md) |
+| The `FactsAware` obligation: embed it, add the compile-time `FactsSetter` check | [FR-010](../../../../components/osapi/domains.md) |
 
 This file holds the shapes and the file names. The rules above are stated once,
 in the corpus, so a change to either is a change in one place.
@@ -102,13 +102,13 @@ in full. What matters when adding an operation, and where each rule is stated:
 
 | What you are relying on | Stated in |
 | --- | --- |
-| Delivery is at-least-once, and the agent checks for a recorded response before executing | [FR-009](../../../../components/osapi/specs/004-job-system/spec.md) |
-| Which operations make that check load-bearing rather than theoretical | [FR-010](../../../../components/osapi/specs/004-job-system/spec.md) |
-| A job that has run is terminal — a failure is reported, not retried by redelivery | [FR-011](../../../../components/osapi/specs/004-job-system/spec.md) |
-| What happens when the response cannot be written after the work ran | [FR-012](../../../../components/osapi/specs/004-job-system/spec.md) |
-| Which failures terminate a message instead of redelivering it | [FR-013](../../../../components/osapi/specs/004-job-system/spec.md) |
-| The consumer's delivery settings, as defaults a deployment may override | [FR-014](../../../../components/osapi/specs/004-job-system/spec.md) |
-| A long operation is kept alive while it runs, so it is not redelivered mid-flight | [FR-015](../../../../components/osapi/specs/004-job-system/spec.md) |
+| Delivery is at-least-once, and the agent checks for a recorded response before executing | [FR-009](../../../../components/osapi/job-system.md) |
+| Which operations make that check load-bearing rather than theoretical | [FR-010](../../../../components/osapi/job-system.md) |
+| A job that has run is terminal — a failure is reported, not retried by redelivery | [FR-011](../../../../components/osapi/job-system.md) |
+| What happens when the response cannot be written after the work ran | [FR-012](../../../../components/osapi/job-system.md) |
+| Which failures terminate a message instead of redelivering it | [FR-013](../../../../components/osapi/job-system.md) |
+| The consumer's delivery settings, as defaults a deployment may override | [FR-014](../../../../components/osapi/job-system.md) |
+| A long operation is kept alive while it runs, so it is not redelivered mid-flight | [FR-015](../../../../components/osapi/job-system.md) |
 
 Two consequences for a new operation, which are yours rather than the system's:
 
@@ -123,8 +123,8 @@ Two consequences for a new operation, which are yours rather than the system's:
 facts into every registered provider — one call, in `internal/agent/agent.go`. A
 provider registered through the registry is covered; one constructed and passed
 somewhere else is not. The obligation on the provider struct itself is
-[FR-010](../../../../components/osapi/specs/005-building-a-domain/spec.md), and what a provider does with facts is
-[001](../../../../components/osapi/specs/001-provider-contract/spec.md) FR-008.
+[FR-010](../../../../components/osapi/domains.md), and what a provider does with facts is
+[001](../../../../components/osapi/providers.md) FR-008.
 
 ## Tests
 
