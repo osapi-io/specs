@@ -24,9 +24,9 @@ ls components/*/                      # every page, by component
 grep -ril '<subject>' components/     # anything already covering it
 ```
 
-Read the component's `README.md` and the pages it links before writing. A page
-that repeats what a sibling says is the failure the one-statement rule exists to
-prevent, and it is easier to cause than to notice.
+Read the component's `README.md` and the pages it links first. Two pages stating
+the same rule is the common failure here, and the second one is always written by
+somebody who did not read the first.
 
 ## 2. Place it
 
@@ -51,13 +51,13 @@ directory with its own `README.md` and pages beside it.
 
 ## 3. Work out what is true
 
-Do not write from prose. Prose is a lead; the code is the source. The
-constitution's Verification section is the rule, and it has caught real errors in
-this repository more than once: a timeout documented as a fallback when it was a
-ceiling, a field count of fourteen when the struct had thirteen, a role claimed to
-differ by one permission when it differed by seven.
+Read the code, not the existing prose. Then run something that would fail if you
+were wrong.
 
-Read the code, then run something that would fail if you were wrong.
+Three errors found that way, all in pages that read as authoritative: a timeout
+documented as a fallback when it is a ceiling, fourteen audit fields when the
+struct has thirteen, and a role described as `admin` minus one permission when it
+is minus seven.
 
 Where you state a number, state the command beside it:
 
@@ -85,9 +85,9 @@ What a page does, in order of what a reader needs:
 - **What it does and how**, concretely. Name the files. Show the shape.
 - **Why it is built this way**, where there was a real choice. Say what the
   tradeoff was and which side you took.
-- **What will surprise somebody**, which is usually the most valuable part. A
-  rule with a silent failure mode is worth more than three paragraphs of
-  structure.
+- **What will surprise somebody.** Usually the most useful part of the page. A
+  rule that fails silently matters more than a complete description of the
+  package layout.
 - **What the page does not cover**, so a gap is not mistaken for an oversight.
 
 What never appears: requirement identifiers, "MUST", user stories, acceptance
@@ -96,9 +96,9 @@ four.
 
 ## 5. Link it
 
-A page nobody links is a page nobody finds. Add a row to the component's
-`README.md` table saying what question the page answers, and link siblings from
-the body where a reader would want them.
+Add a row to the component's `README.md` saying what question the page answers,
+and link siblings from the body where a reader would want them. An unlinked page
+does not get read.
 
 Cross-component links are relative: `../gohai/collectors.md` from an osapi page,
 `../../ARCHITECTURE.md` from any component page.
@@ -110,20 +110,18 @@ mise exec -- just md-fmt     # formatting, rewrites in place
 mise exec -- just test       # counts, contract, links, skills
 ```
 
-Then run `unslop` over what you wrote. It is not optional and it is not the same
-as the checks above: `check-docs` catches em dashes and requirement labels,
-`unslop` catches the prose.
+Then run `unslop` over what you wrote. The scripts catch em dashes and
+requirement labels; `unslop` catches the prose.
 
-The check that finds the most is a reader. Give somebody the page and nothing
-else, ask them the question the page claims to answer, and fix what they could
-not work out. Every time that has been run here it found something, including
-four errors in pages that passed every script.
+Last, give somebody the page and nothing else and ask them the question it claims
+to answer. Fix what they could not work out. That has found four errors in pages
+that passed every script.
 
 ## Correcting a page
 
-When building shows the page wrong, fix the page in its own commit, before or
-alongside the fix. Say what it said, what is true, and how you found out. The
-third part is the one people skip and the one worth most later.
+When building shows the page wrong, fix the page in its own commit. Say what it
+said, what is true, and how you found out. People skip the last one; it is what
+makes the correction checkable.
 
-A page that was wrong when written is different from one that went stale, and
-saying which tells the next reader whether to trust the rest of it.
+Say whether it was wrong when written or went stale. That tells the next reader
+whether to trust the rest of the page.
