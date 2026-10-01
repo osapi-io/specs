@@ -7,6 +7,23 @@ reads like a paper, rewrite it. If it reads like documentation written for
 beginners, rewrite it. If it reads like something trying to sound technical,
 rewrite it.
 
+The guidelines, short form:
+
+- Simple direct language. Normal engineering terms, not fancier synonyms.
+- Do not oversimplify. The reader should still get the real tradeoffs,
+  constraints and architecture.
+- Concrete: what it does, why it exists, how it works, what the tradeoffs are.
+- The reader is an experienced engineer who does not know this system.
+- No buzzwords unless they earn their place.
+- No padding with obvious statements or generic best practice.
+- Not every idea as a numbered list. Prose, diagrams, tables, short lists, where
+  each is clearest.
+- Precise without being formal for its own sake.
+- State opinions and decisions. Name the tradeoff and the side you took.
+- Concrete examples over explanations of terminology.
+- Tight. Every paragraph explains the system, justifies a decision, or clarifies
+  a tradeoff.
+
 ## What to do
 
 **Plain words.** Use the normal engineering term. "Use" not "leverage", "help"
