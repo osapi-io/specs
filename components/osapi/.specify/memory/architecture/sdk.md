@@ -73,6 +73,48 @@ carries no `v*` tag and the orchestrator pins a pseudo-version commit, so these
 are renames today and breaking changes after the first tag. Twenty-six call sites
 here and three there is the whole cost, and it only grows.
 
+## How the package is laid out
+
+One file per domain service, and four files that are not a service.
+
+```
+pkg/sdk/client/
+  gen/            generated from the combined specification, never edited
+  osapi.go        the constructor and the service wiring
+  response.go     Response[T], Collection[T], the error helpers
+  errors.go       the typed error hierarchy
+  <domain>.go     one per service: its methods
+  <domain>_types.go   its result types, and the conversions from gen
+pkg/sdk/platform/   platform detection, not a service
+```
+
+The split between `<domain>.go` and `<domain>_types.go` is what keeps the
+conversion from generated types in one place per domain. A service that returns a
+generated type directly has skipped that file, which is the rule below.
+
+`pkg/sdk/` held the orchestrator engine once. It now lives in
+[osapi-orchestrator](../../../../osapi-orchestrator/.specify/memory/spec.md)'s
+`internal/engine/`, and that is the only thing that has ever left this package.
+
+## Every method returns the same envelope
+
+```go
+type Response[T any] struct {
+    Data    T
+    rawJSON []byte
+}
+```
+
+`Data` is the typed result. `RawJSON()` is the response body as it arrived, and it
+exists for one caller: the CLI's `--json` mode, which has to print what the server
+said rather than what the SDK parsed.
+
+So a method cannot return a bare value even where a bare value would do, because
+the envelope is what makes `--json` possible without a second code path. A
+collection returns `Response[Collection[T]]` rather than `Response[[]T]`, which is
+the same reason stated for the shape a broadcast returns in
+[building a domain](domains.md).
+
 ## The rest of the conventions
 
 **Type exposure, JSON tags on result fields, and error wrapping** are stated
