@@ -441,7 +441,7 @@ reporting a pass against zero baselines.
   contradict FR-027's prediction for three of six repositories and are recorded
   as FR-035.
 
-- [~] T023 Open `osapi`'s **move** — the twelfth unit, which FR-027's table
+- [x] T023 Open `osapi`'s **move** — the twelfth unit, which FR-027's table
   originally said was unnecessary. It relocates `architecture/ui.md` and
   `development/ui-development.md` into the corpus, and the part of
   `sdk/guidelines.md` that is not a demonstration of rules the corpus already
