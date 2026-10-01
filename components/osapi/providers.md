@@ -35,6 +35,39 @@ The asymmetry is deliberate. Create and delete describe a desired end state, and
 the end state is already true. Update describes a change to something, and there
 is nothing to change.
 
+## osapi owns the state, so drift gets overwritten
+
+A change made to a managed resource outside osapi is drift, and the next
+operation overwrites it. osapi is what the resource is supposed to look like,
+and an edit by hand does not change that.
+
+Overwriting drift means seeing it, and a provider cannot see it by consulting
+its own record. The record says what osapi last wrote, which is exactly what
+drift makes untrue. So the decision is made by reading the resource: hash the
+file on disk and compare it with the content to deploy, read the file's actual
+uid and gid rather than the owner the record names.
+
+The record is written, not read. It serves status, staleness and audit, and it
+does not decide.
+
+Getting this backwards does not look like a bug. It looks like an operation that
+succeeds and reports no change, on the one host that needed the change.
+
+Two consequences, both easy to miss:
+
+A name the host does not know fails the operation rather than passing silently.
+The requested owner and group resolve on the host first, and a numeric id is
+accepted as itself, which is what a container image with no `passwd` entry
+needs.
+
+A platform that cannot answer the question gets the work applied rather than
+assumed. If ownership cannot be read, the `chown` runs.
+
+This is the one place the filesystem abstraction is not enough. Reading a file's
+uid and gid needs the stat structure it does not carry, so that read goes to the
+operating system behind an injectable seam. The abstraction cannot answer the
+question, and the question has to be answered from the resource.
+
 ## Unsupported is not failure, and not no-change
 
 An operation that the host's OS family does not support returns the shared
@@ -129,6 +162,35 @@ directly.
 
 **A file is not written in place.** A partially written configuration file is
 worse than no write at all, so the deployer writes and moves.
+
+## What a provider does not touch
+
+A provider does not reach the bus, the job store, the audit log or the HTTP
+layer. It is handed a request and returns a result, and everything about how
+that request arrived is somebody else's problem.
+
+That is what makes one testable without standing anything up, and it is why a
+provider can be read on its own and understood.
+
+## What its tests owe
+
+Three obligations, and they are the reason the coverage gate is survivable
+rather than cruel.
+
+Every platform variant is tested on its own, including the one the test machine
+is not. A Debian implementation is not exercised by running the suite on a Mac,
+so each variant carries its own file.
+
+The idempotency outcomes are tested as outcomes, not as code paths. Create
+against an existing resource asserts no change and no error. Delete against an
+absent one asserts the same. Update against an absent one asserts the error.
+
+The unsupported outcome is tested where a platform declares it, because a
+provider returning a plain error instead is the failure that turns a skip into a
+red fleet report.
+
+Filesystem behaviour is tested in memory and with injected failures, which is
+what the abstraction is for.
 
 ## Where this connects
 
