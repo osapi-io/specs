@@ -1,68 +1,125 @@
-# osapi-io design docs
+[![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](LICENSE)
+[![conventional commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=for-the-badge)](https://conventionalcommits.org)
+[![docs driven](https://img.shields.io/badge/docs-driven-blue.svg?style=for-the-badge)](CONTRIBUTING.md)
+![gitHub commit activity](https://img.shields.io/github/commit-activity/m/osapi-io/specs?style=for-the-badge)
 
-How the six repositories behind [osapi-io](https://github.com/osapi-io) are
-built, and why. No product code here.
+# specs
 
-**The product makes a Linux host behave like an appliance.** One binary, one
-config file, and you get a REST API, a CLI, a Go SDK and an embedded dashboard
-over hostname, DNS, disk, memory, load, packages, services, users, sysctl, cron,
-certificates, containers, files and command execution. Across a fleet, not one
-box.
+The design docs for [osapi-io]. How the six repositories are built and why, in
+one place, kept current as they change. No product code here.
 
-The load-bearing design fact: **work reaches a host by being queued, not by
-being called.** The controller writes a job and waits; an agent picks it up and
-a provider does the work. At-least-once delivery, the idempotency providers owe,
-two independent timeouts and a per-host result all come out of that one choice.
+## Usage
+
+[osapi-io] makes a Linux host behave like an appliance. One binary and a config
+file give you a REST API, a CLI, a Go SDK and an embedded dashboard over
+hostname, DNS, disk, memory, load, packages, services, users, sysctl, cron,
+certificates, containers, files and command execution, across a fleet rather
+than one box.
+
+The design fact everything else follows from: **work reaches a host by being
+queued, not by being called.** The controller writes a job and waits; an agent
+picks it up and a provider does the work on the machine. At-least-once delivery,
+the idempotency providers owe, two independent timeouts and a per-host result
+all come out of that one choice.
 
 ```
-          nats-client ─┐
-                       ├─→ osapi ──→ osapi-orchestrator
-          nats-server ─┘
-
-          gohai                    (standalone)
-          osapi-justfiles          (every build, by fetch)
+components/     one page per repository, plus a page per subject
+ARCHITECTURE.md how the six fit together, and what breaks what
+CONSTITUTION.md the rules every repository follows
+history/        superseded specs, kept for the record
 ```
 
-## Start here
-
-| If you want to                           | Read                                                       |
-| ---------------------------------------- | ---------------------------------------------------------- |
-| Understand the product                   | [osapi](components/osapi/README.md), then its twelve pages |
-| Know what breaks if you change something | [ARCHITECTURE.md](ARCHITECTURE.md)                         |
-| Add a page, or know where one belongs    | [CONTRIBUTING.md](CONTRIBUTING.md)                         |
-| Know the rules every repository follows  | [CONSTITUTION.md](CONSTITUTION.md)                         |
-| See all six repositories                 | [components/](components/README.md)                        |
-
-The four things most likely to surprise you, all written up:
-[a missing row in a broadcast result is not an error](components/osapi/agent-identity.md),
-[audit redaction is a name-matched denylist with no test](components/osapi/audit.md),
-[a direct permission silently nullifies every role](components/osapi/permissions.md),
-and [ten minutes is a ceiling, not a fallback](components/osapi/exec.md).
+Read [osapi](components/osapi/README.md) first. Twelve subject pages hang off
+it, and four of the other five repositories either feed it or consume it.
 
 ## Doc-driven development
 
 Design something by writing its page. Build it. Correct the page where building
-proved it wrong. Same page all three times, which is the point: nothing is
-converted from one form into another, because that conversion is where the
-design and the docs drift apart.
+proved it wrong. Same page all three times, and nothing is converted from one
+form into another, because that conversion is where the design and the docs
+drift apart.
 
-A feature is an edit to a page here plus a change in the repository it
-describes. `/document` is the skill that does the first half.
+So a change here is one of four things:
+
+| You are                                 | Change                          |
+| --------------------------------------- | ------------------------------- |
+| Designing something new                 | A new page under its component  |
+| Changing how something behaves          | The page that already covers it |
+| Agreeing something between repositories | `ARCHITECTURE.md`               |
+| Binding every repository to a rule      | `CONSTITUTION.md`               |
+
+[CONTRIBUTING.md](CONTRIBUTING.md) has the test for which, and what a page looks
+like.
 
 ### What keeps it honest
 
-| Check               | Fails when                                                                                        |
-| ------------------- | ------------------------------------------------------------------------------------------------- |
-| `just check-counts` | A count no longer matches the command written beside it, run in the repository the page describes |
-| `just check-docs`   | A link is dead, a page is missing from its index, or a page reads like a spec instead of docs     |
-| A reader            | They cannot answer the question the page claims to answer                                         |
+`just test` runs two scripts and fails the build on either.
+[check-counts](scripts/check-counts.py) takes every count in every page and runs
+the command written beside it, in the repository that page describes, so a
+number that moved breaks CI rather than sitting there wrong.
+[check-docs](scripts/check-docs.py) fails on a dead link, a page missing from
+its index, or a page that reads like a specification instead of documentation.
 
-The third is a person, not a script, and it has found more than the other two
-together: seven permissions where a page said one, thirteen struct fields where
-it said fourteen, a bucket TTL described backwards.
+Neither catches prose that drifted from the code. A reader does: hand somebody
+the page and nothing else, ask them the question it claims to answer, and fix
+what they could not work out. That has found more than both scripts together,
+including seven permissions where a page said one, thirteen struct fields where
+it said fourteen, and a bucket TTL described backwards.
+
+## The design docs
+
+| Repository                                                    | Is                                           |
+| ------------------------------------------------------------- | -------------------------------------------- |
+| [osapi](components/osapi/README.md)                           | The API and the agent that manage a host     |
+| [osapi-orchestrator](components/osapi-orchestrator/README.md) | A declarative layer over osapi's SDK         |
+| [nats-client](components/nats-client/README.md)               | A wrapper over the NATS client               |
+| [nats-server](components/nats-server/README.md)               | A NATS server embedded in its consumer       |
+| [gohai](components/gohai/README.md)                           | A system fact collection library, standalone |
+| [osapi-justfiles](components/osapi-justfiles/README.md)       | Shared `just` recipes                        |
+
+The four things most likely to catch you out, all written up: a
+[missing row in a broadcast result](components/osapi/agent-identity.md) is not
+an error and nothing reports it, [audit redaction](components/osapi/audit.md) is
+a name-matched denylist with no test behind it, a
+[direct permission](components/osapi/permissions.md) silently nullifies every
+role on the token, and [ten minutes](components/osapi/exec.md) is a ceiling
+rather than a fallback, so a job that needs twenty does not get them.
+
+## Skills
+
+Skills here answer questions that span every repository, and carry the
+operational knowledge for working in them.
+
+None of them lists what it describes. `org-status` takes the repository list
+from GitHub on each run, `add-a-domain` resolves its reference domain from the
+codebase, and `document` reads the component pages that exist rather than a
+table of them. An inventory written into a skill is right the day it is written
+and wrong after the next change, with nothing marking the moment.
+
+| Skill                                                 | Answers                                                                                                                   |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| [document](.claude/skills/document/README.md)         | Where a design goes, what the page looks like, and whether one already covers it                                          |
+| [org-status](.claude/skills/org-status/README.md)     | Open pull requests, Dependabot bumps, security alerts, whether CI is green, and working the merge queue across [osapi-io] |
+| [add-a-domain](.claude/skills/add-a-domain/README.md) | Adding an osapi domain: the provider and every layer it has to appear in, in the order that avoids rework                 |
+
+Each follows the [Agent Skills] format: a slim `SKILL.md` that routes, with the
+detail in reference files an agent reads only when the question calls for them.
 
 ## history/
 
-Fifteen specifications written under a workflow this repo no longer uses. Kept
-because they record what was decided and when. Not maintained, and where one
-disagrees with a page under `components/`, the page is right.
+Fifteen specifications written under a workflow this repository no longer uses.
+Kept because they record what was decided and when, not maintained, and where
+one disagrees with a page under `components/` the page is right.
+
+## Contributing
+
+See the [Contributing](CONTRIBUTING.md) guide for prerequisites, the test for
+where a change belongs, what a page looks like, and the PR workflow.
+
+## License
+
+The [MIT] License.
+
+[agent skills]: https://code.claude.com/docs/en/skills
+[mit]: LICENSE
+[osapi-io]: https://github.com/osapi-io
