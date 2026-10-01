@@ -138,11 +138,31 @@ and a test applied four times beats a judgement made four times.
 
 ### Section 2 — the resolution
 
-- **FR-005**: The corpus MUST state the resolution as a separation of two
-  statements rather than a precedence between two clauses: **a rule and the
-  reason for it are different statements and live in different places.** The
-  rule is stated in the repository, imperative and short. The reason is stated
-  once in that repository's memory. One statement of each, not two of either.
+- **FR-005**: The corpus MUST state the resolution as **an obligation about
+  reachability**, not as a taxonomy.
+
+  **Corrected 2026-09-30, after SC-003 failed twice.** This required a
+  separation: the rule here, the reasoning there, sorted by a test. Two readings
+  showed the sorting cannot be codified, and the second showed why. The test
+  said "a rule says what somebody does", and **not one rule in this feature's
+  own worked examples says what somebody does**: "one endpoint never both
+  creates and updates", "updating something that does not exist is an error",
+  "ten minutes is the ceiling". All three describe the system. By the letter of
+  the test they were reasons, and the reader classified them as rules anyway and
+  said so: "I called it a rule because I know what it is for. The test did no
+  work."
+
+  The taxonomy was never the thing that mattered. What matters is what FR-002
+  measured: eight rules a contributor must follow that their checkout cannot
+  show them. So the obligation is **where the corpus states a rule a contributor
+  must follow, that contributor's repository states it too.** Nothing has to be
+  sorted, nothing has to be split, and nothing turns on whether a sentence names
+  an actor.
+
+  The reasoning is left where it is. `global/baseline`'s one-statement rule
+  already governs duplication, and this obligation does not ask for a second
+  statement of anything: it asks that the rule be reachable from the repository
+  that it binds.
 
 - **FR-006**: The corpus MUST record that this is `osapi`'s existing practice
   rather than a new rule, because `global/correction` requires a requirement
@@ -159,48 +179,30 @@ and a test applied four times beats a judgement made four times.
   Both are the shape this feature ratifies. What was missing is anybody saying
   so, which is why eight other rules did not get the same treatment.
 
-- **FR-007**: The corpus MUST state **the test**, because the test outlives the
-  wording and four repositories will apply it.
+- **FR-007**: The corpus MUST record that **the sorting test is abandoned**, and
+  why, because the attempt is the evidence for the obligation replacing it.
 
-  **Corrected 2026-09-30, after SC-003 failed.** This required the test to be
-  *would somebody who cannot read this make a wrong change?* The reading ran it
-  against ten statements, sorted all ten, and then reported that it had sorted
-  by grammar: every statement it called reasoning carried a causal connective
-  and every statement it called a rule was a bare indicative. It proved the
-  point by rewriting one statement without its "so" clause, after which the same
-  fact landed as a rule.
+  Two readings, two failures, and the failures were different. The first sorted
+  by grammar and admitted it: every statement it called reasoning carried a
+  causal connective. The second described its real procedure, which was to
+  cluster the ten into topic pairs and label the directive member of each pair,
+  with the paragraph used "as a label-chooser rather than as a decision
+  procedure". It then found four things wrong with the test itself, of which two
+  are fatal: the stated definition classifies every one of this feature's own
+  rules as a reason, and six of ten verdicts were relational, so a test written
+  to apply to one sentence only works on a corpus.
 
-  The counterfactual is not wrong so much as **not answerable about one
-  statement at a time**, which is how it was written. "A combined endpoint
-  destroys the meaning of a 404" is reasoning only because the rule forbidding
-  the endpoint is stated too; remove that rule and the same words are the only
-  thing standing between a contributor and a broken contract. The question asks
-  about a sentence and the answer depends on the set.
+  It also found the asymmetry nobody had argued for: a rule without its reason
+  was treated as fine and a reason without its rule as a defect. For a
+  convention binding several repositories the first paragraph puts the rule in
+  all of them and the separation puts the reason in one, so the offline
+  contributor the fragment is written for gets rules with no reasons. That is
+  the mirror of the failure the separation called fatal.
 
-  The test MUST therefore sort by **what a statement is about** rather than by
-  what its absence would cost: a rule says what somebody does, and reasoning
-  says what the system does. That distinction holds for one statement alone,
-  which is the property the counterfactual lacked, and it is the pattern
-  [data-model.md](data-model.md) found in all ten rows before the reading
-  confirmed it.
-
-  The test MUST also answer three things the counterfactual had no answer for,
-  each found by the same reading:
-
-  - A sentence that is both is **split**. "A caller can ask for less and cannot
-    ask for more, because the wrapper applies its context unconditionally" is
-    two statements written as one.
-  - A reason recorded while the rule it explains is stated nowhere means **the
-    rule is missing**, not implied. This is the most useful thing the reading
-    produced and the resolution had no way to say it.
-  - Where a tool enforces the rule, the clause about tool configuration wins.
-    FR-008 already decided that and the fragment has to say so, because the
-    ten-minute ceiling is a rule by one clause and forbidden prose by the other.
-
-  What survives unchanged: the test is about substance rather than form.
-  "MANDATORY" in a heading is not what makes something a rule, and a paragraph
-  of explanation is not reasoning if omitting it lets somebody ship a
-  vulnerability.
+  What survives is the one thing the second reading would defend without
+  hedging: the existing clause that a rule a tool enforces is named rather than
+  restated, because the configuration is checkable and has a clear failure mode.
+  The obligation in FR-005 is written to the same standard.
 
 - **FR-008**: The corpus MUST state what the resolution does **not** license. It
   does not license restating the reasoning in the repository, which is the
@@ -323,16 +325,18 @@ and a test applied four times beats a judgement made four times.
     components/*/.specify/memory/constitution.md system/.specify/memory/constitution.md | wc -l
   ```
 
-- **SC-003**: A reader given the fragment alone, and no other document, sorts
-  the ten rules of FR-002 into rule and reasoning and states where each goes.
-  This is the check that the test is usable by somebody who was not here.
+- **SC-003**: A reader given the fragment alone **says, for each of the ten
+  rules of FR-002, whether a contributor with only that repository could follow
+  it**. No sorting, no taxonomy. The criterion is whether the obligation is
+  applicable by somebody who was not here, and the answer is a yes or a no per
+  rule rather than a classification.
 
-  **Failed on its first run, 2026-09-30, and is the reason FR-007 changed.** A
-  pass is not "ten sorted correctly". A sorter can reach ten correct answers by
-  pattern-matching causal connectives, which is what happened, so the criterion
-  has to ask **how** the reader sorted and not only what they concluded. A pass
-  is ten sorted with reasons that refer to what each statement is about. Any
-  rerun asks both questions.
+  **Failed twice as written and was rewritten, 2026-09-30.** It used to ask a
+  reader to sort the ten into rule and reasoning. The first reading sorted by
+  grammar, the second sorted by topic pairing, and the second proved the test
+  contradicted this feature's own examples. A criterion a reader cannot satisfy
+  without importing knowledge the fragment does not give them is not measuring
+  the fragment.
 
 - **SC-004**: The eight rules `osapi` owes are listed by name, each with where
   its reasoning already lives, so the compliance PR has no discovery to do.

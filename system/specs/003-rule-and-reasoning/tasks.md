@@ -175,6 +175,54 @@ not re-derived here; T002 pastes it.
   not implied. The paragraph has no way to say that, and it is the most useful
   thing the reading produced.
 
+  **RUN AND FAILED A SECOND TIME, against the corrected test.** The paragraph
+  was rewritten to sort by what a statement is about rather than by what its
+  absence would cost, and the rerun asked the reader for their method as well as
+  their verdicts. Both were worse than the first time, and usefully so.
+
+  The reader's actual procedure, in its words: cluster the ten into topic pairs,
+  label the directive member of each pair, and use the paragraph "as a
+  label-chooser rather than as a decision procedure". Grammar was load-bearing
+  in five of ten, and the absence of a connective drove the other five.
+
+  **The defect that ends the approach**: the corrected test said "a rule says
+  what somebody does", and not one rule in this feature's own `data-model.md`
+  says what somebody does. "One endpoint never both creates and updates."
+  "Updating something that does not exist is an error." "Ten minutes is the
+  ceiling." All describe the system, so by the letter of the test all three are
+  reasons. The reader classified them as rules and said why: "I called it a rule
+  because I know what it is for. The test did no work."
+
+  ```sh
+  grep -c 'what somebody does' .charter/fragments/global/documentation.md   # the test
+  grep -E '^\| (One endpoint|Update when|Ten minutes)' \
+    system/specs/003-rule-and-reasoning/data-model.md                        # all marked rule
+  ```
+
+  Three more, each real:
+
+  - **Six of ten verdicts were relational.** A test written to apply to one
+    sentence only works against a corpus. "A combined endpoint destroys the
+    meaning of a 404" is acceptable reasoning only because the rule forbidding
+    the endpoint exists somewhere the reader can see.
+  - **The asymmetry was never argued.** A rule without its reason was fine and a
+    reason without its rule was a defect. For a convention binding several
+    repositories the first paragraph puts the rule in all of them and the
+    separation puts the reason in one, so the offline contributor gets rules
+    with no reasons, which is the mirror of the failure the separation called
+    fatal.
+  - **"The rule is stated nowhere" is unfalsifiable at scale.** Reaching it for
+    one statement took an exhaustive search of nine others. Against a repository
+    it needs a complete search of everything the repository states.
+
+  The one thing the reader would defend without hedging is the clause already in
+  the fragment: a rule a tool enforces is named rather than restated, because
+  the configuration is checkable and the failure mode is clear.
+
+  **So the taxonomy is abandoned rather than reworded a third time**, and FR-005
+  now states an obligation about reachability instead. Phase 2 and Phase 3 stay
+  unstarted. T010 is rewritten with the criterion it is checking.
+
 - [x] T011 [P] `just test` in the specs repository. mdformat, just-fmt,
   skill-lint, 69 counts and 26 documents.
 
