@@ -11,11 +11,11 @@ drives the design: work is queued so the API does not block on twenty machines,
 results come back per host, and an agent has to prove who it is before anything
 targets it.
 
-Six components, one product. osapi is the thing an operator runs; everything
-else either supports it or drives it.
+One product. osapi is the thing an operator runs; everything else either
+supports it or drives it.
 
-A seventh repository, `specs`, holds this documentation and is not a component.
-It matters once below, because it consumes `osapi-justfiles` like the others do,
+The `specs` repository holds this documentation and is not a component. It
+matters once below, because it consumes `osapi-justfiles` like the others do,
 which is why the blast radius of a justfiles change is seven and not six.
 
 ```
@@ -62,8 +62,8 @@ Two things about that pairing matter and are stated in neither wrapper alone.
 whatever the upstream library does by default and osapi is not notified.
 `nats-server` forces debug and trace logging on and attaches its logger after
 the server is already running, so osapi's own startup logging from the bus goes
-somewhere else. **osapi's memory mentions neither**, and an operator debugging a
-transport problem needs both.
+somewhere else. Both are in [the message bus](components/osapi/transport.md),
+which is where somebody debugging the transport will look.
 
 ### The SDK surface
 
@@ -90,8 +90,8 @@ used, and `.just/` is gitignored everywhere.
 
 `md` reaches all seven consumers, `just` six, `go` five, and `react` and
 `docusaurus` one each. So **`md.just` is the widest change available in the
-organization.** The specs repository, whose `just test` gates every corpus
-change, is downstream of it.
+organization.** The specs repository, whose `just test` gates every change to
+these docs, is downstream of it.
 
 ## Facts that span repositories
 
@@ -137,5 +137,4 @@ repositories rather than components. `specs` is where components are described;
 
 ______________________________________________________________________
 
-Written from every repository's `go.mod` and justfile. History:
-`history/system-001-repository-inventory/`.
+Written from every repository's `go.mod` and justfile.

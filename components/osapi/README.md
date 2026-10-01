@@ -105,5 +105,4 @@ osapi's testing conventions, which are its own `CONTRIBUTING.md`'s.
 
 ______________________________________________________________________
 
-Written from the osapi repository. History:
-`../../history/osapi-006-osapi-baseline/`.
+Written from the osapi repository.

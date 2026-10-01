@@ -5,8 +5,8 @@
 
 # specs
 
-The design docs for [osapi-io]. How the six repositories are built and why, in
-one place, kept current as they change. No product code here.
+The design docs for [osapi-io]. How each repository is built and why, in one
+place, kept current as they change. No product code here.
 
 ## Usage
 
@@ -24,13 +24,12 @@ all come out of that one choice.
 
 ```
 components/     one page per repository, plus a page per subject
-ARCHITECTURE.md how the six fit together, and what breaks what
+ARCHITECTURE.md how they fit together, and what breaks what
 CONSTITUTION.md the rules every repository follows
-history/        superseded specs, kept for the record
 ```
 
-Read [osapi](components/osapi/README.md) first. Twelve subject pages hang off
-it, and four of the other five repositories either feed it or consume it.
+Read [osapi](components/osapi/README.md) first. Its subject pages hang off it,
+and four of the other five repositories either feed it or consume it.
 
 ## Doc-driven development
 
@@ -53,18 +52,10 @@ like.
 
 ### What keeps it honest
 
-`just test` runs two scripts and fails the build on either.
-[check-counts](scripts/check-counts.py) takes every count in every page and runs
-the command written beside it, in the repository that page describes, so a
-number that moved breaks CI rather than sitting there wrong.
-[check-docs](scripts/check-docs.py) fails on a dead link, a page missing from
-its index, or a page that reads like a specification instead of documentation.
-
-Neither catches prose that drifted from the code. A reader does: hand somebody
-the page and nothing else, ask them the question it claims to answer, and fix
-what they could not work out. That has found more than both scripts together,
-including seven permissions where a page said one, thirteen struct fields where
-it said fourteen, and a bucket TTL described backwards.
+A reader. Hand somebody the page and nothing else, ask them the question it
+claims to answer, and fix what they could not work out. That has found seven
+permissions where a page said one, thirteen struct fields where it said
+fourteen, and a bucket TTL described backwards.
 
 ## The design docs
 
@@ -104,12 +95,6 @@ and wrong after the next change, with nothing marking the moment.
 
 Each follows the [Agent Skills] format: a slim `SKILL.md` that routes, with the
 detail in reference files an agent reads only when the question calls for them.
-
-## history/
-
-Fifteen specifications written under a workflow this repository no longer uses.
-Kept because they record what was decided and when, not maintained, and where
-one disagrees with a page under `components/` the page is right.
 
 ## Contributing
 

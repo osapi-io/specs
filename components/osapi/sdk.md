@@ -131,5 +131,4 @@ different generator, and is [the embedded UI](ui.md).
 
 ______________________________________________________________________
 
-Written from `pkg/sdk/client/`. History:
-`../../history/osapi-005-building-a-domain/`.
+Written from `pkg/sdk/client/`.

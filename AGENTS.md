@@ -23,7 +23,7 @@ that fails here and passes in continuous integration, on a file nobody edited.
 
 Read the component's page under `components/` and the subjects it links. That is
 the standing description of how the component behaves and it is more current
-than any prose written about it elsewhere, including anything in `history/`.
+than any prose written about it elsewhere.
 
 Read [ARCHITECTURE.md](ARCHITECTURE.md) when the work touches how repositories
 fit together. A component's page describes only its own behaviour, so an
@@ -38,13 +38,8 @@ both a request and the constitution, say so rather than picking one silently.
 **Run `unslop` over anything you write.** It applies to prose here the way
 `mdformat` applies to formatting. Em dashes are the tell it catches most often.
 
-**A page explains a system to somebody who has to work on it.** No requirement
-identifiers, no "MUST", no user stories, no acceptance scenarios.
-`just check-docs` fails on all of those.
-
-**Every count carries the command that produces it.** `just check-counts` runs
-all of them against the repository each page describes, so a count without a
-command, or with a command that needs the line above it, fails.
+**Use `/document` rather than writing a page by hand.** It carries the voice,
+places the subject, and runs `unslop`.
 
 **Place content in the subject it belongs to.** A component's README is an
 index: what the repository is, and a table linking its subjects. Something about

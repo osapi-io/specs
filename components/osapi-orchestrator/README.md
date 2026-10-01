@@ -191,5 +191,4 @@ Whether eight guards and ten predicates are the right eight and ten.
 
 ______________________________________________________________________
 
-Written from `pkg/orchestrator/` and `internal/engine/`. History:
-`../../history/osapi-orchestrator-001-orchestrator-baseline/`.
+Written from `pkg/orchestrator/` and `internal/engine/`.

@@ -35,7 +35,7 @@ in the consuming repository.
 
 So `md` reaches all seven, `just` six, `go` five, and `react` and `docusaurus`
 one each. **`md` is the widest change available**, and `specs`, whose
-`just test` gates every corpus change in the organization, is downstream of it.
+`just test` gates every change to these docs, is downstream of it.
 
 Take the consumer list from
 `gh repo list osapi-io --no-archived --visibility public` and read each `fetch`
@@ -190,5 +190,4 @@ a recipe does what its name suggests.
 
 ______________________________________________________________________
 
-Written from the osapi-justfiles repository. History:
-`../../history/osapi-justfiles-001-justfiles-baseline/`.
+Written from the osapi-justfiles repository.

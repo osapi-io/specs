@@ -216,5 +216,4 @@ to call, is [building a domain](domains.md).
 
 ______________________________________________________________________
 
-Written from `internal/job/`, `internal/agent/` and `cmd/root.go`. History:
-`../../history/osapi-004-job-system/`.
+Written from `internal/job/`, `internal/agent/` and `cmd/root.go`.

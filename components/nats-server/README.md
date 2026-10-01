@@ -143,5 +143,4 @@ question.
 
 ______________________________________________________________________
 
-Written from `pkg/server/`. History:
-`../../history/nats-server-001-nats-server-baseline/`.
+Written from `pkg/server/`.

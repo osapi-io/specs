@@ -81,5 +81,4 @@ combined specification is invisible to it, is [building a domain](domains.md).
 
 ______________________________________________________________________
 
-Written from `ui/` and `internal/controller/api/ui/`. History:
-`../../history/osapi-007-the-embedded-ui/`.
+Written from `ui/` and `internal/controller/api/ui/`.

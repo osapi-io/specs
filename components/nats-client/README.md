@@ -152,5 +152,4 @@ question.
 
 ______________________________________________________________________
 
-Written from `pkg/client/`. History:
-`../../history/nats-client-001-nats-client-baseline/`.
+Written from `pkg/client/`.
