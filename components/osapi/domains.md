@@ -106,6 +106,53 @@ or a `key:value` label selector. `IsBroadcastTarget` in
 `internal/job/subjects.go` decides which, and **it has one implementation.** A
 domain must not write its own target parser.
 
+## Whether the driver is in the URL
+
+Most domains are implemented by some tool. `package` runs apt, `ntp` runs
+chrony, `container` runs Docker, `schedule` writes crontab entries. Whether that
+tool appears in the URL comes down to one question.
+
+**Does the caller choose it, or does the host?**
+
+A caller chooses a container runtime. Running Docker rather than Podman is a
+decision somebody made and wants to address directly, so the runtime is a path
+segment: `/container/docker`. Adding Podman adds `/container/podman` beside it,
+and both can exist on one host.
+
+A caller does not choose a package manager. The host already decided, and asking
+a fleet to install a package cannot mean knowing which of them run apt. So the
+tool is absent: `/package`, with the provider picking apt or anything else by OS
+family. `/ntp` is the same, with chrony behind it today and room for another
+driver later at the same entrypoint. `/schedule` likewise: cron now, possibly
+`at` later, and the caller should not have to care which.
+
+Getting this backwards in either direction costs something real. A tool in the
+URL that the caller did not choose makes a fleet-wide call impossible. A tool
+missing from the URL that the caller did choose makes two runtimes on one host
+unaddressable.
+
+## Each layer takes the name from the URL it serves
+
+Once the URL is settled, nothing below it invents a name.
+
+| Layer                 | Takes its name from | `/container/docker`      | `/network/dns`         |
+| --------------------- | ------------------- | ------------------------ | ---------------------- |
+| API handler directory | the first segment   | `api/node/container/`    | `api/node/network/`    |
+| API handler files     | the second segment  | `docker_create.go`       | `dns_get.go`           |
+| agent processor       | the first segment   | `processor_container.go` | `processor_network.go` |
+| SDK service           | the last segment    | `client/docker.go`       | `client/dns.go`        |
+| CLI command           | the path            | `node container docker`  | `node network dns`     |
+
+The API layer is flat. A domain gets one directory named for the first segment,
+and the second segment is a filename prefix inside it rather than a
+subdirectory.
+
+The provider tree is the exception, and deliberately. It nests by what
+implements a thing, so a second driver is a new directory beside the first
+rather than a scattering of files: `provider/container/docker` and, when it
+exists, `provider/container/podman`. That tree may therefore be deeper than the
+URL, which is how `provider/network/netplan/dns` serves `/network/dns`.
+
 ## Broadcast is not optional
 
 Every operation under `/node/{hostname}/...` supports broadcast targeting, and
