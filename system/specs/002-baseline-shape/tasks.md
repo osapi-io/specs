@@ -458,11 +458,19 @@ reporting a pass against zero baselines.
   open yet. Ticking this on the UI move alone would have recorded a third of a
   page family as a whole one.
 
-  **Partly done, 2026-09-30.** The UI half is carried out: three statements of
+  **Done, 2026-09-30.** The UI half was already carried out: three statements of
   264, 200 and 263 lines are now 82, 52 and 9, the last a pointer whose own text
-  says it is a pointer. What remains is `sdk/guidelines.md`'s non-demonstration
-  part, roughly 100 lines of package structure and response pattern, which has
-  no corpus counterpart and no feature open. Owner: `osapi`.
+  says it is a pointer. The `sdk/guidelines.md` remainder is in the corpus too:
+  the package layout and the `Response[T]` envelope are in
+  [the SDK document](../../../components/osapi/.specify/memory/architecture/sdk.md),
+  which previously cited the site for both and stated neither.
+
+  What the corpus adds is the why, which the page did not have. The split
+  between `<domain>.go` and `<domain>_types.go` keeps the conversion from
+  generated types in one place per domain, so a service returning a generated
+  type directly has skipped that file. The envelope exists for one caller, the
+  CLI's `--json` mode, which has to print what the server said rather than what
+  the SDK parsed.
 
 - [ ] T022 The SC-008 search: every documentation page still present in a
   repository is one its own baseline classified **user-facing**. Anything
