@@ -144,6 +144,36 @@ A new one has to be added in four places, and [permissions](permissions.md) says
 what each omission costs. **A permission that exists in the specification and in
 no role reaches nobody**, and nothing reports it.
 
+## One name, and it is the URL's
+
+A domain is called the same thing in its provider directory, its agent
+processor, its URL segment, its SDK service and its CLI command. The URL decides
+what that name is, because the URL is the one of those a consumer depends on and
+the only one that cannot be changed without a major version.
+
+The name is the concept, never the tool that implements it. A container domain
+is `container` with a Docker implementation inside it, the way the NTP domain is
+`ntp` with a chrony implementation inside it. Naming the directory `docker` is a
+claim that stops being true the day a second runtime is supported, and renaming
+it then is the expensive version of this change.
+
+Abbreviations are not names either. `memory`, not `mem`.
+
+Two shapes are allowed to break the one-to-one mapping, because they are real
+rather than accidental:
+
+A provider may serve several URL segments when it gathers facts that are
+genuinely separate resources. The host provider answers `hostname`, `os` and
+`uptime`, and collapsing those into one endpoint would be worse.
+
+A URL segment may be served by several providers when they are implementations
+of one concept. `network` is served by the providers for interfaces, routes and
+reachability.
+
+What is not allowed is the same concept carrying a different name in each layer,
+because the only check there is for cross-layer completeness is searching for a
+domain's name, and that check cannot work when the name changes on the way.
+
 ## A domain is in every layer, or it is not done
 
 A domain is not one artifact. It is a provider, an agent processor and its
