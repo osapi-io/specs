@@ -49,6 +49,7 @@ A handler validates and delegates. It never touches the operating system.
 | [Building a domain](domains.md)     | What a new endpoint touches, in what order, and what is forced by tooling                                           |
 | [The embedded UI](ui.md)            | The dashboard compiled into the binary, and what it does not verify                                                 |
 | [The Go SDK](sdk.md)                | What a service owes, the five naming rules, and the seven methods that break them                                   |
+| [The CLI](cli.md)                   | A thin shell over the SDK: one command per endpoint, two inherited flags, and four shared renderers                 |
 | [Running commands](exec.md)         | The five ways to run one, why ten minutes is a ceiling, and where a secret goes                                     |
 | [Permissions](permissions.md)       | The 37 permissions, the three roles, and why a direct permission overrides them                                     |
 | [The audit trail](audit.md)         | What is recorded, why redaction is a denylist, and what a read does not capture                                     |

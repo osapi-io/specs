@@ -144,6 +144,27 @@ A new one has to be added in four places, and [permissions](permissions.md) says
 what each omission costs. **A permission that exists in the specification and in
 no role reaches nobody**, and nothing reports it.
 
+## A domain is in every layer, or it is not done
+
+A domain is not one artifact. It is a provider, an agent processor and its
+registration, a spec and the code generated from it, a handler and its route, an
+SDK service, CLI commands, and the documentation pages and permission tables
+that name it.
+
+Missing one of those is not a smaller domain. It is a domain that works until
+somebody reaches it the way the missing layer would have been reached, and the
+gap shows up as a bug rather than as an absence.
+
+The check is to pick a finished domain and search for its name across the
+repository, then run the same search for the new one. The two lists should have
+the same shape. A name that appears in eighty files and a name that appears in
+sixty is the answer.
+
+```bash
+grep -rl 'sysctl\|Sysctl' --include='*.go' --include='*.yaml' --include='*.md' . \
+  | grep -vE '/gen/|/node_modules/|docs/docs/gen'
+```
+
 ## Where this connects
 
 What the provider you are adding must implement, and the three boundary rules it
