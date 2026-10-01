@@ -46,7 +46,7 @@ gh pr list --repo "osapi-io/$r" --state open \
 
 An issue named there is in flight, and belongs in the pull request block rather
 than in a block of its own. An issue whose fix has already merged is still open
-only because nobody closed it — say so, because it reads as outstanding work.
+only because nobody closed it: say so, because it reads as outstanding work.
 
 ## Trackers
 

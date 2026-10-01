@@ -1,7 +1,7 @@
 # Docs and tables
 
 The Docusaurus site is user-facing: what a feature does, how to call it, what the
-SDK exposes. Development guidance is not there — it is in the corpus, and this
+SDK exposes. Development guidance is not there: it is in the corpus, and this
 skill cites it.
 
 A domain that works but appears in none of these is invisible to everyone who did

@@ -76,8 +76,7 @@ alone.
 ## 4. Write it
 
 The voice: an engineer explaining a system to another engineer who has to work on
-it. [references/voice.md](references/voice.md) has the specifics and the tells to
-avoid.
+it. [VOICE.md](../../../VOICE.md) has the specifics and the tells to avoid.
 
 What a page does, in order of what a reader needs:
 

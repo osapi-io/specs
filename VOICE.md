@@ -1,9 +1,13 @@
 # The voice
 
+How every document in this repository is written, and every skill that writes
+one. Cited rather than restated: if you are about to paraphrase this into a
+skill or a page, link here instead.
+
 An engineer explaining a system to another engineer who has to work on it.
 
-The test: **would a senior engineer write this in an internal design doc?** If it
-reads like a paper, rewrite it. If it reads like documentation written for
+The test: **would a senior engineer write this in an internal design doc?** If
+it reads like a paper, rewrite it. If it reads like documentation written for
 beginners, rewrite it. If it reads like something trying to sound technical,
 rewrite it.
 
@@ -36,11 +40,12 @@ controller has a configurable timeout".
 
 **Say the tradeoff.** Where there was a real choice, say what it cost. "Two
 buckets rather than one means a reader of a result does not walk the status
-history; it also means the result's TTL is a separate setting nobody remembers to
-set." A decision with no cost stated reads as if there was nothing to decide.
+history; it also means the result's TTL is a separate setting nobody remembers
+to set." A decision with no cost stated reads as if there was nothing to decide.
 
-**Keep the real detail.** Simplifying until the tradeoffs disappear is worse than
-being dense. The reader is experienced; they are not familiar with this system.
+**Keep the real detail.** Simplifying until the tradeoffs disappear is worse
+than being dense. The reader is experienced; they are not familiar with this
+system.
 
 **Lead with what will bite them.** A rule with a silent failure mode is worth
 more than three paragraphs about structure.
@@ -86,9 +91,9 @@ Weak:
 
 Better:
 
-> Work reaches a host by being queued, not by being called. The controller writes
-> a job, announces it, and waits; an agent picks it up and writes a response
-> back. Everything awkward about the system comes out of that split:
+> Work reaches a host by being queued, not by being called. The controller
+> writes a job, announces it, and waits; an agent picks it up and writes a
+> response back. Everything awkward about the system comes out of that split:
 > at-least-once delivery, the idempotency providers owe, two independent
 > timeouts, and a per-host result instead of one answer.
 

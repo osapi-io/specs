@@ -36,7 +36,7 @@ The first is a page under `components/<name>/`, the second belongs in
 `ARCHITECTURE.md`, and a rule every repository follows belongs in
 `CONSTITUTION.md`.
 
-[references/voice.md](references/voice.md) carries the writing standard: plain
+[VOICE.md](../../../VOICE.md) carries the writing standard: plain
 engineering prose, concrete over abstract, say the tradeoff, and the tells to
 avoid.
 
