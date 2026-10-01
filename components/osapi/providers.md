@@ -35,6 +35,37 @@ The asymmetry is deliberate. Create and delete describe a desired end state, and
 the end state is already true. Update describes a change to something, and there
 is nothing to change.
 
+## The host is the source of truth, not the record
+
+A provider decides what to do by looking at the host. Not at what osapi recorded
+the last time it ran.
+
+The distinction only shows up when something changed outside osapi, which is the
+case these operations exist to handle. A configuration file edited by hand still
+carries the SHA the last deploy wrote. Comparing the content to deploy against
+that recorded SHA says nothing changed, and the deploy walks away from the one
+file that needed it. Ownership has the same shape: comparing the requested owner
+against the recorded owner makes a `chown` by somebody else invisible.
+
+So the comparison is against the file on disk, and against the file's actual uid
+and gid. The state record is written, not read. It serves status, staleness and
+audit; it does not decide.
+
+Two consequences worth stating, because both are easy to get wrong:
+
+A name the host does not know fails the operation rather than passing silently.
+The requested owner and group resolve on the host first, and a numeric id is
+accepted as itself, which is what a container image with no `passwd` entry
+needs.
+
+A platform that cannot answer the question gets the work applied rather than
+assumed. If ownership cannot be read, the `chown` runs.
+
+This is also the one place the filesystem abstraction is not enough. Reading a
+file's uid and gid needs the stat structure it does not carry, so that read goes
+to the operating system behind an injectable seam. The abstraction cannot answer
+the question, and the question has to be answered from the system.
+
 ## Unsupported is not failure, and not no-change
 
 An operation that the host's OS family does not support returns the shared
