@@ -64,16 +64,15 @@ table row naming the requirement, not a sentence pointing at a document:
 
 | Rule | Stated in |
 | --- | --- |
-| A provider returns a typed result, never a formatted string | [FR-004](../../../components/osapi/providers.md) |
+| A provider returns a typed result, never a formatted string | [what an operation returns](../../../components/osapi/providers.md#what-an-operation-returns) |
 
 Three things make that a citation rather than a link:
 
-- **It is relative.** `scripts/validate-skills.py` resolves relative links from
-  the file's own directory, so `just skill-lint` fails when the target is gone.
-  An absolute URL is checked by nothing, which makes it a restatement with extra
-  steps.
-- **It names a requirement.** "See the provider contract" is a pointer; `FR-004`
-  tells a reader whether what they are looking for is there.
+- **It is relative.** A relative link breaks visibly when the target moves. An
+  absolute URL to the same file goes on resolving to a page that no longer says
+  what the row claims.
+- **It names the section.** "See the provider contract" is a pointer; a link to
+  the heading tells a reader whether what they are looking for is there.
 - **It does not restate the rule.** The row names the rule and where it lives.
   Two statements of one rule is what citing exists to prevent, because the copy
   an agent happens to load wins.

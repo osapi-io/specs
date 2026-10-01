@@ -14,10 +14,10 @@ The obligation is stated in
 
 | What you need to know | Where |
 | --- | --- |
-| A domain appears everywhere an existing domain appears, and the check is to pick one and search for it | FR-001 |
-| What verifies a finished domain, and why the documentation gate is not in Step 8's commands | FR-024 |
+| The permission a new domain needs, and the tables that name it | [adding a permission](../../../../components/osapi/permissions.md#adding-a-permission) |
+| A domain appears everywhere an existing domain appears | [every layer, or not done](../../../../components/osapi/domains.md#a-domain-is-in-every-layer-or-it-is-not-done) |
 
-FR-024 is the one to read before running anything: the documentation below is
+Read this before running anything: the documentation below is
 checked by `docusaurus-fmt-check` and `docusaurus-build`, which run in
 `just test` and **not** in `just ready`. Writing these pages and then running only
 the build-and-unit commands hands in work that fails continuous integration on the
@@ -53,10 +53,10 @@ A new permission appears in four places: the spec, the role expansion in code,
 `authentication.md`, and `configuration.md`. Missing the last two means operators
 cannot discover it.
 
-**`architecture/api-guidelines.md` is not on this list any more.** It was, and the
-row said to add a new path pattern to its table. The page no longer exists: its six
-guidelines are FR-014 and FR-015, and its address redirects. A new path pattern is
-now a question of whether it obeys FR-014, not of whether a table lists it.
+**There is no API guidelines page to update.** A new path pattern is a question
+of whether it obeys the
+[design guidelines](../../../../components/osapi/domains.md#design-guidelines), not of whether a table
+lists it.
 
 ## Writing
 

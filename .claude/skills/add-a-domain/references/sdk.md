@@ -7,23 +7,18 @@ combined spec as the server, so `just generate` covers it.
 
 | What you need to know | Where |
 | --- | --- |
-| Four files per service, a `Client` field, an example, a doc page, the navbar entry | [FR-019](../../../../components/osapi/domains.md) |
-| No `gen` type in a public signature; JSON tags on every result type; errors wrapped with context; one service per file | [FR-020](../../../../components/osapi/domains.md) |
-| What verifies a finished domain, and what Step 8 alone misses | [FR-024](../../../../components/osapi/domains.md) |
+| What a service owes, and the four files per service | [what a service owes](../../../../components/osapi/sdk.md#what-a-service-owes) |
+| Method naming, and the seven methods that break it | [method naming](../../../../components/osapi/sdk.md#method-naming) |
+| How the package is laid out | [package layout](../../../../components/osapi/sdk.md#how-the-package-is-laid-out) |
+| No `gen` type in a public signature, and the envelope every method returns | [the envelope](../../../../components/osapi/sdk.md#every-method-returns-the-same-envelope) |
+| JSON tags, wrapped errors, one service per file | [the rest of the conventions](../../../../components/osapi/sdk.md#the-rest-of-the-conventions) |
+| A domain appears everywhere an existing domain appears | [every layer, or not done](../../../../components/osapi/domains.md#a-domain-is-in-every-layer-or-it-is-not-done) |
 
-**There is no `sdk-standards` capability.** Earlier versions of this file said the
-binding rules were "the `sdk-standards` capability in this repository", that they
-bound `osapi-orchestrator` too, and that the capability won any disagreement.
-Nothing of the sort has been written. The claim was also on osapi's
-`adding-an-api-domain.md`, so two documents deferred to a specification that reads
-as settled and does not exist, recorded as
-[FR-019](../../../../components/osapi/domains.md)'s gap rather than repeated here.
-
-What that means in practice: the conventions below and in FR-019 and FR-020 are
-what actually binds, because they are what can be checked against
-`pkg/sdk/client/`. If a cross-repository SDK standard is wanted, it is a feature
-of its own, and inventing one inside a citation file is how a rule comes to exist
-that nobody agreed.
+There is no cross-repository SDK standard. The conventions in the corpus and
+below are what binds, because they are what can be checked against
+`pkg/sdk/client/`. If a shared standard with `osapi-orchestrator` is wanted it is
+a feature of its own, and inventing one inside a reference file is how a rule
+comes to exist that nobody agreed.
 
 ## Files, one service per domain
 

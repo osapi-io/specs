@@ -7,8 +7,14 @@ dispatch and facts wiring.
 
 | What you need to know | Where |
 | --- | --- |
-| Two files connect a provider, and what does **not** change: `agent/types.go`, `agent/agent.go`, the `JobClient` interface | [FR-009](../../../../components/osapi/domains.md) |
-| The `FactsAware` obligation: embed it, add the compile-time `FactsSetter` check | [FR-010](../../../../components/osapi/domains.md) |
+| Delivery is at-least-once, and what the agent owes because of it | [delivery is at-least-once](../../../../components/osapi/job-system.md#delivery-is-at-least-once-and-the-agent-owes-idempotency) |
+| What `_any`, `_all` and a label selector resolve to | [routing and targeting](../../../../components/osapi/job-system.md#routing-and-targeting) |
+| Which failures terminate a message, and which redeliver | [which failures terminate](../../../../components/osapi/job-system.md#which-failures-terminate-a-message) |
+| What happens when the response cannot be written | [when the response cannot be written](../../../../components/osapi/job-system.md#when-the-response-cannot-be-written) |
+| The three limits, and what each one bounds | [three limits](../../../../components/osapi/job-system.md#three-limits-bounding-different-things) |
+| The four result statuses, and why a row might not say `ok` | [why a row might not say ok](../../../../components/osapi/job-system.md#why-a-row-might-not-say-ok) |
+| How a provider is selected for the host's platform | [platform selection](../../../../components/osapi/providers.md#platform-selection-happens-outside-the-provider) |
+| How the unsupported outcome becomes a skip | [unsupported is not failure](../../../../components/osapi/providers.md#unsupported-is-not-failure-and-not-no-change) |
 
 This file holds the shapes and the file names. The rules above are stated once,
 in the corpus, so a change to either is a change in one place.
@@ -102,13 +108,11 @@ in full. What matters when adding an operation, and where each rule is stated:
 
 | What you are relying on | Stated in |
 | --- | --- |
-| Delivery is at-least-once, and the agent checks for a recorded response before executing | [FR-009](../../../../components/osapi/job-system.md) |
-| Which operations make that check load-bearing rather than theoretical | [FR-010](../../../../components/osapi/job-system.md) |
-| A job that has run is terminal, a failure is reported, not retried by redelivery | [FR-011](../../../../components/osapi/job-system.md) |
-| What happens when the response cannot be written after the work ran | [FR-012](../../../../components/osapi/job-system.md) |
-| Which failures terminate a message instead of redelivering it | [FR-013](../../../../components/osapi/job-system.md) |
-| The consumer's delivery settings, as defaults a deployment may override | [FR-014](../../../../components/osapi/job-system.md) |
-| A long operation is kept alive while it runs, so it is not redelivered mid-flight | [FR-015](../../../../components/osapi/job-system.md) |
+| Delivery is at-least-once, and the agent checks for a recorded response before executing | [delivery is at-least-once](../../../../components/osapi/job-system.md#delivery-is-at-least-once-and-the-agent-owes-idempotency) |
+| A job that has run is terminal, a failure is reported rather than retried by redelivery | [which failures terminate](../../../../components/osapi/job-system.md#which-failures-terminate-a-message) |
+| What happens when the response cannot be written after the work ran | [when the response cannot be written](../../../../components/osapi/job-system.md#when-the-response-cannot-be-written) |
+| The consumer's delivery settings, as defaults a deployment may override | [consumer defaults](../../../../components/osapi/job-system.md#consumer-defaults) |
+| A long operation is kept alive while it runs, so it is not redelivered mid-flight | [three limits](../../../../components/osapi/job-system.md#three-limits-bounding-different-things) |
 
 Two consequences for a new operation, which are yours rather than the system's:
 
@@ -122,9 +126,7 @@ Two consequences for a new operation, which are yours rather than the system's:
 `provider.WireProviderFacts(a.GetFacts, registry.AllProviders()...)` injects
 facts into every registered provider, one call, in `internal/agent/agent.go`. A
 provider registered through the registry is covered; one constructed and passed
-somewhere else is not. The obligation on the provider struct itself is
-[FR-010](../../../../components/osapi/domains.md), and what a provider does with facts is
-[001](../../../../components/osapi/providers.md) FR-008.
+somewhere else is not. What a provider does with facts is [facts](../../../../components/osapi/providers.md#facts).
 
 ## Tests
 

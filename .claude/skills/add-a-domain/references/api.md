@@ -21,20 +21,23 @@ exists to end.
 
 | What you need to know | Where |
 | --- | --- |
-| The spec is the source of truth for validation, and the three places a tag goes | FR-011 |
-| Path parameters are the trap, and what actually validates one | FR-012 |
-| Separate verbs for create and update, and why a combined upsert is forbidden | FR-013 |
-| The six API design guidelines, including path versus query parameters | FR-014 |
-| What `{hostname}` accepts, a literal, `_any`, `_all`, a label selector | FR-015 |
-| Broadcast is mandatory, and both paths return the same collection shape | FR-016 |
-| The job client has four methods, and an operation adds none | FR-017 |
-| `Handler()` returns route closures, and the `Server` struct does not change | FR-018 |
-| What verifies a finished domain, and what Step 8 alone misses | FR-024 |
+| Node-targeted or controller-only, and which shape applies | [node-targeted or controller-only](../../../../components/osapi/domains.md#node-targeted-or-controller-only) |
+| The spec is the source of truth for validation, and the three places a tag goes | [validation](../../../../components/osapi/domains.md#validation) |
+| Path parameters are the trap, and what actually validates one | [validation](../../../../components/osapi/domains.md#validation) |
+| Separate verbs for create and update, and why a combined upsert is forbidden | [verbs](../../../../components/osapi/domains.md#verbs) |
+| The six API design guidelines, including path versus query parameters | [design guidelines](../../../../components/osapi/domains.md#design-guidelines) |
+| Broadcast is mandatory, and both paths return the same collection shape | [broadcast is not optional](../../../../components/osapi/domains.md#broadcast-is-not-optional) |
+| What `{hostname}` accepts, a literal, `_any`, `_all`, a label selector | [routing and targeting](../../../../components/osapi/job-system.md#routing-and-targeting) |
+| The job client has four methods, and an operation adds none | [the job client](../../../../components/osapi/domains.md#the-job-client-needs-nothing-added) |
+| `Handler()` returns route closures, and the `Server` struct does not change | [wiring](../../../../components/osapi/domains.md#wiring) |
+| The permission a new endpoint needs, and where it is declared | [adding a permission](../../../../components/osapi/permissions.md#adding-a-permission) |
+| A domain appears everywhere an existing domain appears | [every layer, or not done](../../../../components/osapi/domains.md#a-domain-is-in-every-layer-or-it-is-not-done) |
 
 What a caller sees when an agent does not answer is the job system's, not this
 layer's:
-[004-job-system](../../../../components/osapi/job-system.md)
-FR-019 for the four per-host statuses and FR-016 for the two clocks. Domain code
+[what a caller gets back](../../../../components/osapi/job-system.md#what-a-caller-gets-back) for the
+four per-host statuses, and [three limits](../../../../components/osapi/job-system.md#three-limits-bounding-different-things)
+for the clocks. Domain code
 does not handle the timeout; CLI and SDK output must not imply the operation ran.
 
 Read the reference domain's package alongside the specification. The
@@ -89,18 +92,16 @@ handlers = append(handlers,
 ## Three rules the corpus does not yet hold
 
 Stated here because they are real and nothing else states them. Both belong in
-the corpus and neither is there, which is recorded rather than left to be
-discovered, the same treatment FR-019 gives the absent `sdk-standards`
-capability.
+the corpus and neither is there yet.
 
 **A custom validation rule is a registered validator.** It belongs in
 `internal/validation` with a hint in `customHints`, so the 400 says what shape
 was expected rather than naming the tag. `sysctl_key` and `cron_schedule` are the
 pattern.
 
-**`IsBroadcastTarget` has one implementation and never a second.** FR-015 cites
-it at `internal/job/subjects.go:306`, so the corpus names where it lives; what the
-corpus does not say is that a domain must not write its own target parser.
+**`IsBroadcastTarget` has one implementation and never a second.** It lives in
+`internal/job/subjects.go`. What the corpus does not say is that a domain must
+not write its own target parser.
 
 **A permission is chosen by blast radius, not by endpoint group.** Two operations
 that differ in how much damage they can do want two permissions however similar
