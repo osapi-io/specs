@@ -33,6 +33,16 @@ the agreement does not exist.
 Nothing here authorizes work the constitution forbids. When you cannot satisfy
 both a request and the constitution, say so rather than picking one silently.
 
+## What you find on the way
+
+Record an inconsistency rather than widening the change or dropping it. Open an
+issue on the repository the fix lands in, with the command that found it, and
+carry on with what you were doing. [Issues](CONTRIBUTING.md#issues) has the
+rule; the part agents get wrong is the widening.
+
+A page that disagrees with the code is the same situation. Say so and fix the
+page in its own change, rather than writing around it.
+
 ## Writing a page
 
 **Run `unslop` over anything you write.** It applies to prose here the way
