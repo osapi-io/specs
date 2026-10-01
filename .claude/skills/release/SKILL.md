@@ -43,17 +43,28 @@ neither should get a tag.
 
 ## 2. Pick the number
 
-Count what landed, do not guess from the diff size.
+Read what landed. Do not count it, and do not guess from the diff size.
 
 ```bash
 gh api "repos/osapi-io/$r/compare/<latest-tag>...main" \
-  --jq '[.commits[].commit.message | split("\n")[0]]
-        | map(select(startswith("feat"))) | length'
+  --jq '.commits[].commit.message | split("\n")[0]' | grep '^feat'
 ```
 
-Any `feat:` means a minor bump. Only `fix:` and `chore:` means a patch bump. A
-repository that has never been tagged starts at `v0.1.0`, because `v1.0.0` is a
-promise about API stability, and a library makes that promise once.
+Then read the list and ask which of those changed what a consumer can call.
+A `feat:` that adds a justfile recipe or a coverage gate is a patch. A `feat:`
+that adds an exported function is a minor bump.
+
+Counting gets this backwards, and did. nats-client had seven `feat:` commits
+and nats-server two, which looked like the larger release was nats-client's by
+a wide margin and the smaller one nearly nothing. In fact nats-client's seven
+were Object Store support, core Subscribe and PublishCore, KV CreateOrUpdate
+and OTel trace propagation, all API, while nats-server's two were a justfile
+recipe and a coverage gate and touched no consumer at all. The recommendation
+that came out of counting was `v1.0.1` for the one with seven API additions
+and `v1.1.0` for the one with none.
+
+A repository that has never been tagged starts at `v0.1.0`, because `v1.0.0` is
+a promise about API stability, and a library makes that promise once.
 
 The first release of an application is a product decision rather than a
 mechanical one. Ask instead of picking.
