@@ -111,6 +111,7 @@ and wrong after the next change, with nothing marking the moment.
 | [document](.claude/skills/document/README.md)         | Where a design goes, what the page looks like, and whether one already covers it                                          |
 | [org-status](.claude/skills/org-status/README.md)     | Open pull requests, Dependabot bumps, security alerts, whether CI is green, and working the merge queue across [osapi-io] |
 | [add-a-domain](.claude/skills/add-a-domain/README.md) | Adding an osapi domain: the provider and every layer it has to appear in, in the order that avoids rework                 |
+| [release](.claude/skills/release/README.md)           | Whether a repository needs a tag, which number it takes, and whether the tag will actually publish                        |
 
 Each follows the [Agent Skills] format: a slim `SKILL.md` that routes, with the
 detail in reference files an agent reads only when the question calls for them.
