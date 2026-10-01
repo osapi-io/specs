@@ -160,12 +160,44 @@ and a test applied four times beats a judgement made four times.
   so, which is why eight other rules did not get the same treatment.
 
 - **FR-007**: The corpus MUST state **the test**, because the test outlives the
-  wording and four repositories will apply it: *would somebody who cannot read
-  this make a wrong change?* If yes it is a rule and belongs in the repository.
-  If it only changes whether they understand why the rule exists, it is
-  reasoning and belongs in memory.
+  wording and four repositories will apply it.
 
-  The test is deliberately about consequence rather than about grammar.
+  **Corrected 2026-09-30, after SC-003 failed.** This required the test to be
+  *would somebody who cannot read this make a wrong change?* The reading ran it
+  against ten statements, sorted all ten, and then reported that it had sorted
+  by grammar: every statement it called reasoning carried a causal connective
+  and every statement it called a rule was a bare indicative. It proved the
+  point by rewriting one statement without its "so" clause, after which the same
+  fact landed as a rule.
+
+  The counterfactual is not wrong so much as **not answerable about one
+  statement at a time**, which is how it was written. "A combined endpoint
+  destroys the meaning of a 404" is reasoning only because the rule forbidding
+  the endpoint is stated too; remove that rule and the same words are the only
+  thing standing between a contributor and a broken contract. The question asks
+  about a sentence and the answer depends on the set.
+
+  The test MUST therefore sort by **what a statement is about** rather than by
+  what its absence would cost: a rule says what somebody does, and reasoning
+  says what the system does. That distinction holds for one statement alone,
+  which is the property the counterfactual lacked, and it is the pattern
+  [data-model.md](data-model.md) found in all ten rows before the reading
+  confirmed it.
+
+  The test MUST also answer three things the counterfactual had no answer for,
+  each found by the same reading:
+
+  - A sentence that is both is **split**. "A caller can ask for less and cannot
+    ask for more, because the wrapper applies its context unconditionally" is
+    two statements written as one.
+  - A reason recorded while the rule it explains is stated nowhere means **the
+    rule is missing**, not implied. This is the most useful thing the reading
+    produced and the resolution had no way to say it.
+  - Where a tool enforces the rule, the clause about tool configuration wins.
+    FR-008 already decided that and the fragment has to say so, because the
+    ten-minute ceiling is a rule by one clause and forbidden prose by the other.
+
+  What survives unchanged: the test is about substance rather than form.
   "MANDATORY" in a heading is not what makes something a rule, and a paragraph
   of explanation is not reasoning if omitting it lets somebody ship a
   vulnerability.
@@ -234,12 +266,12 @@ and a test applied four times beats a judgement made four times.
 - **FR-016**: The corpus MUST carry these counts with their commands, measured
   2026-09-30:
 
-  | Measurement                         | Value | Command                                                                   |
-  | ----------------------------------- | ----: | ------------------------------------------------------------------------- |
-  | Charter fragments                   |     8 | `ls .charter/fragments/global/*.md \| wc -l`                              |
-  | Lines in `global/documentation`     |    14 | `wc -l .charter/fragments/global/documentation.md`                        |
-  | Constitutions to recompose          |     6 | `ls components/*/.specify/memory/constitution.md \| wc -l`                |
-  | Requirement numbers the skill cites |    22 | `grep -rhoE 'FR-[0-9]+' .claude/skills/add-a-domain/ \| sort -u \| wc -l` |
+  | Measurement                         | Value | Command                                                                                           |
+  | ----------------------------------- | ----: | ------------------------------------------------------------------------------------------------- |
+  | Charter fragments                   |     8 | `ls .charter/fragments/global/*.md \| wc -l`                                                      |
+  | Lines in `global/documentation`     |    14 | `wc -l .charter/fragments/global/documentation.md`                                                |
+  | Constitutions to recompose          |     7 | `ls components/*/.specify/memory/constitution.md system/.specify/memory/constitution.md \| wc -l` |
+  | Requirement numbers the skill cites |    22 | `grep -rhoE 'FR-[0-9]+' .claude/skills/add-a-domain/ \| sort -u \| wc -l`                         |
 
 ### Section 6 — gaps
 
@@ -277,15 +309,37 @@ and a test applied four times beats a judgement made four times.
 
 - **SC-001**: The fragment states the rule and the test in a paragraph, and
   `global/documentation` stays under 25 lines.
-- **SC-002**: All six constitutions carry the new text, verified by grep for a
-  phrase from it across `components/*/.specify/memory/constitution.md`.
+
+- **SC-002**: All **seven** constitutions carry the new text, verified by grep
+  for a phrase from it. **Corrected 2026-09-30, during planning**: this said six
+  and counted only `components/*/`. `system` composes `global/documentation`
+  like any other project and its constitution carries the marker, so recomposing
+  six would leave `system`'s own constitution stating a rule `system` wrote and
+  does not carry. That is the confusion between "the six" and "the repositories"
+  that `osapi-justfiles`' baseline recorded, in a different place.
+
+  ```sh
+  grep -l 'about to break it is standing' \
+    components/*/.specify/memory/constitution.md system/.specify/memory/constitution.md | wc -l
+  ```
+
 - **SC-003**: A reader given the fragment alone, and no other document, sorts
   the ten rules of FR-002 into rule and reasoning and states where each goes.
   This is the check that the test is usable by somebody who was not here.
+
+  **Failed on its first run, 2026-09-30, and is the reason FR-007 changed.** A
+  pass is not "ten sorted correctly". A sorter can reach ten correct answers by
+  pattern-matching causal connectives, which is what happened, so the criterion
+  has to ask **how** the reader sorted and not only what they concluded. A pass
+  is ten sorted with reasons that refer to what each statement is about. Any
+  rerun asks both questions.
+
 - **SC-004**: The eight rules `osapi` owes are listed by name, each with where
   its reasoning already lives, so the compliance PR has no discovery to do.
+
 - **SC-005**: No rule's reasoning is stated twice after this feature, which is
   unchanged from before it, because this feature moves nothing.
+
 - **SC-006**: `just test` passes in the specs repository.
 
 ## Assumptions

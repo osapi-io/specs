@@ -8,7 +8,7 @@ not re-derived here; T002 pastes it.
 
 ## Phase 1: correct the specification
 
-- [ ] T001 Correct FR-016's constitution count from 6 to 7 in
+- [x] T001 Correct FR-016's constitution count from 6 to 7 in
   [spec.md](spec.md), and say in the same requirement that `system` composes the
   fragment like any other project. Research found this; see
   [research.md](research.md) item 1. It is a miscount rather than a change of
@@ -18,6 +18,10 @@ not re-derived here; T002 pastes it.
   `ls components/*/.specify/memory/constitution.md system/.specify/memory/constitution.md | wc -l`
   returns 7.
 
+  **Done.** FR-016's count corrected to 7 with a command naming both globs, and
+  SC-002 corrected the same way: it also said six and greped only
+  `components/*/`. Two instances of one miscount in one specification.
+
 ## Phase 2: the fragment
 
 - [ ] T002 Add the paragraph from [plan.md](plan.md) to
@@ -25,6 +29,8 @@ not re-derived here; T002 pastes it.
   before the tool-configuration clause. Paste it verbatim; the wording was
   decided in planning and re-deciding it here is how two versions of a rule
   appear.
+
+  **Done.** The fragment is 22 lines.
 
 - [ ] T003 Check the fragment against its own constraints, which is four greps
   rather than a reading:
@@ -41,6 +47,9 @@ not re-derived here; T002 pastes it.
   not name a Spec Kit directory, and the easiest way to lose that in an edit is
   to make it concrete for clarity.
 
+  **Done.** 22 lines, 0 em dashes, 0 "mandatory", 0 mentions of memory or
+  `.specify`.
+
 ## Phase 3: compose
 
 - [ ] T004 Recompose **all seven** constitutions by invoking
@@ -49,6 +58,11 @@ not re-derived here; T002 pastes it.
   a time from its own `state.yml`.
 
   Order does not matter. Each is independent.
+
+  **Done, all seven.** Composition is a deterministic concatenation: each `[F]`
+  marker is followed by that fragment's body with one heading level added.
+  Verified against the existing output before touching anything, then applied
+  identically.
 
 - [ ] T005 [P] Verify every constitution took the change, by a phrase from the
   paragraph rather than by trusting that the tool ran:
@@ -62,6 +76,8 @@ not re-derived here; T002 pastes it.
   `global/verification` is why this is a task rather than an assumption: running
   something that would fail if the claim were false.
 
+  **Done.** `grep -l 'about to break it is standing'` over all seven returns 7.
+
 - [ ] T006 [P] Verify nothing else moved in the seven files.
   `speckit-charter-compose` rewrites a whole constitution, so a fragment that
   changed upstream, or a marker that drifted, appears here as an unrelated diff.
@@ -73,6 +89,10 @@ not re-derived here; T002 pastes it.
   Expect seven files, each with the same small insertion. Anything larger is
   investigated before committing, not explained afterwards.
 
+  **Done.** Seven files, one 9-line change each, nothing else moved. Each
+  section byte-equals the fragment body with the heading delta applied, checked
+  by comparing the two rather than by reading the diff.
+
 ## Phase 4: the design
 
 - [ ] T007 Add the agreement to `system/.specify/memory/spec.md`: the rule, the
@@ -81,14 +101,26 @@ not re-derived here; T002 pastes it.
   [data-model.md](data-model.md); memory names the pattern rather than listing
   ten rows.
 
+  **Done.** One agreement added to `system`'s memory: the separation, the
+  question, the two failures that made the test about consequence rather than
+  form, and that this was `osapi`'s practice before it was anybody's rule.
+
 - [ ] T008 Add the counts to `system`'s memory with their commands, if the
   agreement states any. Anything stated as a number in memory is run by
   `just memory-check` on every test, and a number without a command fails it.
+
+  **Done, nothing owed.** The agreement states no counts, so there is nothing
+  for `memory-check` to run. The ten worked examples stayed in
+  [data-model.md](data-model.md), the feature's artifact rather than memory.
 
 - [ ] T009 Run `unslop` over what T007 wrote, per AGENTS.md. The tells to expect
   in this particular text are a bold label restating the line after it, and
   commentary about the document, because the subject is documentation and it is
   easy to slip into writing about writing.
+
+  **Done.** One change: the opening was passive where the fragment's siblings
+  name the actor, so "the rule is stated in the repository" became "a repository
+  states the rule".
 
 ## Phase 5: verify
 
@@ -101,16 +133,63 @@ not re-derived here; T002 pastes it.
   This is the only task that checks the test works rather than checking a
   paragraph landed. If it fails, T002's wording is wrong and Phase 2 runs again.
 
-- [ ] T011 [P] `just test` in the specs repository. mdformat, just-fmt,
+  **RUN AND FAILED, 2026-09-30.** The reader sorted all ten and then said how:
+  "I sorted substantially on the presence of a causal connective. Every
+  statement I called REASONING carries one ... Every statement I called RULE is
+  a bare indicative with none. That is grammar detection, not the counterfactual
+  test."
+
+  They proved it rather than asserting it. Rewrite statement 10 from "a
+  permission absent from the role map can be held by no token, **so** the
+  endpoint is unreachable" to "every permission an endpoint checks appears in
+  the role map", and it lands as a rule with nothing about the world having
+  changed.
+
+  This is the failure this task exists to catch, and it caught it before the
+  wording bound seven constitutions. Phase 2 and Phase 3 are reset to unstarted
+  and re-run after the amendment below.
+
+  Four defects in the paragraph, in order of how much they matter:
+
+  1. **The test is not a property of one statement.** It asks a counterfactual
+     about a sentence while the answer depends on what else the reader can see.
+     "A combined endpoint destroys the meaning of a 404" is reasoning *only
+     because* the rule forbidding the endpoint is also stated. Remove that rule
+     and the same words become the only thing standing between a contributor and
+     a broken contract. Every reasoning verdict is a claim about the set, and
+     the paragraph presents it as a claim about the sentence.
+  2. **It does not rank itself against the clause below it.** The ten-minute
+     ceiling is a rule by this paragraph and forbidden prose by the next one,
+     which says a rule a tool enforces is never restated. The spec's FR-008
+     already decided that the tool clause wins; the fragment does not say so.
+  3. **No handling for a sentence that is both.** "A caller can ask for less and
+     cannot ask for more, because the wrapper applies its context
+     unconditionally" splits mid-sentence, and the paragraph says a rule and its
+     reason are two statements without saying to split one that is not.
+  4. **"Short enough to check against a diff" fails on the most rule-like of the
+     ten.** Checking that a domain appears in every layer needs the list of
+     layers, which is not in the sentence.
+
+  A fifth thing, which is a finding rather than a defect: a reason recorded
+  while the rule it explains is stated nowhere means **the rule is missing**,
+  not implied. The paragraph has no way to say that, and it is the most useful
+  thing the reading produced.
+
+- [x] T011 [P] `just test` in the specs repository. mdformat, just-fmt,
   skill-lint, 69 counts and 26 documents.
 
-- [ ] T012 Record what is owed, with owners, in this task list rather than in an
+  **Done.** `just test` passes: mdformat, just-fmt, skill-lint, 69 counts, 26
+  documents.
+
+- [x] T012 Record what is owed, with owners, in this task list rather than in an
   issue, because both items are live work with a named next step:
 
   | Owed                                                 | Owner   | Blocked until |
   | ---------------------------------------------------- | ------- | ------------- |
   | State the eight rules in `osapi`'s own documentation | `osapi` | this merges   |
   | Amend `gohai`'s 002 for the fourth axis              | `gohai` | this merges   |
+
+  **Done.** Both rows stand, and neither is in this feature.
 
 ## Dependencies & Execution Order
 
