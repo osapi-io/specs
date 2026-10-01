@@ -26,6 +26,27 @@ or an agreement two of them must both keep. Job retry logic is osapi's
 behaviour. The subject naming that osapi and osapi-orchestrator both depend on
 belongs to neither, so it goes in `ARCHITECTURE.md`.
 
+## Issues
+
+The rule is [Tracking](CONSTITUTION.md#tracking). In practice:
+
+An issue is opened in the repository the change lands in. A finding about
+osapi's code is an osapi issue, not one here, because that is where the person
+who fixes it is looking. An issue here is for the design record itself: a page
+that is wrong, a subject with no page, a rule stated in two places.
+
+Open one when the work is larger than the change in hand. A one-line fix found
+while editing a page is part of that change. A provider that decides idempotency
+the wrong way is not, and widening the change to cover it buries the fix in a
+diff about something else.
+
+Carry the evidence. The counts and commands that found it belong in the issue
+for the same reason they belong in a page: a reader who cannot reproduce it has
+to take your word for it, and in six months so do you.
+
+Something exploitable is never an issue, because an issue is public the moment
+it is opened. It is a draft advisory on the repository it affects.
+
 ## Prerequisites
 
 ```bash

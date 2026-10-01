@@ -101,17 +101,21 @@ long as nobody measures.
 
 ## Tracking
 
-An issue records that something should change. A specification records what
-changing it means, and a task list records the order it is built in. These are
-stages of one piece of work, not three records of it: an issue is closed by the
-pull request that implements the specification it became, and a task is never
-mirrored into an issue. A copy of a task list is a second list that drifts from
-the first.
+An issue records that something should change. The page records what changing it
+means. These are stages of one piece of work rather than two records of it, and
+an issue is closed by the pull request that makes its page true.
 
 An issue exists so an intent survives being put down. Work under way is tracked
-by its task list, which is authoritative while it runs; copying it into issues
-produces a second list that drifts from the first and is read by whoever finds
-it first.
+wherever it is being done, and copying that into issues produces a second list
+that drifts from the first and is read by whoever finds it first.
+
+Open one when the work is larger than the change in hand, and fix it directly
+when it is not. An inconsistency found while doing something else is the case
+this rule is for: widening the change buries the fix in a diff about something
+unrelated, and saying nothing loses it. Neither is tracking.
+
+An issue carries the evidence that found it, with the command that reproduces
+it, for the same reason a page does.
 
 An issue is opened in the repository the change lands in, never in the design
 record, because that is where the reader of the code looks. Work spanning the
