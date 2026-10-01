@@ -2,7 +2,7 @@
   <picture>
     <source srcset="asset/logo-dark.svg" media="(prefers-color-scheme: dark)">
     <source srcset="asset/logo-light.svg" media="(prefers-color-scheme: light)">
-    <img src="asset/logo-dark.svg" alt="specs" width="610">
+    <img src="asset/logo-dark.svg" alt="specs" width="250">
   </picture>
 </p>
 
