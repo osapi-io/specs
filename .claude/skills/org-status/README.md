@@ -59,7 +59,7 @@ again, which is deliberate: each turn restates the intent.
 The repository list comes from `gh repo list osapi-io` on every run, never from
 a file here, so a new repository is covered the day it is created. The reasoning
 is in
-[.charter/fragments/global/repositories.md](../../../.charter/fragments/global/repositories.md).
+[.charter/fragments/global/repositories.md](../../../CONSTITUTION.md).
 
 `SKILL.md` routes and holds the output contract. One reference file loads for
 the category you asked about, and nothing else enters context.
@@ -68,7 +68,7 @@ Issues and task lists answer different questions, so the skill does not treat
 them alike. An issue is an intent nobody has picked up; work under way is tracked
 by its Spec Kit task list. An issue with an open pull request against it is
 reported as in flight rather than as outstanding, and the division is stated in
-[.charter/fragments/global/tracking.md](../../../.charter/fragments/global/tracking.md).
+[.charter/fragments/global/tracking.md](../../../CONSTITUTION.md).
 
 Alerts are triaged, not counted. Dependabot knows a vulnerable version is in
 `go.mod`; it does not know whether the vulnerable code runs. Each alert resolves

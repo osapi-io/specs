@@ -9,14 +9,14 @@ controller-only domains directly under `internal/controller/api/{domain}/`.
 ## The rules are in the corpus, not here
 
 Every rule this layer obeys is stated in
-[005-building-a-domain](../../../../components/osapi/specs/005-building-a-domain/spec.md).
+[005-building-a-domain](../../../../components/osapi/domains.md).
 Read it before writing an endpoint. This file holds only what that specification
 does not: where the files go, what they are called, and the scaffolding to start
 from.
 
 The split is deliberate. A rule restated here would drift from the one in the
 corpus, and the copy an agent happened to load would win — which is the failure
-[003-corpus-backfill](../../../../components/osapi/specs/003-corpus-backfill/spec.md)
+[003-corpus-backfill](../../../../CONSTITUTION.md)
 exists to end.
 
 | What you need to know | Where |
@@ -33,7 +33,7 @@ exists to end.
 
 What a caller sees when an agent does not answer is the job system's, not this
 layer's:
-[004-job-system](../../../../components/osapi/specs/004-job-system/spec.md)
+[004-job-system](../../../../components/osapi/job-system.md)
 FR-019 for the four per-host statuses and FR-016 for the two clocks. Domain code
 does not handle the timeout; CLI and SDK output must not imply the operation ran.
 

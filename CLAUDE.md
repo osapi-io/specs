@@ -1,7 +1,6 @@
 # Claude Code
 
-All agent guidance lives in @AGENTS.md. That file has the hard rules, the
-planning boundary, and what to run before committing. This file exists so Claude
-Code finds it.
+Agent guidance is in @AGENTS.md. The rules are in @CONSTITUTION.md. This file
+exists so Claude Code finds them.
 
 @AGENTS.md

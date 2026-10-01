@@ -64,7 +64,7 @@ table row naming the requirement, not a sentence pointing at a document:
 
 | Rule | Stated in |
 | --- | --- |
-| A provider returns a typed result, never a formatted string | [FR-004](../../../components/osapi/specs/001-provider-contract/spec.md) |
+| A provider returns a typed result, never a formatted string | [FR-004](../../../components/osapi/providers.md) |
 
 Three things make that a citation rather than a link:
 

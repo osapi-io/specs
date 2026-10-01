@@ -47,7 +47,7 @@ churn rather than a change.
 
 A nested module declares its own, and nothing keeps it in step with the root. Six
 gohai examples sat at `go 1.25.7` against a root of `1.26.0`. The rule in
-[the charter](../../../../.charter/fragments/global/tooling.md) applies to these
+[the charter](../../../../CONSTITUTION.md) applies to these
 files too.
 
 ```bash

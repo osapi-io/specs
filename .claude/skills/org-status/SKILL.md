@@ -25,7 +25,7 @@ gh repo list osapi-io --no-archived --visibility public --limit 200 --json name 
 Every run, before anything else. Never from a file, never reused from earlier in
 the conversation: a written list is right when written and wrong after the next
 repository is added, with nothing marking the moment
-([why](../../../.charter/fragments/global/repositories.md)). Query all of them,
+([why](../../../CONSTITUTION.md)). Query all of them,
 `.github` included, unless the user names some.
 
 `--no-archived` matters. Archived repositories hold Dependabot PRs that can

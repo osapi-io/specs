@@ -35,7 +35,7 @@ it or expect an empty result.
 ## Go version drift
 
 The `go` directive must name the older of the two newest Go minor releases
-([why](../../../../.charter/fragments/global/tooling.md)). Nobody is notified
+([why](../../../../CONSTITUTION.md)). Nobody is notified
 when a new minor ships, so this is the check that catches it.
 
 ```bash
@@ -77,7 +77,7 @@ A repository with no `go.mod` is skipped rather than reported.
 The charter requires both provisioning paths to resolve to the same version, and
 says what happens otherwise: a version pinned in one path and floating in the
 other guarantees divergence
-([why](../../../../.charter/fragments/global/tooling.md)). So the linter version
+([why](../../../../CONSTITUTION.md)). So the linter version
 is not a per-repository choice, and four repositories linting with four
 different versions is a finding.
 
