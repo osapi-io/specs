@@ -29,9 +29,9 @@ wrong.
 CLI → SDK → REST API → job client → NATS → agent → provider
 ```
 
-The provider runs on the agent, not the controller. That is the fact that
-explains why a handler cannot simply do the work, and it is what makes the job
-system unavoidable rather than an implementation choice.
+The provider runs on the agent, not the controller, so a handler has nothing to
+call: the work is on a different machine. Everything a domain owes the job
+system comes from that.
 
 ## What the build order forces, and what is habit
 
@@ -53,8 +53,9 @@ combined file is invisible to the SDK however complete its own specification
 is**. It fails silently too, because nothing reports a domain that simply is not
 there.
 
-Everything else in the nine-step walkthrough is convention, and the walkthrough
-is where it belongs.
+Everything else is convention, and the nine-step procedure is in osapi's
+`docs/docs/sidebar/development/adding-an-api-domain.md`, which belongs beside
+the code rather than here.
 
 ## Validation
 
@@ -156,7 +157,5 @@ The generated client the combined specification also feeds is
 
 ______________________________________________________________________
 
-Traced to `../../history/osapi-005-building-a-domain/`, which moved this off the
-published site and found four places where the page disagreed with the code. The
-sharpest: it told a contributor to call a shared `node.validateHostname()`
-helper that does not exist and would not compile from another package.
+Written from `internal/controller/api/` and `cfg.yaml`. History:
+`../../history/osapi-005-building-a-domain/`.

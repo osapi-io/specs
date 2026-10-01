@@ -91,4 +91,4 @@ The PKI switches that let enforcement be staged across a live fleet are
 
 ______________________________________________________________________
 
-Written from `internal/config/` and `cmd/root.go` rather than from a feature.
+Written from `cmd/root.go` and `internal/config/`.

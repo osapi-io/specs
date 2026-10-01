@@ -162,8 +162,5 @@ table counts.
 
 ______________________________________________________________________
 
-Traced to `../../history/gohai-002-move-contributor-docs/`, which moved the
-design rules out of `docs/methodology.md` and left the procedure and the
-per-collector reference data there. The tier counts were measured during that
-feature and corrected: the page said roughly 108, 74 and 768, which summed
-correctly and was wrong in every individual figure.
+Written from `pkg/gohai/collectors/` and `schemas/field-mapping.md`. History:
+`../../history/gohai-002-move-contributor-docs/`.

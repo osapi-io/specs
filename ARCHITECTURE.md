@@ -137,13 +137,5 @@ repositories rather than components. `specs` is where components are described;
 
 ______________________________________________________________________
 
-The graph is re-derived rather than trusted:
-
-```sh
-grep -oE "osapi-io/[a-z-]+" */go.mod    # the Go edges
-grep -ln justfiles */justfile           # the build edge, which is in no go.mod
-```
-
-Run them from the directory holding the clones. The second command is the one
-that matters: the build edge appears in no module graph, so a reader who ran
-only the first would conclude `osapi-justfiles` has no dependents.
+Written from every repository's `go.mod` and justfile. History:
+`history/system-001-repository-inventory/`.

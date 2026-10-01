@@ -29,21 +29,49 @@ joinable.
 
 ## Metrics run on their own port
 
-`controller.metrics.port`, 9090 by default, separate from the API's 8080. So
-scraping does not go through the authenticated surface, and a metrics endpoint
-does not need a token.
+`controller.metrics.port`, 9090 by default, separate from the API's 8080, so
+scraping does not go through the authenticated surface and a scraper needs no
+token. The tradeoff is that the metrics port has no authentication at all, so it
+has to be firewalled rather than exposed.
 
-`SubsystemStatus` is the shape a component reports.
+Three metrics, all about liveness rather than about work:
 
-## Process conditions are a judgement, not a gauge
+| Metric                        | Is                                              |
+| ----------------------------- | ----------------------------------------------- |
+| `osapi_component_up`          | whether a component reports itself healthy      |
+| `osapi_subsystem_up`          | the same, one level down, per `SubsystemStatus` |
+| `osapi_heartbeat_age_seconds` | how long since an agent last checked in         |
 
-`EvaluateProcessConditions` takes `ConditionThresholds` and decides whether a
-process is in a condition worth reporting. That is different from a metric: a
-metric is a number over time, a condition is an answer now.
+```sh
+grep -rhoE 'osapi_[a-z_]+' --include='*.go' internal/ | sort -u | wc -l   # 3
+```
 
-It is what a fleet view reads to say a host is degraded rather than making an
-operator interpret a graph, and it is why an agent card can show a condition
-without anybody configuring an alert.
+Nothing counts jobs, measures provider latency or tracks queue depth. If you
+need that today you read it off the job status events in `job-queue`, which is
+the gap worth knowing about before you plan a dashboard.
+
+## Conditions are a yes or no, not a number
+
+`EvaluateProcessConditions` in `internal/agent/condition.go` returns three
+booleans with a reason string each. A metric is a number over time; a condition
+is an answer right now, which is what a fleet view needs to say a host is
+degraded without an operator reading a graph.
+
+| Condition                 | True when                                 | Default                         |
+| ------------------------- | ----------------------------------------- | ------------------------------- |
+| `ConditionHighLoad`       | 1-minute load average > CPUs × multiplier | `high_load_multiplier: 2.0`     |
+| `ConditionMemoryPressure` | memory used % over the threshold          | `memory_pressure_threshold: 90` |
+| `ConditionDiskPressure`   | **any** mount over the threshold          | `disk_pressure_threshold: 90`   |
+
+All three are under `agent.conditions` in `osapi.yaml`. Two details that bite:
+the high-load one scales with CPU count rather than being absolute, so a 2.0
+multiplier means load 8 on a four-core box and load 64 on a 32-core one; and
+disk pressure loops over every mount and trips on the first one over the
+threshold, so a full `/boot` degrades the host.
+
+Each condition carries the numbers that tripped it,
+`"load 9.12, threshold 8.00 for 4 CPUs"`, so an operator does not have to go and
+look them up to decide whether it matters.
 
 ## Where this connects
 
@@ -57,4 +85,4 @@ these metrics, stay on the published site where an operator will look.
 
 ______________________________________________________________________
 
-Written from `internal/telemetry/` rather than from a feature.
+Written from `internal/telemetry/`.

@@ -143,5 +143,5 @@ The job the `job_id` points at, and its append-only status events, is
 
 ______________________________________________________________________
 
-Written from `internal/audit/` and `internal/controller/api/middleware_audit.go`
-rather than from a feature. No feature covers this package.
+Written from `internal/audit/` and
+`internal/controller/api/middleware_audit.go`.

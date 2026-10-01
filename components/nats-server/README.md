@@ -120,21 +120,13 @@ field with a type and a description. Its table has no Default column, so the
 absence has nowhere to be recorded. A reader sees an example value beside the
 field and has no reason to ask.
 
-## What was measured
+## How big it is
 
-At `7ac142e`, 2026-09-30.
+Four non-test files in `pkg/server`, eight exported methods.
 
-| Measurement                    | Value | Command                                                                                                                             |
-| ------------------------------ | ----: | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Go files                       |    12 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                                                                |
-| Go files excluding tests       |    10 | `find . -name '*.go' -not -path './.git/*' -not -name '*_test.go' \| wc -l`                                                         |
-| Non-test files in `pkg/server` |     4 | `find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' \| wc -l`                                                          |
-| Exported functions             |     1 | `find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^func [A-Z]' {} + \| wc -l`                        |
-| Exported methods               |     8 | `find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^func \([a-z]+ \*[A-Za-z]+\) [A-Z]' {} + \| wc -l` |
-| Exported types                 |     4 | `find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^type [A-Z]' {} + \| wc -l`                        |
-| Interfaces                     |     1 | `find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^type [A-Z][A-Za-z]* interface' {} + \| wc -l`     |
-| Documentation pages            |     5 | `find docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                                                     |
-| Runnable examples              |     4 | `ls -d examples/*/ \| wc -l`                                                                                                        |
+```sh
+find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' | wc -l   # 4
+```
 
 ## Not covered here
 
@@ -151,5 +143,5 @@ question.
 
 ______________________________________________________________________
 
-Traced to `../../history/nats-server-001-nats-server-baseline/`, which
-inventoried the repository at `7ac142e`.
+Written from `pkg/server/`. History:
+`../../history/nats-server-001-nats-server-baseline/`.

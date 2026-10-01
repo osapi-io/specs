@@ -153,29 +153,14 @@ mdformat 1.0.0, mdformat-gfm 1.0.0 and Python 3.13; `go` pins a coverage target
 of 100. The inner versions are fixed and the outer one floats, which is the
 reverse of what a reader would guess from either half alone.
 
-## What was measured
+## How big it is
 
-At `e765614`, 2026-09-29.
+Five modules, 38 recipes, 20 override variables.
 
-| Measurement                | Value | Command                                                                                                              |
-| -------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------- |
-| Go files                   |     0 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                                                 |
-| Modules                    |     5 | `ls -d */ \| while read d; do [ -f "$d$(basename $d).just" ] && echo $d; done \| wc -l`                              |
-| Override variables         |    20 | `grep -hcE '^[a-z_][a-z0-9_]* *:?= ' */*.just \| paste -sd+ - \| bc`                                                 |
-| Recipes, all modules       |    38 | `for m in docusaurus go just md react; do just --justfile $m/$m.just --working-directory . --summary; done \| wc -w` |
-| `.just` lines, all modules |   487 | `wc -l */*.just \| tail -1`                                                                                          |
-| Markdown files             |    11 | `find . -name '*.md' -not -path './.git/*' \| wc -l`                                                                 |
-| Module READMEs             |     5 | `ls */README.md \| wc -l`                                                                                            |
-| Module README lines        |   353 | `wc -l */README.md \| tail -1`                                                                                       |
-| Root README lines          |   112 | `wc -l README.md`                                                                                                    |
-
-Recipe counts were taken twice, by grep for headers and by `just --summary` per
-module, and both agree: 10, 16, 2, 2, 8.
-
-There is no `docs/` tree and no documentation site. That does not mean the
-repository has no documentation: six README files are its documentation, five of
-them describing one module each. They stay where they are, because a module's
-README documents the interface of the file beside it.
+```sh
+for m in docusaurus go just md react; do just --justfile $m/$m.just --working-directory . --summary; done | wc -w   # 38
+grep -hcE '^[a-z_][a-z0-9_]* *:?= ' */*.just | paste -sd+ - | bc                                                    # 20
+```
 
 ## Known limitations
 
@@ -207,7 +192,5 @@ a recipe does what its name suggests.
 
 ______________________________________________________________________
 
-Traced to `../../history/osapi-justfiles-001-justfiles-baseline/`, which
-inventoried the repository at `e765614`. That baseline was taken sixth of twelve
-on purpose, to test whether the seven-section shape fits a repository with no
-code before four more were written to it. It does, and no section was dropped.
+Written from the osapi-justfiles repository. History:
+`../../history/osapi-justfiles-001-justfiles-baseline/`.

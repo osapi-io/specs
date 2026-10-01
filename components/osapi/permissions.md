@@ -146,7 +146,4 @@ is [the embedded UI](ui.md).
 
 ______________________________________________________________________
 
-Written from `internal/authtoken/` rather than from a feature. No feature covers
-this package, which is why the embedded UI's specification could state that the
-permission model "is osapi's" and cite nothing: the corpus had no statement of
-it to cite.
+Written from `internal/authtoken/` and `pkg/sdk/client/permissions.go`.

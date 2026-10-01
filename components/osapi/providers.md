@@ -140,6 +140,5 @@ artifacts that come with it, is [building a domain](domains.md).
 
 ______________________________________________________________________
 
-Traced to `../../history/osapi-001-provider-contract/`. Two of its rules exist
-because of security advisories rather than design: the second-caller validation
-rule and the secrets-in-arguments rule.
+Written from `internal/provider/`. History:
+`../../history/osapi-001-provider-contract/`.

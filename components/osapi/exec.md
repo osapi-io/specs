@@ -99,6 +99,4 @@ The clock a caller sees and how a command outliving it is reported are
 
 ______________________________________________________________________
 
-Written from `internal/exec/` rather than from a feature. No feature covers this
-package, which is why the ten-minute ceiling was described as a fallback for
-nearly a year.
+Written from `internal/exec/`.

@@ -96,4 +96,5 @@ lifecycle, is [the job system](job-system.md).
 
 ______________________________________________________________________
 
-Traced to `../../history/osapi-002-agent-key-store/`.
+Written from `internal/agent/` and `internal/job/registration.go`. History:
+`../../history/osapi-002-agent-key-store/`.

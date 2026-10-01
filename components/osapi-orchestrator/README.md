@@ -150,30 +150,16 @@ done
 It is the only documentation set in the organization that reconciles. **Nothing
 enforces it**, which is the limitation below.
 
-## What was measured
+## How big it is
 
-At `727ab40`, 2026-09-30.
+101 operation methods, and 140 documentation pages against 81 Go files.
 
-| Measurement                          | Value | Command                                                                                                                               |
-| ------------------------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Go files                             |    81 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                                                                  |
-| Go files excluding tests             |    59 | `find . -name '*.go' -not -path './.git/*' -not -name '*_test.go' \| wc -l`                                                           |
-| Non-test files in `pkg/orchestrator` |    12 | `find pkg/orchestrator -maxdepth 1 -name '*.go' -not -name '*_test.go' \| wc -l`                                                      |
-| Operation methods                    |   101 | `grep -cE '^func \(o \*Orchestrator\) [A-Z]' pkg/orchestrator/ops.go`                                                                 |
-| Exported functions                   |    16 | `find pkg/orchestrator -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^func [A-Z]' {} + \| wc -l`                    |
-| Exported types                       |    13 | `find pkg/orchestrator -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^type [A-Z]' {} + \| wc -l`                    |
-| Interfaces                           |     0 | `find pkg/orchestrator -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^type [A-Z][A-Za-z]* interface' {} + \| wc -l` |
-| Documentation pages                  |   140 | `find docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                                                       |
-| Operation pages                      |   101 | `find docs/operations -name '*.md' -not -name 'README.md' \| wc -l`                                                                   |
-| Directory indexes                    |    24 | `find docs/operations -name 'README.md' \| wc -l`                                                                                     |
-| Feature pages                        |    14 | `find docs/features -name '*.md' \| wc -l`                                                                                            |
-| README lines                         |   119 | `wc -l README.md`                                                                                                                     |
+```sh
+grep -cE '^func \(o \*Orchestrator\) [A-Z]' pkg/orchestrator/ops.go   # 101
+```
 
-One measurement needs care.
-`grep -cE '^func \(o \*Orchestrator\) [A-Z].*\) \*Step \{$'` returns **2**, not
-101, because most signatures span three lines and the return type sits on its
-own. That command looks more careful than the one above it and is wrong by two
-orders of magnitude.
+Do not match on `) *Step {` to count those: most signatures wrap and it returns
+2\.
 
 ## Known limitations
 
@@ -204,4 +190,5 @@ Whether eight guards and ten predicates are the right eight and ten.
 
 ______________________________________________________________________
 
-Traced to `../../history/osapi-orchestrator-001-orchestrator-baseline/`.
+Written from `pkg/orchestrator/` and `internal/engine/`. History:
+`../../history/osapi-orchestrator-001-orchestrator-baseline/`.

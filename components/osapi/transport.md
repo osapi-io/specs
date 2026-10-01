@@ -66,10 +66,9 @@ A job and a response both travel as a `SignedEnvelope`, in
 `internal/job/types.go`, carrying an Ed25519 signature over the payload. An
 agent verifies before acting and the controller verifies before recording.
 
-That is what makes the bus a transport rather than an authority. Publish access
-to NATS gets a message onto a subject and does not get it executed, which is why
-[agent identity](agent-identity.md) can say a key is changed only by enrollment
-and mean it.
+Publish access to NATS gets a message onto a subject and does not get it run,
+which is why [agent identity](agent-identity.md) can say a key is changed only
+by enrollment and mean it.
 
 ## What osapi cannot control from here
 
@@ -109,7 +108,4 @@ namespace, the bucket names and the auth mode come from.
 ______________________________________________________________________
 
 Written from `cmd/nats_setup.go`, `internal/job/subjects.go`,
-`internal/job/config.go`, `internal/job/types.go` and `internal/cli/nats.go`,
-after an onboarding reading found the facts in the last section recorded in
-`system`'s memory as an observation that osapi's did not mention them. Traced to
-`system/`../../history/osapi-002-baseline-shape/\` FR-042.
+`internal/job/config.go`, `internal/job/types.go` and `internal/cli/nats.go`.

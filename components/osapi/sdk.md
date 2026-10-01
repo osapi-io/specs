@@ -121,29 +121,6 @@ where the site's SDK guidelines page demonstrates each one working. Showing a
 rule working is not stating it twice, so those are cited rather than repeated
 here.
 
-## What was deferred to nothing
-
-Worth keeping, because it is the failure mode that produced this document.
-
-Three separate documents said the same thing: the site's SDK guidelines page,
-the domain-building page, and the `add-a-domain` skill's SDK reference. All
-three said that method naming, type exposure, result-field tags and error
-handling "are specified in the `sdk-standards` capability in osapi-io/specs",
-and that where the two disagree the specification wins.
-
-**There is no `sdk-standards` capability.** There never was. Three documents
-deferred to an authority nobody had written, which reads as settled and is not.
-
-Of its four named subjects, three were real and stated elsewhere. **Method
-naming was stated nowhere at all.** Not in those pages, whose sections are
-package structure, generated types, result types, the response pattern and error
-handling. Not in the capability that does not exist. It was named only in the
-deferral.
-
-So the missing authority was not a document that would have collected existing
-rules. For one of its four subjects there was nothing to collect, which is why
-the five rules above had to be derived from the code.
-
 ## Where this connects
 
 What generates the specification the SDK is built from, and why a domain absent
@@ -154,6 +131,5 @@ different generator, and is [the embedded UI](ui.md).
 
 ______________________________________________________________________
 
-Traced to `../../history/osapi-005-building-a-domain/`, which derived the naming
-rules from the existing surface after establishing that no convention had been
-written down.
+Written from `pkg/sdk/client/`. History:
+`../../history/osapi-005-building-a-domain/`.

@@ -135,38 +135,14 @@ A reader who compares `ls` against the catalogue and has been told only one of
 the figures concludes something is broken. Nothing is. The catalogue documents
 both figures and what each counts, which it did not do until gohai#201.
 
-## What was measured
+## What is in the repository
 
-At the baseline, 2026-09-29.
+62 collector packages across 10 categories. 205 non-test Go files.
 
-| Measurement              | Value | Command                                                                                         |
-| ------------------------ | ----: | ----------------------------------------------------------------------------------------------- |
-| Go files                 |   314 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                            |
-| Go files excluding tests |   205 | `find . -name '*.go' -not -path './.git/*' -not -name '*_test.go' \| wc -l`                     |
-| Implemented collectors   |    62 | `ls -d pkg/gohai/collectors/*/ \| wc -l`                                                        |
-| Registered collectors    |    62 | `grep -oE 'collectors/[a-z_]+' pkg/gohai/gohai.go \| sort -u \| wc -l`                          |
-| Collector methods        |     5 | `awk '/^type Collector interface/,/^}/' internal/collector/collector.go \| grep -cE '^\t[A-Z]'` |
-| Category constants       |    10 | `grep -cE '^\tCategory[A-Za-z]+ +=' internal/collector/collector.go`                            |
-| Categories in use        |    10 | `grep -rhoE 'collector\.Category[A-Za-z]+' pkg/gohai/collectors/ \| sort -u \| wc -l`           |
-| Documentation pages      |    68 | `find docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                 |
-
-Registered and implemented both return 62, and they are separate commands
-checking separate things. A collector can exist without being registered, and
-that is the failure the pair catches.
-
-## What the baseline found in gohai's own prose
-
-Both are fixed in gohai now, by gohai#201. They are kept here because they
-explain why a count in this document carries its command.
-
-The README said "65 collectors across 9 categories" and the catalogue said
-"across 9 categories". Ten constants are declared and all ten are in use, so
-nine was wrong rather than differently scoped.
-
-Reconciling 65 against 62 meant reading the catalogue's legend, which defined
-`✅` twice: once as implemented and tested, once as planned. 62 of its 65 rows
-are ticks, so the Implemented column could not be read. Nobody was looking for
-that and the count is what surfaced it.
+```sh
+ls -d pkg/gohai/collectors/*/ | wc -l                                  # 62
+grep -cE '^\tCategory[A-Za-z]+ +=' internal/collector/collector.go      # 10
+```
 
 ## Known limitations
 
@@ -224,8 +200,5 @@ gohai's testing conventions, which are its own `CONTRIBUTING.md`'s.
 
 ______________________________________________________________________
 
-Traced to `../../history/gohai-001-gohai-baseline/`, amended twice on 2026-09-30
-to add the dependency section and the page classification the shape requires.
-The limitations above were found by reading the code rather than carried from
-that baseline, which still has no section naming this repository's gaps. It is
-owed one, and what it owes is now written down here rather than nowhere.
+Written from the gohai repository. History:
+`../../history/gohai-001-gohai-baseline/`.

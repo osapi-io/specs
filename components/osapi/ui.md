@@ -23,8 +23,7 @@ endpoint added to a domain reaches both** without anybody writing TypeScript.
 A fetch mutator adapts the generated client for the browser, which is where the
 bearer token is attached.
 
-This is the fact that makes the UI part of osapi rather than a separate front
-end that happens to call it.
+So the UI ships inside osapi's binary rather than being deployed beside it.
 
 ## The four kinds of component
 
@@ -82,9 +81,5 @@ combined specification is invisible to it, is [building a domain](domains.md).
 
 ______________________________________________________________________
 
-Traced to `../../history/osapi-007-the-embedded-ui/`, which reconciled three
-statements of this architecture into one. Two of them had already diverged: a
-site page and a file beside the code, edited eighteen days apart, each holding a
-section the other never got. Two of its requirements came from reading the code
-rather than either document, and both are above: the unverified decode, and
-`/ui/` sitting in `.coverignore`.
+Written from `ui/` and `internal/controller/api/ui/`. History:
+`../../history/osapi-007-the-embedded-ui/`.

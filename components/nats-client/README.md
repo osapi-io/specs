@@ -120,27 +120,13 @@ beyond the commit a consumer pins.** The repository publishes no tags, so a
 consumer depends on a commit rather than on a version, and a rename on `main`
 reaches them at their next bump.
 
-## What was measured
+## How big it is
 
-At `cfe12f6`, 2026-09-30.
+Eleven non-test files in `pkg/client`, 25 methods on `Client`.
 
-| Measurement                    | Value | Command                                                                                                                         |
-| ------------------------------ | ----: | ------------------------------------------------------------------------------------------------------------------------------- |
-| Go files                       |    33 | `find . -name '*.go' -not -path './.git/*' \| wc -l`                                                                            |
-| Go files excluding tests       |    20 | `find . -name '*.go' -not -path './.git/*' -not -name '*_test.go' \| wc -l`                                                     |
-| Non-test files in `pkg/client` |    11 | `find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' \| wc -l`                                                      |
-| `Client` methods               |    25 | `find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^func \(c \*Client\) [A-Z]' {} + \| wc -l`     |
-| Exported types                 |     9 | `find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^type [A-Z]' {} + \| wc -l`                    |
-| Exported functions             |     1 | `find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^func [A-Z]' {} + \| wc -l`                    |
-| Interfaces                     |     1 | `find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' -exec grep -hE '^type [A-Z][A-Za-z]* interface' {} + \| wc -l` |
-| Documentation pages            |     8 | `find docs -name '*.md' -not -path '*/node_modules/*' \| wc -l`                                                                 |
-| README lines                   |    62 | `wc -l README.md`                                                                                                               |
-| Runnable examples              |     5 | `ls -d examples/*/ \| wc -l`                                                                                                    |
-
-Both exclusions are load-bearing. `docs/node_modules/` holds a vendored
-`README.md`, so dropping the path exclusion returns 9 pages. Fourteen
-`*TestSuite` types live in test files, so dropping the name exclusion returns 23
-exported types against a real 9.
+```sh
+find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' | wc -l   # 11
+```
 
 ## Known limitations
 
@@ -166,5 +152,5 @@ question.
 
 ______________________________________________________________________
 
-Traced to `../../history/nats-client-001-nats-client-baseline/`, which
-inventoried the repository at `cfe12f6`.
+Written from `pkg/client/`. History:
+`../../history/nats-client-001-nats-client-baseline/`.

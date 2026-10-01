@@ -216,7 +216,5 @@ to call, is [building a domain](domains.md).
 
 ______________________________________________________________________
 
-Traced to `../../history/osapi-004-job-system/`, which moved this off the
-published site and found three places where that page disagreed with the code:
-it described the status-event key shape as though it were the job key, and it
-gave `MaxDeliver: 3` and `AckWait: 30s` against actual defaults of 5 and 2m.
+Written from `internal/job/`, `internal/agent/` and `cmd/root.go`. History:
+`../../history/osapi-004-job-system/`.
