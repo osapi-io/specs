@@ -10,12 +10,13 @@ The obligations this layer carries are stated in
 
 | What you need to know | Where |
 | --- | --- |
-| One parent command per domain, one subcommand per endpoint | FR-021 |
-| `--json` on every command, and flags rather than positional arguments for IDs | FR-021 |
-| `cli.PrintKV` for a single resource, `cli.PrintCompactTable` for rows | FR-021 |
-| Every response code the spec declares handled in the status switch | FR-021 |
-| What `--target` accepts, a literal, `_any`, `_all`, a label selector | FR-015 |
-| What verifies a finished domain, and what Step 8 alone misses | FR-024 |
+| One parent command per domain, one subcommand per endpoint | [one command per endpoint](../../../../components/osapi/cli.md#one-command-per-endpoint) |
+| Flags rather than positional arguments for identifiers | [values arrive as flags](../../../../components/osapi/cli.md#values-arrive-as-flags-never-as-positional-arguments) |
+| What `--target` accepts, and why no domain redeclares it | [two inherited flags](../../../../components/osapi/cli.md#two-flags-every-command-inherits) |
+| `--json` returning raw bytes before anything is formatted | [json returns first](../../../../components/osapi/cli.md#json-returns-before-anything-is-formatted) |
+| `cli.PrintKV` for a single resource, `cli.PrintCompactTable` for rows | [four shared helpers](../../../../components/osapi/cli.md#rendering-is-four-shared-helpers-not-per-command-formatting) |
+| Every response code the spec declares handled the same way | [one error handler](../../../../components/osapi/cli.md#errors-go-through-one-handler) |
+| A domain appears everywhere an existing domain appears | [every layer, or not done](../../../../components/osapi/domains.md#a-domain-is-in-every-layer-or-it-is-not-done) |
 
 ## Files
 
@@ -51,8 +52,7 @@ operators read these side by side.
 
 Stated here because they are real and nothing else states them, not the corpus,
 not osapi's `CONTRIBUTING.md`. Recorded as unstated rather than left to be
-discovered, the same treatment FR-019 gives the absent `sdk-standards`
-capability.
+discovered.
 
 **A command whose remote work failed exits non-zero.** For `command exec` and
 `command shell` the exit code is the remote command's, through

@@ -15,25 +15,24 @@ Read it before writing one. This file holds only what that specification does
 not: where the files go, what they are called, and the scaffolding to start
 from.
 
-That split is deliberate, and the specification requires it (FR-016). A rule
-restated here would drift from the one in the corpus, and the copy an agent
-happened to load would win.
+That split is deliberate. A rule restated here would drift from the one in the
+corpus, and the copy an agent happened to load would win.
 
-| What you need to know                                     | Where    |
-| --------------------------------------------------------- | -------- |
-| A provider is the operations layer, and what it returns    | FR-001-3 |
-| The idempotency contract, as a table of operation outcomes | FR-004   |
-| `ErrUnsupported` is a fourth outcome, not a failure        | FR-005   |
-| The four implementation patterns, and how to choose        | FR-006   |
-| Platform variants, and how the agent selects one           | FR-007   |
-| How a provider obtains host facts                          | FR-008   |
-| Why the provider validates what the API already validated  | FR-009   |
-| Secrets reach a command without appearing in it            | FR-010   |
-| A caller's value never becomes an option                   | FR-011   |
-| Filesystem access, and why not the `os` package            | FR-012   |
-| A file is not written in place                             | FR-013   |
-| The testing obligations that belong to the provider        | FR-014   |
-| What a provider does not touch                             | FR-015   |
+| What you need to know | Where |
+| --- | --- |
+| A provider is the operations layer, and what it returns | [what an operation returns](../../../../components/osapi/providers.md#what-an-operation-returns) |
+| The idempotency contract, as a table of operation outcomes | [the idempotency rule](../../../../components/osapi/providers.md#the-idempotency-rule) |
+| Somebody edited the host by hand, and the next run overwrites it | [osapi owns the state](../../../../components/osapi/providers.md#osapi-owns-the-state-so-drift-gets-overwritten) |
+| `ErrUnsupported` is a fourth outcome, not a failure | [unsupported is not failure](../../../../components/osapi/providers.md#unsupported-is-not-failure-and-not-no-change) |
+| The four implementation patterns, and how to choose | [the four patterns](../../../../components/osapi/providers.md#the-four-implementation-patterns) |
+| Platform variants, and how the agent selects one | [platform selection](../../../../components/osapi/providers.md#platform-selection-happens-outside-the-provider) |
+| How a provider obtains host facts | [facts](../../../../components/osapi/providers.md#facts) |
+| Why the provider validates what the API already validated | [validation does not discharge](../../../../components/osapi/providers.md#validation-on-the-request-path-does-not-discharge-the-providers) |
+| Secrets reach a command without appearing in it | [secrets are not arguments](../../../../components/osapi/providers.md#a-secret-never-appears-in-a-commands-arguments) |
+| A caller's value never becomes an option | [never parsed as an option](../../../../components/osapi/providers.md#a-callers-value-is-never-parsed-as-an-option) |
+| Filesystem access, the exec manager, and why a file is not written in place | [what it goes through](../../../../components/osapi/providers.md#what-a-provider-goes-through-not-around) |
+| What a provider does not touch | [what it does not touch](../../../../components/osapi/providers.md#what-a-provider-does-not-touch) |
+| The testing obligations that belong to the provider | [what its tests owe](../../../../components/osapi/providers.md#what-its-tests-owe) |
 
 Read the reference domain's provider package alongside it. The specification
 says what must hold; an existing domain shows it holding.
@@ -71,8 +70,9 @@ stands alone and reads `/etc/resolv.conf` directly.
 
 ## Scaffolding
 
-The shapes to start from. What they have to satisfy is FR-002, FR-003 and
-FR-008.
+The shapes to start from. What they have to satisfy is
+[what an operation returns](../../../../components/osapi/providers.md#what-an-operation-returns) and
+[facts](../../../../components/osapi/providers.md#facts).
 
 ```go
 // types.go, package {domain}
