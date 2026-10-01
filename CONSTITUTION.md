@@ -123,62 +123,58 @@ opened, so it is reported as a draft advisory on the repository it affects.
 
 ## The documents
 
-A repository's documentation states what the repository is before it states what
-was decided about it. What it is, where it sits among the others, how it is
+A repository's page states what the repository is before it states anything that
+was decided about it: what it is, where it sits among the others, how it is
 built, what a consumer may depend on, what was measured and the command that
-measures it again, where its own prose and its code disagree, and what the
-inventory leaves out.
+measures it again, where its own prose and its code disagree, and what it leaves
+out.
 
-Memory filled only by archived features records a sequence of changes. It
+Documentation that grows only by appending records a sequence of changes. It
 answers what was decided and never what the thing is, so a reader arriving at it
 learns how one mechanism works before learning what the repository is for. That
-is the state osapi's documentation was in after five features: 1,840 lines, no
-statement of purpose, no dependency, no architecture.
+is the state osapi's was in after five changes: 1,840 lines, no statement of
+purpose, no dependency, no architecture.
 
 A count is written with the command that produces it. A number alone is a claim
 that was true when somebody typed it, and nothing marks the moment it stops
 being true.
 
-Memory is documentation, written in the voice of somebody explaining a system to
-somebody who has to work on it. Not a specification: no requirement identifiers
-in the body, no "MUST", no user stories, no acceptance scenarios, no success
-criteria. Those belong to the feature that produced the knowledge, where a
-reviewer reads them once. Memory is read repeatedly by somebody learning the
-system, and the formalism that serves the first reader obstructs the second.
+A page explains a system to somebody who has to work on it. It is not a
+specification: no requirement identifiers, no "MUST", no user stories, no
+acceptance scenarios. A page is read repeatedly by somebody learning the system,
+and the formalism that serves a reviewer once obstructs that reader every time.
 
 A heading names the thing, with its path where a path helps. A statement is made
 in the present tense and stated once. A design decision carries its reason, in a
 sentence, the first time it appears: why the liveness probe checks nothing
 belongs beside the liveness probe. What never appears is commentary about the
-document: how a fact was found, that a fact is important, which requirement
-obliged it, or what an earlier version said. A reader who wants that reads the
-feature it came from.
+document: how a fact was found, that a fact is important, or what an earlier
+version said.
 
 Show the thing where showing it is shorter than describing it. A configuration
 block, a directory tree, a response shape and a command are documentation; a
 paragraph about the shape of a configuration block is not.
 
-Memory is a tree, not a file. `spec.md` says what the repository is and links to
-the subjects. A subject with enough in it to explain gets its own document
-beside it, and a repository small enough to explain in one document keeps one.
+The documentation is a tree. A component's `README.md` says what the repository
+is and links to its subjects. A subject with enough in it to explain gets its
+own page beside it, and a repository small enough to explain in one page keeps
+one.
 
-Archiving a feature places its content in the subject it belongs to. A change to
-how work is queued lands in the document about queuing work, beside what is
-already there, and `spec.md` gains a link at most. Appending every feature to
-one document produces a file that answers everything and explains nothing, which
-is what one repository's documentation became after seven features: five
-subjects in 266 lines, saying something about each and enough about none.
+A change lands in the subject it belongs to. Something about how work is queued
+goes in the page about queuing work, merged with what is already there, and the
+README gains a link at most. Appending everything to one page produces a file
+that answers everything and explains nothing, which is what one repository's
+documentation became after seven changes: five subjects in 266 lines, saying
+something about each and enough about none.
 
-The consolidation is the work. Two statements about the same mechanism become
-one statement, and the one that survives carries what both said. A document that
-grew by appending is a record of how it was written rather than a description of
-what is true.
+The merging is the work. Two statements about the same mechanism become one, and
+the one that survives carries what both said. A page that grew by appending is a
+record of how it was written rather than a description of what is true.
 
-Memory is written in a human voice and checked for the tells that mark machine
-prose. Em dashes, bold labels that restate the line after them, title case
+A page is written in a human voice and checked for the tells that mark machine
+prose: em dashes, bold labels that restate the line after them, title case
 headings, "serves as" where "is" would do, rule-of-three lists that were not
-three things to begin with. A document a reader cannot finish is not
-documentation, whatever it contains.
+three things to begin with.
 
 ## What the repositories agree on
 
@@ -227,28 +223,16 @@ Each command has to stand alone for that reason.
 ### A rule a document states is reachable from the repository it binds
 
 Where these docs state a rule somebody must follow, the repository they are
-working in states it too. The reason lives here and stays here; what this asks
-is that the rule be reachable from one checkout.
+working in states it too, in one line. The reasoning lives here and stays here;
+what this asks is that the rule be reachable from one checkout.
 
-The measurement that produced it, at `osapi` on 2026-09-30: ten rules these docs
-states and a contributor must follow, two of them stated in `osapi`'s own root
-documents and eight not. Two of the eight carry advisories, so the rules this
-organization learned the hardest are among those a checkout cannot show you.
+Measured at `osapi` on 2026-09-30: ten rules a contributor must follow, two of
+them stated in `osapi`'s own documentation and eight not. Two of the eight carry
+security advisories, so the rules this organization learned the hardest were
+among those a checkout could not show you.
 
 ```sh
 cd ~/git/osapi-io/osapi
 grep -ilE 'consistent across all layers' CONTRIBUTING.md   # stated
-grep -ilE 'upsert' CONTRIBUTING.md                          # not
+grep -ilE 'upsert' CONTRIBUTING.md                          # was not
 ```
-
-This is not a charter fragment, and the attempt to make it one is the reason it
-is worded as an obligation rather than as a distinction. Two readings tried to
-apply a test separating a rule from its reasoning. The first sorted by grammar
-and said so. The second found that the test classified every one of its own
-worked examples the wrong way, because "a rule says what somebody does" is false
-of "one endpoint never both creates and updates" and of every other rule in the
-set. A test that needs the reader to already know the answer is not a test.
-
-What replaced it asks nothing to be sorted. A move leaves the rule where a
-contributor meets it and takes the reasoning, which is what gohai's move did,
-and no repository ends up with a rule it cannot state.

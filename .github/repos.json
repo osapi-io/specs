@@ -44,12 +44,14 @@
   "repos": [
     {
       "name": "specs",
-      "description": "Spec-driven development workspace for osapi-io projects.",
+      "description": "Design docs for osapi-io. Written before the code, corrected when the code proves them wrong.",
       "topics": [
+        "architecture",
+        "design-docs",
+        "docs-driven",
+        "documentation",
         "osapi",
-        "spec-driven-development",
-        "spec-kit",
-        "specs"
+        "osapi-io"
       ]
     }
   ]
