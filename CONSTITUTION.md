@@ -148,7 +148,7 @@ system, and the formalism that serves the first reader obstructs the second.
 
 A heading names the thing, with its path where a path helps. A statement is made
 in the present tense and stated once. A design decision carries its reason, in a
-sentence, the first time it appears — why the liveness probe checks nothing
+sentence, the first time it appears: why the liveness probe checks nothing
 belongs beside the liveness probe. What never appears is commentary about the
 document: how a fact was found, that a fact is important, which requirement
 obliged it, or what an earlier version said. A reader who wants that reads the
@@ -217,7 +217,7 @@ stale.** Ageing was never the failure mode; the writer's frame was.
 A number alone is a claim that was true when somebody typed it, and nothing
 marks the moment it stops being true.
 
-`just check-counts` runs every command in every measurement table against the
+A count is written with the command that produces it, so a reader can run the
 repository it describes. Getting there fixed seven counts nobody could have
 checked: six written as "the same, plus `-not -name '*_test.go'`", which is a
 shortcut for whoever wrote the table and cannot be run by anything.
@@ -226,11 +226,11 @@ Each command has to stand alone for that reason.
 
 ### A rule a document states is reachable from the repository it binds
 
-Where the corpus states a rule somebody must follow, the repository they are
+Where these docs state a rule somebody must follow, the repository they are
 working in states it too. The reason lives here and stays here; what this asks
 is that the rule be reachable from one checkout.
 
-The measurement that produced it, at `osapi` on 2026-09-30: ten rules the corpus
+The measurement that produced it, at `osapi` on 2026-09-30: ten rules these docs
 states and a contributor must follow, two of them stated in `osapi`'s own root
 documents and eight not. Two of the eight carry advisories, so the rules this
 organization learned the hardest are among those a checkout cannot show you.

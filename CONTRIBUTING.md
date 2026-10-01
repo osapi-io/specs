@@ -45,8 +45,8 @@ Read [components/osapi/job-system.md](components/osapi/job-system.md) for the
 shape. The rules are in [CONSTITUTION.md](CONSTITUTION.md); the ones you will
 hit immediately:
 
-- Explain the system to somebody who has to work on it. No requirement
-  identifiers, no "MUST", no user stories.
+- Explain the system to somebody who has to work on it. `/document` carries the
+  voice and runs `unslop`; use it rather than writing a page by hand.
 - Every count carries the command that produces it, and the command has to work
   on its own.
 - State a fact once. Link to it from anywhere else that needs it.

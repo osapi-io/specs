@@ -140,5 +140,4 @@ artifacts that come with it, is [building a domain](domains.md).
 
 ______________________________________________________________________
 
-Written from `internal/provider/`. History:
-`../../history/osapi-001-provider-contract/`.
+Written from `internal/provider/`.

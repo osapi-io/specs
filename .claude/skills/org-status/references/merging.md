@@ -46,7 +46,7 @@ repository often are not.
 
 Two bumps that touch the same file cannot both be merged from the state they
 were built in. The first merge moves the default branch and the second is now
-based on something that no longer exists, so it conflicts — or worse, merges
+based on something that no longer exists, so it conflicts, or worse, merges
 cleanly and drops the first one's edit. `mergeable` says `CLEAN` for both right
 up until the first one lands, which is what makes this easy to get wrong.
 
@@ -56,9 +56,9 @@ So decide by the files, not by the colour of the tick:
 gh pr view <number> --repo "osapi-io/$r" --json files -q '.files[].path'
 ```
 
-- **No overlap** — merge them together. Four bumps each touching a different
+- **No overlap**, merge them together. Four bumps each touching a different
   `examples/<name>/go.mod` do not interact.
-- **Overlap** — serialize, one merge at a time:
+- **Overlap**, serialize, one merge at a time:
   1. merge the first
   2. `@dependabot rebase` the next, and wait for its checks
   3. merge it, and repeat

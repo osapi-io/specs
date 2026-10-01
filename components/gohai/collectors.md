@@ -162,5 +162,4 @@ table counts.
 
 ______________________________________________________________________
 
-Written from `pkg/gohai/collectors/` and `schemas/field-mapping.md`. History:
-`../../history/gohai-002-move-contributor-docs/`.
+Written from `pkg/gohai/collectors/` and `schemas/field-mapping.md`.

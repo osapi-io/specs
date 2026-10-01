@@ -157,5 +157,4 @@ The generated client the combined specification also feeds is
 
 ______________________________________________________________________
 
-Written from `internal/controller/api/` and `cfg.yaml`. History:
-`../../history/osapi-005-building-a-domain/`.
+Written from `internal/controller/api/` and `cfg.yaml`.

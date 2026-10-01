@@ -7,7 +7,7 @@ dispatch and facts wiring.
 
 | What you need to know | Where |
 | --- | --- |
-| Two files connect a provider, and what does **not** change — `agent/types.go`, `agent/agent.go`, the `JobClient` interface | [FR-009](../../../../components/osapi/domains.md) |
+| Two files connect a provider, and what does **not** change: `agent/types.go`, `agent/agent.go`, the `JobClient` interface | [FR-009](../../../../components/osapi/domains.md) |
 | The `FactsAware` obligation: embed it, add the compile-time `FactsSetter` check | [FR-010](../../../../components/osapi/domains.md) |
 
 This file holds the shapes and the file names. The rules above are stated once,
@@ -104,7 +104,7 @@ in full. What matters when adding an operation, and where each rule is stated:
 | --- | --- |
 | Delivery is at-least-once, and the agent checks for a recorded response before executing | [FR-009](../../../../components/osapi/job-system.md) |
 | Which operations make that check load-bearing rather than theoretical | [FR-010](../../../../components/osapi/job-system.md) |
-| A job that has run is terminal — a failure is reported, not retried by redelivery | [FR-011](../../../../components/osapi/job-system.md) |
+| A job that has run is terminal, a failure is reported, not retried by redelivery | [FR-011](../../../../components/osapi/job-system.md) |
 | What happens when the response cannot be written after the work ran | [FR-012](../../../../components/osapi/job-system.md) |
 | Which failures terminate a message instead of redelivering it | [FR-013](../../../../components/osapi/job-system.md) |
 | The consumer's delivery settings, as defaults a deployment may override | [FR-014](../../../../components/osapi/job-system.md) |
@@ -113,14 +113,14 @@ in full. What matters when adding an operation, and where each rule is stated:
 Two consequences for a new operation, which are yours rather than the system's:
 
 - **Redelivery is not your safety net.** The provider's idempotency is what makes a
-  repeat safe — the contract's own requirement, not this one.
+  repeat safe, the contract's own requirement, not this one.
 - **`job retry` creates a new job** rather than replaying the old message, so
   nothing per-domain handles it.
 
 ## Facts
 
 `provider.WireProviderFacts(a.GetFacts, registry.AllProviders()...)` injects
-facts into every registered provider — one call, in `internal/agent/agent.go`. A
+facts into every registered provider, one call, in `internal/agent/agent.go`. A
 provider registered through the registry is covered; one constructed and passed
 somewhere else is not. The obligation on the provider struct itself is
 [FR-010](../../../../components/osapi/domains.md), and what a provider does with facts is

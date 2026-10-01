@@ -15,7 +15,7 @@ does not: where the files go, what they are called, and the scaffolding to start
 from.
 
 The split is deliberate. A rule restated here would drift from the one in the
-corpus, and the copy an agent happened to load would win — which is the failure
+corpus, and the copy an agent happened to load would win, which is the failure
 [003-corpus-backfill](../../../../CONSTITUTION.md)
 exists to end.
 
@@ -25,7 +25,7 @@ exists to end.
 | Path parameters are the trap, and what actually validates one | FR-012 |
 | Separate verbs for create and update, and why a combined upsert is forbidden | FR-013 |
 | The six API design guidelines, including path versus query parameters | FR-014 |
-| What `{hostname}` accepts — a literal, `_any`, `_all`, a label selector | FR-015 |
+| What `{hostname}` accepts, a literal, `_any`, `_all`, a label selector | FR-015 |
 | Broadcast is mandatory, and both paths return the same collection shape | FR-016 |
 | The job client has four methods, and an operation adds none | FR-017 |
 | `Handler()` returns route closures, and the `Server` struct does not change | FR-018 |
@@ -90,7 +90,7 @@ handlers = append(handlers,
 
 Stated here because they are real and nothing else states them. Both belong in
 the corpus and neither is there, which is recorded rather than left to be
-discovered — the same treatment FR-019 gives the absent `sdk-standards`
+discovered, the same treatment FR-019 gives the absent `sdk-standards`
 capability.
 
 **A custom validation rule is a registered validator.** It belongs in
@@ -106,7 +106,7 @@ corpus does not say is that a domain must not write its own target parser.
 that differ in how much damage they can do want two permissions however similar
 their shape. A new one must be added to the built-in role expansion, the
 permission constants, the SDK, and the roles tables in
-`features/authentication.md` and `usage/configuration.md` — see
+`features/authentication.md` and `usage/configuration.md`, see
 [docs.md](docs.md). A permission that exists in the spec but in no role reaches
 nobody.
 
@@ -115,9 +115,9 @@ nobody.
 Testing conventions are osapi's `CONTRIBUTING.md`, under "Testing". What this
 layer adds to a public suite:
 
-- `TestXxxHTTP` — raw HTTP through the full Echo middleware stack: valid input
+- `TestXxxHTTP`, raw HTTP through the full Echo middleware stack: valid input
   succeeds, invalid input returns 400 with the message.
-- `TestXxxRBACHTTP` — no token is 401, a token without the permission is 403, a
+- `TestXxxRBACHTTP`, no token is 401, a token without the permission is 403, a
   token with it succeeds.
 
 Cover validation failure, success, a provider error surfaced from the job, and

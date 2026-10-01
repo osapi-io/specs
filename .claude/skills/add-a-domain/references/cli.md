@@ -14,7 +14,7 @@ The obligations this layer carries are stated in
 | `--json` on every command, and flags rather than positional arguments for IDs | FR-021 |
 | `cli.PrintKV` for a single resource, `cli.PrintCompactTable` for rows | FR-021 |
 | Every response code the spec declares handled in the status switch | FR-021 |
-| What `--target` accepts — a literal, `_any`, `_all`, a label selector | FR-015 |
+| What `--target` accepts, a literal, `_any`, `_all`, a label selector | FR-015 |
 | What verifies a finished domain, and what Step 8 alone misses | FR-024 |
 
 ## Files
@@ -49,7 +49,7 @@ operators read these side by side.
 
 ## Three rules the corpus does not yet hold
 
-Stated here because they are real and nothing else states them — not the corpus,
+Stated here because they are real and nothing else states them, not the corpus,
 not osapi's `CONTRIBUTING.md`. Recorded as unstated rather than left to be
 discovered, the same treatment FR-019 gives the absent `sdk-standards`
 capability.

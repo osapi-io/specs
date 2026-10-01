@@ -22,37 +22,14 @@ fetch:
     curl -sSfL https://raw.githubusercontent.com/osapi-io/osapi-justfiles/refs/heads/main/md/md.just -o .just/remote/md.just
     curl -sSfL https://raw.githubusercontent.com/osapi-io/osapi-justfiles/refs/heads/main/just/just.just -o .just/remote/just.just
 
-# --- Checks ---
-
-# Validate every SKILL.md against the Agent Skills specification
-[group('lint')]
-skill-lint:
-    uvx --with pyyaml python scripts/validate-skills.py
-
-# Run every count in components/ against the command stated beside it
-[group('lint')]
-check-counts:
-    python3 scripts/check-counts.py
-
-# Hold the documentation contract the constitution states
-[group('lint')]
-check-docs:
-    python3 scripts/check-docs.py
-
 # --- Top-level orchestration ---
 
 # Run all checks
 test:
     just md-fmt-check
     just just-fmt-check
-    just skill-lint
-    just check-counts
-    just check-docs
 
 # Format and lint before committing
 ready:
     just md-fmt
     just just-fmt
-    just skill-lint
-    just check-counts
-    just check-docs

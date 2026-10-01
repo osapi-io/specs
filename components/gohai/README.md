@@ -200,5 +200,4 @@ gohai's testing conventions, which are its own `CONTRIBUTING.md`'s.
 
 ______________________________________________________________________
 
-Written from the gohai repository. History:
-`../../history/gohai-001-gohai-baseline/`.
+Written from the gohai repository.
