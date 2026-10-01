@@ -1,12 +1,31 @@
-[![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](LICENSE)
-[![conventional commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=for-the-badge)](https://conventionalcommits.org)
-[![docs driven](https://img.shields.io/badge/docs-driven-blue.svg?style=for-the-badge)](CONTRIBUTING.md)
-![gitHub commit activity](https://img.shields.io/github/commit-activity/m/osapi-io/specs?style=for-the-badge)
+<p align="center">
+  <picture>
+    <source srcset="asset/logo-dark.svg" media="(prefers-color-scheme: dark)">
+    <source srcset="asset/logo-light.svg" media="(prefers-color-scheme: light)">
+    <img src="asset/logo-dark.svg" alt="specs" width="610">
+  </picture>
+</p>
 
-# specs
+<p align="center">The design docs for osapi-io. Written before the code, corrected when the code proves them wrong.</p>
 
-The design docs for [osapi-io]. How each repository is built and why, in one
-place, kept current as they change. No product code here.
+<p align="center">
+  <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge"></a>
+  <a href="https://conventionalcommits.org"><img alt="conventional commits" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=for-the-badge"></a>
+  <a href="CONTRIBUTING.md"><img alt="docs driven" src="https://img.shields.io/badge/docs-driven-blue.svg?style=for-the-badge"></a>
+  <a href="https://just.systems"><img alt="built with just" src="https://img.shields.io/badge/Built_with-Just-black?style=for-the-badge&logo=just&logoColor=white"></a>
+  <img alt="github commit activity" src="https://img.shields.io/github/commit-activity/m/osapi-io/specs?style=for-the-badge">
+</p>
+
+<p align="center">
+<b>Doc-driven: the page is the design, then the description.</b>
+</p>
+
+<p align="center">
+You design something by writing its page, build it, then correct the page where
+building proved it wrong. Same page all three times, so nothing is converted from
+one form into another, because that conversion is where the design and the docs
+drift apart.
+</p>
 
 ## Usage
 
