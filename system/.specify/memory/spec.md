@@ -129,6 +129,35 @@ A page a repository's *consumers* read stays with the repository.
 `gohai/docs/collectors/` is the example: its readers are library consumers, not
 contributors, so it belongs where they will look.
 
+## A rule the corpus states is reachable from the repository it binds
+
+Where the corpus states a rule somebody must follow, the repository they are
+working in states it too. The reason lives here and stays here; what this asks is
+that the rule be reachable from one checkout.
+
+The measurement that produced it, at `osapi` on 2026-09-30: ten rules the corpus
+states and a contributor must follow, two of them stated in `osapi`'s own root
+documents and eight not. Two of the eight carry advisories, so the rules this
+organization learned the hardest are among those a checkout cannot show you.
+
+```sh
+cd ~/git/osapi-io/osapi
+grep -ilE 'consistent across all layers' CONTRIBUTING.md   # stated
+grep -ilE 'upsert' CONTRIBUTING.md                          # not
+```
+
+This is not a charter fragment, and the attempt to make it one is the reason it is
+worded as an obligation rather than as a distinction. Two readings tried to apply
+a test separating a rule from its reasoning. The first sorted by grammar and said
+so. The second found that the test classified every one of its own worked examples
+the wrong way, because "a rule says what somebody does" is false of "one endpoint
+never both creates and updates" and of every other rule in the set. A test that
+needs the reader to already know the answer is not a test.
+
+What replaced it asks nothing to be sorted. A move leaves the rule where a
+contributor meets it and takes the reasoning, which is what gohai's move did, and
+no repository ends up with a rule it cannot state.
+
 ## What is not here
 
 How any one repository works. That is its own memory, and

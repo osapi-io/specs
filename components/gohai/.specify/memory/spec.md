@@ -27,6 +27,12 @@ which is a fact between repositories and so lives in
 matters for anybody working here: osapi is not a consumer of gohai and will not
 break if a collector changes.
 
+## Read about it
+
+| Subject                                             | What it answers                                                      |
+| --------------------------------------------------- | -------------------------------------------------------------------- |
+| [How a collector gathers facts](architecture/collectors.md) | Which library to wrap, what an extension may do, and what a field is called |
+
 ## The collector contract (`internal/collector/collector.go`)
 
 Five methods. That is the whole of what a collector implements.
@@ -204,8 +210,10 @@ next run of `schemas/gen`.
 
 ## Not covered here
 
-How any individual collector gathers its facts. There are 62 of them and they
-share one contract, which is stated above; the catalogue lists them.
+What any individual collector reads. There are 62 of them and the catalogue lists
+what each returns. The rule all 62 follow is
+[its own document](architecture/collectors.md); what stays out here is the 62
+instances of it.
 
 The CLI's flag surface beyond the `--collector.<name>` form the catalogue
 documents.
