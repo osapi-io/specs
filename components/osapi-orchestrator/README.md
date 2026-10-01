@@ -39,11 +39,12 @@ independently.
 
 ## Guards ask what happened; predicates ask what a host is
 
-Conflating these is the most likely mistake, so they are named separately. The
-code draws the line elsewhere. `step.go` calls `When` a guard as well, and
-`docs/features/guards.md` follows it, so the repository calls ten methods guards
-while eight of them ask what earlier work did. What follows sorts conditions by
-what each one inspects rather than by what it is called.
+Two kinds of condition, split by what each one inspects. Mixing them up is the
+usual mistake.
+
+Note the code and `docs/features/guards.md` both call all ten of these "guards".
+This page splits them because the two kinds fail differently, not because the
+code does.
 
 **Guards** look at earlier work. Eight of them:
 

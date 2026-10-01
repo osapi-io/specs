@@ -1,6 +1,6 @@
 ---
 name: add-a-domain
-description: Add or extend an osapi API domain — a provider plus every layer it must appear in. Covers the provider implementation and its platform variants, agent processor and registry wiring, the OpenAPI spec and validation tags, the Echo handler with broadcast targeting, handler registration and startup wiring, the SDK service, CLI commands, and the docs and permission tables a new domain must be added to. Use when asked to add a domain, add a provider, add an operation or endpoint to an existing domain, wire a provider into the agent, add an SDK service, add CLI commands for a domain, or when asked what a new domain has to touch, why a domain feels half-finished, or which layer is missing. Also use when reviewing a domain for cross-layer consistency against an existing one.
+description: Add or extend an osapi API domain, a provider plus every layer it must appear in. Covers the provider implementation and its platform variants, agent processor and registry wiring, the OpenAPI spec and validation tags, the Echo handler with broadcast targeting, handler registration and startup wiring, the SDK service, CLI commands, and the docs and permission tables a new domain must be added to. Use when asked to add a domain, add a provider, add an operation or endpoint to an existing domain, wire a provider into the agent, add an SDK service, add CLI commands for a domain, or when asked what a new domain has to touch, why a domain feels half-finished, or which layer is missing. Also use when reviewing a domain for cross-layer consistency against an existing one.
 compatibility: Requires an osapi checkout with mise and just available. Commands run through `mise exec -- just`.
 license: MIT
 metadata:
@@ -46,14 +46,14 @@ Never copy a domain's files wholesale. Read one, then write the new one.
 The layers depend on each other in one direction. Going out of order means
 regenerating or rewriting.
 
-1. **Provider** — the operations, with its own tests passing.
-2. **Agent** — processor and registry, so a job reaches the provider.
-3. **OpenAPI spec** — then `just generate`, which produces the server, the
+1. **Provider**, the operations, with its own tests passing.
+2. **Agent**, processor and registry, so a job reaches the provider.
+3. **OpenAPI spec**, then `just generate`, which produces the server, the
    combined spec, and the SDK's generated client together.
-4. **Handler** — with validation and broadcast, then registration and startup.
-5. **SDK service** — wrapping the generated client.
-6. **CLI** — wrapping the SDK.
-7. **Docs and tables** — feature page, CLI pages, permissions, navbars.
+4. **Handler**, with validation and broadcast, then registration and startup.
+5. **SDK service**, wrapping the generated client.
+6. **CLI**, wrapping the SDK.
+7. **Docs and tables**, feature page, CLI pages, permissions, navbars.
 
 A new permission is decided at step 3 and lands in step 7. Write it down when
 you choose it; it is the thing most often missed.

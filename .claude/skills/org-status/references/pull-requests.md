@@ -35,14 +35,14 @@ gh pr list --repo "osapi-io/$r" --state open \
 
 ## Fields worth reporting
 
-- `isDraft` — a draft is not waiting on review. Say so rather than counting it
+- `isDraft`, a draft is not waiting on review. Say so rather than counting it
   as pending.
-- `mergeable` — `CONFLICTING` means it needs a rebase before anything else.
+- `mergeable`: `CONFLICTING` means it needs a rebase before anything else.
   `UNKNOWN` means GitHub is still computing it, so re-query rather than
   reporting it as a problem.
-- `reviewDecision` — empty string means no review has been requested or given.
+- `reviewDecision`, empty string means no review has been requested or given.
   `APPROVED` means it is ready to merge.
-- `createdAt` — sort oldest first. Age is the signal.
+- `createdAt`, sort oldest first. Age is the signal.
 
 ## Checks on a PR
 

@@ -16,7 +16,7 @@ binding rules were "the `sdk-standards` capability in this repository", that the
 bound `osapi-orchestrator` too, and that the capability won any disagreement.
 Nothing of the sort has been written. The claim was also on osapi's
 `adding-an-api-domain.md`, so two documents deferred to a specification that reads
-as settled and does not exist — recorded as
+as settled and does not exist, recorded as
 [FR-019](../../../../components/osapi/domains.md)'s gap rather than repeated here.
 
 What that means in practice: the conventions below and in FR-019 and FR-020 are

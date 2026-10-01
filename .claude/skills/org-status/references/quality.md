@@ -103,7 +103,7 @@ go directive: the fix is the same command in each, and a new linter release puts
 all of them behind at once.
 
 A stale pin is not cosmetic. A linter predating the toolchain crashes rather
-than reporting findings — v2.12.2 died inside `buildir` under Go 1.27 — and the
+than reporting findings, v2.12.2 died inside `buildir` under Go 1.27, and the
 crash arrives as a red build on an unrelated pull request.
 
 This drift was invisible for as long as it existed, because the shared `deps`

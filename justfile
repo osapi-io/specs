@@ -34,7 +34,7 @@ skill-lint:
 check-counts:
     python3 scripts/check-counts.py
 
-# Hold the documentation contract the constitution states
+# Links resolve, pages are linked, no em dashes
 [group('lint')]
 check-docs:
     python3 scripts/check-docs.py

@@ -93,10 +93,10 @@ used, and `.just/` is gitignored everywhere.
 organization.** The specs repository, whose `just test` gates every corpus
 change, is downstream of it.
 
-## What no single repository states
+## Facts that span repositories
 
-Four facts live between repositories and belong here because no component's
-memory owns them.
+Four of them. Each is true of a pair or of the whole set, so no single
+repository's page is the right home.
 
 **The dependency graph has one hub and one terminal.** osapi is the only
 repository with edges in both directions. osapi-orchestrator has an incoming Go

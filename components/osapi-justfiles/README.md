@@ -138,15 +138,13 @@ other means they must. Nineteen are declared in their module's header block;
 
 ## What a consumer may depend on
 
-38 recipe names and 20 variable names. That is a contract by every test that
-matters: a consumer depends on it, renaming part of it breaks them at their next
-fetch, and nothing in the repository declares it.
+38 recipe names and 20 variable names, which consumers depend on and nothing in
+the repository declares.
 
-**What it is worth, stated as what is true rather than as what would be
-reasonable: the contract is whatever `main` holds.** No release, no tag, no
-version number, no deprecation path. A recipe renamed on `main` is renamed for
-every consumer at their next `just fetch`. A consumer may depend on the names
-above being what `main` holds today and on nothing about tomorrow.
+**The contract is whatever `main` holds.** No release, no tag, no version
+number, no deprecation path. A recipe renamed on `main` is renamed for every
+consumer at their next `just fetch`, so you can depend on the names above being
+what `main` holds today and on nothing about tomorrow.
 
 Each module pins the tools it invokes while nothing pins the module. `md` pins
 mdformat 1.0.0, mdformat-gfm 1.0.0 and Python 3.13; `go` pins a coverage target

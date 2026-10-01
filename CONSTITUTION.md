@@ -148,7 +148,7 @@ system, and the formalism that serves the first reader obstructs the second.
 
 A heading names the thing, with its path where a path helps. A statement is made
 in the present tense and stated once. A design decision carries its reason, in a
-sentence, the first time it appears — why the liveness probe checks nothing
+sentence, the first time it appears: why the liveness probe checks nothing
 belongs beside the liveness probe. What never appears is commentary about the
 document: how a fact was found, that a fact is important, which requirement
 obliged it, or what an earlier version said. A reader who wants that reads the
