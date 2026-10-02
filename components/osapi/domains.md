@@ -221,6 +221,50 @@ What is not allowed is the same concept carrying a different name in each layer,
 because the only check there is for cross-layer completeness is searching for a
 domain's name, and that check cannot work when the name changes on the way.
 
+## What a domain's tests owe
+
+A rule that is declared and never exercised is a rule nobody knows is broken.
+The specification carries the validation tags, the generator turns them into
+struct tags, and `validation.Struct()` runs them. Nothing in that chain fails
+loudly if a tag is dropped, so the tests are what hold it.
+
+**Validation is proved to fire, not proved to exist.** Each endpoint gets a
+`TestXxxValidationHTTP` that sends a request through the full middleware stack
+with a field missing or malformed, asserts 400, and asserts the body names the
+rule that rejected it. Naming the rule is the part that matters: a test
+asserting only the status code passes just as happily when the handler rejects
+for some unrelated reason.
+
+```go
+name: "when missing key returns 400",
+body: `{"value":"1"}`,
+    s.Contains(rec.Body.String(), "Key")
+
+name: "when target agent not found",
+    s.Contains(rec.Body.String(), "valid_target")
+```
+
+**Permission is proved three ways.** `TestXxxRBACHTTP` per endpoint: no token is
+401, a token without the permission is 403, a token with it succeeds. The third
+case is what catches a permission that was spelled differently in the
+specification than in the table.
+
+**Every status the specification declares has a path through the tests.** A
+declared 404 nobody produces is either an undocumented behaviour or a lie in the
+specification, and both are worth finding.
+
+**Broadcast returns the same shape for one host and for forty.** The collection
+is asserted in both directions, because the single-host case is the one that
+tends to get special-cased.
+
+**The integration tier covers what unit tests cannot.** `cmd/` is excluded from
+the coverage gate, so the wiring from CLI flag to HTTP request to agent is only
+exercised by `test/integration/{domain}_test.go` against a real binary.
+
+Measured in October 2026, the domains carry 75 validation suites and 80 RBAC
+suites between them, and 21 of 22 have an integration test. The exceptions are
+listed as gaps rather than tolerated.
+
 ## A domain is in every layer, or it is not done
 
 A domain is not one artifact. It is a provider, an agent processor and its
