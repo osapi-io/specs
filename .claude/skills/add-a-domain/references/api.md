@@ -31,6 +31,7 @@ exists to end.
 | The job client has four methods, and an operation adds none | [the job client](../../../../components/osapi/domains.md#the-job-client-needs-nothing-added) |
 | `Handler()` returns route closures, and the `Server` struct does not change | [wiring](../../../../components/osapi/domains.md#wiring) |
 | The permission a new endpoint needs, and where it is declared | [adding a permission](../../../../components/osapi/permissions.md#adding-a-permission) |
+| What the tests owe: validation proved to fire, the RBAC trio, every declared status | [what a domain's tests owe](../../../../components/osapi/domains.md#what-a-domains-tests-owe) |
 | A domain appears everywhere an existing domain appears | [every layer, or not done](../../../../components/osapi/domains.md#a-domain-is-in-every-layer-or-it-is-not-done) |
 
 What a caller sees when an agent does not answer is the job system's, not this
