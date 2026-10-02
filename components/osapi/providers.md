@@ -163,6 +163,47 @@ directly.
 **A file is not written in place.** A partially written configuration file is
 worse than no write at all, so the deployer writes and moves.
 
+## How an error reads
+
+A provider's error reaches a job result, the audit log and a CLI user's screen,
+so its wording is an interface rather than a debugging aid.
+
+The shape is **`<domain> <verb>: what went wrong`**.
+
+```
+sysctl create: key must not be empty
+schedule delete: not managed by osapi
+file deploy: execute template: no such template
+```
+
+That ordering sorts and greps usefully, and it reads the same whether the error
+arrives alone or wrapped by three callers above it.
+
+Two habits to avoid, because both are already in the tree.
+
+**An error does not announce that it failed.** `failed to execute template` is
+almost always wrapped, so the reader sees "deploy schedule entry: failed to
+execute template: ...", where the words carry nothing the context did not
+already. Name what was being attempted and let the wrapping supply the rest.
+
+**An error names the operation, not the command.** `chpasswd failed` leaks the
+implementation into a message a CLI user reads, and it stops being true the day
+the implementation changes. `user set password` survives that.
+
+The four sentinels are the exception and stay exactly as they are, because they
+are compared with `errors.Is` rather than read:
+
+```go
+ErrUnsupported  = errors.New("operation not supported on this OS family")
+ErrNotFound     = errors.New("not found")
+ErrNotManaged   = errors.New("not managed by osapi")
+ErrNotInstalled = errors.New("not installed")
+```
+
+Wrapping with `%w` on any path that carries a cause is not optional. An error
+that loses its cause cannot be matched by a caller, which is what the sentinels
+exist for.
+
 ## What a provider does not touch
 
 A provider does not reach the bus, the job store, the audit log or the HTTP
