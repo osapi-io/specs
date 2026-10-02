@@ -31,6 +31,7 @@ corpus, and the copy an agent happened to load would win.
 | Secrets reach a command without appearing in it | [secrets are not arguments](../../../../components/osapi/providers.md#a-secret-never-appears-in-a-commands-arguments) |
 | A caller's value never becomes an option | [never parsed as an option](../../../../components/osapi/providers.md#a-callers-value-is-never-parsed-as-an-option) |
 | Filesystem access, the exec manager, and why a file is not written in place | [what it goes through](../../../../components/osapi/providers.md#what-a-provider-goes-through-not-around) |
+| How an error reads, and the two habits to avoid | [how an error reads](../../../../components/osapi/providers.md#how-an-error-reads) |
 | What a provider does not touch | [what it does not touch](../../../../components/osapi/providers.md#what-a-provider-does-not-touch) |
 | The testing obligations that belong to the provider | [what its tests owe](../../../../components/osapi/providers.md#what-its-tests-owe) |
 
