@@ -70,6 +70,24 @@ merged, or one the question was about.
    → say "close 494" to close it against the merged PR
 ```
 
+## Working one
+
+An action line that offers a fix is a route into
+[work-an-issue](../../work-an-issue/SKILL.md), which reproduces the issue before
+changing anything, decides whether it is a direct fix or a Spec Kit feature, and
+closes the issue through the pull request.
+
+Reporting stops here. This skill reads by default, so an issue is worked only
+when the words that ask for it arrive:
+
+```
+   → say "fix 179" to reproduce it, fix it, and close it through a PR
+```
+
+An action line is earned the same way a block is. An issue the reader has
+declined to act on before does not get one again, because an offer repeated
+every sweep is nagging rather than routing.
+
 ## Writing
 
 Closing is a write, so it needs the words that ask for it, and no issue is ever
