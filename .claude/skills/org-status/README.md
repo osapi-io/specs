@@ -37,6 +37,8 @@ Ask in plain language, or invoke it directly with `/org-status`.
 | `any open PRs in gohai?` | Only the repositories you name |
 | a pasted `/security` URL, `are we exposed?` | A triage verdict for that repository |
 | `fix it` `dismiss them` `bump it` | The fix for that verdict, shown before it runs |
+| `is #631 safe?` `could any PR be malicious?` | A vetting verdict: provenance, files, typosquats, release age, known-malicious versions |
+| `have we been hacked?` `do we depend on anything malicious?` | A compromise audit: access, commit authors, every lockfile against OSV, Action advisories, release tags, then missing cooldowns and unwatched lockfiles |
 | `merge the open PRs` `work the queue` | The merge order, a rebase for each bump, and a verdict for anything red |
 
 Reading is the default. Two paths write, and they differ in what they ask of
@@ -94,6 +96,11 @@ established before anything is queued.
 | [references/branches.md](references/branches.md) | Classifying remote branches as merged, abandoned, active or protected |
 | [references/modules.md](references/modules.md) | Nested `examples/` modules: tidiness, go directive, dependency bumps |
 | [references/quality.md](references/quality.md) | Default-branch checks, Go version drift, named workflows, release state |
+| [references/vetting.md](references/vetting.md) | Supply-chain checks on a pull request: impersonation, stray files, typosquats, release age, known-malicious versions |
+| [references/audit.md](references/audit.md) | Signs of compromise across the org, and the defences that should be in place |
+| [scripts/deps.sh](scripts/deps.sh) | Every locked dependency of a repository, from `go.sum`, `bun.lock` and `package-lock.json` |
+| [scripts/osv-malicious.sh](scripts/osv-malicious.sh) | Asks OSV about a dependency list and flags malicious or hijacked versions |
+| [scripts/resembles.py](scripts/resembles.py) | Flags module paths that resemble one already depended on |
 | [references/merging.md](references/merging.md) | Merge order, Dependabot rebases, waiting on checks, why a rebase cannot fix a red bump |
 
 Format details are in the [Agent Skills specification].

@@ -54,6 +54,11 @@ Exit status is non-zero when any check fails, which is useful in a loop. Only
 report a PR as failing when a check has actually concluded; a pending check is
 not a failure.
 
+## Before calling one ready
+
+A green PR is not a safe one. Vet each with [vetting.md](vetting.md) and
+report its verdict, Dependabot's included.
+
 ## What not to do
 
 `gh search prs --owner osapi-io` answers in one call instead of one per

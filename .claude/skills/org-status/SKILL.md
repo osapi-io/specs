@@ -1,6 +1,6 @@
 ---
 name: org-status
-description: Report and act on outstanding work across the osapi-io GitHub organization. Covers open pull requests, Dependabot version bumps, open issues, Dependabot and code-scanning and secret-scanning alerts, and CI health on default branches. Also triages security alerts and fixes them on request. Use when asked whether there are any open PRs, any Dependabot PRs, anything waiting on review, what issues are open or what is left to work, any security or vulnerability alerts, whether CI is green, whether the go directive is behind a new Go release, whether any remote branches are stale or deletable, whether the nested modules under examples are untidy or behind, or for a sweep of what needs attention. Also use when asked what to do about an alert, whether the org is actually exposed or affected, whether vulnerable code is reachable, or to fix, bump, triage, or dismiss alerts, and whenever a GitHub osapi-io repository security URL is pasted.
+description: Report and act on outstanding work across the osapi-io GitHub organization. Covers open pull requests and vetting them for typosquats, hijacked releases and disguised changes, auditing the org for signs of compromise and for missing Dependabot cooldowns, Dependabot version bumps, open issues, Dependabot and code-scanning and secret-scanning alerts, and CI health on default branches. Also triages security alerts and fixes them on request. Use when asked whether there are any open PRs, whether a PR is safe to approve or could be malicious, whether anything has been hacked or exploited, whether any dependency is malicious, whether cooldowns are set, any Dependabot PRs, anything waiting on review, what issues are open or what is left to work, any security or vulnerability alerts, whether CI is green, whether the go directive is behind a new Go release, whether any remote branches are stale or deletable, whether the nested modules under examples are untidy or behind, or for a sweep of what needs attention. Also use when asked what to do about an alert, whether the org is actually exposed or affected, whether vulnerable code is reachable, or to fix, bump, triage, or dismiss alerts, and whenever a GitHub osapi-io repository security URL is pasted.
 compatibility: Requires the gh CLI, authenticated with read access to the osapi-io organization. Security alert queries need the security_events scope.
 allowed-tools:
   - Bash(gh pr merge:*)
@@ -35,7 +35,9 @@ never merge, and `gh search prs --owner osapi-io` counts them.
 
 | The user asks | Read |
 | --- | --- |
-| Open PRs, what is waiting, whose they are, Dependabot bumps | [pull-requests.md](references/pull-requests.md) |
+| Open PRs, what is waiting, whose they are, Dependabot bumps | [pull-requests.md](references/pull-requests.md), then [vetting.md](references/vetting.md) for each |
+| Is this PR safe, could it be a typosquat or a hijacked release, can I approve it | [vetting.md](references/vetting.md) |
+| Have we been hacked, exploited or compromised, do we depend on anything malicious, are cooldowns set | [audit.md](references/audit.md) |
 | Open issues, what is left to work, what a tracker still lists | [issues.md](references/issues.md) |
 | Any alerts, vulnerabilities, anything leaked | [security.md](references/security.md) |
 | What to do about an alert, are we exposed, a pasted `/security` URL | [triage.md](references/triage.md) |
@@ -43,7 +45,7 @@ never merge, and `gh search prs --owner osapi-io` counts them.
 | Is CI green, is anything failing or unreleased, are we on the right Go | [quality.md](references/quality.md) |
 | Any stale branches, can we delete any, what is left over | [branches.md](references/branches.md) |
 | Are the examples out of date, do nested modules need tidying or bumping | [modules.md](references/modules.md) |
-| A sweep, or no clear category | All seven, in that order |
+| A sweep, or no clear category | [audit.md](references/audit.md) first, then the rest in this order, vetting every open PR |
 
 ## 3. Report
 
@@ -111,7 +113,12 @@ osapi-io · 12 Sep · 8 repos
    out unless the user asks for them, they changed, or they are what the question
    was about. A finding earns its line by being new, actionable, or both, and an
    action line on something the reader keeps declining is nagging.
-4. **Read by default. Write only when told to.** On fix, dismiss or bump,
+4. **No pull request is ready until it is vetted.** A green check says the code
+   builds, not that it is what it claims to be. Run
+   [vetting.md](references/vetting.md) before calling any pull request ready,
+   before approving or merging it, and before checking it out, and lead its
+   block with the verdict.
+5. **Read by default. Write only when told to.** On fix, dismiss or bump,
    [triage.md](references/triage.md) has the write for each verdict and every
    one needs the verdict established first. Never dismiss an alert to shorten a
    list.
