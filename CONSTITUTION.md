@@ -49,6 +49,19 @@ pinned in one path and floating in the other guarantees divergence.
 A tool whose output is committed is pinned, so the committed artifact does not
 change under whoever runs the generator.
 
+A GitHub Action from outside the organization is pinned by full commit SHA, with
+its version in a trailing comment:
+
+```yaml
+uses: actions/checkout@<40-character sha> # v7.0.0
+```
+
+A tag is a pointer whoever controls the action can move, and a workflow pinned
+to one runs whatever it points at today. That is how the
+tj-actions/changed-files compromise reached its users. A SHA cannot be moved.
+Dependabot reads the comment and bumps the SHA and the comment together, so the
+pin costs no upkeep.
+
 ## The language version
 
 A tool version and a language version are different promises. The tool version

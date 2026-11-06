@@ -172,10 +172,14 @@ A lockfile whose directory no entry covers is a finding. Name the directory.
 
 ### Actions are pinned
 
-`uses: actions/checkout@v7` follows a tag, and a tag can be moved to different
-code by whoever controls the action's repository. A commit SHA cannot. A tag
-pin is a finding. Dependabot updates SHA pins and keeps the version in a
-trailing comment, so pinning costs nothing in upkeep.
+The rule is in [Tooling](../../../../CONSTITUTION.md#tooling). An action from
+outside the organization is pinned by full commit SHA with its version in a
+comment. Anything else is a finding:
+
+```bash
+grep -nE 'uses:\s*[^ .][^ ]+' ~/git/osapi-io/*/.github/workflows/*.y*ml |
+  grep -vE '@[0-9a-f]{40}\s+#\s*v?[0-9]' | grep -v 'uses: *osapi-io/'
+```
 
 ## Reporting
 
