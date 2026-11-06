@@ -151,8 +151,22 @@ done
 
 Any output is a finding. Each line is an entry that proposes a release the day it ships,
 before a hijacked one has had time to be noticed and pulled. The house setting
-is `default-days: 7` and `semver-major-days: 14`. Security updates ignore the
-cooldown, so it never delays a fix for an alert.
+is `default-days: 7` on every entry, plus `semver-major-days: 14` on the
+ecosystems that version by semver (`gomod`, `bun`, `npm`, `swift`). Never put
+the `semver-*` keys on `github-actions` or `docker`. Dependabot rejects the
+whole file for it and runs no updates at all, and the only sign is a failed
+`.github/dependabot.yml` check on the commit that changed it. Security updates
+ignore the cooldown, so it never delays a fix for an alert.
+
+After editing `dependabot.yml`, confirm Dependabot accepted it:
+
+```bash
+sha=$(gh api "/repos/$owner/$r/commits?path=.github/dependabot.yml&per_page=1" --jq '.[0].sha')
+gh api "/repos/$owner/$r/commits/$sha/check-runs" \
+  --jq '.check_runs[] | select(.name | test("dependabot")) | "\(.conclusion)\t\(.output.summary)"'
+```
+
+A `failure` here is a finding, because it means the entries above it do nothing.
 
 ### Every lockfile is watched
 
