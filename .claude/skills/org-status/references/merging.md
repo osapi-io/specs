@@ -2,6 +2,9 @@
 
 Resolve the repository set first, per [SKILL.md](../SKILL.md).
 
+Vet every pull request in the queue with [vetting.md](vetting.md) first. A
+STOP leaves the queue, and so does a LOOK until the reader has cleared it.
+
 The writes here are granted by the skill's own `allowed-tools`, so they run
 without a prompt during the invocation that asked for them. That grant lasts
 one turn. A queue spanning several turns needs the skill invoked again, which
@@ -151,6 +154,7 @@ failing step, which looks like output and says nothing.
 
 ## Never
 
+- **Merge, rebase or check out a pull request that has not been vetted.**
 - **Merge red.** A bump is convenience; a broken default branch is not.
 - **Merge a human PR nobody has read** because a sweep listed it as green.
   Report it as ready and let the reader decide.
