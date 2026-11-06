@@ -27,8 +27,11 @@ bad=0
 cut -d' ' -f4 "$tmp/hits" | tr ',' '\n' | sort -u | while read -r id; do
   rec=$(curl -sf --max-time 20 "https://api.osv.dev/v1/vulns/$id")
   s=$(jq -r '.summary // ""' <<< "$rec")
-  text=$(jq -r '"\(.summary // "") \(.details // "") \(.database_specific.cwe_ids // [] | join(" "))"' <<< "$rec")
-  if [[ $id == MAL-* ]] || grep -qiE 'CWE-506|malware|backdoor|hijack|exfiltrat|trojan|embedded malicious|(is considered|contains|added|introduced|published a) malicious|malicious (code|version|package|release|actor|dependency)' <<< "$text"; then
+  # CWE-506 is Embedded Malicious Code. The summary is matched too, but never
+  # the details: ordinary write-ups say "a malicious actor could", which
+  # reads like a hijack to a pattern and is not one.
+  text=$(jq -r '"\(.summary // "") \(.database_specific.cwe_ids // [] | join(" "))"' <<< "$rec")
+  if [[ $id == MAL-* ]] || grep -qiE 'CWE-506|malware|backdoor|hijack|exfiltrat|trojan|embedded malicious|malicious (code|version|package|release|dependency) in|malicious package' <<< "$text"; then
     grep -E "(^| |,)$id(,|$)" "$tmp/hits" | awk -v id="$id" -v s="$s" '{print "MALICIOUS", $1, $2, $3, id, s}'
   fi
 done | tee "$tmp/bad"

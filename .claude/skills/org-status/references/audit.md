@@ -77,10 +77,15 @@ lockfile nobody scanned is not a clean one.
 
 `osv-malicious.sh` prints `MALICIOUS` for a version on the OpenSSF
 malicious-packages list (`MAL-` ids), and for one whose advisory carries
-CWE-506 or describes planted code. The second test matters. A hijacked release
-of a real package is often published under a `GHSA-` id with a summary like
-"Critical severity vulnerability that affects event-stream", which a search for
-`MAL-` misses. Any `MALICIOUS` line is a **STOP**.
+CWE-506 (embedded malicious code) or whose summary says so. The second test
+matters. A hijacked release of a real package is often published under a
+`GHSA-` id with a summary like "Critical severity vulnerability that affects
+event-stream", which a search for `MAL-` misses. Any `MALICIOUS` line is a
+**STOP**.
+
+It never reads an advisory's details. Ordinary write-ups say "a malicious actor
+could", and matching on that flagged an HTTP/2 denial of service in
+`golang.org/x/net` as a hijack 47 times.
 
 It also prints a count of versions with ordinary advisories. That is
 [triage.md](triage.md)'s question, and most of them are old versions `go.sum`
