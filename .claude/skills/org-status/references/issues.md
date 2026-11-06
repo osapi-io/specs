@@ -98,4 +98,4 @@ gh issue close "$n" --repo "osapi-io/$r" --comment "Fixed in #<pr>."
 ```
 
 Something exploitable is never opened as an issue at all. It is a draft advisory,
-per [triage.md](triage.md).
+which only maintainers can read. [audit.md](audit.md#reporting) has the command.
