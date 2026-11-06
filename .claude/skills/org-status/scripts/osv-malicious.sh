@@ -31,7 +31,7 @@ cut -d' ' -f4 "$tmp/hits" | tr ',' '\n' | sort -u | while read -r id; do
   # the details: ordinary write-ups say "a malicious actor could", which
   # reads like a hijack to a pattern and is not one.
   text=$(jq -r '"\(.summary // "") \(.database_specific.cwe_ids // [] | join(" "))"' <<< "$rec")
-  if [[ $id == MAL-* ]] || grep -qiE 'CWE-506|malware|backdoor|hijack|exfiltrat|trojan|embedded malicious|malicious (code|version|package|release|dependency) in|malicious package' <<< "$text"; then
+  if [[ $id == MAL-* ]] || grep -qiE 'CWE-506|malware|backdoor|hijacked (release|package|version|account)|(account|maintainer) (takeover|compromise)|compromised (release|package|version)|exfiltrat|trojan|embedded malicious|malicious (code|version|package|release|dependency) in|malicious package' <<< "$text"; then
     grep -E "(^| |,)$id(,|$)" "$tmp/hits" | awk -v id="$id" -v s="$s" '{print "MALICIOUS", $1, $2, $3, id, s}'
   fi
 done | tee "$tmp/bad"
