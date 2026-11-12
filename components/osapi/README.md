@@ -40,21 +40,22 @@ A handler validates and delegates. It never touches the operating system.
 
 ## Read about it
 
-| Subject                             | What it answers                                                                                                     |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| [The message bus](transport.md)     | What NATS carries, how it is namespaced, and the three things osapi cannot control                                  |
-| [The job system](job-system.md)     | How work reaches a host, what is guaranteed, the three limits, the four statuses, and one request traced end to end |
-| [Providers](providers.md)           | How work gets done on the machine, the idempotency rule, the four patterns                                          |
-| [Agent identity](agent-identity.md) | Enrollment, signing, rotation, and why targeting needs verification                                                 |
-| [Building a domain](domains.md)     | What a new endpoint touches, in what order, and what is forced by tooling                                           |
-| [The embedded UI](ui.md)            | The dashboard compiled into the binary, and what it does not verify                                                 |
-| [The Go SDK](sdk.md)                | What a service owes, the five naming rules, and the seven methods that break them                                   |
-| [The CLI](cli.md)                   | A thin shell over the SDK: one command per endpoint, two inherited flags, and four shared renderers                 |
-| [Running commands](exec.md)         | The five ways to run one, why ten minutes is a ceiling, and where a secret goes                                     |
-| [Permissions](permissions.md)       | The 37 permissions, the three roles, and why a direct permission overrides them                                     |
-| [The audit trail](audit.md)         | What is recorded, why redaction is a denylist, and what a read does not capture                                     |
-| [Configuration](configuration.md)   | Where a value comes from, and how secrets stay out of the log                                                       |
-| [Observability](observability.md)   | Tracing across the queue, metrics on their own port, conditions                                                     |
+| Subject                             | What it answers                                                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| [The message bus](transport.md)     | What NATS carries, how it is namespaced, and the three things osapi cannot control                                    |
+| [The job system](job-system.md)     | How work reaches a host, what is guaranteed, the three limits, the four statuses, and one request traced end to end   |
+| [Providers](providers.md)           | How work gets done on the machine, the idempotency rule, the four patterns                                            |
+| [Agent identity](agent-identity.md) | Enrollment, signing, rotation, and why targeting needs verification                                                   |
+| [Building a domain](domains.md)     | What a new endpoint touches, in what order, and what is forced by tooling                                             |
+| [The embedded UI](ui.md)            | The dashboard compiled into the binary, and what it does not verify                                                   |
+| [The Go SDK](sdk.md)                | What a service owes, the five naming rules, and the seven methods that break them                                     |
+| [The CLI](cli.md)                   | A thin shell over the SDK: one command per endpoint, two inherited flags, five shared renderers, and the output style |
+| [Running commands](exec.md)         | The five ways to run one, why ten minutes is a ceiling, and where a secret goes                                       |
+| [Permissions](permissions.md)       | The 37 permissions, the three roles, and why a direct permission overrides them                                       |
+| [The audit trail](audit.md)         | What is recorded, why redaction is a denylist, and what a read does not capture                                       |
+| [Configuration](configuration.md)   | Where a value comes from, and how secrets stay out of the log                                                         |
+| [Observability](observability.md)   | Tracing across the queue, metrics on their own port, conditions                                                       |
+| [The pivot to behaviors](pivot.md)  | Why providers become behaviors, what the platform generates, agent discovery, and sysctl as the first one             |
 
 ## Where it sits
 
