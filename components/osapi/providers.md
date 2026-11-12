@@ -4,6 +4,10 @@ A provider is the layer that actually does something to a host. It runs **in the
 agent process**, not the controller, which is why an API request becomes a
 queued job instead of a function call.
 
+Providers are being replaced by [behaviors](behaviors.md), one domain at a time,
+and sysctl is the first. What this page says about results, idempotency and
+drift holds for both.
+
 Every provider implements one operation set for its domain. Where a domain is a
 collection of resources, that set is list, get, create, update, delete, and
 every method takes a context first.

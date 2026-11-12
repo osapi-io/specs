@@ -44,82 +44,46 @@ help, no schema output.
 
 ## What a behavior is
 
-A behavior is one directory holding everything specific to one area of the host:
-the definition, the input and output types, the logic for each platform, and the
-tests. It is what a provider is today, plus the declaration the rest of the
-system is built from when osapi starts.
+The definition, its placement with `Node` and `Under`, what `Read`, `Write` and
+`Key` decide, schemas from tags and custom validators, and the rules
+`behavior validate` checks are built and described in [behaviors](behaviors.md).
+What follows is the part not built yet.
 
-```
-pkg/behavior/sysctl/
-  behavior.go     the definition: name, methods, types, verbs
-  types.go        inputs and outputs, with json, validate and doc tags
-  debian.go       the logic, unchanged from the provider
-  darwin.go
-  linux.go
-  *_test.go
-```
+## Behaviors built on other behaviors
 
-The definition looks like this:
+Providers already depend on each other, by constructor argument in
+`cmd/agent_setup.go`: cron is built on the file provider, and dns and sysctl on
+the file-state KV and the exec manager. Nothing declares those edges, so the
+only record of them is the order of the setup code.
+
+A definition declares them instead:
 
 ```go
-var Behavior = behavior.Define("sysctl", "Kernel parameters under /etc/sysctl.d",
+var Behavior = behavior.Register(behavior.Define(
+    "cron", "Scheduled jobs under /etc/cron.d",
     behavior.Node,
-    behavior.Read("list", List),
-    behavior.Read("get", Get).Key("key"),
-    behavior.Write("create", Create),
-    behavior.Write("update", Update).Key("key"),
-    behavior.Write("delete", Delete).Key("key"),
-)
-
-type GetInput struct {
-    Key string `json:"key" validate:"required,sysctl_key" doc:"Parameter name, e.g. net.ipv4.ip_forward"`
-}
-
-type Entry struct {
-    Key   string `json:"key"   doc:"Parameter name"`
-    Value string `json:"value" doc:"Current runtime value"`
-}
-
-func Get(ctx context.Context, p Provider, in GetInput) (Entry, error)
+    behavior.Requires(lineinfile.Behavior, file.Behavior),
+    ...
+))
 ```
 
-`Read` and `Write` carry the decisions a provider author makes today by copying
-another domain: the HTTP method, the permission (`sysctl:read` or
-`sysctl:write`), whether the result carries `changed`, and whether a retry is
-safe. `Key` names the input field that goes in the path, so
-`GET /api/node/{hostname}/sysctl/{key}` comes from the definition rather than
-from the spec.
+- **On the agent**, the platform builds a required behavior's provider first and
+  hands it to the one that requires it. A method calls the other behavior's
+  method as a typed Go call on the same host in the same job, such as
+  `lineinfile.Ensure(ctx, p.Lines, lineinfile.Input{...})`, not through the API.
+- **`behavior validate`** fails a requirement that is not registered and a
+  cycle. `behavior describe` lists what a behavior requires and what requires
+  it.
+- **`behavior.Internal`** marks a behavior other behaviors use but callers do
+  not: it gets no route, no CLI command and no spec. A primitive such as
+  lineinfile can start internal and be exposed later by removing the option.
 
-`Node` and `Under` say where the behavior sits, which is the decision a
-contributor makes today by picking a directory under
-`internal/controller/api/node/` and a parent command in `cmd/`:
-
-```go
-behavior.Define("dns", "DNS resolver settings", behavior.Node, behavior.Under("network"), ...)
-// /api/node/{hostname}/network/dns
-// osapi client node network dns get
-// network:read and network:write
-```
-
-- `Node` means the work runs on a host, through the job system. Every behavior
-  is a node behavior. What the controller answers itself, audit, jobs, agent
-  enrollment and health, stays part of the platform and is not a behavior,
-  because it never reaches a host.
-- `Under` nests a behavior inside a group, as `network dns` and `network route`
-  are today. Without it a behavior sits directly under `node`. The group is a
-  path and a command, not a behavior of its own.
-- The permission comes from the top-level group, so `dns` under `network` is
-  `network:read`, which is what it is today.
-
-The method signature is the whole contract the author writes against. It takes
-one typed input and returns one typed output or an error. Unsupported platforms
-return the shared unsupported error, as they do now.
-
-The behavior lives under `pkg/` because the SDK has to return its types to
-callers outside this module, and Go does not let them name a type from
-`internal/`. The logic is public as a result. That is harmless, since it only
-does anything on an agent, and it buys one directory per behavior instead of
-two.
+Chaining behaviors across hosts and steps, the output of one method feeding the
+input of the next, is a workflow, and stays osapi-orchestrator's job. Typed
+inputs and outputs are what make that possible: a step can be checked against
+the next one's schema before anything runs. The orchestrator's 101 hand-written
+step functions become one generic step over the registry, in that repository,
+after this.
 
 ## What the platform owns
 
@@ -170,6 +134,39 @@ is one more thing that can go stale and one more place a contributor edits by
 mistake, and none of these needs to exist on disk. A new behavior becomes one
 directory plus one line registering it.
 
+### How the spec is generated
+
+`osapi gen` runs inside `just generate`. It imports osapi, so every behavior has
+registered itself, and for each method it builds the operation from the
+definition:
+
+| Part of the spec | Comes from                                                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Path             | placement, name and key: `Node` + `sysctl` + `.Key("key")` is `/api/node/{hostname}/sysctl/{key}`                                          |
+| HTTP method      | `Read` is `GET`; `Write` is `POST`, `PUT` or `DELETE` by method name                                                                       |
+| Security scope   | the top-level group and the verb: `sysctl:read`, `sysctl:write`                                                                            |
+| `operationId`    | today's naming rule, such as `GetNodeSysctlByKey`, so clients see no change                                                                |
+| Request schema   | the input type's tags: `json` names the field, `validate` gives the constraints, `doc` the description                                     |
+| Response schema  | the `{job_id, results[]}` envelope, each result's `hostname`, `status`, `error` and, for a write, `changed`, plus the output type's fields |
+| Error responses  | the shared 400, 401, 403, 404 and 500 templates                                                                                            |
+
+It writes one `api.yaml` per behavior, and `redocly join` combines them into
+`internal/controller/api/gen/api.yaml` exactly as today.
+
+The standard `validate` tags map straight to JSON Schema: `required`, `min`,
+`max`, `len`, `oneof`, `ip`, `cidr`, `url` and the rest. A custom validator such
+as `sysctl_key` is a Go function, and nothing can read a schema out of it. So a
+custom validator is registered with its schema beside it, once:
+
+```go
+validation.Register("sysctl_key", isSysctlKey, jsonschema.Pattern(`^[a-zA-Z0-9][a-zA-Z0-9._-]*$`))
+```
+
+That pattern is written by hand in three places today, `debian.go`,
+`internal/validation/validation.go` and the sysctl spec. After this it is
+written once, and the generator fails on a tag whose validator has no schema,
+rather than emitting a spec that validates less than the server does.
+
 ### What still reads the spec, and what stops
 
 The behavior definition is the one source, and the spec is generated from it, so
@@ -187,6 +184,26 @@ TypeScript client under `ui/src/sdk/gen/`, the API pages on the docs site, and
 any outside client in another language, which can generate itself from the spec
 with oapi-codegen or any other OpenAPI generator.
 
+Today's validation is written in the spec and carried into Go by oapi-codegen:
+306 `x-oapi-codegen-extra-tags` entries across the domain specs become
+`validate:` struct tags on the generated types. After the pivot the same tags
+sit directly on the behavior's input type, written once, and the generated spec
+carries them out as JSON Schema constraints. The rule moves closer to the code
+that depends on it and stops being restated.
+
+"Here is the API spec" stays true, and gets two checks it does not have today:
+
+- **The spec still describes what the server does.** The integration tests run
+  every request and response through a validator built from the generated spec,
+  `kin-openapi`'s `openapi3filter`, which is already in the module graph. A
+  response that drifts from its schema fails a test. oapi-codegen's strict
+  server only proves the Go compiles against the types, not that the bytes on
+  the wire match.
+- **The spec still works for somebody else's generator.** CI runs oapi-codegen
+  on the generated spec into a scratch package and compiles the client. If a
+  change produces a spec a generator chokes on, the build says so before a user
+  does.
+
 The controller-only endpoints, audit, jobs, agents and health, keep their
 hand-written specs and oapi-codegen for now. They are not behaviors, and moving
 them onto the same registry is a separate decision once behaviors have proved
@@ -196,76 +213,61 @@ The cost is that a route or a command can no longer be found by its file name.
 `osapi behavior list`, `osapi help --json` and the generated spec are the index
 instead.
 
+## Docs generated from the behavior
+
+The docs site's CLI reference is written by hand today: 166 pages under
+`docs/docs/sidebar/usage/cli/`, six for sysctl alone. Each restates the
+command's flags, an example invocation, a sample of the table it prints and a
+sample of its `--json` body. All of that is already in the behavior definition
+or comes out of the CLI's own renderers.
+
+`osapi gen` writes those pages too, one per method, from the same registry:
+
+- **Usage and description** from the method's name, placement and `doc`.
+- **The flags table** from the input type's tags: name, type, required, default,
+  description.
+- **Examples** from examples declared on the method, an input and a sample
+  output for each. The sample output is printed by running the real renderer
+  over the sample, so the page shows exactly what the CLI prints, in the same
+  layout, and cannot drift from it when the theme changes.
+- **The `--json` body** from the same sample, marshalled through the envelope.
+
+A page carries the theme's colors through an ANSI-aware `<Terminal>` block in
+the docs site rather than a plain code fence, so the docs look like the
+terminal.
+
+Pages for the platform's own commands, `start`, `token`, `agent` and the
+controller-only `client` commands, stay hand-written until they move onto the
+same registry. Generating the SDK reference from behaviors is possible the same
+way and is not part of this plan.
+
 ## Discovery for agents
 
-Two skills, because an osapi behavior is Go compiled into the binary. A behavior
-cannot be added at runtime, so building one is a change to this repository:
+Built: [help as JSON](cli.md#help-as-json-for-agents), the
+[`--json` error document](cli.md#errors-go-through-one-handler),
+[`behavior list`, `describe` and `validate`](behaviors.md#inspecting-behaviors-from-the-cli),
+and [`osapi init` with the embedded skill](agent-skills.md).
 
-| Skill               | For                         | Where it lives                                                   |
-| ------------------- | --------------------------- | ---------------------------------------------------------------- |
-| Using osapi         | an agent operating a fleet  | embedded in the binary, installed by `osapi init`                |
-| Building a behavior | an agent writing osapi code | the osapi repository's `.claude/skills/`, replacing add-a-domain |
+Not built yet:
 
-The commands both skills drive, every one answering in JSON:
-
-- **`osapi init [--tool claude|codex]`** writes the using-osapi skill into the
-  repository, from copies embedded with `go:embed`, and a section in
-  `AGENTS.md`. Running it again after an upgrade rewrites them, so the skill
-  matches the binary on the path.
-- **`osapi help <command> --json`** prints the command tree as JSON: flags,
-  which are required, exit codes and error codes. The skill tells the agent to
-  run it before a command rather than guess flags.
-- **`osapi behavior list`** and **`osapi behavior describe <name> [<method>]`**
-  print the behaviors on the binary and each method's input and output fields,
-  in the CLI's table style, or as JSON Schema with `--json`.
-- **`osapi behavior validate`** checks every definition against the platform's
-  rules: a placement, unique routes, input types whose tags validate, an output
-  that carries `changed` for a write. It is the check an agent runs after
-  writing a behavior, before the tests.
-- **`--json` on every command**, and errors under `--json` as one document on
-  stderr, `{"error", "code"}`, with fixed exit codes and each command's codes
-  listed in its `help`. Today errors under `--json` are log lines.
-
-Each skill is small: a routing table and a few rules, with detail in
-`references/` files that load only when a request needs them. The docs site is
-not copied in, because every session would pay for it in context.
-
-The building-a-behavior skill has no scaffold command behind it. Its references
-hold the templates, the agent writes the files, and it checks its own work in a
-loop: `go test` for the behavior's package, `osapi behavior validate`,
-`osapi behavior describe <name> --json` to see it registered with the right
-schemas, then a smoke run of each method against `osapi start` with `--json`.
-
-Both skills carry evals: whether the skill triggers on the requests it should,
-whether it routes to the right reference, and whether that reference is enough
-on its own. They are how the skill gets tuned until an agent can build a
-behavior with nothing else.
+- **The building-a-behavior skill**, in the osapi repository's
+  `.claude/skills/`, replacing add-a-domain. It has no scaffold command behind
+  it. Its references hold the templates, the agent writes the files, and it
+  checks its own work in a loop: `go test` for the behavior's package,
+  `osapi behavior validate`, `osapi behavior describe <name> --json` to see it
+  registered with the right schemas, then a smoke run of each method against
+  `osapi start` with `--json`.
+- **Evals for both skills**: whether the skill triggers on the requests it
+  should, whether it routes to the right reference, and whether that reference
+  is enough on its own. They are how a skill gets tuned until an agent can do
+  the job with nothing else.
+- **`--json` on every client command's success output** is already the API body;
+  the gap is commands outside `client`, such as `start` and `token`.
 
 ## Cleaning up the CLI first
 
-An audit of `cmd/` on 12 November 2026 found one command to remove and no
-consistent styling.
-
-**`osapi job` goes.** It is a parent command with no subcommands. Its help
-promises "list, get, cancel, retry", but those live under `osapi client job`,
-and no cancel command exists anywhere. `jobCmd` is referenced only by its own
-`AddCommand`, and no docs page mentions it. Every other top-level command is in
-use: `start`, `agent`, `controller`, `nats server`, `token`, `version` and
-`client`.
-
-The pivot removes no further commands. The 84 `client node ...` files become
-generated from their behaviors and keep their names, so scripts and docs that
-call them do not change.
-
-**The CLI gets one style, taken from the logo.** osapi's table output already
-used lipgloss, but with its own palette, while help was cobra's default and
-errors were slog lines. The theme follows the package the owner's other Go CLIs
-share (`internal/cli/theme.go` in kvlt, meshx, jot, grind, tlock and agentpack).
-What it looks like and the rules a command follows are in
-[the CLI's output style](cli.md#output-style).
-
-The style comes first because every command added after it, `behavior describe`
-included, renders through the same helpers and needs no styling of its own.
+Done in osapi#665: `osapi job` removed, and one theme for help, output and
+errors, recorded in [the CLI's output style](cli.md#output-style).
 
 ## The first behavior is sysctl
 
@@ -291,28 +293,36 @@ edits. Domains move one at a time.
 
 ## The order of work
 
-1. The CLI cleanup: `osapi job` removed, and the logo theme for help, output and
-   errors. Done first because every command added after it renders through the
-   same helpers.
-2. The building blocks: `pkg/behavior` with `Define`, `Node`, `Under`, `Read`,
-   `Write`, the registry, JSON Schema from tags, and registration at startup for
-   routes, agent dispatch and CLI commands. sysctl moves to
+Done:
+
+1. The CLI cleanup, in osapi#665.
+2. The behavior core and the agent commands: `pkg/behavior` with `Define`,
+   `Node`, `Under`, `Read`, `Write`, `Key`, the registry, JSON Schema from tags
+   and `behavior validate`; sysctl's definition; `osapi help --json`,
+   `behavior list` and `describe`, the `--json` error document, and `osapi init`
+   with the embedded skill. Described in [behaviors](behaviors.md),
+   [the CLI](cli.md) and [agent skills](agent-skills.md).
+
+Next:
+
+3. Registration at startup for routes, agent dispatch and CLI commands, with
+   `osapi gen` writing the spec and the docs pages. sysctl moves to
    `pkg/behavior/sysctl` and its old handler, processor and command files are
    deleted. Pass criteria 1 to 4 above.
-3. The agent commands: `osapi help --json`, `behavior list`,
-   `behavior describe`, `behavior validate`, the `--json` error document, and
-   `osapi init` with the using-osapi skill.
-4. The building-a-behavior skill: routing page, templates in its references, the
+4. `Requires` and `Internal`, from
+   [behaviors built on other behaviors](#behaviors-built-on-other-behaviors).
+5. The building-a-behavior skill: routing page, templates in its references, the
    check loop, and evals.
-5. The test of the whole idea. In a fresh session, an agent is asked to build a
+6. The test of the whole idea. In a fresh session, an agent is asked to build a
    new behavior with only that skill and the CLI. Where it gets stuck, the skill
    or the CLI is fixed, not the agent's output, and it is run again until it
    builds one unaided.
-6. The remaining domains, one per pull request.
-7. `provider` is retired as a term, and [providers](providers.md) and
-   [building a domain](domains.md) are rewritten for behaviors.
+7. The remaining domains, one per pull request.
+8. `provider` is retired as a term, [providers](providers.md) and
+   [building a domain](domains.md) are rewritten for behaviors, and this page is
+   deleted once nothing in it is still a plan.
 
-The README changes when step 3 lands, because `init` is its first claim:
+The README changes when step 2 lands, because `init` is its first claim:
 
 > Typed, repeatable operations for Linux hosts. Built for agents, there to
 > empower humans.
@@ -323,7 +333,7 @@ The README changes when step 3 lands, because `init` is its first claim:
 
 That is followed by short lines for any harness, typed operations, repeatable,
 one host or many, queued not called, four ways in, and see what happened. Every
-line describes something osapi does once step 3 ships, and nothing else.
+line describes something osapi does once step 2 ships, and nothing else.
 
 ## What will surprise somebody
 
