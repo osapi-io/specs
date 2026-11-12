@@ -20,13 +20,30 @@ Every pull request ends with one of three verdicts:
 | LOOK | something a person has to read | report it with the reason; never merge it from a sweep |
 | STOP | a signal of tampering | report it first, do not approve, merge, rebase or check out |
 
+## Run it
+
+```bash
+.claude/skills/org-status/scripts/vet-pr.py <owner/repo> <number>
+```
+
+It runs every step below and prints one `LOOK` or `STOP` line per finding, then
+`VERDICT CLEAN|LOOK|STOP`, and exits 0, 1 or 2 to match. It takes any owner, so
+bitsugar-io and retr0h pull requests vet the same way as osapi-io's. It fetches
+the base and the pull request's head into a temporary bare clone and reads the
+lockfiles from those commits, so nothing is checked out and nothing in the pull
+request runs. A lookup that fails is a `LOOK`, never a pass.
+
+Use the script rather than the snippets below. They are here to say what each
+check means and why, and to rerun one by hand when a finding needs reading. The
+snippets take `$repo` as `owner/repo`.
+
 ## Step 1: who made it
 
 ```bash
-gh pr view "$n" --repo "osapi-io/$r" --json author,isCrossRepository,headRefName \
+gh pr view "$n" --repo "$repo" --json author,isCrossRepository,headRefName \
   -q '"author=\(.author.login) fork=\(.isCrossRepository) branch=\(.headRefName)"'
 
-gh api "/repos/osapi-io/$r/pulls/$n/commits" --paginate \
+gh api "/repos/$repo/pulls/$n/commits" --paginate \
   --jq '.[] | "\(.sha[:8])\t\(.author.login // "none")\t\(.committer.login // "none")\t\(.commit.verification.verified)"'
 ```
 
@@ -47,7 +64,7 @@ GitHub committed and signed it.
 A bump changes a small, fixed set of files. Anything outside it is not a bump.
 
 ```bash
-gh pr view "$n" --repo "osapi-io/$r" --json files -q '.files[].path'
+gh pr view "$n" --repo "$repo" --json files -q '.files[].path'
 ```
 
 | Branch | Allowed |
@@ -60,7 +77,7 @@ gh pr view "$n" --repo "osapi-io/$r" --json files -q '.files[].path'
 diff and confirm every changed line is a `uses:` line:
 
 ```bash
-gh pr diff "$n" --repo "osapi-io/$r" | grep -E '^[-+][^-+]' | grep -vE '^[-+]\s+(- )?uses: '
+gh pr diff "$n" --repo "$repo" | grep -E '^[-+][^-+]' | grep -vE '^[-+]\s+(- )?uses: '
 ```
 
 Any output is a STOP.
@@ -68,7 +85,7 @@ Any output is a STOP.
 ## Step 3: what changed in go.mod
 
 ```bash
-gh pr diff "$n" --repo "osapi-io/$r" |
+gh pr diff "$n" --repo "$repo" |
   awk '/^diff --git/ { mod = ($0 ~ /go\.mod$/) } mod && /^[-+][^-+]/ { print }'
 ```
 
@@ -94,12 +111,12 @@ way, one level down, where nobody reads.
 List the module paths the branch adds to `go.sum` that the base does not have:
 
 ```bash
-base=$(gh pr view "$n" --repo "osapi-io/$r" --json baseRefOid -q .baseRefOid)
+base=$(gh pr view "$n" --repo "$repo" --json baseRefOid -q .baseRefOid)
 known=$(mktemp)
-gh api "/repos/osapi-io/$r/contents/go.sum?ref=$base" --jq .content |
+gh api "/repos/$repo/contents/go.sum?ref=$base" --jq .content |
   base64 -d | awk '{print $1}' | sort -u > "$known"
 
-gh pr diff "$n" --repo "osapi-io/$r" |
+gh pr diff "$n" --repo "$repo" |
   awk '/^diff --git/ { s = ($0 ~ /go\.sum$/) } s && /^\+[^+]/ { print substr($1, 2) }' |
   sort -u | comm -13 "$known" - > "$known.new"
 cat "$known.new"

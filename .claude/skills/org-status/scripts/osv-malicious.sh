@@ -9,6 +9,10 @@
 #   VULNS <count>
 #     how many versions carry an ordinary advisory, which is triage.md's
 #     question rather than this one
+#   VULN <ecosystem> <name> <version> <ids>
+#     one per such version, only when OSV_LIST=1 is set. vet-pr.py sets it,
+#     because a pull request's few versions are worth naming; an org scan's
+#     hundreds are not
 #
 # Exits 1 when anything is MALICIOUS.
 set -euo pipefail
@@ -23,6 +27,7 @@ for c in "$tmp"/c.*; do
     jq -r '.results[] | [.vulns[]?.id] | join(",")' | paste -d' ' "$c" -
 done | awk 'NF > 3' > "$tmp/hits"
 echo "VULNS $(wc -l < "$tmp/hits" | tr -d ' ')"
+if [ "${OSV_LIST:-}" = 1 ]; then sed 's/^/VULN /' "$tmp/hits"; fi
 bad=0
 cut -d' ' -f4 "$tmp/hits" | tr ',' '\n' | sort -u | while read -r id; do
   rec=$(curl -sf --max-time 20 "https://api.osv.dev/v1/vulns/$id")

@@ -10,6 +10,36 @@ without a prompt during the invocation that asked for them. That grant lasts
 one turn. A queue spanning several turns needs the skill invoked again, which
 is a feature rather than a nuisance: each turn re-states the intent.
 
+## Run it
+
+```bash
+.claude/skills/org-status/scripts/merge-queue.py --dry-run <owner/repo> <number> ...
+.claude/skills/org-status/scripts/merge-queue.py <owner/repo> <number> ...
+```
+
+One repository per call, any owner. Read the dry run's plan first: which pull
+requests merge at once, which wait for a rebase, which were left out and why.
+The real run then does what the rest of this page describes:
+
+- vets each pull request with `vet-pr.py` and merges only a `CLEAN` one, so a
+  human pull request is reported and never merged from here
+- merges a pull request that shares no lockfile or module file with anything
+  merged before it, once its checks pass
+- serializes the ones that do: `@dependabot rebase`, then `recreate` if that
+  leaves a conflict, then vets again, because a rebase can move a bump to a
+  newer release, then waits for checks and merges
+- compares each pull request with what landed on the base branch since it was
+  built, so a merge made by hand or in an earlier run still forces the rebase
+- leaves a red pull request alone, naming the failing check
+- puts a root `go.mod` bump last in a repository with nested modules
+
+It runs for as long as the rebases and checks take. Start it in the background
+and report what it prints, rather than waiting on it in the foreground.
+
+Run repositories in parallel, one call each. The snippets below are what the
+script does, kept for reading a failure and for a step it cannot take, such as
+tidying a root bump's examples.
+
 ## Order
 
 Merging moves the default branch, which puts every other pull request behind
@@ -25,7 +55,7 @@ The other order rebases everything twice.
 ## Merge
 
 ```bash
-gh pr merge <number> --repo "osapi-io/$r" --squash --delete-branch
+gh pr merge <number> --repo "$repo" --squash --delete-branch
 ```
 
 Squash is the house style: every commit on a default branch here reads
@@ -35,7 +65,7 @@ Squash is the house style: every commit on a default branch here reads
 ## Rebase a Dependabot PR
 
 ```bash
-gh pr comment <number> --repo "osapi-io/$r" --body "@dependabot rebase"
+gh pr comment <number> --repo "$repo" --body "@dependabot rebase"
 ```
 
 Dependabot force-pushes the branch and CI re-runs. `@dependabot recreate`
@@ -56,7 +86,7 @@ up until the first one lands, which is what makes this easy to get wrong.
 So decide by the files, not by the colour of the tick:
 
 ```bash
-gh pr view <number> --repo "osapi-io/$r" --json files -q '.files[].path'
+gh pr view <number> --repo "$repo" --json files -q '.files[].path'
 ```
 
 - **No overlap**, merge them together. Four bumps each touching a different
@@ -81,7 +111,7 @@ resolve the parent module, so advancing it leaves each of them untidy and
 `go-mod-check` fails on the branch. Tidy on the branch and commit:
 
 ```bash
-gh pr checkout <number> --repo "osapi-io/$r"
+gh pr checkout <number> --repo "$repo"
 mise exec -- just go-mod && git commit -am "chore: tidy the example modules after the bump" && git push
 ```
 
@@ -105,7 +135,7 @@ rebase leaves the pull request `CONFLICTING`, and expect to repeat the tidy.
 
 ```bash
 for i in $(seq 1 45); do
-  s=$(gh pr checks <number> --repo "osapi-io/$r" --json name,bucket 2>/dev/null)
+  s=$(gh pr checks <number> --repo "$repo" --json name,bucket 2>/dev/null)
   if [ -n "$s" ] && echo "$s" | jq -e 'length > 0 and all(.[]; .bucket != "pending")' >/dev/null 2>&1; then
     break
   fi
@@ -130,7 +160,7 @@ not fixed by rebasing:
   the same way. Fix it on the branch:
 
   ```bash
-  gh pr checkout <number> --repo "osapi-io/$r"
+  gh pr checkout <number> --repo "$repo"
   mise exec -- just go-mod && git commit -am "chore: tidy modules" && git push
   ```
 
@@ -143,9 +173,9 @@ not fixed by rebasing:
 Read the failure before queuing a rebase:
 
 ```bash
-gh pr checks <number> --repo "osapi-io/$r" --json name,bucket,link \
+gh pr checks <number> --repo "$repo" --json name,bucket,link \
   -q '.[] | select(.bucket=="fail") | "\(.name)\t\(.link)"'
-gh api "/repos/osapi-io/$r/actions/jobs/<job id>/logs" |
+gh api "/repos/$repo/actions/jobs/<job id>/logs" |
   grep -iE "error:|FAIL|\.go:[0-9]+:"
 ```
 
