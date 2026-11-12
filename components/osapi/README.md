@@ -55,6 +55,7 @@ A handler validates and delegates. It never touches the operating system.
 | [The audit trail](audit.md)         | What is recorded, why redaction is a denylist, and what a read does not capture                                     |
 | [Configuration](configuration.md)   | Where a value comes from, and how secrets stay out of the log                                                       |
 | [Observability](observability.md)   | Tracing across the queue, metrics on their own port, conditions                                                     |
+| [The pivot to behaviors](pivot.md)  | Why providers become behaviors, what the platform generates, agent discovery, and sysctl as the first one           |
 
 ## Where it sits
 
