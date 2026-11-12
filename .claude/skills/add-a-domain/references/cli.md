@@ -14,7 +14,8 @@ The obligations this layer carries are stated in
 | Flags rather than positional arguments for identifiers | [values arrive as flags](../../../../components/osapi/cli.md#values-arrive-as-flags-never-as-positional-arguments) |
 | What `--target` accepts, and why no domain redeclares it | [two inherited flags](../../../../components/osapi/cli.md#two-flags-every-command-inherits) |
 | `--json` returning raw bytes before anything is formatted | [json returns first](../../../../components/osapi/cli.md#json-returns-before-anything-is-formatted) |
-| `cli.PrintKV` for a single resource, `cli.PrintCompactTable` for rows | [four shared helpers](../../../../components/osapi/cli.md#rendering-is-four-shared-helpers-not-per-command-formatting) |
+| `cli.PrintKV` for a single resource, `cli.PrintCompactTable` for rows, `cli.PrintNote` for an empty result | [five shared helpers](../../../../components/osapi/cli.md#rendering-is-five-shared-helpers-not-per-command-formatting) |
+| No colors or `fmt` printing in `cmd/`: style comes from `internal/cli/theme.go` | [output style](../../../../components/osapi/cli.md#output-style) |
 | Every response code the spec declares handled the same way | [one error handler](../../../../components/osapi/cli.md#errors-go-through-one-handler) |
 | A domain appears everywhere an existing domain appears | [every layer, or not done](../../../../components/osapi/domains.md#a-domain-is-in-every-layer-or-it-is-not-done) |
 
