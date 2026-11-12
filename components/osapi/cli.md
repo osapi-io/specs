@@ -88,9 +88,45 @@ by `cli.PrintError` from `Execute` in `cmd/root.go`. A bad invocation gets a
 muted `Run 'osapi <cmd> --help' for usage.` beneath it, and cobra's "Did you
 mean" suggestion is kept. No error prints the usage dump.
 
-Under `--json` none of this is styled. `HandleError` and `LogFatal` write the
-same structured log lines as before, and a cobra error is a plain `Error:` line,
-so a program reading stderr sees no color or decoration.
+Under `--json` an error is one JSON document on stderr, from
+`internal/cli/errors.go`, and nothing else is printed:
+
+```json
+{"error": "insufficient permissions", "code": "forbidden", "status": 403}
+```
+
+| `code`                                                                                               | When                                                                             |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `usage_error`                                                                                        | an unknown command or flag, or a missing required flag                           |
+| `fatal`                                                                                              | the command could not start, such as a config that will not load, with `details` |
+| `invalid_request`, `unauthorized`, `forbidden`, `not_found`, `conflict`, `server_error`, `api_error` | the API's answer, by status code                                                 |
+| `error`                                                                                              | anything the CLI cannot name more precisely                                      |
+
+A program matches on `code`; the message can change between releases. The exit
+code is 2 for a usage error and 1 for every other failure, so a script can tell
+"I called it wrong" from "it ran and failed" without reading stderr.
+
+## Help as JSON, for agents
+
+`--json` on any help prints the command as JSON instead of text, from
+`cli.HelpJSON` in `internal/cli/helpjson.go`:
+
+```sh
+osapi help client node sysctl get --json
+osapi client node sysctl get --help --json
+```
+
+The document has the command's path, usage, description and example, every flag
+with its type, default, whether it is required and whether it is inherited, and
+its subcommands. Subcommands are listed by name and description only, so an
+agent asks for the one it needs next instead of reading 120 commands at once.
+The root's document also carries the contract every command shares: errors under
+`--json` as `{"error", "code"}` on stderr, and exit codes 0 for success, 1 for
+an error and 2 for a usage error.
+
+It reads `--json` from the root's persistent flag rather than from the variable
+the flag binds, because cobra prints help before it runs the initializers that
+set that variable.
 
 ## Output style
 
