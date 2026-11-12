@@ -62,8 +62,9 @@ tj-actions/changed-files compromise reached its users. A SHA cannot be moved.
 Dependabot reads the comment and bumps the SHA and the comment together, so the
 pin costs no upkeep.
 
-Every workflow declares the token permissions it needs, in a top-level
-`permissions:` block, and the repository's default token is read-only:
+Every workflow declares the token permissions it needs in a `permissions:`
+block, at the top of the workflow or on each job, and the repository's default
+token is read-only:
 
 ```yaml
 permissions:
