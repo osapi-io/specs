@@ -172,6 +172,45 @@ Errors under `--json` become one document on stderr, `{"error", "code"}`, with
 the codes listed in each command's `help`. Today 119 of the 120 client commands
 print the raw API body, and errors are only text.
 
+## Cleaning up the CLI first
+
+An audit of `cmd/` on 12 November 2026 found one command to remove and no
+consistent styling.
+
+**`osapi job` goes.** It is a parent command with no subcommands. Its help
+promises "list, get, cancel, retry", but those live under `osapi client job`,
+and no cancel command exists anywhere. `jobCmd` is referenced only by its own
+`AddCommand`, and no docs page mentions it. Every other top-level command is in
+use: `start`, `agent`, `controller`, `nats server`, `token`, `version` and
+`client`.
+
+The pivot removes no further commands. The 84 `client node ...` files become
+generated from their behaviors and keep their names, so scripts and docs that
+call them do not change.
+
+**The CLI gets one style, taken from the logo.** osapi's other output already
+uses lipgloss, but help is cobra's default and errors are slog lines. The style
+follows the theme package the owner's other Go CLIs share
+(`internal/cli/theme.go` in kvlt, meshx, jot, grind, tlock and agentpack):
+
+- The root help opens with the README logo from `asset/logo-dark.svg`, drawn as
+  colored half blocks: its 17 by 4 grid of cells becomes two terminal lines.
+- Section headings take colors from the logo's palette: cyan `#00d5ff`, magenta
+  `#ff00ff`, green `#45ae17`, yellow `#ffd100`, and blue `#2300fd` lightened to
+  read on a dark terminal. Each run starts at a random point in the palette.
+  Command and flag names take a second color, and secondary text takes the
+  logo's gray `#8a8a8a`.
+- Errors print as a red `✗` line with a muted `Run 'osapi <cmd> --help'` hint
+  for usage and flag errors. API errors show the status code and message.
+- The status colors in tables keep their meaning: green for ok, red for an
+  error, matching the web UI.
+- `NO_COLOR` and output that is not a terminal get plain text with the same
+  structure as cobra's default help. Under `--json` the output is unchanged,
+  until the error document below replaces it.
+
+The style comes first because every command added after it, `behavior describe`
+included, renders through the same helpers and needs no styling of its own.
+
 ## The first behavior is sysctl
 
 sysctl has five methods covering both reads and writes, three platform files
@@ -197,19 +236,21 @@ edits. Domains move one at a time.
 
 ## The order of work
 
-1. `osapi help --json`, `osapi init` and the skill. These need nothing else and
+1. The CLI cleanup: `osapi job` removed in its own pull request, then the logo
+   theme for help and errors.
+2. `osapi help --json`, `osapi init` and the skill. These need nothing else and
    make the agent story real first.
-2. `pkg/behavior`: `Define`, `Read`, `Write`, the registry and JSON Schema from
+3. `pkg/behavior`: `Define`, `Read`, `Write`, the registry and JSON Schema from
    tags, plus a CI check that `just generate` leaves no diff.
-3. sysctl moves to `pkg/behavior/sysctl`, with the spec generator. Pass
+4. sysctl moves to `pkg/behavior/sysctl`, with the spec generator. Pass
    criterion 1 above.
-4. The generic handler and the agent registration, for sysctl. Criterion 2.
-5. Generated SDK methods and CLI commands, for sysctl. Criteria 3 and 4.
-6. The remaining domains, one per pull request.
-7. `provider` is retired as a term, and [providers](providers.md) and
+5. The generic handler and the agent registration, for sysctl. Criterion 2.
+6. Generated SDK methods and CLI commands, for sysctl. Criteria 3 and 4.
+7. The remaining domains, one per pull request.
+8. `provider` is retired as a term, and [providers](providers.md) and
    [building a domain](domains.md) are rewritten for behaviors.
 
-The README changes when step 1 lands, because `init` is its first claim:
+The README changes when step 2 lands, because `init` is its first claim:
 
 > Typed, repeatable operations for Linux hosts. Built for agents, there to
 > empower humans.
@@ -220,14 +261,14 @@ The README changes when step 1 lands, because `init` is its first claim:
 
 That is followed by short lines for any harness, typed operations, repeatable,
 one host or many, queued not called, four ways in, and see what happened. Every
-line describes something osapi does once step 1 ships, and nothing else.
+line describes something osapi does once step 2 ships, and nothing else.
 
 ## What will surprise somebody
 
 **The spec stops being the source.** A contributor who edits a behavior's
 `gen/api.yaml` by hand has their change overwritten by the next `just generate`.
 The file stays committed so the diff is reviewable. Nothing in CI catches a hand
-edit today, so step 2 adds a check that runs `just generate` and fails on any
+edit today, so step 3 adds a check that runs `just generate` and fails on any
 difference.
 
 **Not everything fits the template.** File upload, `docker exec` and command
