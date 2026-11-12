@@ -62,6 +62,23 @@ tj-actions/changed-files compromise reached its users. A SHA cannot be moved.
 Dependabot reads the comment and bumps the SHA and the comment together, so the
 pin costs no upkeep.
 
+Every workflow declares the token permissions it needs in a `permissions:`
+block, at the top of the workflow or on each job, and the repository's default
+token is read-only:
+
+```yaml
+permissions:
+  contents: read
+```
+
+The default is whatever the repository setting says, and on an older repository
+that is write to everything, including approving pull requests. A workflow that
+declares nothing inherits it, so every third-party action it runs could push to
+the default branch. A declared block also says what a workflow is for: one that
+labels stale issues asks for `issues: write`, and a reader can see why. A
+workflow that needs write and does not declare it fails quietly instead, as a
+stale job on a read-only default does.
+
 ## The language version
 
 A tool version and a language version are different promises. The tool version

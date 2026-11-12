@@ -195,6 +195,29 @@ grep -nE 'uses:\s*[^ .][^ ]+' ~/git/osapi-io/*/.github/workflows/*.y*ml |
   grep -vE '@[0-9a-f]{40}\s+#\s*v?[0-9]' | grep -v 'uses: *osapi-io/'
 ```
 
+### Workflows declare their permissions
+
+The rule is in [Tooling](../../../../CONSTITUTION.md#tooling). A workflow with
+no `permissions:` block, or a repository whose default token can write, is a
+finding:
+
+```bash
+for r in $repos; do
+  gh api "/repos/$owner/$r/actions/permissions/workflow" \
+    --jq "select(.default_workflow_permissions != \"read\" or .can_approve_pull_request_reviews) | \"$r\tdefault token \(.default_workflow_permissions), approves PRs \(.can_approve_pull_request_reviews)\""
+done
+grep -LE '^\s*permissions:' ~/git/osapi-io/*/.github/workflows/*.y*ml
+```
+
+What each kind of workflow here needs:
+
+| Workflow | Permissions |
+| --- | --- |
+| tests, lint, report card, docs build | `contents: read` |
+| commit lint | `contents: read`, `pull-requests: read` |
+| stale | `actions: write`, `issues: write`, `pull-requests: write` |
+| delete merged branch | `contents: write` |
+
 ## Reporting
 
 Compromise findings lead, as blocks, ahead of everything else in the report.
