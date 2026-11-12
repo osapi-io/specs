@@ -100,7 +100,12 @@ def wait_new_head(repo, n, old):
 
 
 def rebase(repo, n):
-    """Ask Dependabot to rebase; recreate if that leaves a conflict. Returns success."""
+    """Ask Dependabot to rebase, then to recreate. Returns success.
+
+    Recreate follows when the rebase leaves a conflict, and also when
+    Dependabot ignores the rebase request altogether, which it sometimes does
+    without a reply or a reaction.
+    """
     for command in ("rebase", "recreate"):
         before = view(repo, n, "headRefOid,title")
         gh("pr", "comment", str(n), "--repo", repo, "--body", f"@dependabot {command}")
@@ -108,12 +113,12 @@ def rebase(repo, n):
         pr = wait_new_head(repo, n, before["headRefOid"])
         if pr is None:
             say(n, f"Dependabot did not {command} within {REBASE_TIMEOUT // 60} minutes")
-            return False
+            continue
         if pr["title"] != before["title"]:
             say(n, f"now reads: {pr['title']}")
         if pr["mergeable"] != "CONFLICTING":
             return True
-    say(n, "still conflicting after recreate")
+        say(n, f"still conflicting after {command}")
     return False
 
 
