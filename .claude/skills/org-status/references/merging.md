@@ -26,7 +26,7 @@ The real run then does what the rest of this page describes:
 - merges a pull request that shares no lockfile or module file with anything
   merged before it, once its checks pass
 - serializes the ones that do: `@dependabot rebase`, then `recreate` if that
-  leaves a conflict, then vets again, because a rebase can move a bump to a
+  leaves a conflict or Dependabot ignores it, then vets again, because a rebase can move a bump to a
   newer release, then waits for checks and merges
 - compares each pull request with what landed on the base branch since it was
   built, so a merge made by hand or in an earlier run still forces the rebase
