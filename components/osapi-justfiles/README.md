@@ -85,21 +85,27 @@ repository in the organization has this shape.
 
 ## The recipes
 
-37 of the 38 carry their module's name as a prefix, so an import adds a
-predictable namespace. One does not: `run`, in `go`, which is the most widely
-imported module. A consumer with its own `run` recipe collides with it.
+Every recipe's name starts with its group, and its `[group(...)]` is that
+prefix, so an import adds a predictable namespace and `just --list` shows one
+block per tool. The prefix is the module's name except for `docusaurus`, whose
+recipes are `docs-*`: the group says what the recipes are for, not which tool
+runs them.
 
-| Module       | Recipes |                                                                                                                                                                                                                              |
-| ------------ | ------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `docusaurus` |      10 | `docusaurus-build`, `-bump`, `-clean`, `-deploy`, `-deps`, `-fmt`, `-fmt-check`, `-generate`, `-serve`, `-start`                                                                                                             |
-| `go`         |      16 | `go-deps`, `go-fmt`, `go-fmt-check`, `go-generate`, `go-mod`, `go-mod-bump`, `go-mod-check`, `go-test`, `go-unit`, `go-unit-cov`, `go-unit-cov-check`, `go-unit-cov-gaps`, `go-unit-cov-map`, `go-unit-int`, `go-vet`, `run` |
-| `just`       |       2 | `just-fmt`, `just-fmt-check`                                                                                                                                                                                                 |
-| `md`         |       2 | `md-fmt`, `md-fmt-check`                                                                                                                                                                                                     |
-| `react`      |       8 | `react-build`, `react-deps`, `react-dev`, `react-fmt`, `react-fmt-check`, `react-generate`, `react-lint`, `react-test`                                                                                                       |
+| Module       | Group   | Recipes |                                                                                                                                                                                                                                 |
+| ------------ | ------- | ------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docusaurus` | `docs`  |      10 | `docs-build`, `-bump`, `-clean`, `-deploy`, `-deps`, `-fmt`, `-fmt-check`, `-generate`, `-serve`, `-start`                                                                                                                      |
+| `go`         | `go`    |      16 | `go-deps`, `go-fmt`, `go-fmt-check`, `go-generate`, `go-mod`, `go-mod-bump`, `go-mod-check`, `go-run`, `go-test`, `go-unit`, `go-unit-cov`, `go-unit-cov-check`, `go-unit-cov-gaps`, `go-unit-cov-map`, `go-unit-int`, `go-vet` |
+| `just`       | `just`  |       2 | `just-fmt`, `just-fmt-check`                                                                                                                                                                                                    |
+| `md`         | `md`    |       2 | `md-fmt`, `md-fmt-check`                                                                                                                                                                                                        |
+| `react`      | `react` |       8 | `react-build`, `react-deps`, `react-dev`, `react-fmt`, `react-fmt-check`, `react-generate`, `react-lint`, `react-test`                                                                                                          |
 
-Two take arguments, which a bare name does not tell you: `docusaurus-bump`
-requires a `version`, and `run` is variadic and forwards what it is given to
-`go run`. The other 36 take none.
+Two take arguments, which a bare name does not tell you: `docs-bump` requires a
+`version`, and `go-run` is variadic and forwards what it is given to `go run`.
+The other 36 take none.
+
+Until every repository has moved, the names these had before, `docusaurus-*` and
+`run`, still work as hidden aliases. A consumer with its own `run` recipe, as
+voidspan and psion have, no longer collides with `go`.
 
 ## The variables
 
