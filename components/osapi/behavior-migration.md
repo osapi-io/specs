@@ -189,20 +189,11 @@ Next:
    [building a domain](domains.md) are rewritten for behaviors, and this page is
    deleted once nothing in it is still a plan.
 
-The README changed when step 2 landed, because `init` is its first claim:
-
-> Typed, repeatable operations for Linux hosts. Built for agents, there to
-> empower humans.
->
-> Give an agent a fleet of Linux hosts without handing it a shell. Every change
-> is a typed operation, checked before it is queued, safe to run twice, and
-> recorded.
-
-That is followed by short lines for any harness, typed operations, repeatable,
-one host or many, queued not called, four ways in, and see what happened. Every
-line describes something osapi does, and nothing else. Behaviors join the README
-at the cutover, when they are what a user gets rather than a preview under
-`next`.
+The README took its shape from swamp's when sysctl was built from its
+definition: a claim, why it is better, getting started with `osapi init`, the
+requests to try, and the core concepts. Behaviors are a core concept there,
+named as served under `next` until the cutover. Every line describes something
+osapi does, and nothing else.
 
 ## What will surprise somebody
 
