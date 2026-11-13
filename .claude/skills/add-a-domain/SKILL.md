@@ -94,7 +94,7 @@ mise exec -- just react-build            # populate ui/dist first, see below
 mise exec -- just generate               # specs, server, SDK client, docs
 mise exec -- just ready                  # generate, format, lint, build
 mise exec -- just test                   # lint, unit, coverage gate
-mise exec -- just docusaurus-fmt-check   # the site formatter, see below
+mise exec -- just docs-fmt-check   # the site formatter, see below
 ```
 
 Coverage is gated at 99.9%, so an untested branch fails the build rather than
@@ -109,11 +109,11 @@ to import the embed package and reports a `typecheck` error on a file nobody
 touched.
 
 **`just ready` and `just test` do not check the documentation site.** `md-fmt`
-excludes `docs/` because Prettier owns that tree through `just docusaurus-fmt`,
+excludes `docs/` because Prettier owns that tree through `just docs-fmt`,
 so a change touching a feature page, a CLI page or the configuration reference
 passes both gates and still fails CI's `Docusaurus Lint`. Three merged security
 fixes left five pages unformatted that way in September 2026, and main was red
-until osapi-io/osapi#512. Run `just docusaurus-fmt-check` whenever the change
+until osapi-io/osapi#512. Run `just docs-fmt-check` whenever the change
 touches `docs/`, which [docs.md](references/docs.md) says it always does.
 
 ## Rules

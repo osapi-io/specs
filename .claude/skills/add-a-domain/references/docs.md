@@ -18,7 +18,7 @@ The obligation is stated in
 | A domain appears everywhere an existing domain appears | [every layer, or not done](../../../../components/osapi/domains.md#a-domain-is-in-every-layer-or-it-is-not-done) |
 
 Read this before running anything: the documentation below is
-checked by `docusaurus-fmt-check` and `docusaurus-build`, which run in
+checked by `docs-fmt-check` and `docs-build`, which run in
 `just test` and **not** in `just ready`. Writing these pages and then running only
 the build-and-unit commands hands in work that fails continuous integration on the
 pages you just wrote.
@@ -60,7 +60,7 @@ lists it.
 
 ## Writing
 
-- Wrap at 80 characters. `mise exec -- just docusaurus-fmt` is prettier, and
+- Wrap at 80 characters. `mise exec -- just docs-fmt` is prettier, and
   `just md-fmt` covers markdown outside the site.
 - Say what the operation does, then show it. A command with its real output answers
   more questions than a paragraph.
@@ -72,8 +72,8 @@ lists it.
 ## Check
 
 ```bash
-mise exec -- just docusaurus-build     # broken internal links fail the build
-mise exec -- just docusaurus-fmt-check
+mise exec -- just docs-build     # broken internal links fail the build
+mise exec -- just docs-fmt-check
 mise exec -- just md-fmt-check
 ```
 
