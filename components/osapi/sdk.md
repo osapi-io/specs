@@ -114,6 +114,23 @@ collection returns `Response[Collection[T]]` rather than `Response[[]T]`, which
 is the same reason stated for the shape a broadcast returns in
 [building a domain](domains.md).
 
+## Behaviors need no SDK code
+
+A [behavior](behaviors.md) is called through one generic method rather than a
+service of its own:
+
+```go
+resp, err := c.Behavior(ctx, sysctl.Behavior, sysctl.Behavior.Method("get"),
+    "_all", sysctl.GetInput{Key: "vm.swappiness"})
+rows, err := client.Rows[sysctl.Entry](resp.Data)
+```
+
+`Client.Behavior` builds the route from the definition, and `Rows` decodes each
+host's result into the method's output type. The envelope is the same
+`Response`, so `--json` works the same way. Adding a behavior adds nothing to
+`pkg/sdk/client`, which is why the service rules above apply only to the domains
+not yet converted.
+
 ## The rest of the conventions
 
 **Type exposure, JSON tags on result fields, and error wrapping** are stated

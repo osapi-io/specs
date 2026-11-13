@@ -24,6 +24,13 @@ endpoint does to it, and it is not always `read` or `write`: `command:execute`,
 `command:shell` and `docker:execute` exist because running something is not the
 same as changing something, and a role can be given one without the other.
 
+A [behavior](behaviors.md) does not declare permissions. Each method's is
+derived from the definition: the top-level group, or the behavior's own name
+when it has none, and `read` or `write` from whether the method is a `Read` or a
+`Write`. sysctl's `get` needs `sysctl:read`; dns under `network` would need
+`network:read`, the same as it does today. `osapi behavior get --name <name>`
+lists them.
+
 `client.Permission` in the SDK is the type, so the permission set is part of
 osapi's public API rather than an internal detail. A consumer can name the
 permission it needs.

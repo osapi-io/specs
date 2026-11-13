@@ -3,13 +3,13 @@
 osapi carries the skill an agent needs to operate it, compiled into the binary,
 and `osapi init` writes it into a repository. The skill is short on purpose: it
 tells the agent to ask the binary, through `osapi help --json` and
-`osapi behavior describe --json`, rather than carrying a copy of the docs that
-would be wrong after the next release.
+`osapi behavior get --json`, rather than carrying a copy of the docs that would
+be wrong after the next release.
 
 This page covers the skill for operating hosts. A skill for building a new
 behavior lives in the osapi repository instead, because building one is a change
 to osapi's code. That one is not written yet; it is in
-[the pivot plan](pivot.md).
+[the migration plan](behavior-migration.md).
 
 ## Where the skill lives
 
@@ -36,8 +36,8 @@ pays for the part it uses.
 Four rules, in `SKILL.md`:
 
 1. Run `osapi help <command> --json` before a command and
-   `osapi behavior describe <behavior> <method> --json` before a request, rather
-   than relying on memory.
+   `osapi behavior get --name <behavior> --method <method> --json` before a
+   request, rather than relying on memory.
 2. Pass `--json` to every command, and match a failure on its `code`. Exit 2
    means the call was wrong and retrying will not help.
 3. Read the target with `get` or `list` before an update or a delete.
@@ -46,8 +46,8 @@ Four rules, in `SKILL.md`:
 
 They rely on [help as JSON](cli.md#help-as-json-for-agents), the
 [error document](cli.md#errors-go-through-one-handler) and
-[behavior describe](behaviors.md#inspecting-behaviors-from-the-cli). A change to
-any of those is a change to what the skill says, in the same pull request.
+[behavior get](behaviors.md#inspecting-behaviors-from-the-cli). A change to any
+of those is a change to what the skill says, in the same pull request.
 
 ## `osapi init`
 

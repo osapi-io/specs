@@ -43,12 +43,41 @@ Three metrics, all about liveness rather than about work:
 | `osapi_heartbeat_age_seconds` | how long since an agent last checked in         |
 
 ```sh
-grep -rhoE 'osapi_[a-z_]+' --include='*.go' internal/ | sort -u | wc -l   # 3
+grep -rhoE 'osapi_[a-z_]+_(up|seconds)' --include='*.go' internal/ | sort -u | wc -l   # 3
 ```
 
-Nothing counts jobs, measures provider latency or tracks queue depth. If you
-need that today you read it off the job status events in `job-queue`, which is
-the gap worth knowing about before you plan a dashboard.
+Nothing counts jobs or tracks queue depth. If you need that today you read it
+off the job status events in `job-queue`, which is the gap worth knowing about
+before you plan a dashboard.
+
+## Behaviors measure their own work
+
+A [behavior](behaviors.md) gets telemetry without writing any.
+`pkg/behavior/telemetry.go` wraps every method call, so a new behavior is
+measured the moment it is registered. Providers that are not yet behaviors
+record none of this.
+
+Each call opens a span named `behavior.<name>.<method>` under the agent's job
+span, so a trace runs from the API request through the queue to the method that
+did the work. The span carries `osapi.behavior.name`, `.method`, `.verb`,
+`.outcome` and `.changed`. An input field tagged `telemetry:"attr"` is added as
+`osapi.behavior.input.<field>`. Untagged fields never are, so a password cannot
+reach a trace by accident.
+
+Three metrics come from the same wrapper, through the agent's meter provider:
+
+| Metric                            | Is                                                   |
+| --------------------------------- | ---------------------------------------------------- |
+| `osapi_behavior_calls_total`      | calls, by behavior, method and outcome               |
+| `osapi_behavior_duration_seconds` | how long each call took, by behavior and method      |
+| `osapi_behavior_changes_total`    | writes that changed the host, by behavior and method |
+
+```sh
+grep -rhoE 'osapi_behavior_[a-z_]+' --include='*.go' pkg/behavior/ | sort -u | wc -l   # 3
+```
+
+`osapi behavior get --name <name>` prints the span and metric names a behavior
+produces, and which of its inputs are recorded.
 
 ## Conditions are a yes or no, not a number
 
