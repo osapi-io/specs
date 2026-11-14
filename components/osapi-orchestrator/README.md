@@ -57,6 +57,9 @@ OnlyIfAnyHostChanged   OnlyIfAllHostsChanged
 
 The per-host variants exist because a step spanning twenty machines has twenty
 outcomes, and "any host failed" and "all hosts failed" want different follow-up.
+A host counts as failed when its `Status` is `failed`, or when it has an `Error`
+and its `Status` is not `skipped` (`pkg/orchestrator/step.go`). A skipped host
+with an error is not a failure, so `OnlyIfAnyHostFailed` does not fire for it.
 
 **Host predicates** look at the machine. Ten of them, reaching a step through
 `When` and `WhenFact`, the two methods the code counts as guards and this
