@@ -58,6 +58,7 @@ A handler validates and delegates. It never touches the operating system.
 | [Configuration](configuration.md)                    | Where a value comes from, and how secrets stay out of the log                                                                            |
 | [Observability](observability.md)                    | Tracing across the queue, metrics on their own port, conditions                                                                          |
 | [Moving domains to behaviors](behavior-migration.md) | Which domains are behaviors yet, what is built, and the steps left: the cutover, chains, the skill, the rest of the domains              |
+| [Least privilege](least-privilege.md)                | A plan: the agent as a non-root user, privileged steps a behavior declares, and the sudoers and systemd files rendered from them         |
 | [Workflows](workflows.md)                            | A proposal: named, ordered behavior calls written as a file, checked against the registry, and run again with the same result            |
 
 ## Where it sits
