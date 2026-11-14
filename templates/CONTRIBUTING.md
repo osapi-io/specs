@@ -102,8 +102,8 @@ requires.
 ### Function signatures
 
 If a function has parameters, write its signature on more than one line. Put
-each parameter on its own line. Put the closing parenthesis and the return types
-on their own line:
+each parameter on its own line. Put the last `)` and the return types on their
+own line:
 
 ```go
 func FunctionName(
@@ -238,7 +238,7 @@ target. Change the two together.
 ## Before you commit
 
 Run `just ready` before you commit. It makes sure that generated code, package
-documentation, formatting and lint are current:
+documentation, format and lint are current:
 
 ```bash
 just ready
