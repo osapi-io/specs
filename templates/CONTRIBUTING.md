@@ -11,17 +11,17 @@ not rename, move or remove one. -->
 
 - Read the [Code of Conduct](CODE_OF_CONDUCT.md). It applies to all
   communication in this repository.
-- **Design documents.** The design of this repository is in
+- **Design pages.** The design pages of this repository are in
   [osapi-io/specs](https://github.com/osapi-io/specs), under
-  `components/@@projectName@@/`. Read it before you change the behavior. When
+  `components/@@projectName@@/`. Read them before you change the behavior. When
   you change the behavior, change the design page in the same work. A design
-  document in this repository becomes incorrect when the code changes, and no
-  check finds the difference.
+  page in this repository becomes incorrect when the code changes. No check
+  finds the difference.
 - **Examine the work that exists.** Look for a pull request or an issue about
   the change. If you find one, use what it says in your work.
-- **Backward compatibility.** Find out if your change stops a program that uses
-  @@projectName@@ from working. A change that keeps compatibility is more likely
-  to merge. If your change cannot keep it, open an issue first. Then the
+- **Backward compatibility.** Make sure that your change does not stop a program
+  that uses @@projectName@@. A change that keeps compatibility is more likely to
+  merge. If your change cannot keep it, open an issue first. Then the
   maintainers can discuss the API change before you do the work.
 
 ## Prerequisites
@@ -50,8 +50,8 @@ For [Claude Code], install this plugin from the default marketplace:
 /plugin install commit-commands@claude-plugins-official
 ```
 
-- **commit-commands.** Gives the `/commit` and `/commit-push-pr` commands. They
-  follow the commit rules of this repository.
+- **commit-commands.** It gives the `/commit` and `/commit-push-pr` commands.
+  They follow the commit rules of this repository.
 
 ## Setup
 
@@ -70,8 +70,8 @@ just deps
 
 ## Code style
 
-[gofumpt] formats the Go code and [golangci-lint] examines it. CI makes sure
-that both pass.
+[gofumpt] formats the Go code. [golangci-lint] examines the Go code for
+problems. CI makes sure that both pass.
 
 ```bash
 just go-fmt-check   # Check formatting
@@ -101,9 +101,9 @@ requires.
 
 ### Function signatures
 
-Write a function that has parameters on more than one line. Put each parameter
-on its own line. Put the closing parenthesis and the return types on their own
-line:
+If a function has parameters, write its signature on more than one line. Put
+each parameter on its own line. Put the closing parenthesis and the return types
+on their own line:
 
 ```go
 func FunctionName(
@@ -126,7 +126,7 @@ signature.
 ### File names
 
 Give a file the name of what it holds. Do not use `helpers.go`, `utils.go` or
-names of that type. They tell where code is, not what it is, and they collect
+names of that type. They tell where code is, not what it is. They also collect
 code that has no other place.
 
 `types.go` holds only type declarations: structs, interfaces, constants and
@@ -139,7 +139,7 @@ keeps its production file.
 ### Go patterns
 
 - Wrap errors with `fmt.Errorf("context: %w", err)`. Then the chain names each
-  layer, and `errors.Is` and `errors.As` can examine it.
+  layer. `errors.Is` and `errors.As` can examine the chain.
 - Return early. Do not put the successful path inside conditions.
 - Give an unused parameter the name `_`.
 - Put imports in three groups, with a blank line between them: the standard
@@ -159,15 +159,16 @@ package mocks
 //go:generate go tool go.uber.org/mock/mockgen -source=../types.go -destination=types.gen.go -package=mocks
 ```
 
-The tool dependencies of the module supply the generator, so each checkout runs
-the version that `go.mod` records. The generated files end in `.gen.go`, and you
-commit them. Do not put mocks in `gen/`. That name is for API code generation.
+The tool dependencies of the module supply the generator. Thus each checkout
+runs the version that `go.mod` records. The names of the generated files end in
+`.gen.go`. Commit these files. Do not put mocks in `gen/`. That name is for API
+code generation.
 
 If the interface is **unexported**, a sibling package cannot hold the mock. The
-mock must import the package to name the types of the interface, and the tests
-of the package must import the mock. Generate the mock into the package. Give it
-a destination that only tests use, so that the mock library is not a dependency
-of code that imports the package:
+mock must import the package to name the types of the interface. The tests of
+the package must import the mock. Thus generate the mock into the package. Give
+the mock a destination that only tests use. Then the mock library is not a
+dependency of code that imports the package:
 
 ```go
 // generate.go, in the package that declares the interface
@@ -190,7 +191,7 @@ Write these three doubles by hand, because a generated one gives no advantage:
 - A double that has a real implementation of the behavior under test, for
   example signatures from a key pair that the test generates.
 - A recorder for a dependency that a goroutine calls, if the test cannot wait
-  for that goroutine. A generated mock would count calls at a time that the test
+  for that goroutine. A generated mock counts the calls at a time that the test
   cannot control. Write that reason where you define the recorder.
 
 ### File headers
@@ -277,19 +278,20 @@ a few. Use squash and rebase to combine commits.
 
 ## Submit a pull request
 
-- **Describe your changes.** Tell what changed and why. A reviewer must not have
-  to read the diff to find the reason.
-- **Issue/PR links.** Link to related issues and pull requests. Tell how your
-  change is different from that work, or how it adds to it.
+- **Describe your changes.** Tell what changed and why. Then a reviewer does not
+  have to read the diff to find the reason.
+- **Links to issues and pull requests.** Link to related issues and pull
+  requests. Tell how your change is different from that work, or how it adds to
+  it.
 - **Examples.** Add examples or screenshots that show the effect of your change.
-- **Draft PRs.** If your change is not complete but you want to discuss it, open
-  the pull request as a draft. Start the discussion in a comment, not in the
-  description. Then you can change the description later and keep the
-  discussion.
+- **Draft pull requests.** If your change is not complete but you want to
+  discuss it, open the pull request as a draft. Start the discussion in a
+  comment, not in the description. Then you can change the description later and
+  keep the discussion.
 
 ## AI usage
 
-This repository is written with the help of AI. The
+We write this repository with the help of AI tools. The
 [AI Usage Policy](AI_POLICY.md) applies to all contributions. Tell which tool
 you used. Make sure that you can explain what your change does without the help
 of an AI tool.
