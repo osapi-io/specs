@@ -110,8 +110,27 @@ voidspan and psion have, no longer collides with `go`.
 
 ## The variables
 
-Twenty, all with defaults. A consumer assigns the ones it wants to change before
-the import.
+Twenty, all with defaults. A consumer sets `allow-duplicate-variables` and
+assigns the ones it wants to change in its own justfile. The consumer's value
+wins whether it comes before or after the import. A module reads no environment
+variable: a variable in the justfile is the one way to change a value.
+
+```sh
+# just 1.45: prints "before", then "after"
+printf 'x := "module"
+show:
+    @echo {{x}}
+' > mod.just
+printf 'set allow-duplicate-variables
+x := "before"
+import "mod.just"
+' > b.just
+printf 'set allow-duplicate-variables
+import "mod.just"
+x := "after"
+' > a.just
+just -f b.just show; just -f a.just show
+```
 
 | Module       | Variable             | Default                                                   |
 | ------------ | -------------------- | --------------------------------------------------------- |
