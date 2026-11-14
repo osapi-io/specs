@@ -60,6 +60,55 @@ dot-separated and a bucket name cannot be, so the same configured namespace
 appears in two shapes, and anybody adding a third kind of NATS object has to
 pick which.
 
+## Who may connect
+
+osapi either runs its own NATS server or connects to one somebody else runs, and
+authentication is configured on each side separately.
+
+| Side                               | Where                                     | Modes                                   |
+| ---------------------------------- | ----------------------------------------- | --------------------------------------- |
+| osapi's own server                 | `nats.server.auth`                        | `none`, `user_pass`, `nkey`, `operator` |
+| a client: the controller, an agent | `controller.nats.auth`, `agent.nats.auth` | `none`, `user_pass`, `nkey`, `creds`    |
+
+**Operator mode is NATS's decentralized JWT model**, and it is the one that fits
+a fleet. An operator signs accounts, an account signs users, and each user's JWT
+carries its own permissions and expiry. Every osapi process is its own user: the
+server's setup and heartbeat, the controller, and each agent. Adding a host
+means issuing it a credential; the server's configuration does not change. A
+connection without a credential the account signed is refused.
+
+On osapi's server, `auth.type: operator` takes two files:
+
+- `resolver_file`: the server's half of the operator, meaning its JWT, the
+  system account and every account's JWT, as
+  `nsc generate config --mem-resolver` writes it. osapi reads it with NATS's own
+  config parser and starts the server from the options that returns, then sets
+  host, port and JetStream on them. It does not copy fields across, because NATS
+  keeps the preloaded account JWTs in a field osapi cannot reach.
+- `creds_file`: the user the server's own setup and heartbeat connect as. The
+  setup connection creates the streams and buckets, so it has to authenticate
+  like anyone else.
+
+A client uses `auth.type: creds` with a `creds_file`, a user's JWT and seed.
+Against a server osapi does not run, `osapi nats setup` creates osapi's streams
+and buckets with the controller's connection, since nothing else would.
+
+`nsc`, NATS's tool, makes the operator, the accounts and the users; osapi only
+reads the files. [osapi-lab](../osapi-lab/README.md#nats-in-operator-mode) lists
+the exact commands and the Ansible that runs them.
+
+A credential cannot be narrowed below the bucket. An agent needs its own job
+subjects, but also the JetStream API and the key-value buckets it reads and
+writes, and NATS scopes key-value access per bucket, not per key. So a host's
+NATS permissions can be limited to its subjects and those buckets, and no
+further.
+
+**Not built yet: osapi issuing credentials itself.** Today an operator learns
+`nsc`. osapi could issue credentials itself, with commands such as
+`osapi nats operator init` and `osapi nats creds add --name agent-web-01`, so a
+user never learns `nsc`. That waits until the lab has run operator mode with
+`nsc`.
+
 ## Nothing on the bus is trusted because it arrived
 
 A job and a response both travel as a `SignedEnvelope`, in
@@ -107,5 +156,6 @@ namespace, the bucket names and the auth mode come from.
 
 ______________________________________________________________________
 
-Written from `cmd/nats_setup.go`, `internal/job/subjects.go`,
-`internal/job/config.go`, `internal/job/types.go` and `internal/cli/nats.go`.
+Written from `cmd/nats_server_setup.go`, `cmd/nats_setup.go`,
+`internal/cli/nats.go`, `internal/job/subjects.go`, `internal/job/config.go` and
+`internal/job/types.go`.

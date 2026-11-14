@@ -79,6 +79,13 @@ the upstream struct whole, so a consumer configures host, port, authentication,
 JetStream and clustering through upstream's fields. An upstream release changes
 this package's surface with no commit here.
 
+That is also why operator (decentralized JWT) mode needed nothing here. osapi
+builds the upstream options from the file `nsc generate config --mem-resolver`
+writes, with upstream's `ProcessConfigFile`, and passes them through whole;
+copying fields across would drop the preloaded account JWTs, which upstream
+keeps in an unexported field.
+[osapi's transport page](../osapi/transport.md#who-may-connect) has the rest.
+
 `ReadyTimeout` is the one field this package adds, and it has no default. `New`
 performs no defaulting, so leaving it unset passes a zero duration to
 `ReadyForConnections`. All four examples set it to five seconds.

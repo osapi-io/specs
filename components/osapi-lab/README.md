@@ -95,23 +95,27 @@ there.
 - **`build`** compiles the osapi checkout the inventory names, for darwin and
   linux on arm64, on your machine. It builds the UI first, because osapi embeds
   `ui/dist`. It records the branch, the commit and whether the tree was dirty in
-  `.lab/bin/REVISION`, so the lab always says which build it runs.
+  `.lab/bin/REVISION`, so the lab always says which build it runs. It also
+  fingerprints the source (the commit, the uncommitted diff and the untracked
+  files) and skips the build when nothing changed since the last one.
 - **`hub`** copies the darwin build to the hub, re-admits it through the
   firewall, and restarts the NATS and controller agents.
 - **`images`** bakes the linux build into an image per distribution, named
   `img-<distro>-<tag>`. The tag is the build's short commit, with `-dirty` when
   the checkout had uncommitted changes, so the hub's image list says which osapi
-  each image holds. A clean tag whose image exists is not rebuilt; a dirty one
-  always is, since its contents can change under the same commit. Images from
-  other builds are deleted.
-- **`vms`** deletes each VM, clones it again from its new image, and adds it to
-  the inventory.
+  each image holds. The hub keeps the fingerprint each image was baked from, and
+  an image is rebuilt only when it is missing or that fingerprint differs, so a
+  dirty tree is rebaked only when it has changed. Images from other builds are
+  deleted.
+- **`vms`** reclones a VM whose recorded image and fingerprint differ from what
+  it should run, and adds every VM to the inventory.
 - **`agents`** drops each VM's config in and starts its agent.
 
-Each VM is then exactly its image plus a config. That takes minutes, mostly
-Packer booting each image once. `playbooks/deploy.yml` is the quick loop: it
-copies the build into the hub and the running VMs and leaves the images alone,
-so a VM runs a build its image does not hold until the next push.
+Each VM is then exactly its image plus a config. When the source changed, that
+takes minutes, mostly Packer booting each image once; when it did not, a push
+changes nothing. `playbooks/deploy.yml` is the quick loop: it copies the build
+into the hub and the running VMs and leaves the images alone, so a VM runs a
+build its image does not hold until the next push.
 
 ## Why it is built this way
 
@@ -132,7 +136,7 @@ what pytorch's `ci-infra` does for its runner fleet.
 
 **The image holds osapi, never its config.** A VM rebuilt from its image runs
 exactly the build that went in, rather than whatever was last copied onto it.
-The config carries the NATS password, so it stays out: Ansible drops it in after
+The config and the VM's NATS credentials stay out: Ansible drops them in after
 the clone, the way Mozilla's macos-vms has the Tart host supply a VM's
 credentials at boot rather than bake them in.
 
@@ -165,6 +169,85 @@ your machine, into `.lab/`, and the hub and each VM receive only their rendered
 config. An agent's config carries a throwaway signing key rather than the hub's,
 because osapi validates every key in the file, whatever the command.
 
+## NATS in operator mode
+
+The hub runs osapi's own NATS server in operator mode, NATS's decentralized JWT
+model, the way an operator who wants per-host credentials would. An operator
+signs osapi's account, the account signs a user per process, and each process
+connects with its own credentials file. Adding a VM is issuing it a credential;
+the server's config does not change. The design is in osapi's
+[transport](../osapi/transport.md#who-may-connect) page.
+
+| User           | Used by                              | Credentials on                      |
+| -------------- | ------------------------------------ | ----------------------------------- |
+| `nats`         | the server's own setup and heartbeat | the hub, `secrets/nats.creds`       |
+| `controller`   | the controller                       | the hub, `secrets/controller.creds` |
+| `agent-<vm>`   | that VM's agent                      | the VM, `/etc/osapi/nats.creds`     |
+| `agent-remote` | `just agent` on your machine         | `.lab/secrets/nats/`                |
+| `cli`          | the `nats` CLI in the lab directory  | `.lab/secrets/nats/`                |
+| `sys`          | `nats-sys`, in the system account    | `.lab/secrets/nats/`                |
+
+`nsc`, which mise pins, makes all of it under `.lab/secrets/nsc`. The `secrets`
+role runs, once:
+
+```bash
+nsc add operator --name lab --sys --generate-signing-key
+nsc add account --name osapi
+nsc edit account --name osapi --js-enable 1
+```
+
+and on every run, so a changed account reaches the hub:
+
+```bash
+nsc generate config --mem-resolver --sys-account SYS --force --config-file .lab/secrets/resolver.conf
+```
+
+Each user is made where it is deployed, by
+`ansible/roles/secrets/tasks/user.yml`:
+
+```bash
+nsc add user --account osapi --name agent-debian-1
+nsc generate creds --account osapi --name agent-debian-1 --output-file .lab/secrets/nats/agent-debian-1.creds
+```
+
+Every command runs with `--data-dir .lab/secrets/nsc/stores` and with `NSC_HOME`
+and `NKEYS_PATH` under `.lab/secrets/nsc`, so the lab's keys never mix with your
+own `nsc` setup. The resolver file goes to the hub as `config/resolver.conf`,
+which the hub's `nats.server.auth.resolver_file` names.
+
+The users have the account's default permissions for now. Narrowing each agent
+to its own subjects and the buckets it uses comes with the least-privilege work.
+
+### Checking it
+
+`.envrc` loads `.lab/config/nats.env`, which `just site` writes, so the `nats`
+CLI in the lab directory connects to the hub as `cli`:
+
+```bash
+nats account info                 # the cli user, account osapi, JetStream on
+nats stream ls                    # osapi's streams, such as JOBS and AUDIT
+nats kv ls                        # osapi's buckets, such as job-queue and agent-registry
+nats kv ls osapi-agent-registry   # one key per agent that registered
+nats sub 'osapi.jobs.>'           # jobs as they go out; run an osapi command elsewhere
+NATS_CREDS= nats stream ls        # no credentials: Authorization Violation
+```
+
+The last one is the check that matters: a connection without a credential the
+account signed is refused.
+
+Server-wide commands need NATS's system account, whose `sys` user `nsc` made
+with the operator. `nats-sys` runs the CLI as that user, and plain `nats` stays
+the `cli` user:
+
+```bash
+nats-sys server list                # the server, its version and connections
+nats-sys server report jetstream    # JetStream's streams and storage per account
+nats-sys server report connections  # every connection, by account and user
+```
+
+`server report connections` shows each osapi process connected as its own user,
+which is the check that every credential reached the right place.
+
 ## What will surprise you
 
 **`-K` asks for the hub's sudo password.** The hub's macOS firewall admits a
@@ -195,8 +278,8 @@ reach a VM directly.
 **Stopping a VM by hand does not keep it stopped.** Its launchd agent restarts
 it. Unload the agent to stop a VM for good.
 
-**A push throws away anything done inside a VM.** It reclones every VM.
-`deploy.yml` keeps them.
+**A push after a source change throws away anything done inside a VM.** It
+reclones every VM whose image changed. `deploy.yml` keeps them.
 
 ## Where it sits
 
