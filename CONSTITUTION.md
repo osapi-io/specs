@@ -299,10 +299,14 @@ usage and FAQ. The Go repositories also have Setup, Project structure, Code
 style with Documentation, Code standards with its five subsections, and Tests
 with Test file conventions.
 
-A change to a shared section starts in the template. The same work then changes
+A change to a shared section starts in its template. The same work then changes
 each repository and the `swamp-golang-starter` template, which copies this one.
 A convention that is different in each repository is a convention that nobody
 can trust.
+
+[templates/AGENTS.md](templates/AGENTS.md) does the same for `AGENTS.md`: the
+summary line, the introduction, Run tools, Where the rules come from, Commit
+trailer and Design pages. specs has its own `AGENTS.md`, for the same reason.
 
 ```sh
 cd ~/git/osapi-io
