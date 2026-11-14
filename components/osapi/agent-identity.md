@@ -26,6 +26,15 @@ enrollment, and an operator removing an enrolled agent. Both take effect
 immediately, with no interval in which a removed agent's signature still
 verifies.
 
+Removal is `DELETE /api/agent/{hostname}`, `osapi client agent remove`. It
+deletes the accepted record and drops the cached key. A hostname is not an
+identity, so when two accepted agents share one the call answers 409 with both
+machine IDs, and `machine_id` chooses. It does not guess.
+
+The removed agent is not told. It keeps the controller's key from its
+acceptance, so it believes it is enrolled and does not ask again. Enrolling it
+again is a step on the host: delete `controller.pub` and restart the agent.
+
 ## What gets verified
 
 Two things, and they answer different questions.
