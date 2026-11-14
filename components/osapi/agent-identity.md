@@ -15,6 +15,12 @@ key.** Not a message signed with a different key, not a re-registration, not a
 restart. So an attacker who can publish to the bus cannot rotate a key by
 publishing, and the trust anchor stays where an operator put it.
 
+The agent keeps the same rule for its own key. It generates a keypair only when
+neither file exists. A key file it cannot read, such as one still owned by root
+after the agent's user changed, or one half of a pair, stops the agent with an
+error. Replacing it would be quiet: the new key is not the accepted one, so the
+host drops out of targeting and nothing at the agent says why.
+
 A key is destroyed on two events and no others: an operator rejecting a pending
 enrollment, and an operator removing an enrolled agent. Both take effect
 immediately, with no interval in which a removed agent's signature still
