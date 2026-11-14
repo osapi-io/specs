@@ -58,6 +58,7 @@ A handler validates and delegates. It never touches the operating system.
 | [Configuration](configuration.md)                    | Where a value comes from, and how secrets stay out of the log                                                                            |
 | [Observability](observability.md)                    | Tracing across the queue, metrics on their own port, conditions                                                                          |
 | [Moving domains to behaviors](behavior-migration.md) | Which domains are behaviors yet, what is built, and the steps left: the cutover, chains, the skill, the rest of the domains              |
+| [Workflows](workflows.md)                            | A proposal: named, ordered behavior calls written as a file, checked against the registry, and run again with the same result            |
 
 ## Where it sits
 

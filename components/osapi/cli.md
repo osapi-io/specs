@@ -31,6 +31,17 @@ flag can be made required by the parser rather than by a length check somebody
 has to write. Required-ness is declared, so the error for omitting it is the
 parser's and is the same everywhere.
 
+`get` takes its identifier as a required flag and shows one thing; `list` shows
+them all. `config get --key controller.api.port` is one setting, `config list`
+every one, and `config get` alone is a usage error rather than a dump.
+
+A group rejects a word it does not know. Cobra checks for an unknown subcommand
+only at the root, so below it `osapi config lst` printed the group's help and
+exited 0, and a typo looked like success. `cli.GuardGroups`, run in `Execute`,
+gives every group a run function that returns a usage error for an unknown word
+and prints the help when run bare. `help --json` still reports the group as not
+runnable.
+
 ## Command and flag names
 
 Every command and flag is named by the same rules, so a reader who knows one
@@ -292,6 +303,10 @@ Labels are spelled out in sentence case: `Service manager`, `Primary interface`,
   columns, the host's result and the service's state; the second is `STATE`.
 - A cell never holds truncated JSON. It holds a summary, `12 packages`, and
   `--json` gives the whole value.
+- A listing too wide for one table splits into one headed table per top-level
+  group, with the rule shared by every row said once in the key-value block
+  above it. `config list` has a table per config section, and its block says how
+  a key becomes an environment variable.
 
 ### Counts
 
@@ -375,8 +390,8 @@ Telemetry:
 - **Telemetry.** What every call of the behavior records: the span, the three
   metrics and the attributes every method gets, then the input fields this
   behavior tags with `telemetry:"attr"` and the methods that record each. The
-  names come from `pkg/behavior/telemetry.go`, so the block cannot disagree with
-  what is recorded.
+  names come from `internal/behaviors/telemetry.go`, so the block cannot
+  disagree with what is recorded.
 - **Surfaces.** `API` and `CLI` show where each is served, or `none` when the
   behavior has no such surface.
 

@@ -11,13 +11,13 @@ metadata:
 # Add a domain
 
 Domains are moving to [behaviors](../../../components/osapi/behaviors.md): one
-typed definition under `pkg/behavior/<name>/` that the routes, agent dispatch,
+typed definition under `internal/behaviors/<name>/` that the routes, agent dispatch,
 CLI, spec and docs are generated from, served under `/api/next` and
 `osapi client next` beside the hand-written domains
 ([the plan](../../../components/osapi/behavior-migration.md)). Ask which the work is before
-starting. A new behavior follows osapi's
-`docs/docs/sidebar/development/behaviors.md` and `pkg/behavior/sysctl`, not the
-steps below. This skill covers the hand-written domains, which is every domain
+starting. A new behavior uses the `build-a-behavior` skill in the osapi
+repository, `.claude/skills/build-a-behavior/`, which starts from
+`osapi behavior new`; not the steps below. This skill covers the hand-written domains, which is every domain
 not yet converted.
 
 ## 1. Establish the reference domain

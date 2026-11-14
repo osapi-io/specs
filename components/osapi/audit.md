@@ -65,6 +65,11 @@ awk '/^var sensitiveFields/,/^}/' internal/audit/summary.go | grep -cE '^\t"'  #
 `content` is a file body going to the deployer. Both would otherwise be stored
 in full.
 
+A behavior adds to the list without editing it: every input field it tags
+`secret:"true"` is redacted by name too, as
+[behaviors](behaviors.md#secret-inputs) describes. The fixed list is for the
+hand-written domains.
+
 **A field not on that list is stored as sent.** A domain adding `api_key`,
 `passphrase`, `credentials` or `bearer` gets none of them redacted, and nothing
 in the build says so. Adding a field that carries a secret means adding its name

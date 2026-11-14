@@ -53,7 +53,7 @@ before you plan a dashboard.
 ## Behaviors measure their own work
 
 A [behavior](behaviors.md) gets telemetry without writing any.
-`pkg/behavior/telemetry.go` wraps every method call, so a new behavior is
+`internal/behaviors/telemetry.go` wraps every method call, so a new behavior is
 measured the moment it is registered. Providers that are not yet behaviors
 record none of this.
 
@@ -73,7 +73,7 @@ Three metrics come from the same wrapper, through the agent's meter provider:
 | `osapi_behavior_changes_total`    | writes that changed the host, by behavior and method |
 
 ```sh
-grep -rhoE 'osapi_behavior_[a-z_]+' --include='*.go' pkg/behavior/ | sort -u | wc -l   # 3
+grep -rhoE 'osapi_behavior_[a-z_]+' --include='*.go' internal/behavior/ | sort -u | wc -l   # 3
 ```
 
 `osapi behavior get --name <name>` prints the span and metric names a behavior

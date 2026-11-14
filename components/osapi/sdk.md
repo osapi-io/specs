@@ -114,22 +114,25 @@ collection returns `Response[Collection[T]]` rather than `Response[[]T]`, which
 is the same reason stated for the shape a broadcast returns in
 [building a domain](domains.md).
 
-## Behaviors need no SDK code
+## The SDK knows routes, not behaviors
 
-A [behavior](behaviors.md) is called through one generic method rather than a
-service of its own:
+The SDK talks to the HTTP API, so what it needs is the spec, never a
+[behavior](behaviors.md)'s Go definition, and `pkg/sdk` imports nothing from
+`internal/`. A route the SDK has no typed method for is reached with one generic
+call:
 
 ```go
-resp, err := c.Behavior(ctx, sysctl.Behavior, sysctl.Behavior.Method("get"),
-    "_all", sysctl.GetInput{Key: "vm.swappiness"})
-rows, err := client.Rows[sysctl.Entry](resp.Data)
+resp, err := c.Request(ctx, http.MethodGet, "/api/next/node/_all/sysctl/vm.swappiness", nil)
 ```
 
-`Client.Behavior` builds the route from the definition, and `Rows` decodes each
-host's result into the method's output type. The envelope is the same
-`Response`, so `--json` works the same way. Adding a behavior adds nothing to
-`pkg/sdk/client`, which is why the service rules above apply only to the domains
-not yet converted.
+It returns the body as the API sent it, with an answer outside 2xx as the same
+error types every typed method returns. osapi's own generated commands call it,
+through the CLI runtime that builds a behavior's path from its definition.
+
+Until a behavior's cutover, its routes have no typed SDK method. After it, its
+spec joins the main one, so oapi-codegen's generated client covers it like any
+other domain, and the typed services above can be generated from the spec rather
+than written by hand.
 
 ## The rest of the conventions
 

@@ -77,7 +77,8 @@ alone.
 
 The voice: an engineer explaining a system to another engineer who has to work on
 it. [references/voice.md](references/voice.md) has the specifics and the tells to
-avoid.
+avoid. Each sentence follows Simplified Technical English; check the page with
+[ste-100](../ste-100/SKILL.md) before the `unslop` pass.
 
 What a page does, in order of what a reader needs:
 

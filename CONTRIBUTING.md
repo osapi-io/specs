@@ -68,6 +68,8 @@ hit immediately:
 
 - Explain the system to somebody who has to work on it. `/document` carries the
   voice and runs `unslop`; use it rather than writing a page by hand.
+- Write each sentence in Simplified Technical English (ASD-STE100), so a reader
+  whose first language is not English reads it one way. `/ste-100` checks it.
 - Every count carries the command that produces it, and the command has to work
   on its own.
 - State a fact once. Link to it from anywhere else that needs it.

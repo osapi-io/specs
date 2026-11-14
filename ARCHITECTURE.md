@@ -16,7 +16,7 @@ supports it or drives it.
 
 The `specs` repository holds this documentation and is not a component. It
 matters once below, because it consumes `osapi-justfiles` like the others do,
-which is why the blast radius of a justfiles change is seven and not six.
+which is why the blast radius of a justfiles change is eight and not seven.
 
 ```
       nats-client ─┐
@@ -25,7 +25,9 @@ which is why the blast radius of a justfiles change is seven and not six.
 
       gohai                    (standalone)
 
-      osapi-justfiles          (build, all seven, by fetch)
+      osapi-lab                (runs a checkout of osapi on real hosts)
+
+      osapi-justfiles          (build, all eight, by fetch)
 ```
 
 | Repository                                                    | Is                                     | Read it to learn                               |
@@ -36,11 +38,12 @@ which is why the blast radius of a justfiles change is seven and not six.
 | [nats-server](components/nats-server/README.md)               | A NATS server embedded in its consumer | how osapi runs its own bus                     |
 | [gohai](components/gohai/README.md)                           | A system fact collection library       | how facts are gathered, if you need them       |
 | [osapi-justfiles](components/osapi-justfiles/README.md)       | Shared `just` recipes                  | why every repository's `just test` is the same |
+| [osapi-lab](components/osapi-lab/README.md)                   | A fleet of real machines running osapi | how a branch is tried on hosts before release  |
 
 ## Where to start
 
-**Start with osapi.** Four of the other five either feed it or consume it, so
-its document is the one that makes the rest legible. gohai is the fifth and is
+**Start with osapi.** Five of the other six feed it, consume it or run it, so
+its document is the one that makes the rest legible. gohai is the sixth and is
 the exception, below. Read its [job system](components/osapi/job-system.md)
 next, because the queue is the mechanism the whole product is built on.
 
@@ -88,7 +91,7 @@ Every repository fetches `osapi-justfiles` through a justfile recipe, from
 `refs/heads/main`. Nothing is pinned, nothing records which version a build
 used, and `.just/` is gitignored everywhere.
 
-`md` reaches all seven consumers, `just` six, `go` five, and `react` and
+`md` reaches all eight consumers, `just` seven, `go` five, and `react` and
 `docusaurus` one each. So **`md.just` is the widest change available in the
 organization.** The specs repository, whose `just test` gates every change to
 these docs, is downstream of it.
@@ -104,7 +107,7 @@ edge and no outgoing one. gohai has no Go edge in either direction, though its
 build fetches justfile modules like everything else.
 
 **A change's blast radius is not proportional to the repository's size.**
-`osapi-justfiles` has no Go at all and reaches seven repositories. `nats-server`
+`osapi-justfiles` has no Go at all and reaches eight repositories. `nats-server`
 has twelve Go files and forces a logging decision on the largest one.
 
 **Two repositories wrap the same upstream library from opposite ends**, and the

@@ -20,17 +20,44 @@ nats:
 
 ## Where a value comes from
 
-Viper, with three sources. Later beats earlier:
+Viper, with four sources. Later beats earlier:
 
-1. the defaults in `cmd/root.go`
+1. the defaults, `config.Defaults` in `internal/config/keys.go`, and the field
+   values of each behavior's declared settings
 2. the config file, YAML, found by the `--osapi-file` flag
 3. the environment
+4. a flag bound to the key, such as `controller --port`
 
-An environment variable is the config path with `osapi_` in front and dots
+An environment variable is the config path with `OSAPI_` in front and dots
 replaced by underscores, so `controller.api.port` is
-`OSAPI_CONTROLLER_API_PORT`. `AutomaticEnv` means every key is reachable that
-way without being declared, so a new setting is environment-configurable the
-moment it has a default.
+`OSAPI_CONTROLLER_API_PORT`. `config.Read` binds every key to its variable.
+Before it did, `AutomaticEnv` reached only keys viper already knew from a
+default or the file, so a variable for any other key was silently ignored.
+
+`config.Defaults` names keys of the config struct, and a test fails on one that
+is not. Two sets of defaults in `cmd/root.go` were set on
+`controller.api.nats.*` and `nats.api.*`, keys that do not exist, and never
+applied until they moved.
+
+## The binary describes its own settings
+
+`config.Keys` walks the config struct's `mapstructure` tags, so the list of
+settings is the code rather than a page about it. Every field carries a `doc`
+tag, and a test fails on one without.
+
+```sh
+osapi config list                           # every key: value, source, env var
+osapi config list --json                    # plus type, default, rules, description
+osapi config get --key controller.api.port  # one key in full
+osapi config validate                       # the checks start runs, starting nothing
+```
+
+`list` and `get` read the config the way `start` does but skip the checks, and
+work without a file, so they can show what is wrong. Each value's source is
+`env`, `file`, `default` or `unset`. A field tagged `mask:"password"` prints as
+`********`. The site's configuration page points at these commands rather than
+listing the keys, because the list it carried had drifted: its sample YAML
+nested NATS settings where osapi never reads them.
 
 ## The shape
 
@@ -43,6 +70,11 @@ Four top-level sections and a flag.
 | `nats`       | the embedded server, and the streams and buckets |
 | `telemetry`  | tracing and the metrics server                   |
 | `debug`      | a boolean, set from the CLI                      |
+| `behaviors`  | each behavior's own settings, under its name     |
+
+`behaviors` is not in the config struct. Each behavior declares its settings
+beside its definition, and they join the registry under `behaviors.<name>`;
+[behaviors](behaviors.md#settings-a-behavior-declares) has how.
 
 `agent` is `omitempty`, because a controller-only deployment does not need it.
 The same binary reads the same file and takes the half it needs.

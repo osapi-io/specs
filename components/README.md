@@ -8,6 +8,7 @@
 | [nats-server](nats-server/README.md)               | A NATS server embedded in its consumer       |
 | [gohai](gohai/README.md)                           | A system fact collection library, standalone |
 | [osapi-justfiles](osapi-justfiles/README.md)       | Shared `just` recipes                        |
+| [osapi-lab](osapi-lab/README.md)                   | Real machines that run a checkout of osapi   |
 
 Start with [osapi](osapi/README.md). [ARCHITECTURE.md](../ARCHITECTURE.md) has
 the dependency graph and the facts that belong to no single repository.

@@ -51,12 +51,20 @@ page in its own change, rather than writing around it.
 **Use `/document` rather than writing a page by hand.** It carries the voice,
 places the subject, and runs `unslop`.
 
+**Write sentences in Simplified Technical English.** Every page here follows
+ASD-STE100's sentence rules: one word for one thing, short sentences, the active
+voice, commands for steps. `/ste-100` writes and checks them. The voice decides
+what a page says; STE decides how each sentence says it.
+
 **Place content in the subject it belongs to.** A component's README is an
 index: what the repository is, and a table linking its subjects. Something about
 queuing work goes in the page about queuing work, merged with what is there
 rather than appended after it.
 
 ## Commit trailer
+
+Codex reads the skills through `.agents/skills`, a link to `.claude/skills`, so
+both tools use the same ones.
 
 When committing via Claude Code, end the message with:
 

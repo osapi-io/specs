@@ -14,55 +14,28 @@ and [building a domain](domains.md) describe the domains not yet moved.
 
 ## Behaviors built on other behaviors
 
-Providers already depend on each other, by constructor argument in
-`cmd/agent_setup.go`: cron is built on the file provider, and dns and sysctl on
-the file-state KV and the exec manager. Nothing declares those edges, so the
-only record of them is the order of the setup code.
-
-A definition declares them instead:
-
-```go
-var Behavior = behavior.Register(behavior.Define(
-    "cron", "Scheduled jobs under /etc/cron.d",
-    behavior.Node,
-    behavior.Requires(lineinfile.Behavior, file.Behavior),
-    ...
-))
-```
-
-- **On the agent**, the platform builds a required behavior's provider first and
-  hands it to the one that requires it. A method calls the other behavior's
-  method as a typed Go call on the same host in the same job, such as
-  `lineinfile.Ensure(ctx, p.Lines, lineinfile.Input{...})`, not through the API.
-- **`behavior validate`** fails a requirement that is not registered and a
-  cycle. `behavior get` lists what a behavior requires and what requires it.
-- **`behavior.Internal`** marks a behavior other behaviors use but callers do
-  not: it gets no route, no CLI command and no spec. A primitive such as
-  lineinfile can start internal and be exposed later by removing the option.
-
-Chaining behaviors across hosts and steps, the output of one method feeding the
-input of the next, is a workflow, and stays osapi-orchestrator's job. Typed
-inputs and outputs are what make that possible: a step can be checked against
-the next one's schema before anything runs. The orchestrator's 101 hand-written
-step functions become one generic step over the registry, in that repository,
-after this.
+Built: `behavior.Requires` and `behavior.Internal`, proven by sysctl requiring
+the internal `managedfile` behavior.
+[Behaviors](behaviors.md#behaviors-built-on-other-behaviors) describes them.
+What remains is moving the other domains whose providers depend on each other,
+such as cron on the file provider, onto requirements as each migrates.
 
 ## What the platform owns
 
 Everything that is the same for every behavior is written once, in
-`pkg/behavior`, and a behavior author never sees it:
+`internal/behavior`, and a behavior author never sees it:
 
-| Convention                                        | Today                             | After                           |
-| ------------------------------------------------- | --------------------------------- | ------------------------------- |
-| The `{job_id, results[]}` envelope                | Restated in every spec            | Built from the definition       |
-| Per-host `hostname`, `status`, `error`, `changed` | Restated in every spec            | Built from the definition       |
-| 400, 401, 403, 404 and 500 with `ErrorResponse`   | Listed per operation              | Built from the definition       |
-| `{hostname}` and broadcast targets                | A branch in each handler          | One generic handler             |
-| Status mapping, including `skipped` and `timeout` | A switch in each handler          | One generic handler             |
-| The job payload                                   | A map in, an anonymous struct out | The behavior's input type       |
-| Dispatch on the agent                             | Three levels of string switch     | A lookup by behavior and method |
-| Permission strings                                | Spec, SDK, UI, three docs pages   | Derived from `Read`/`Write`     |
-| The route and the CLI command                     | A handler file and a command file | Registered at startup           |
+| Convention                                        | Today                             | After                                   |
+| ------------------------------------------------- | --------------------------------- | --------------------------------------- |
+| The `{job_id, results[]}` envelope                | Restated in every spec            | Built from the definition               |
+| Per-host `hostname`, `status`, `error`, `changed` | Restated in every spec            | Built from the definition               |
+| 400, 401, 403, 404 and 500 with `ErrorResponse`   | Listed per operation              | Built from the definition               |
+| `{hostname}` and broadcast targets                | A branch in each handler          | The runtime the generated handlers call |
+| Status mapping, including `skipped` and `timeout` | A switch in each handler          | The runtime the generated handlers call |
+| The job payload                                   | A map in, an anonymous struct out | The behavior's input type               |
+| Dispatch on the agent                             | Three levels of string switch     | A lookup by behavior and method         |
+| Permission strings                                | Spec, SDK, UI, three docs pages   | Derived from `Read`/`Write`             |
+| The route and the CLI command                     | A handler file and a command file | Registered at startup                   |
 
 This is the answer to "how does somebody adding a behavior know what the spec
 should be". They don't write it. The conventions in that table are the ones a
@@ -70,23 +43,39 @@ new contributor gets wrong, and they stop being the contributor's job.
 
 ## What the cutover changes
 
-Built so far, and described in [behaviors](behaviors.md): the generic handler,
-the generic agent processor, generated commands, the generated spec and docs
-pages, all served beside the hand-written domain under `/api/next` and
-`osapi client next`. A domain's cutover, step 4 below for sysctl, makes the
-behavior the only path:
+Built so far, and described in [behaviors](behaviors.md): a generated handler
+per method with its HTTP tests, the generic agent processor, generated commands,
+the generated spec and docs pages, all served beside the hand-written domain
+under `/api/next` and `osapi client next`. While both exist, the domain has a
+row in the [parity test](behaviors.md#served-beside-the-hand-written-domains)
+holding the generated spec to the hand-written one. A domain's cutover, step 4
+below for sysctl, deletes that row and makes the behavior the only path.
+
+sysctl's row went before its cutover. Trying the branch on real hosts showed its
+reads were wrong: `list` and `get` reported only the parameters osapi wrote, so
+a fresh host listed nothing and `get` answered 404 for a key the kernel has.
+Ansible, Salt and Puppet all read the host as it is. So `list` now reads every
+parameter under `/proc/sys`, with an optional `prefix`, `get` reads any key, and
+each entry says whether osapi manages it; `update` sets and manages a parameter
+whether or not osapi managed it before. The API then differs from the
+hand-written one on purpose, and a parity row holding it to the old one had to
+go. The cutover changes:
 
 - **API.** Its routes move from `/api/next` to `/api`, and its hand-written
   handler under `internal/controller/api/node/` and its oapi-codegen server code
   are deleted.
 - **CLI.** Its generated commands move from `client next` to `client`, and its
   hand-written `cmd/client_node_*` files are deleted.
-- **Agent.** Its hand-written processor is deleted, and its provider's
-  implementations move into the behavior's directory as
-  `provider_<platform>.go`.
-- **SDK.** Callers move to `Client.Behavior` and `client.Rows`, with thin typed
-  wrappers where a caller wants `client.Sysctl.Get`. The hand-written result
-  types and their converter functions go.
+- **Agent.** Its hand-written processor is deleted. Its provider already lives
+  in the behavior's directory, as `<platform>.go` with its tests moved
+  unchanged, since sysctl showed the move is safest done before the cutover; the
+  platform files the behavior does not declare, `darwin.go` and `linux.go` for
+  sysctl, are deleted with the processor that built them.
+- **SDK.** The routes and operationIds are the hand-written ones, so the client
+  oapi-codegen generates from the joined spec keeps its methods, and
+  `client.Sysctl` keeps working over it. Its entries gain `managed`, and its
+  list takes a `prefix`. Generating those typed services from the spec is a
+  later step.
 - **Spec.** Its part of the generated spec joins the main one, and its
   hand-written YAML is deleted. What reads the spec keeps working: the UI's
   TypeScript client, the docs site's API pages, and outside clients generated
@@ -114,77 +103,47 @@ and [`osapi init` with the embedded skill](agent-skills.md).
 
 Not built yet:
 
-- **The building-a-behavior skill**, in the osapi repository's
-  `.claude/skills/`, replacing add-a-domain. It has no scaffold command behind
-  it. Its references hold the templates, the agent writes the files, and it
-  checks its own work in a loop: `go test` for the behavior's package,
-  `osapi behavior validate`, `osapi behavior get --name <name> --json` to see it
-  registered with the right schemas, then a smoke run of each method against
-  `osapi start` with `--json`.
-- **Evals for both skills**: whether the skill triggers on the requests it
-  should, whether it routes to the right reference, and whether that reference
-  is enough on its own. They are how a skill gets tuned until an agent can do
-  the job with nothing else.
-- **`--json` on every client command's success output** is already the API body;
-  the gap is commands outside `client`, such as `start` and `token`.
+Built since: the build-a-behavior skill, in the osapi repository's
+`.claude/skills/`, and the `osapi behavior new` command behind it. This plan
+said the skill would have no scaffold command and would carry templates in its
+references for the agent to copy. Building it showed the templates would be a
+second copy of the layout, kept in step with the code by hand, so the layout is
+now written once, as the command's templates, which a test runs end to end: the
+written behavior must build, validate and pass every test. The skill routes to
+the command, to `go doc ./internal/behavior`, and to `behavior get` and
+`validate`. See [behaviors](behaviors.md#inspecting-behaviors-from-the-cli).
 
-## The first behavior is sysctl
+Not built yet:
 
-sysctl has five methods covering both reads and writes, three platform files
-(`debian.go`, `darwin.go`, `linux.go`), and an integration test in
-`test/integration/sysctl_test.go`. It is complete enough to exercise every
-convention in the table and small enough that the generated output can be read
-line by line.
-
-The migration is done when:
-
-1. The spec generated for sysctl matches today's. The diff of the sysctl paths
-   and schemas in `internal/controller/api/gen/api.yaml` before and after is
-   empty, apart from descriptions that came from `doc` tags.
-2. The existing sysctl integration tests pass unmodified.
-3. `osapi behavior get --name sysctl` prints the five methods.
-4. The files a new sysctl method would touch are counted. If the answer is not
-   the behavior directory and nothing else, the platform is missing something.
-
-The old provider path and the new behavior path run side by side, because the
-agent's top-level `Registry.Dispatch` already looks up by category and takes no
-edits. Domains move one at a time.
-
-## The order of work
-
-Done:
-
-1. The CLI cleanup, in osapi#665.
-2. The behavior core and the agent commands: `pkg/behavior` with `Define`,
-   `Node`, `Under`, `Read`, `Write`, `Key`, the registry, JSON Schema from tags
-   and `behavior validate`; sysctl's definition; `osapi help --json`,
-   `behavior list` and `get` (first named `describe`), the `--json` error
-   document, and `osapi init` with the embedded skill. Described in
-   [behaviors](behaviors.md), [the CLI](cli.md) and
-   [agent skills](agent-skills.md).
-3. sysctl built entirely from its definition, served beside the hand-written
-   domain under `/api/next` and `osapi client next`: the generic handler and
-   agent processor, generated commands, the generated spec and docs pages,
-   telemetry, `API` and `CLI` as opt-in surfaces, and the standard layout.
-   Described in [behaviors](behaviors.md). The generated spec matches today's on
-   30 of 32 compared fields; the two differences are constraints the server
-   already enforced and the old spec omitted.
+Built since: evals for the skill, in its `evals/`, each a request run in a fresh
+session and checked with commands. They cover a served behavior, one that runs a
+program with sudo and declares refusals, an internal behavior another requires,
+a behavior for one platform, a secret input, a behavior nested under a group, a
+request the platform cannot express, where passing means the skill saying so,
+and a request too vague to build from, where passing means it asks. The first
+run of the internal behavior's eval found that the fake host could not model
+state a program keeps, which `PrintsAfter` now does; building the grouped one
+found that `osapi behavior new` could not write a behavior under its group,
+which `--group` now does.
 
 Next:
 
-4. The cutover: sysctl's routes and commands move to `/api` and `client`, its
-   spec joins the main one, its provider moves into `pkg/behavior/sysctl`, and
-   its hand-written handler, processor and command files are deleted. Pass
+4. The cutover, after the behavior work merges: remove sysctl's `behavior.Next`
+   and follow the checks that fail. Its routes and commands move to `/api` and
+   `client`, its spec joins the main one, and its hand-written handler,
+   processor and command files are deleted. Its provider has already moved into
+   `internal/behaviors/sysctl`, and its parity row has already gone. Pass
    criteria 2 to 4 above.
-5. `Requires` and `Internal`, from
-   [behaviors built on other behaviors](#behaviors-built-on-other-behaviors).
-6. The building-a-behavior skill: routing page, templates in its references, the
-   check loop, and evals.
+5. `Requires` and `Internal`, which are built.
+6. Evals for the build-a-behavior skill, which are built.
 7. The test of the whole idea. In a fresh session, an agent is asked to build a
    new behavior with only that skill and the CLI. Where it gets stuck, the skill
    or the CLI is fixed, not the agent's output, and it is run again until it
    builds one unaided.
 8. The remaining domains, one per pull request.
+   - Generate the SDK's typed services from the joined spec, once every
+     behavior's part has joined it, so the SDK is built entirely from the spec
+     and never imports a behavior.
 9. `provider` is retired as a term, [providers](providers.md) and
    [building a domain](domains.md) are rewritten for behaviors, and this page is
    deleted once nothing in it is still a plan.
@@ -195,6 +154,55 @@ requests to try, and the core concepts. Behaviors are a core concept there,
 named as served under `next` until the cutover. Every line describes something
 osapi does, and nothing else.
 
+## What blocks the other domains
+
+25 of the 94 hand-written node operations use something a behavior cannot
+express yet. Each is a platform change, designed here before it is built, and
+each unblocks a set of domains:
+
+| Missing                                                       | Operations                                                                                                                                                | Blocks                                            |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Action methods, a write named for what it does under the item | service start, stop, restart, enable, disable; docker start, stop, exec, pull; process signal; power reboot, shutdown; user password; command exec, shell | service, container, process, power, command, user |
+| The `execute` and `shell` permissions beside read and write   | command exec and shell, power, process signal, docker exec                                                                                                | command, power, process, container                |
+| A resource under another, with two keys in the path           | a user's SSH keys, a container's images                                                                                                                   | user, container                                   |
+| A step on the controller before the job is queued             | a password hashed so the plaintext never reaches NATS                                                                                                     | user                                              |
+| The object store on `host.Host`                               | cron and file deploys of uploaded content                                                                                                                 | schedule, file                                    |
+
+`GET /api/node/{hostname}`, the node's status summary, has no behavior shape and
+stays hand-written. The rest fit today: hostname, timezone, NTP, disk, load,
+memory, OS, uptime, log, package, certificate, DNS, interface, route and ping.
+The build-a-behavior skill's "Not yet" list is this table, so an agent asked for
+one of these says so rather than wiring around the platform.
+
+A domain's hand-written handler tests are deleted at its cutover, so every case
+in them has to land somewhere first: in the behavior's generated HTTP tests,
+which cover the cases every method has, or as an example or refusal on the
+method, which covers the ones particular to the domain. A domain is not cut over
+while a hand-written case has neither. Its provider tests move with the provider
+and are not deleted.
+
+## Internal behaviors the migration extracts
+
+Shared work becomes an internal behavior at its second use, the rule of two: one
+domain doing something is that domain's code, and a second that needs the same
+thing is when it becomes a behavior both require, rather than a copy.
+`managedfile` is the first, taken out of sysctl because every domain that owns
+files on a host needs what it does. The candidates, each with more than one
+domain doing it today:
+
+- **Package install and removal**, done by the package domain and needed by any
+  behavior that installs what it manages.
+- **Service control**, reload or restart after a change, done by service and
+  repeated in NTP, hostname and cron.
+- **File deploy from the object store**, done by the file domain and cron, once
+  the object store is on `host.Host`.
+- **Running a command and reading its output**, which every provider does
+  through `h.Exec` today; it becomes a behavior only if it gains checks every
+  caller needs, such as refusing input that would reach a shell.
+
+Chaining across hosts or across steps is a workflow, osapi-orchestrator's job,
+and not a requirement.
+
 ## What will surprise somebody
 
 **The spec stops being the source.** A contributor who edits the generated spec
@@ -203,15 +211,15 @@ committed so the diff is reviewable. `just behavior-gen-check`, which
 `just test` runs, regenerates and fails on any difference.
 
 **Not everything fits the template.** File upload, `docker exec` and command
-execution stream or take multipart bodies. The generic handler covers a request
-that has one typed input and a per-host typed output. A behavior that needs more
-keeps a hand-written handler for that one method, and the definition says so
-explicitly rather than by omission. That handler registers its own route beside
-the generated ones.
+execution stream or take multipart bodies. The generated handlers cover a
+request that has one typed input and a per-host typed output. A behavior that
+needs more keeps a hand-written handler for that one method, and the definition
+says so explicitly rather than by omission. That handler registers its own route
+beside the generated ones.
 
 **Path parameters lose their validation tags in strict-server generation.** That
-is why `node/sysctl/validate.go` restates `required,min=1,sysctl_key` today. The
-generic handler validates the behavior's input type after the path is bound,
+is why `node/sysctl/validate.go` restates `required,min=1,sysctl_key` today. A
+behavior's generated decoder validates the input type after the path is bound,
 which removes the restatement rather than generating it.
 
 **The SDK's types change, and the orchestrator pins a commit.** SDK methods
@@ -238,6 +246,13 @@ Docs for the platform's own commands. `start`, `token`, `agent` and the
 controller-only `client` commands keep hand-written pages until they move onto
 the same registry. Generating the SDK reference from behaviors is possible the
 same way and is not part of this plan.
+
+Behaviors from outside osapi. Every behavior is a package under `internal/`,
+registered by a line in `internal/behaviors/all`, so an outside author's
+behavior is a pull request here. A behavior from another module compiled into a
+custom build, the way swamp extensions are published, would need a public
+extension API designed for it, not today's internals made public. That is a
+decision of its own, not made here.
 
 An MCP server. The registry makes one cheap to write, but CLI help and
 `behavior get` are enough for an agent, and a second interface is a second thing

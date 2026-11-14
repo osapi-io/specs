@@ -53,9 +53,10 @@ combined file is invisible to the SDK however complete its own specification
 is**. It fails silently too, because nothing reports a domain that simply is not
 there.
 
-Everything else is convention, and the nine-step procedure is in osapi's
-`docs/docs/sidebar/development/adding-an-api-domain.md`, which belongs beside
-the code rather than here.
+Everything else is convention. A new area of a host is now a
+[behavior](behaviors.md) rather than a hand-written domain, and osapi's
+`docs/docs/sidebar/development/your-first-behavior.md` builds one from scratch;
+this page stays for the domains that have not moved yet.
 
 ## Validation
 
