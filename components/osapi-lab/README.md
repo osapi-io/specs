@@ -17,7 +17,8 @@ them.
    ┌──────────────────────────┐           ┌──────────────────────────────┐
    │ osapi nats server :4222  │◄──────────│ uv run ansible-playbook      │
    │ osapi controller  :8080  │ Tailscale │ osapi client, agent (macos)  │
-   └────────────▲─────────────┘           └──────────────────────────────┘
+   │ jaeger (docker)   :4317  │           └──────────────────────────────┘
+   └────────────▲─────────────┘
                 │ vmnet, the subnet's .1
      ┌──────────┼───────────┐
  ubuntu-1    debian-1    fedora-1        Tart VMs, one agent each
@@ -28,6 +29,11 @@ and each VM as a launchd agent of its own running `tart run`, so the fleet comes
 back when the hub reboots. Each VM runs `osapi-agent` under systemd. Agents dial
 out to NATS, so nothing needs a route into a VM: a VM reaches the hub at its
 vmnet subnet's `.1`, and a remote machine reaches it by its tailnet name.
+
+Every process sends its traces to Jaeger on the hub, over OTLP gRPC on 4317: the
+controller to `127.0.0.1`, a VM's agent to the subnet's `.1`, a remote agent to
+the tailnet name. One collector, because one trace runs from the controller
+through NATS to an agent. The UI listens on `127.0.0.1:16686` on the hub only.
 
 Ansible runs on your machine, not on the hub. It reaches the hub over SSH and
 each VM by jumping through the hub, so the hub needs no checkout of this
@@ -44,7 +50,7 @@ ansible/
   roles/
     build                   compiles the osapi checkout, on your machine
     secrets                 the lab's secrets and the VMs' SSH key, once
-    hub                     osapi's NATS server and controller on the hub
+    hub                     osapi's NATS server, controller and Jaeger on the hub
     lab_vm                  one of the lab's VMs, mapped onto tart_vm
     agent                   one VM's agent: config, IGNORE_LINUX, restart
     client                  the client config on your machine
