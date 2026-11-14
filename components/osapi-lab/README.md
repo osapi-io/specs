@@ -46,7 +46,8 @@ ansible/
   inventory.example.yml     committed: the shape of an inventory
   inventory.yml             gitignored: the hub, its tailnet name, the checkout
   group_vars/all.yml        committed: the VMs, a name and a base image each
-  playbooks/                site, push, secrets, hub, images, vms, agents, client
+  playbooks/                site, push, secrets, hub, images, vms, agents, client,
+                            teardown
   roles/
     build                   compiles the osapi checkout, on your machine
     secrets                 the lab's secrets and the VMs' SSH key, once
@@ -81,13 +82,23 @@ same reason osapi's agents never call `go build` directly: the version on the
 path is whatever somebody happened to install. The same module gives
 `ansible-lint`, `ansible-fmt` and `ansible-test`, which `just test` runs.
 
-| Recipe        | Playbook     | Does                                                  |
-| ------------- | ------------ | ----------------------------------------------------- |
-| `just list`   | `list.yml`   | Every VM, its image and its osapi build; changes none |
-| `just push`   | `push.yml`   | Rebuild the fleet from your osapi checkout            |
-| `just deploy` | `deploy.yml` | Copy your build into the hub and the running VMs      |
-| `just site`   | `site.yml`   | Everything, from nothing                              |
-| `just ssh vm` | `client.yml` | Refresh `.lab/ssh/config`, then `ssh -F` through it   |
+| Recipe          | Playbook       | Does                                                  |
+| --------------- | -------------- | ----------------------------------------------------- |
+| `just list`     | `list.yml`     | Every VM, its image and its osapi build; changes none |
+| `just push`     | `push.yml`     | Rebuild the fleet from your osapi checkout            |
+| `just deploy`   | `deploy.yml`   | Copy your build into the hub and the running VMs      |
+| `just site`     | `site.yml`     | Everything, from nothing                              |
+| `just ssh vm`   | `client.yml`   | Refresh `.lab/ssh/config`, then `ssh -F` through it   |
+| `just teardown` | `teardown.yml` | Remove the lab from the hub                           |
+
+`teardown` undoes `site` on the hub. It boots out every `io.osapi.lab.*` launchd
+agent and deletes its plist, deletes the `lab-*` VMs, removes the Jaeger
+container and the firewall entry for the osapi build, and deletes the hub's
+state directory. It keeps two things that are slow or impossible to make again:
+the `img-*` images the VMs clone from (`-e lab_teardown_images=true` deletes
+them), and this machine's `.lab`, which holds the NATS operator and its keys
+(`-e lab_teardown_local=true` deletes it). Deleting the operator means every
+issued credential stops working, so the next `site` makes a new one.
 
 `.lab/ssh/config` holds a `Host` per VM with its current address and a jump
 through the hub, so `ssh`, `scp` and `rsync` reach a VM with `-F`. It includes
