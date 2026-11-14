@@ -20,7 +20,7 @@ defer c.Close()
 
 What it adds over using the upstream library directly is the only part a
 consumer cannot read in NATS's own documentation. One `Client` holds the
-connection and the JetStream context together. Authentication reduces to three
+connection and the JetStream context together. Authentication reduces to four
 declared modes. Streams, consumers, key-value buckets and object stores get
 create-or-update helpers.
 
@@ -79,27 +79,34 @@ an extra to keep in step.
 
 ## Authentication
 
-Three modes, and each needs something different from a consumer.
+Four modes, and each needs something different from a consumer.
 
-| Mode           | Needs                                                |
-| -------------- | ---------------------------------------------------- |
-| `NoAuth`       | nothing                                              |
-| `UserPassAuth` | `Username` and `Password`                            |
-| `NKeyAuth`     | `NKeyFile`, the path to an Ed25519 private seed file |
+| Mode           | Needs                                                    |
+| -------------- | -------------------------------------------------------- |
+| `NoAuth`       | nothing                                                  |
+| `UserPassAuth` | `Username` and `Password`                                |
+| `NKeyAuth`     | `NKeyFile`, the path to an Ed25519 private seed file     |
+| `CredsAuth`    | `CredsFile`, a credentials file: a user JWT and its seed |
 
 `AuthType` and `AuthOptions` in `types.go` declare them. A mode that needs a
 field and does not get it fails at connect time rather than at construction.
+
+`CredsAuth` is how a client joins a NATS server in operator (decentralized JWT)
+mode, where each user's JWT carries its permissions and expiry and a new user
+needs no change on the server. `nats.UserCredentials` reads the file on every
+connect, so `Connect` checks the file exists first and reports a missing one as
+`failed to read creds file` rather than as the server's authorization error.
 
 ## What happens when the connection drops
 
 Whatever the upstream library does by default.
 
 `Connect` passes exactly three options through: `nats.Name`, and then
-`nats.UserInfo` or `nats.Nkey` depending on the mode. It sets no reconnection
-options, and it registers no disconnect, reconnect or closed handler. So the
-upstream default governs reconnection entirely, and **a consumer is never
-notified when a drop or a recovery happens**, because there is no callback to
-receive it.
+`nats.UserInfo`, `nats.Nkey` or `nats.UserCredentials` depending on the mode. It
+sets no reconnection options, and it registers no disconnect, reconnect or
+closed handler. So the upstream default governs reconnection entirely, and **a
+consumer is never notified when a drop or a recovery happens**, because there is
+no callback to receive it.
 
 Resilience is not configurable through this wrapper's `Options`. A consumer who
 needs different behaviour has to change this package.
