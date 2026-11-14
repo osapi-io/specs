@@ -289,8 +289,9 @@ grep -ilE 'upsert' CONTRIBUTING.md                          # was not
 [templates/CONTRIBUTING.md](templates/CONTRIBUTING.md) holds the sections that
 every repository's `CONTRIBUTING.md` shares, with their headings, their order
 and their text. A repository copies them and puts its own sections between them.
-It does not rename, move or remove a shared section. specs is the one exception:
-it has no code, so its `CONTRIBUTING.md` has its own shape.
+It does not rename, move or remove a shared section. A paragraph that the
+template marks as optional stays only where its condition is true. specs is the
+one exception: it has no code, so its `CONTRIBUTING.md` has its own shape.
 
 Every repository has these sections: Before you start, Prerequisites with Coding
 agents, Before you commit, Branches, Commit messages, Submit a pull request, AI
