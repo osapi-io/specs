@@ -41,8 +41,8 @@ mise install
 ### Coding agents
 
 This repository works with any coding agent that reads `AGENTS.md`. `CLAUDE.md`
-only points to `AGENTS.md`. Set up your agent the way its own documentation
-tells you to. This repository does not need a plugin or an extension.
+only points to `AGENTS.md`. Prepare your agent as its documentation tells you.
+This repository does not need a plugin or an extension.
 
 <!-- Keep the next paragraph only in a repository that has .claude/skills. -->
 
