@@ -283,3 +283,29 @@ cd ~/git/osapi-io/osapi
 grep -ilE 'consistent across all layers' CONTRIBUTING.md   # stated
 grep -ilE 'upsert' CONTRIBUTING.md                          # was not
 ```
+
+### Every CONTRIBUTING.md has one shape
+
+[templates/CONTRIBUTING.md](templates/CONTRIBUTING.md) holds the sections that
+every repository's `CONTRIBUTING.md` shares, with their headings, their order
+and their text. A repository copies them and puts its own sections between them.
+It does not rename, move or remove a shared section. specs is the one exception:
+it has no code, so its `CONTRIBUTING.md` has its own shape.
+
+Every repository has these sections: Before you start, Prerequisites with Coding
+agents, Before you commit, Branches, Commit messages, Submit a pull request, AI
+usage and FAQ. The Go repositories also have Setup, Project structure, Code
+style with Documentation, Code standards with its five subsections, and Tests
+with Test file conventions.
+
+A change to a shared section starts in the template. The same work then changes
+each repository and the `swamp-golang-starter` template, which copies this one.
+A convention that is different in each repository is a convention that nobody
+can trust.
+
+```sh
+cd ~/git/osapi-io
+for r in */; do
+  [ -f "$r/CONTRIBUTING.md" ] && echo "$r $(grep -cE '^##+ ' "$r/CONTRIBUTING.md")"
+done
+```
