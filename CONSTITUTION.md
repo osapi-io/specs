@@ -304,8 +304,8 @@ A convention that is different in each repository is a convention that nobody
 can trust.
 
 [templates/AGENTS.md](templates/AGENTS.md) does the same for `AGENTS.md`: the
-summary line, the introduction, Running tools, Where the rules come from, Commit
-trailer and Task tracking. specs has its own `AGENTS.md`, for the same reason.
+summary line, the introduction, Run tools, Where the rules come from, Commit
+trailer and Design pages. specs has its own `AGENTS.md`, for the same reason.
 
 ```sh
 cd ~/git/osapi-io

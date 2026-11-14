@@ -6,13 +6,16 @@ Test: `just test` | Before you commit: `just ready`
 CONSTITUTION.md says how a repository uses them. A repository puts its own
 sections between these. It does not rename, move or remove one. -->
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) first. It gives the prerequisites, the
-setup, the code style, the test conventions and the pull request workflow. These
-rules apply to agents and to people. This file has only the rules that are
-specific to agents. They apply to each coding agent, for example Claude Code and
-Codex.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first. It gives:
 
-## Running tools
+- the prerequisites and the setup
+- the code style and the test conventions
+- the pull request workflow
+
+These rules apply to agents and to people. This file has only the rules that are
+specific to agents. They apply to each coding agent.
+
+## Run tools
 
 Run tools through `mise`, not from your path:
 
@@ -37,18 +40,10 @@ not agree. Do not use the code to decide.
 
 ## Commit trailer
 
-When an agent commits, end the message with the trailer of its tool. A commit
-from Claude Code ends with this text:
+When an agent writes a commit, end the commit message with a trailer that names
+the agent. Use the trailer that the documentation of the agent gives.
 
-```
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-
-Another agent uses the trailer of its own tool, and the trailer names that tool.
-
-## Task tracking
+## Design pages
 
 **The design is in the design pages.** Write or change the page in
 [osapi-io/specs](https://github.com/osapi-io/specs) before you build. If the
