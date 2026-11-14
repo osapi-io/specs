@@ -212,12 +212,15 @@ three things to begin with.
 
 Every page in every repository in this organization is written in Simplified
 Technical English (ASD-STE100): one word for one thing, short sentences, the
-active voice, commands for steps. That covers each README, CONTRIBUTING, the
-documentation site, and the skills a binary ships. A reader whose first language
-is not English reads the page one way, and an agent that writes the next page
-has one style to match. The rule is stated here and nowhere else; a repository's
-own files do not repeat it. [ste-100](.claude/skills/ste-100/SKILL.md) holds the
-rules and checks a page against them.
+active voice, commands for steps. That covers the pages a repository writes and
+maintains: each README, CONTRIBUTING and AGENTS, the documentation site, and the
+skills a binary ships. Text adopted from elsewhere, the license, the code of
+conduct and the AI policy, stays as it was adopted. A reader whose first
+language is not English reads the page one way, and an agent that writes the
+next page has one style to match. The rule is stated here and nowhere else; a
+repository's own files do not repeat it.
+[ste-100](.claude/skills/ste-100/SKILL.md) holds the rules and checks a page
+against them.
 
 Text a generator writes follows the rule through its source: the definition, the
 comment or the template it is written from. Command names, flags, code and
