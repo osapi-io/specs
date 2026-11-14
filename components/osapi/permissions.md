@@ -24,6 +24,13 @@ endpoint does to it, and it is not always `read` or `write`: `command:execute`,
 `command:shell` and `docker:execute` exist because running something is not the
 same as changing something, and a role can be given one without the other.
 
+A [behavior](behaviors.md) does not declare permissions. Each method's is
+derived from the definition: the top-level group, or the behavior's own name
+when it has none, and `read` or `write` from whether the method is a `Read` or a
+`Write`. sysctl's `get` needs `sysctl:read`; dns under `network` would need
+`network:read`, the same as it does today. `osapi behavior get --name <name>`
+lists them.
+
 `client.Permission` in the SDK is the type, so the permission set is part of
 osapi's public API rather than an internal detail. A consumer can name the
 permission it needs.
@@ -105,25 +112,37 @@ var RoleHierarchy = map[string][]string{
 This is about **scopes on the token**, used by `GenerateAllowedRoles` when
 issuing one. It is not the permission resolution above, and the two are easy to
 confuse because both are maps keyed by role name. Permissions come from
-`DefaultRolePermissions`; this decides what a token may claim.
+`RolePermissions(role)`; this decides what a token may claim.
 
 ## Adding a permission
 
-Four places, and missing any one of them is a different failure.
+A behavior's permissions are added by registering the behavior, and nothing
+else. `AllPermissions()` and `RolePermissions(role)` in
+`internal/authtoken/permissions.go` are built on each call from the hand-written
+lists plus every registered behavior's methods: `<name>:read` and
+`<name>:write`, or the group's. `admin` and `write` get both, `read` the read.
+They are built per call rather than once because behaviors register in their own
+packages' `init`, which can run after `authtoken`'s. `osapi token roles` prints
+the result, behaviors included.
+
+A hand-written domain's permission still goes in four places, and missing any
+one of them is a different failure.
 
 | Add it to                         | Or else                      |
 | --------------------------------- | ---------------------------- |
 | the permission constants          | it does not exist            |
-| `AllPermissions`                  | it is not a known permission |
-| `DefaultRolePermissions`          | **it reaches nobody**        |
+| `builtinPermissions`              | it is not a known permission |
+| `builtinRolePermissions`          | **it reaches nobody**        |
 | the SDK's `client.Permission` set | a consumer cannot name it    |
 
 The third is the silent one. A permission that exists in the OpenAPI
 specification, is checked by a handler, and appears in no role is a permission
 no token can ever have, so the endpoint is unreachable and nothing reports it.
 
-The roles tables on the published site need it too, because that is where an
-operator configuring a custom role will look.
+An operator configuring a custom role looks for the list of permissions. The
+published site's authentication page used to carry it as a table, kept by hand;
+it now points at `osapi token roles`, which prints the list from the binary and
+cannot fall behind it.
 
 **Choose by blast radius, not by endpoint group.** Two operations that differ in
 how much damage they can do want two permissions however similar their shape.

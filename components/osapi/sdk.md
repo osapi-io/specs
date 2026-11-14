@@ -114,6 +114,26 @@ collection returns `Response[Collection[T]]` rather than `Response[[]T]`, which
 is the same reason stated for the shape a broadcast returns in
 [building a domain](domains.md).
 
+## The SDK knows routes, not behaviors
+
+The SDK talks to the HTTP API, so what it needs is the spec, never a
+[behavior](behaviors.md)'s Go definition, and `pkg/sdk` imports nothing from
+`internal/`. A route the SDK has no typed method for is reached with one generic
+call:
+
+```go
+resp, err := c.Request(ctx, http.MethodGet, "/api/next/node/_all/sysctl/vm.swappiness", nil)
+```
+
+It returns the body as the API sent it, with an answer outside 2xx as the same
+error types every typed method returns. osapi's own generated commands call it,
+through the CLI runtime that builds a behavior's path from its definition.
+
+Until a behavior's cutover, its routes have no typed SDK method. After it, its
+spec joins the main one, so oapi-codegen's generated client covers it like any
+other domain, and the typed services above can be generated from the spec rather
+than written by hand.
+
 ## The rest of the conventions
 
 **Type exposure, JSON tags on result fields, and error wrapping** are stated

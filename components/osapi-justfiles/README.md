@@ -3,7 +3,7 @@
 `osapi-justfiles` is a library of shared `just` recipes. No Go, no tool, no
 service. Its only executable content is recipes and the shell they invoke, and
 it exists so a convention binding several repositories is written once instead
-of seven times.
+of eight times.
 
 Five modules, 38 recipes, 20 override variables.
 
@@ -17,7 +17,7 @@ Five modules, 38 recipes, 20 override variables.
 
 ## Where it sits
 
-It depends on no other repository in the organization, and seven depend on it.
+It depends on no other repository in the organization, and eight depend on it.
 It is the only node in the dependency graph with no outgoing edge, which makes a
 change here the widest change available in the organization: it reaches every
 consumer's next continuous integration run with no release, no tag and no review
@@ -31,9 +31,10 @@ in the consuming repository.
 | `nats-server`        |       3 | `go`, `just`, `md`                     |
 | `osapi-orchestrator` |       3 | `go`, `just`, `md`                     |
 | `specs`              |       2 | `just`, `md`, having no Go and no site |
+| `osapi-lab`          |       2 | `just`, `md`, having no Go and no site |
 | `osapi-justfiles`    |       1 | `md`, from itself                      |
 
-So `md` reaches all seven, `just` six, `go` five, and `react` and `docusaurus`
+So `md` reaches all eight, `just` seven, `go` five, and `react` and `docusaurus`
 one each. **`md` is the widest change available**, and `specs`, whose
 `just test` gates every change to these docs, is downstream of it.
 

@@ -36,6 +36,14 @@ If it reads like an academic paper, rewrite it. If it reads like documentation
 for beginners, rewrite it. If it reads like something trying to sound technical,
 rewrite it.
 
+## Sentences follow STE
+
+Each sentence follows ASD-STE100 Simplified Technical English: one word for
+one thing, short sentences, the active voice, commands for steps. The
+[ste-100 skill](../../ste-100/SKILL.md) holds the rules. This page decides what
+a document says; STE decides how each sentence says it, and wins where they
+disagree on a sentence.
+
 ## The unslop pass is required
 
 After writing, run the whole document through `unslop`. It is an editing pass,
