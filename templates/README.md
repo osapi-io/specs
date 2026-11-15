@@ -1,6 +1,6 @@
-<!-- The README of a Go library, the most common kind in osapi-io.
-CONSTITUTION.md has the headings of each other kind (product, tooling,
-organization) and the emoji index. Add your own headings after Features and
+<!-- The README of a Go component, the most common kind in osapi-io.
+CONSTITUTION.md has the headings of each other kind (the product, the other
+components, the repositories of the organization) and the emoji index. Add your own headings after Features and
 before Contributing. Usage is optional. -->
 
 <p align="center">
