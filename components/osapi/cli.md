@@ -271,6 +271,10 @@ color, made commands look like they were at different levels.
 
 ### Color
 
+The web UI uses the same palette.
+[Color in the UI](ui.md#color-one-palette-with-the-cli) tells how it maps these
+tiers to its tokens. A change to a color changes both.
+
 There are four tiers. Nothing outside them gets a color:
 
 | Tier   | Color                                          | Only for                                                                      |
