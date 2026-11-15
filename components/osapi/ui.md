@@ -61,6 +61,24 @@ claim to decide what to show. The server verifies the token on each request.
 A contributor who reads only the client can think that the decode is a check. It
 is not a check. When the UI hides something, that does not protect it.
 
+The sign-in page refuses two kinds of token before it keeps one.
+`checkTokenFormat` in `ui/src/lib/token-format.ts` refuses a token that has
+whitespace, a character outside base64url, or a number of parts that is not
+three. The page does not remove the bad character. A token that the terminal
+wrapped gets a space at the line break, and `atob` ignores that space. The
+server does not ignore it, and it returns 401 to each request. Thus the page
+tells the person to copy the token again.
+
+Then the page sends one request, `GET /api/health/status`, with the new token. A
+401 means that the server refused the token, for example because a different
+signing key made it. The page shows the reason from the server and does not keep
+the token. Any other status means that the server accepted the token, and the
+page keeps it. This is the verification of the server, not of the UI. The server
+still checks each request after sign-in.
+
+A token in `localStorage` from an earlier session gets no check. If the server
+refuses it, each page shows an error until the person signs out.
+
 The permission model of the UI is the model of osapi. There is not a second
 model. The roles claim uses the same 37 permissions and three roles that the API
 checks. [Permissions](permissions.md) describes them. The published site also
