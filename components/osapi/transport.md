@@ -7,7 +7,7 @@ These are all subjects and buckets on one bus:
 - the registration and facts that [agent identity](agent-identity.md) uses
 - the [audit trail](audit.md)
 
-**osapi runs the bus itself.** `bus.NewServer` in `internal/bus/server.go`
+**osapi runs the bus itself.** `server.New` in `internal/bus/server/server.go`
 starts a NATS server as a goroutine in the process of the controller, through
 [nats-server](../nats-server/README.md). It then connects to it through
 [nats-client](../nats-client/README.md). The two wrappers are separate
@@ -15,8 +15,8 @@ repositories, and neither knows that the other exists. osapi is where they come
 together.
 
 Thus there is no broker to install or operate. The cost: the bus stops when the
-process that has it stops. `bus.NewServer` returns an error if the server does
-not start, or if it cannot configure JetStream, and the start command calls
+process that has it stops. `server.New` returns an error if the server does not
+start, or if it cannot configure JetStream, and the start command calls
 `LogFatal`. Thus a controller that cannot start a bus does not start in a
 degraded state.
 
@@ -164,6 +164,6 @@ and the auth mode come from.
 
 ______________________________________________________________________
 
-Written from `internal/bus/server.go`, `internal/bus/setup.go`,
+Written from `internal/bus/server/server.go`, `internal/bus/setup.go`,
 `cmd/nats_setup.go`, `internal/bus/bus.go`, `internal/job/subjects.go`,
 `internal/job/config.go` and `internal/job/types.go`.
