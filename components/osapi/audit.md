@@ -11,7 +11,7 @@ An entry has thirteen fields. The table below has twelve rows, because `method`
 and `path` describe one thing.
 
 ```sh
-awk '/^type Entry struct/,/^}/' internal/audit/types.go | grep -cE '^\t[A-Z]'  # 13
+awk '/^type Entry struct/,/^}/' internal/audit/types.go | grep -cE '^[[:blank:]][A-Z]'  # 13
 ```
 
 | Field             | Is                                                     |
@@ -57,7 +57,7 @@ stdin       content         authorization
 There are eleven names.
 
 ```sh
-awk '/^var sensitiveFields/,/^}/' internal/audit/summary.go | grep -cE '^\t"'  # 11
+awk '/^var sensitiveFields/,/^}/' internal/audit/summary.go | grep -cE '^[[:blank:]]"'  # 11
 ```
 
 `stdin` and `content` connect to other parts. [Running commands](exec.md) uses

@@ -81,8 +81,10 @@ rules first:
 - State a fact one time. Link to it from each other location that needs it.
 - When there was a tradeoff, say what it was.
 
-`just test` enforces the first three rules. You must obey the fourth rule
-yourself.
+`just test` checks the counts, and that each link works. It also fails on the
+signs of a bad page that a script can find: an em dash, "MUST", a requirement
+identifier, a user story. The skills check the voice and the STE. You must obey
+the last two rules yourself.
 
 ## Before you commit
 
@@ -90,9 +92,9 @@ yourself.
 just test
 ```
 
-That command checks the markdown format, the justfile lint, the skills, each
-count against its command, and the documentation contract. `just md-fmt` fixes
-the format.
+That command checks the markdown format, the justfile lint, the skills, the
+links and anchors, each count against its command, and the documentation
+contract. `just md-fmt` fixes the format.
 
 [mdformat] changes two things and does not tell you. Thus write them correctly
 the first time:

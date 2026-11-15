@@ -4,12 +4,12 @@
 combined OpenAPI specification, and hand-written services wrap it. It is the
 contract that [osapi-orchestrator](../osapi-orchestrator/README.md) depends on.
 
-It has 31 services and 117 exported methods. The `Client` struct has one field
+It has 31 services and 118 exported methods. The `Client` struct has one field
 for each service.
 
 ```sh
 grep -hcE '^type [A-Za-z]+Service struct' pkg/sdk/client/*.go | paste -sd+ - | bc  # 31
-grep -hE '^func \(s \*[A-Za-z]+Service\)' pkg/sdk/client/*.go | wc -l            # 117
+grep -hE '^func \(s \*[A-Za-z]+Service\)' pkg/sdk/client/*.go | wc -l            # 118
 ```
 
 ## What a service owes
@@ -28,8 +28,8 @@ A service needs five things. A domain is not complete until all five exist.
 
 There are five rules. They **come from the methods that already exist**. Nobody
 invented them, because nobody wrote a convention before. The document that found
-them said 110 methods. The count is 117. The rules come from the full set in the
-two cases.
+them said 110 methods. The count is now 118. The rules come from the full set in
+each case.
 
 **1. The five CRUD verbs are exactly `List`, `Get`, `Create`, `Update`,
 `Delete`.** For the resource of the service, never use `GetAll`, `Fetch`, `Set`,

@@ -146,7 +146,7 @@ tests.
 
 ```sh
 ls -d pkg/gohai/collectors/*/ | wc -l                                  # 62
-grep -cE '^\tCategory[A-Za-z]+ +=' internal/collector/collector.go      # 10
+grep -cE '^[[:blank:]]Category[A-Za-z]+ +=' internal/collector/collector.go      # 10
 ```
 
 ## Known limitations

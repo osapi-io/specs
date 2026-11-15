@@ -42,7 +42,7 @@ There are three metrics. They are about liveness, not about work:
 | `osapi_heartbeat_age_seconds` | how long since an agent last checked in         |
 
 ```sh
-grep -rhoE 'osapi_[a-z_]+_(up|seconds)' --include='*.go' internal/ | sort -u | wc -l   # 3
+grep -rhoE 'osapi_[a-z_]+_(up|seconds)' --include='*.go' internal/ | grep -v '^osapi_behavior_' | sort -u | wc -l   # 3
 ```
 
 No metric counts jobs or measures the queue depth. If you need that now, read it
