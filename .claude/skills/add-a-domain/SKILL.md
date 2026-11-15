@@ -86,7 +86,7 @@ agent       internal/agent/processor_{domain}.go      dispatch to the provider
 api         internal/controller/api/node/{domain}/gen/  api.yaml, cfg.yaml, generate.go
             internal/controller/api/node/{domain}/    types.go, {domain}.go, handler.go,
                                                       one file per endpoint, tests
-            cmd/controller_setup.go                   one Handler(...) line
+            internal/controller/handlers.go           one Handler(...) line
 sdk         pkg/sdk/client/{domain}.go                service methods
             pkg/sdk/client/{domain}_types.go          result types, gen -> SDK conversion
             pkg/sdk/client/osapi.go                   Client field, wired in New()
