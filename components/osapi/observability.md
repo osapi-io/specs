@@ -95,10 +95,14 @@ viewer, for example Jaeger. osapi does not run that viewer. It only sends spans
 to `otlp_endpoint`. The URL lets a person go from the health output to the
 traces.
 
-The controller puts its own sub-components in the response. An agent and the
-NATS server send theirs in the heartbeat, in `job.SubComponentInfo`. That struct
-gets `url` with `omitempty`. An agent of an older version sends no `url`, and
-the controller shows only its `address`.
+Each process sends its sub-components in its heartbeat, in
+`job.SubComponentInfo`: the controller from `internal/controller/heartbeat.go`,
+an agent and the NATS server from theirs. The health handler also gets the
+sub-components of the controller from `internal/controller/handlers.go`, as
+`health.SubComponentInfo`. An entry from the registry replaces an entry of the
+same name, thus the heartbeat is the copy that a person sees. Both structs get
+`url` with `omitempty`. An agent of an older version sends no `url`, and the
+controller shows only its `address`.
 
 `displayComponentTable` in `cmd/client_health_status.go` prints the
 sub-components for `osapi client health status`, and for the `status` command of
