@@ -311,6 +311,62 @@ grep -ilE 'consistent across all layers' CONTRIBUTING.md   # stated
 grep -ilE 'upsert' CONTRIBUTING.md                          # was not
 ```
 
+### Every README has the shape of its kind
+
+A README has the headings of its kind, in this order. The kinds are the ones
+that [ARCHITECTURE.md](ARCHITECTURE.md) uses: the product, the components, and
+the repositories of the organization. A repository can add its own headings
+after Features, or after Usage where there is no Features, and before
+Contributing. Collectors in gohai and Targeting in osapi-orchestrator are
+examples. [templates/README.md](templates/README.md) has the shape of a Go
+component, the most common kind.
+
+| Kind                 | Repositories                                        | Headings                                                                                                                             |
+| -------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| The product          | osapi                                               | Features, What you can ask, Where it goes next, Alternatives, Getting started, Documentation, Sister projects, Contributing, License |
+| A Go component       | gohai, nats-client, nats-server, osapi-orchestrator | Install, Features, Usage (optional), Examples, Documentation, Contributing, License                                                  |
+| Another component    | osapi-justfiles, osapi-lab                          | Usage, Documentation (optional), Contributing, License                                                                               |
+| An organization repo | specs, .github                                      | Usage, its own headings, Contributing (where it has one), License                                                                    |
+
+Each `##` heading starts with one emoji from this index. The same heading always
+has the same emoji:
+
+| Heading                 | Emoji |
+| ----------------------- | ----- |
+| Install                 | 📦    |
+| Features                | ✨    |
+| Usage, Getting started  | 🚀    |
+| Examples                | 🧪    |
+| Documentation           | 📚    |
+| What you can ask        | 💬    |
+| Where it goes next      | 🧭    |
+| Alternatives            | ⚖️    |
+| Sister projects         | 🧩    |
+| Related works           | 🔗    |
+| Collectors              | 🧰    |
+| Targeting               | 🎯    |
+| Operations              | ⚙️    |
+| Skills                  | 🤖    |
+| Doc-driven development  | 📝    |
+| The design docs         | 🗂️    |
+| Change the profile page | ✏️    |
+| Contributing            | 🤝    |
+| License                 | 📄    |
+
+A new heading gets an emoji in this table before a README uses it. A new
+repository gets a kind in the first table, and the same kind in ARCHITECTURE.md.
+
+Emojis go only on `##` headings, and in the items of a Features list. Do not put
+them in other headings or in body text. Use bold rarely, and never as the label
+at the start of each item of a list.
+
+```sh
+cd ~/git/osapi-io
+for r in */; do
+  [ -f "$r/README.md" ] && echo "$r $(grep -E '^## ' "$r/README.md" | tr '\n' '|')"
+done
+```
+
 ### Every CONTRIBUTING.md has one shape
 
 [templates/CONTRIBUTING.md](templates/CONTRIBUTING.md) has the sections that the
