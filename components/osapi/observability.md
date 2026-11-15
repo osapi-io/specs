@@ -49,6 +49,72 @@ No metric counts jobs or measures the queue depth. If you need that now, read it
 from the job status events in `job-queue`. Know about this gap before you plan a
 dashboard.
 
+## A sub-component has an address and a URL
+
+The health response lists the sub-components of each component, for example
+`controller.api`, `agent.metrics` and `nats.server`. Each sub-component can have
+two endpoints:
+
+| Field     | Is                                       | Comes from                |
+| --------- | ---------------------------------------- | ------------------------- |
+| `address` | the endpoint that the process listens on | the listen host and port  |
+| `url`     | the location where a person opens it     | a `url` key in the config |
+
+No code reads `address` to connect. A process connects through its own config:
+the CLI uses `controller.client.url`, and the exporter uses
+`telemetry.tracing.otlp_endpoint`. Thus `address` shows the bind address, and on
+a host that listens on all interfaces it is `0.0.0.0`. A person cannot open that
+address.
+
+osapi does not calculate `url`. Only the operator knows the path from a person
+to the process: a tailnet name, a reverse proxy or an SSH tunnel. Thus `url`
+comes only from the config. When the key is empty, the response does not include
+`url`, and the output is the same as before. osapi checks that each `url` is an
+absolute `http` or `https` URL when it loads the config. It does not send a
+request to the URL.
+
+| Sub-component        | `address` from                         | `url` from                |
+| -------------------- | -------------------------------------- | ------------------------- |
+| `controller.api`     | `controller.api.host` and `.port`      | `controller.api.url`      |
+| `controller.ui`      | `controller.api.host` and `.port`      | `controller.ui.url`       |
+| `controller.metrics` | `controller.metrics.host` and `.port`  | `controller.metrics.url`  |
+| `controller.tracing` | none                                   | `telemetry.tracing.url`   |
+| `agent.metrics`      | `agent.metrics.host` and `.port`       | `agent.metrics.url`       |
+| `nats.server`        | `nats.server.host` and `.port`         | `nats.server.url`         |
+| `nats.metrics`       | `nats.server.metrics.host` and `.port` | `nats.server.metrics.url` |
+
+Each listener that osapi starts has a `host` key for its bind address. The API
+got `controller.api.host` with the `url` field. Before that, the API listened on
+all interfaces, and the health response showed `0.0.0.0` as a fixed string. An
+empty `controller.api.host` keeps that behavior. The UI uses the listener of the
+API. Thus you cannot bind the UI to `127.0.0.1` and the API to all interfaces.
+Set the two together.
+
+`telemetry.tracing.url` is different from the other keys. It points to the trace
+viewer, for example Jaeger. osapi does not run that viewer. It only sends spans
+to `otlp_endpoint`. The URL lets a person go from the health output to the
+traces.
+
+The controller puts its own sub-components in the response. An agent and the
+NATS server send theirs in the heartbeat, in `job.SubComponentInfo`. That struct
+gets `url` with `omitempty`. An agent of an older version sends no `url`, and
+the controller shows only its `address`.
+
+`displayComponentTable` in `cmd/client_health_status.go` prints the
+sub-components for `osapi client health status`, and for the `status` command of
+`agent`, `controller` and `nats`. It prints `url` after `address`. The address
+is dim and the URL is not, because a person opens the URL:
+
+```
+controller  hub  Ready
+  ├─ api      ok http://0.0.0.0:8080 http://hub.example.ts.net:8080
+  ├─ tracing  ok http://hub.example.ts.net:16686
+  └─ ui       ok http://0.0.0.0:8080 http://hub.example.ts.net:8080
+```
+
+The web UI does not show `url` yet. The field is in the API, thus a page of
+links is a change to the UI only.
+
 ## Behaviors measure their own work
 
 A [behavior](behaviors.md) gets telemetry, and you write no telemetry code.
