@@ -311,11 +311,20 @@ grep -ilE 'consistent across all layers' CONTRIBUTING.md   # stated
 grep -ilE 'upsert' CONTRIBUTING.md                          # was not
 ```
 
-### Every README has one shape
+### Every README has the shape of its kind
 
-[templates/README.md](templates/README.md) has the headings that the README of
-each repository uses, in their order. A repository uses the headings that apply
-to it. It can add its own heading between them.
+A README has the headings of its kind, in this order. A repository can add its
+own headings after Features, or after Usage where there is no Features, and
+before Contributing. Collectors in gohai and Targeting in osapi-orchestrator are
+examples. [templates/README.md](templates/README.md) has the shape of a Go
+library, the most common kind.
+
+| Kind         | Repositories                                        | Headings                                                                                                                             |
+| ------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Product      | osapi                                               | Features, What you can ask, Where it goes next, Alternatives, Getting started, Documentation, Sister projects, Contributing, License |
+| Go library   | gohai, nats-client, nats-server, osapi-orchestrator | Install, Features, Usage (optional), Examples, Documentation, Contributing, License                                                  |
+| Tooling      | osapi-justfiles, osapi-lab                          | Usage, Documentation (optional), Contributing, License                                                                               |
+| Organization | specs, .github                                      | Usage, the own headings, Contributing (where it has one), License                                                                    |
 
 Each `##` heading starts with one emoji from this index. The same heading always
 has the same emoji:
@@ -342,21 +351,17 @@ has the same emoji:
 | Contributing            | 🤝    |
 | License                 | 📄    |
 
-A new heading gets a new emoji in this table before a README uses it. Thus each
-repository uses the same index.
+A new heading gets an emoji in this table before a README uses it. A new
+repository gets a kind in the first table.
 
 Emojis go only on `##` headings, and in the items of a Features list. Do not put
 them in other headings or in body text. Use bold rarely, and never as the label
 at the start of each item of a list.
 
-osapi is the product, so its README has more headings than a supporting
-repository: What you can ask, Where it goes next, Alternatives and Sister
-projects. The supporting repositories use the template as it is.
-
 ```sh
 cd ~/git/osapi-io
 for r in */; do
-  [ -f "$r/README.md" ] && echo "$r $(grep -cE '^## ' "$r/README.md")"
+  [ -f "$r/README.md" ] && echo "$r $(grep -E '^## ' "$r/README.md" | tr '\n' '|')"
 done
 ```
 

@@ -1,6 +1,7 @@
-<!-- The shared shape of each osapi-io README. CONSTITUTION.md says how a
-repository uses it. Copy the headings that apply, in this order. A repository
-can add its own heading between them, with an emoji from the index below. -->
+<!-- The README of a Go library, the most common kind in osapi-io.
+CONSTITUTION.md has the headings of each other kind (product, tooling,
+organization) and the emoji index. Add your own headings after Features and
+before Contributing. Usage is optional. -->
 
 <p align="center">
   <img src="asset/logo.png" alt="@@projectName@@" width="250">
