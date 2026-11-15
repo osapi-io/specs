@@ -111,8 +111,8 @@ shared recipe a build used.
 How one provider or domain works. There are 24 domains and 6 provider
 categories. The subject documents above have the contract that they share.
 
-The full command set of the CLI. That is 143 reference pages under `usage/cli`,
-where an operator reads them.
+The full command set of the CLI. osapi generates one reference page for each
+command under `usage/cli`, from the commands, where an operator reads them.
 
 The test conventions of osapi. They are in its own `CONTRIBUTING.md`.
 

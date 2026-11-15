@@ -30,14 +30,16 @@ pages you just wrote.
 
 ```
 docs/docs/sidebar/features/{domain}-management.md
-docs/docs/sidebar/usage/cli/client/node/{domain}/{domain}.md   landing, <DocCardList />
-docs/docs/sidebar/usage/cli/client/node/{domain}/{verb}.md     one per subcommand
 docs/docs/sidebar/sdk/client/{category}/{domain}.md            SDK service page
 ```
 
-People write CLI pages by hand. Nothing generates them. Each page shows a real
-call and its output, with the broadcast form. Copy the page shape of the
-reference domain.
+Do not write the CLI pages. `just cli-docs-generate` writes them under
+`docs/docs/sidebar/usage/cli/` from the commands: the `Short`, `Long`,
+`Example` and flags of each one. Give each command a `Short`, and an `Example`
+with one to three command lines and no output. Add a `Long` only when a person
+needs it to use the command safely. `just test` fails when a page does not agree
+with its command. The output of each command is on `usage/cli/output.md`, one
+time.
 
 The SDK page's title is the `Client` field name, for example `# Power`, not the
 Go

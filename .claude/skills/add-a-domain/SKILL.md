@@ -53,7 +53,7 @@ Never copy a domain's files wholesale. Read one, then write the new one.
 | Endpoints, validation, handler, broadcast, registration | [api.md](references/api.md) |
 | The Go SDK service consumers call | [sdk.md](references/sdk.md) |
 | `osapi client ...` commands | [cli.md](references/cli.md) |
-| Feature page, CLI pages, permission tables, navbars | [docs.md](references/docs.md) |
+| Feature page, generated CLI pages, permission tables, navbars | [docs.md](references/docs.md) |
 | A whole new domain, end to end | All six, in that order |
 
 ## 3. The order that avoids rework
@@ -68,7 +68,7 @@ must generate or write again.
 4. **Handler**, with validation and broadcast, then registration and startup.
 5. **SDK service**, which wraps the generated client.
 6. **CLI**, which wraps the SDK.
-7. **Docs and tables**, feature page, CLI pages, permissions, navbars.
+7. **Docs and tables**, feature page, `just cli-docs-generate`, permissions, navbars.
 
 A new permission is decided at step 3 and lands in step 7. Write it down when
 you choose it; it is the thing most often missed.
@@ -95,7 +95,7 @@ sdk         pkg/sdk/client/{domain}.go                service methods
 cli         cmd/client_node_{domain}.go               parent command
             cmd/client_node_{domain}_{op}.go          one per endpoint
 docs        docs/docs/sidebar/features/{domain}-management.md
-            docs/docs/sidebar/usage/cli/client/node/{domain}/*.md
+            (CLI pages)                               just cli-docs-generate writes them
             docs/docusaurus.config.ts                 features and SDK dropdowns
             features/features.md, features/authentication.md,
             usage/configuration.md                   permission tables
