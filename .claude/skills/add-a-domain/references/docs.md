@@ -37,7 +37,10 @@ Do not write the CLI pages. `just cli-docs-generate` writes them under
 `docs/docs/sidebar/usage/cli/` from the commands: the `Short`, `Long`,
 `Example` and flags of each one. Give each command a `Short`, and an `Example`
 with one to three command lines and no output. Add a `Long` only when a person
-needs it to use the command safely. `just test` fails when a page does not agree
+needs it to use the command safely. Put each other fact in its annotation from
+`internal/cli/reference`: `reference.Result` for when a write returns
+`changed: true` or `false` and when it fails, `reference.Permission` for the
+permission, and `reference.Notes` for more detail. `just test` fails when a page does not agree
 with its command. The output of each command is on `usage/cli/output.md`, one
 time.
 
