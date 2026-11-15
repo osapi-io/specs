@@ -70,7 +70,7 @@ ansible/
                             teardown
   roles/
     build                   compiles the osapi checkout, on your machine
-    secrets                 the lab's secrets and the VMs' SSH key, once
+    secrets                 the lab's secrets and the VMs' SSH key, kept, and the admin token, renewed
     hub                     osapi's NATS server, controller and Jaeger on the hub
     lab_vm                  one of the lab's VMs, mapped onto tart_vm
     agent                   one VM's agent: config, IGNORE_LINUX, restart
@@ -221,8 +221,22 @@ one on the first boot of each clone.
 
 **Secrets never go into an image or the repository.** The lab makes them one
 time on your machine, in `.lab/`. The hub and each VM get only their rendered
-config. The config of an agent has a temporary signing key, not the key of the
-hub, because osapi validates each key in the file for each command.
+config.
+
+The admin token is the exception to "one time". osapi signs a token for three
+months. Thus each run of the `secrets` role checks `.lab/secrets/token` with
+`osapi token validate` against the current signing key, and reads `exp` from the
+token. The role signs a new token when the token is missing, when the key
+refuses it, or when it expires within `secrets_token_renew_days`, 14 by default.
+A new token uses the same key, thus the hub needs no change. The CLI, the client
+of the hub and the web UI all send this token.
+
+Two configs hold the signing key of the hub: `hub.yaml`, which the controller
+verifies with, and `client.yaml` on your machine. Thus `osapi token generate` on
+your machine signs a token that the controller accepts. The config of an agent
+has a temporary signing key, because osapi validates each key in the file for
+each command. An agent never signs or verifies a token. Thus a VM holds no key
+that can sign an admin token.
 
 ## NATS in operator mode
 
