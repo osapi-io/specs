@@ -176,7 +176,9 @@ path. A domain that formats its own table looks different from the others.
 `cli.HandleError` unwraps an `APIError`, prints the status code and message as
 `✗ api error (403): …`, and exits with a value that is not zero. 120 of the
 commands call it. That is each command that can fail. `cli.LogFatal` does the
-same for a config that does not load, with the details in gray below it.
+same for each error that stops a command from starting, for example a config
+that does not load, with the details in gray below it. Only `cmd/` calls it.
+Code in `internal/` returns the error, and the command calls `LogFatal`.
 
 A command does not decide what an error means, and does not print its own
 message. The user sees the status code that the API declared.

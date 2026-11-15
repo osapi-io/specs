@@ -110,8 +110,7 @@ reference domain.
 mise exec -- just react-build            # populate ui/dist first, see below
 mise exec -- just generate               # specs, server, SDK client, docs
 mise exec -- just ready                  # generate, format, lint, build
-mise exec -- just test                   # lint, unit, coverage gate
-mise exec -- just docs-fmt-check   # the site formatter, see below
+mise exec -- just test                   # format checks, lint, unit, coverage gate
 ```
 
 The coverage gate is 99.9%. Thus a branch without tests fails the build, and
@@ -127,15 +126,17 @@ In a new clone or worktree, run `just react-build` before `just ready`. `ready`
 lints before it builds the UI. Thus the linter cannot import the embed package,
 and reports a `typecheck` error on a file that nobody touched.
 
-**`just ready` and `just test` do not check the documentation site.** `md-fmt`
-excludes `docs/`, because Prettier owns that tree through `just docs-fmt`. Thus
-a change to a feature page, a CLI page or the configuration reference passes the
-two gates, and still fails `Docusaurus Lint` in CI.
+**`just test` checks the format of the site and of the UI. `just ready` does
+not.** `md-fmt` formats only markdown, and excludes `docs/`. Prettier owns
+`docs/` and `ui/`. `just test` runs `docs-fmt-check` and `react-fmt-check` for
+them. Thus run `just test` before you push a change that touches `docs/` or
+`ui/`. A change to a domain always touches `docs/`, as
+[docs.md](references/docs.md) says.
 
-In September 2026, three merged security fixes left five pages unformatted in
-that way. main was red until osapi-io/osapi#512. Run `just docs-fmt-check` each
-time that the change touches `docs/`. [docs.md](references/docs.md) says that it
-always does.
+In September 2026, three merged security fixes left five pages unformatted,
+because the gate did not check the site then. main was red until
+osapi-io/osapi#512. In November 2026, three UI files merged unformatted in the
+same way, until osapi-io/osapi#721 added `react-fmt-check` to `just test`.
 
 ## Rules
 
