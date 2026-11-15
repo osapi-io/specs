@@ -375,8 +375,10 @@ These rules apply to each Go repository:
    make a package named `util`, `common`, `helpers` or `shared`. Such a name
    tells nothing, and code that is not related collects in it.
 2. **The name of a package is the last part of its path.** An exported name does
-   not repeat the name of its package. A caller reads `atomicfile.Write`, not
-   `atomicfile.WriteFileAtomic`.
+   not repeat the name of its package inside a longer name. A caller reads
+   `atomicfile.Write`, not `atomicfile.WriteFileAtomic`. The main type of a
+   package can have the name of the package, as `time.Time` and
+   `context.Context` do.
 3. **A caller does not need an alias.** If a file must import two packages that
    have the same name, rename one of the packages. An alias is a different name
    in each file that uses the package. Mock packages are the exception: each is
