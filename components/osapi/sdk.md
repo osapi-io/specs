@@ -4,12 +4,12 @@
 combined OpenAPI specification, and hand-written services wrap it. It is the
 contract that [osapi-orchestrator](../osapi-orchestrator/README.md) depends on.
 
-It has 31 services and 118 exported methods. The `Client` struct has one field
+It has 32 services and 119 exported methods. The `Client` struct has one field
 for each service.
 
 ```sh
-grep -hcE '^type [A-Za-z]+Service struct' pkg/sdk/client/*.go | paste -sd+ - | bc  # 31
-grep -hE '^func \(s \*[A-Za-z]+Service\)' pkg/sdk/client/*.go | wc -l            # 118
+grep -hcE '^type [A-Za-z]+Service struct' pkg/sdk/client/*.go | paste -sd+ - | bc  # 32
+grep -hE '^func \(s \*[A-Za-z]+Service\)' pkg/sdk/client/*.go | wc -l            # 119
 ```
 
 ## What a service owes
