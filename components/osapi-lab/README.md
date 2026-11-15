@@ -19,7 +19,7 @@ It has no Go and ships nothing. Its content is:
    ┌──────────────────────────┐           ┌──────────────────────────────┐
    │ osapi nats server :4222  │◄──────────│ uv run ansible-playbook      │
    │ osapi controller  :8080  │ Tailscale │ osapi client, agent (macos)  │
-   │ jaeger            :4317  │           └──────────────────────────────┘
+   │ jaeger     :4317, :16686 │           └──────────────────────────────┘
    └────────────▲─────────────┘
                 │ vmnet, the subnet's .1
      ┌──────────┼───────────┐
@@ -41,7 +41,20 @@ Each process sends its traces to Jaeger on the hub, over OTLP gRPC on 4317:
 - a remote agent to the tailnet name
 
 There is one collector, because one trace goes from the controller through NATS
-to an agent. The UI listens on `127.0.0.1:16686`, on the hub only.
+to an agent. The UI listens on `0.0.0.0:16686`, as the controller listens on
+`0.0.0.0:8080`. Thus you open both from a machine on the tailnet, at the tailnet
+name of the hub. The UI has no authentication. Each machine on the LAN and on
+the vmnet bridge can also read the traces. The lab accepts that, because the
+tailnet and the LAN have one user. A remote agent does not change this, because
+it only sends spans.
+
+The hub writes these locations into the `url` keys of its config:
+`controller.api.url`, `controller.ui.url` and `telemetry.tracing.url`. Thus
+`osapi client health status` shows a location that you can open, next to the
+bind address. [Observability](../osapi/observability.md) has the `url` field.
+The tailnet name comes from `lab_hub_addr` in `inventory.yml`, which git
+ignores. Set `lab_controller_url` or `lab_tracing_view_url` in the inventory to
+show a different location.
 
 Ansible runs on your machine, not on the hub. It gets to the hub over SSH, and
 to each VM through the hub. Thus the hub needs no checkout of this repository.
