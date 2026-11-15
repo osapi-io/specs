@@ -91,6 +91,14 @@ registers the rules of osapi first. Thus an incorrect value fails at startup,
 with a message that names the field. It does not fail later, when osapi first
 uses the value.
 
+Each bucket name and each namespace must be a name that NATS accepts for a
+bucket. The `nats_name` rule checks it. A namespace is in the rule because it
+becomes the prefix of each bucket name. Then `config.Validate` checks that no
+two settings name the same KV bucket, because each role keeps its own keys in
+its bucket. An empty bucket turns its role off, and the check skips it. The
+Object Store buckets are compared only with each other, because NATS keeps them
+in different streams from the KV buckets.
+
 [Building a domain](domains.md) describes the same validator for request input.
 Thus a custom rule that you register for one is also available to the other.
 

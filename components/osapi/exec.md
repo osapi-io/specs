@@ -78,10 +78,10 @@ it gets here later, and this package does not make it safe.
 
 The executor is an interface. Thus a provider gets an executor and does not
 import `os/exec`. You can then test a provider without a real command. You can
-also review how commands are built in one location, not in 218 provider files.
+also review how commands are built in one location, not in 221 provider files.
 
 ```sh
-find internal/provider -name '*.go' -not -name '*_test.go' | wc -l  # 218
+find internal/provider -name '*.go' -not -name '*_test.go' | wc -l  # 221
 ```
 
 A provider that starts a process directly loses these things:
