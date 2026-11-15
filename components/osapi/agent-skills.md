@@ -15,9 +15,10 @@ the code of osapi. It is described below.
 The files are under `internal/skills/resources/skills/`, with one directory for
 each skill. `internal/skills/resources.go` embeds them with
 `//go:embed resources/skills resources/dev-skills`. `go:embed` gets only files
-in the directory of its own package. That is why the package exists. The source
-of the skill is in the repository next to the code that it describes. Thus a
-release ships exactly the skill that matches it.
+in the directory of its own package. Thus the files are in `resources/` of the
+package that reads them. The osapi CONTRIBUTING states this rule for each
+embedded file. The source of the skill is in the repository next to the code
+that it describes. Thus a release ships exactly the skill that matches it.
 
 There are two skills, because different requests start them. `osapi` changes
 hosts through osapi. `osapi-operations` runs osapi itself. A request to start
