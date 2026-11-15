@@ -21,6 +21,64 @@ Work gets to a host through the queue, not through a call. Thus that context
 must go **with the job**, not down a stack. If a trace stops at the API, it
 shows a request that queued something, and nothing after it.
 
+### The span tree of a request
+
+Each request that sends a job makes this tree. A broadcast has one `job.process`
+for each agent:
+
+```text
+osapi-controller  GET /api/...                        otelecho, the root
+├─ job.publish                                        kind producer
+│  └─ osapi-agent  job.process                        one for each agent
+│     ├─ behavior.<name>.<method>                     a behavior only
+│     └─ exec <program>                               each command
+└─ job.collect                                        the wait for the answers
+```
+
+The controller starts the trace, and gives it back in the `traceresponse` header
+of each response (W3C Trace Context level 2). The CLI prints the trace ID at the
+end of the summary line, after the job ID, and the SDK gives it as
+`Response.TraceID()`. Thus the trace flows through the system that the CLI
+already talks to. The machine of the CLI needs no access to the tracing backend,
+which a company network often does not allow.
+
+A CLI with a tracing exporter opens a span for the command, and the trace starts
+there. A CLI without an exporter sends no trace context. If it sent the context
+of a span that it never exports, each trace would show a parent that never
+arrives.
+
+`job.process` is a child of `job.publish`, not of the request. The context that
+goes with the job is the context of `job.publish`, because that span sent the
+job. `job.collect` is a sibling of `job.publish`. Thus the time of the request
+is the time to publish, then the time to collect, and the agents are under the
+publish.
+
+These choices are deliberate:
+
+- **The agent span names the host.** `job.process` has `osapi.agent.hostname`,
+  `osapi.agent.machine_id` and `host.arch`. The agent resolved them before the
+  job, so a span looks up nothing. The resource of a span has only
+  `service.name` and `service.version`. A tracer resource detector would look up
+  the host again, and on a controller the host does not tell anything.
+- **A skipped host is not an error.** Its `job.process` has `job.status`
+  `skipped` and a `job.skipped` event. A failed job has the error status. A
+  timed-out agent is an event on `job.collect`, and is not an error of the
+  request.
+- **A command span has no arguments.** An argument can hold a secret. The span
+  has the program, `osapi.exec.sudo` and the exit code.
+- **The health endpoints and the files of the UI have no spans.** A probe and
+  the UI call them each few seconds, and their traces hide the traces of the
+  jobs.
+- **The startup ping of Docker has no span.** On a host without Docker, it is an
+  error with no request behind it.
+
+Two tests hold the tree at the one place where it crosses a process: the headers
+of the NATS message. The test in `internal/job/client` checks that `job.publish`
+and `job.collect` are under the request, and that the context that goes with the
+job is `job.publish`. The test in `internal/agent` gives a message with that
+context in its headers, and checks that `job.process` is a child of it, with the
+host and the status.
+
 `NewTraceHandler` wraps `slog`, so that a log line has its trace and span IDs.
 This connects a log to a trace without a separate correlation ID. For the same
 reason, an audit entry has `trace_id`. Thus you can join three records of the
