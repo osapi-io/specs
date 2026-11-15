@@ -67,7 +67,9 @@ def has_workflows(repo):
 def wait_checks(repo, n):
     """True when every check passed, False when one failed or it timed out."""
     start = time.time()
-    while time.time() - start < CHECKS_TIMEOUT:
+    # Read the state before the deadline test, so a clock that jumps past the
+    # deadline during a sleep still gets one last look.
+    while True:
         out = gh("pr", "checks", str(n), "--repo", repo, "--json", "name,bucket,link", check=False)
         checks = json.loads(out) if out.strip().startswith("[") else []
         if not checks and time.time() - start > 180 and not has_workflows(repo):
@@ -78,14 +80,17 @@ def wait_checks(repo, n):
             for c in failed:
                 say(n, f"check {c['name']} is {c['bucket']}: {c['link']}")
             return not failed
+        if time.time() - start >= CHECKS_TIMEOUT:
+            say(n, "checks did not finish in time")
+            return False
         time.sleep(POLL)
-    say(n, "checks did not finish in time")
-    return False
 
 
 def wait_new_head(repo, n, old):
     start = time.time()
-    while time.time() - start < REBASE_TIMEOUT:
+    # Read the head before the deadline test, so a push that lands while the
+    # machine sleeps is still seen when the clock jumps past the deadline.
+    while True:
         pr = view(repo, n, "headRefOid,mergeable,title")
         if pr["headRefOid"] != old:
             # mergeable is UNKNOWN until GitHub has recomputed it
@@ -95,8 +100,9 @@ def wait_new_head(repo, n, old):
                 time.sleep(5)
                 pr = view(repo, n, "headRefOid,mergeable,title")
             return pr
+        if time.time() - start >= REBASE_TIMEOUT:
+            return None
         time.sleep(POLL)
-    return None
 
 
 def rebase(repo, n):
