@@ -109,8 +109,11 @@ controller shows only its `address`.
 
 `displayComponentTable` in `cmd/client_health_status.go` prints the
 sub-components for `osapi client health status`, and for the `status` command of
-`agent`, `controller` and `nats`. It prints `url` after `address`. The address
-is dim and the URL is not, because a person opens the URL:
+`agent`, `controller` and `nats`. It prints `url` after `address`. Each part has
+its own style: the status word in its status color, the address dim because
+nothing connects through it, and the URL cyan because a person opens it. The
+table sizes and cuts cells by visible width, thus the escape sequences of the
+styles do not count:
 
 ```
 controller  hub  Ready
