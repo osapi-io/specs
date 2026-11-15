@@ -111,9 +111,9 @@ the tags for authors. This page records why the design is as it is.
 | `Write`                     | `POST`, or `PUT` for `update` and `DELETE` for `delete`, and the `<group>:write` permission                                                                      |
 | `.Key("key")`               | The input field addressed in the path, `/{key}`                                                                                                                  |
 | `behavior.API`              | Routes, its part of the OpenAPI spec, and the API reference pages                                                                                                |
-| `behavior.CLI`              | Generated commands and CLI docs pages. It needs `API`, because the commands call the API                                                                         |
-| `.Describe`, `.Explain`     | The one-line description, and the longer text a command's help, its docs page and the spec carry                                                                 |
-| `.Example`                  | Sample calls. The docs pages are these, run through the CLI's renderer, and so are the tests                                                                     |
+| `behavior.CLI`              | Generated commands, with their pages in the CLI reference. It needs `API`, because the commands call the API                                                     |
+| `.Describe`, `.Explain`     | The one-line description, and the longer text that the help and the CLI page of a command, and the spec, carry                                                   |
+| `.Example`                  | Sample calls. They are the examples of a command, and the tests                                                                                                  |
 | `behavior.Config(v)`        | Settings under `behaviors.<name>`, with `v` as their defaults                                                                                                    |
 | `behavior.Platform(p, f)`   | How the provider is built on platform `p`: a distribution, `darwin`, or `linux` for every Linux host without its own. On any other, the methods report `skipped` |
 | `behavior.Sudo("prog")`     | A program the provider runs with sudo, which the agent's preflight checks                                                                                        |
@@ -331,7 +331,7 @@ writes:
 | `internal/behaviors/<name>/gen/api.yaml`         | the behavior's spec, which `just generate` joins into the main one; `api.next.yaml` for a `Next` behavior |
 | `internal/behaviors/all/gen/gen.go`              | the import of every behavior's generated code: its routes and commands                                    |
 | `internal/controller/api/next/gen/api.yaml`      | one spec for the behaviors marked `Next`, while any is                                                    |
-| `docs/docs/sidebar/behaviors/<name>/`            | the behavior's page, with its settings, and a page per method                                             |
+| `docs/docs/sidebar/behaviors/<name>/<name>.md`   | the behavior's page, with its platforms and its settings                                                  |
 
 osapi generates the code into files. It does not build it when it starts. Thus a
 reviewer reads and diffs exactly what a route or a command does, as people read
@@ -362,12 +362,16 @@ The generator joins the spec of each behavior itself, not through
 `redocly join`. This is the start of the removal of that tool. The docs site
 builds an "API (next)" reference from it, next to the current reference.
 
-The examples on a docs page are the `Example`s of the definition, run through
-the real renderer of the CLI. `cli.Capture` captures them with color, and the
-generator changes them into HTML. Thus a page shows exactly what the terminal
-prints. During the capture, heading colors come from the fixed order of the
-palette, not from the random order of a run. Thus the pages stay exactly the
-same between runs.
+`gen/cli.go` puts the docs of each method on its cobra command, as a person puts
+them on a hand-written command. `.Describe` is the `Short`, `.Explain` is the
+`Long`, and the `Example`s are the command lines of the `Example`. The
+`reference.Permission` annotation has the permission of the method, and the
+`reference.Result` annotation has what each example does on the host and the
+refusals. Thus `just cli-docs-generate` writes the CLI page of a behavior
+command as it writes the page of a hand-written command, and a behavior has no
+page of its own for each method. The output of a command is not on the page: the
+same renderer prints each result, and the `output.md` page of the CLI reference
+shows it one time.
 
 `just behavior-gen-check`, which `just test` runs, generates the files again. It
 fails if any of them changed. Thus a behavior that somebody edits without
