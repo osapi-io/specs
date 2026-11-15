@@ -1,7 +1,10 @@
 # Least privilege
 
 A plan, partly built. The agent runs as root today. This page records how it
-runs as an `osapi` user that can do only what its enabled behaviors allow. Each
+runs as an `osapi` user that can do only what its enabled behaviors allow.
+
+**The agent never runs as root.** Root comes only from a sudoers file that an
+admin installs for one behavior. The agent never writes its own grants. Each
 part moves into the subject page it belongs to when it is built, and this page
 goes when the last part is built.
 
@@ -177,11 +180,31 @@ that fails for a rule that limits the arguments.
 
 ## Command exec and docker exec
 
-Off by default. The agent refuses the job unless `agent.command.enabled` is
-true, so a forged NATS message is refused too, not only an API call. Either one
-is a root shell for a job sender when the agent is root, and near-root when it
-is not. A missing operation becomes a behavior, which is typed, validated and
-safe to run twice.
+**Now: off by default.** The agent refuses each command exec, command shell and
+docker exec job unless `agent.command.enabled` is true. The agent makes the
+check, so a forged NATS message is refused too, not only an API call. When it is
+on, a command runs as the user of the agent. Under this plan, that user is
+`osapi`, which can do very little.
+
+Either operation is a root shell for a job sender when the agent is root. It is
+a shell as `osapi` when the agent is not.
+
+**Later: a behavior, like the others.** Command exec and docker exec become
+behaviors. Command exec declares one privileged step, marked `RootEquivalent()`.
+To let commands run as root, an admin installs the sudoers file that
+`behavior get --name command --section sudoers` renders. That file is the
+opt-in. Without it, no command runs as root, whatever a job asks. Docker exec
+needs no sudoers rule: access to the Docker socket is already root-equivalent,
+and its docs page says so.
+
+This waits for two platform changes. The "Not yet" list of the build-a-behavior
+skill names both:
+
+- action methods, because `exec` is not create, update or delete
+- the `execute` permission Until then, `agent.command.enabled` is the switch.
+
+A missing typed operation becomes its own behavior. It is validated and safe to
+run twice, so it is a better answer than command exec.
 
 ## Skills
 
@@ -220,7 +243,7 @@ harder to render. polkit, as above.
 
 1. Done: preflight runs one `sudo -n -l` and gives warnings, not a refusal
    (osapi #693, #694).
-2. Command exec and docker exec off by default.
+2. Done: command exec and docker exec off by default (`agent.command.enabled`).
 3. `Privileged`, `Escalate` and `osapi agent privileged`, with sysctl first. The
    silent apply failure is fixed (osapi #692).
 4. The probes in `behavior validate`; `--section`, the files and the flags in
@@ -231,6 +254,8 @@ harder to render. polkit, as above.
 6. One customer page that replaces `architecture/security.md`'s privilege part
    and `features/agent-hardening.md`, whose sudoers examples grant root.
 7. The skills.
+8. Command exec and docker exec as behaviors, after action methods and the
+   `execute` permission exist.
 
 Two problems found during this work are fixed. The agent no longer replaces a
 key that it cannot read (osapi #695). `osapi client agent remove` removes the

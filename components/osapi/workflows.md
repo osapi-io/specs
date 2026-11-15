@@ -118,6 +118,23 @@ decision is still open:
 A new name, for example `osapi-workflows`, waits for that decision. If the
 runner moves into osapi, the repository becomes the wrapper or goes away.
 
+## Future directions
+
+These are not designed yet. They are recorded so that the design above does not
+block them.
+
+**Behaviors that run on one system.** Now each behavior has the placement
+`behavior.Node`: it runs on a managed host, through an agent. A second placement
+can run a behavior on one system, for example the controller. Such a behavior
+calls a remote API, such as the AWS SDK, and returns typed data. A workflow can
+then chain it with node behaviors: get the instances from AWS, then configure
+each one. Thus osapi can run automations that do not start on a host.
+
+**Scheduled workflows.** A workflow file can declare a schedule, for example a
+cron expression, and the system runs it at those times. This needs the
+controller case from "Where it runs": workflow state, a run that continues after
+a restart, and a scheduler. Thus it comes after the client-side runner.
+
 ## Open questions
 
 - Can a step give its output to the input of a different step? How much
