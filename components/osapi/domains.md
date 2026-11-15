@@ -180,8 +180,8 @@ string and an operation constant. It does not call a method for each operation.
 
 A domain package exports `Handler()`, which returns route-registration closures.
 The package wraps the handler in scope middleware itself. **The `Server` struct
-does not change.** The startup wiring is one added line in
-`registerControllerHandlers` in `cmd/controller_setup.go`.
+does not change.** The startup wiring is one added line in `handlers` in
+`internal/controller/handlers.go`.
 
 On the agent side, two files connect a provider: a processor under
 `internal/agent/`, and the registration in `cmd/agent_setup.go`. These do

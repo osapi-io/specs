@@ -81,12 +81,12 @@ if job.IsBroadcastTarget(hostname) {
 ```
 
 Registration and startup: copy the reference domain's `handler.go`, change the
-package and type names, and add one line to `registerControllerHandlers` in
-`cmd/controller_setup.go` with its import:
+package and type names, and add one line to `handlers` in
+`internal/controller/handlers.go` with its import:
 
 ```go
 handlers = append(handlers,
-    {domain}API.Handler(log, jc, signingKey, customRoles)...)
+    {domain}API.Handler(d.log, d.jobs, signingKey, customRoles)...)
 ```
 
 ## Three rules the corpus does not yet hold
