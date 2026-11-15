@@ -81,7 +81,7 @@ a request to a URL.
 | `controller.api`     | `controller.api.host` and `.port`      | `controller.api.url`      |
 | `controller.ui`      | `controller.api.host` and `.port`      | `controller.ui.url`       |
 | `controller.metrics` | `controller.metrics.host` and `.port`  | `controller.metrics.url`  |
-| `controller.tracing` | none                                   | `telemetry.tracing.url`   |
+| `controller.tracing` | `telemetry.tracing.otlp_endpoint`      | `telemetry.tracing.url`   |
 | `agent.metrics`      | `agent.metrics.host` and `.port`       | `agent.metrics.url`       |
 | `nats.server`        | `nats.server.host` and `.port`         | `nats.server.url`         |
 | `nats.metrics`       | `nats.server.metrics.host` and `.port` | `nats.server.metrics.url` |
@@ -93,10 +93,12 @@ empty `controller.api.host` keeps that behavior. The UI uses the listener of the
 API. Thus you cannot bind the UI to `127.0.0.1` and the API to all interfaces.
 Set the two together.
 
-`telemetry.tracing.url` is different from the other keys. It points to the trace
-viewer, for example Jaeger. osapi does not run that viewer. It only sends spans
-to `otlp_endpoint`. The URL lets a person go from the health output to the
-traces.
+Tracing is different from the other sub-components. It listens on nothing: it
+sends spans to `otlp_endpoint`. Thus its `address` is that destination, as
+`grpc://<otlp_endpoint>`, and only when the exporter is `otlp`. It is the one
+`address` that is not a bind address. `telemetry.tracing.url` points to the
+trace viewer, for example Jaeger. osapi does not run that viewer. The URL lets a
+person go from the health output to the traces.
 
 Each process sends its sub-components in its heartbeat, in
 `job.SubComponentInfo`: the controller from `internal/controller/heartbeat.go`,
@@ -109,23 +111,30 @@ controller shows only its `address`.
 
 `displayComponentTable` in `cmd/client_health_status.go` prints the
 sub-components for `osapi client health status`, and for the `status` command of
-`agent`, `controller` and `nats`. It prints `url` after `address`. Each part has
-its own style: the status word in its status color, the address dim because
-nothing connects through it, and the URL cyan because a person opens it. The
-table sizes and cuts cells by visible width, thus the escape sequences of the
-styles do not count:
+`agent`, `controller` and `nats`. Each row has the same shape. The status and
+the address are on the row. The URL is on a line of its own under it, so a long
+URL is never cut, and a row without a URL takes one line. Each part has its own
+style: the status word in its status color, the address dim because nothing
+connects through it, and the URL cyan because a person opens it. The table sizes
+and cuts cells by visible width, thus the escape sequences of the styles do not
+count:
 
 ```
-controller  hub  Ready
-  ├─ api      ok http://0.0.0.0:8080 http://hub.example.ts.net:8080
-  ├─ tracing  ok http://hub.example.ts.net:16686
-  └─ ui       ok http://0.0.0.0:8080 http://hub.example.ts.net:8080
+controller  hub           Ready
+            ├─ api        ok http://0.0.0.0:8080
+            │             ↳ http://hub.example.ts.net:8080/
+            ├─ heartbeat  ok
+            ├─ metrics    ok http://127.0.0.1:9090
+            ├─ tracing    ok grpc://127.0.0.1:4317
+            │             ↳ http://hub.example.ts.net:16686/
+            └─ ui         ok http://0.0.0.0:8080
+                          ↳ http://hub.example.ts.net:8080/
 ```
 
-The dashboard shows the same value. `ComponentRow` in
-`ui/src/components/domain/component-row.tsx` puts `url` after the address. An
-`http` or `https` URL is a link that opens in a new tab. A URL with a different
-scheme, such as `nats://`, is text, because a browser cannot open it.
+The dashboard has the same layout. `ComponentRow` in
+`ui/src/components/domain/component-row.tsx` puts the URL on a line under the
+row. An `http` or `https` URL is a link that opens in a new tab. A URL with a
+different scheme, such as `nats://`, is text, because a browser cannot open it.
 
 ## Behaviors measure their own work
 
