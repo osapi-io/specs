@@ -91,7 +91,8 @@ The UI and the CLI use one palette. The palette is the six colors of the logo,
 `asset/logo-dark.svg`, and the status colors in `internal/cli/theme.go`.
 `ui/src/index.css` holds the colors as tokens, and each token names the CLI
 color that it copies. Thus a page and a terminal show the same color for the
-same thing.
+same thing. [The output style of the CLI](cli.md#color) has the rules for the
+terminal. A change to a color changes both.
 
 | Color               | Means                                    | Tokens                                      |
 | ------------------- | ---------------------------------------- | ------------------------------------------- |
@@ -109,10 +110,11 @@ role is not a problem. A URL has the text color and is a link that underlines on
 hover.
 
 **Section headings take the logo colors in page order:** cyan, magenta, yellow,
-green, blue. That is the order of `nextHeadingColor` in the CLI. `PageLayout`
-sets `data-heading-color` on each `SectionLabel` when the page changes. Thus two
-headings next to each other never have the same color. Each heading has a short
-bar in the dark blue of the logo at its left.
+green, blue. These are the five heading colors of the CLI. The CLI mixes their
+order for each run; the UI keeps one order, so a page looks the same on each
+load. `PageLayout` sets `data-heading-color` on each `SectionLabel` when the
+page changes. Thus two headings next to each other never have the same color.
+Each heading has a short bar in the dark blue of the logo at its left.
 
 The logo has two colors that a heading cannot use as they are:
 
