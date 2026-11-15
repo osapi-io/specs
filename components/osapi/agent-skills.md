@@ -45,10 +45,26 @@ installed skill never loaded. Nothing reported it.
 
 ### The skill that builds a behavior
 
-A third skill changes osapi. It does not use osapi, so the binary does not have
-it. It is `.claude/skills/build-a-behavior/` in the osapi repository. A session
-in a checkout loads it. `.agents/skills` there is a link to `.claude/skills`, so
-each coding agent in the checkout loads it.
+A third skill changes osapi. The binary also has it, in
+`cmd/resources/dev-skills/build-a-behavior/`. The binary is the only source of
+the skill. No repository keeps a copy.
+
+`osapi init` does not install it, because only a checkout of osapi can build a
+behavior. `osapi skill` serves each embedded skill:
+
+```sh
+osapi skill list                                         # each embedded skill
+osapi skill get --name build-a-behavior                  # its SKILL.md
+osapi skill get --name build-a-behavior --reference references/services.md
+```
+
+The osapi repository has a short pointer at
+`.claude/skills/build-a-behavior/SKILL.md`. It has the frontmatter of the skill,
+so that agents find it. Its body tells the agent to run
+`go run . skill get --name build-a-behavior` and obey the output. It has no
+rules of its own, so it cannot become different from the skill. `.agents/skills`
+is a link to `.claude/skills`, so each coding agent in the checkout finds the
+pointer.
 
 It sends the agent to the sources that cannot become incorrect. It does not copy
 them:
@@ -120,9 +136,10 @@ for one, it says so and stops. It does not add code around the platform. This
 list is the same as the blockers in [the migration plan](behavior-migration.md),
 and it becomes shorter as people build them.
 
-`evals/` has the requests that measure the skill, and `run.sh`. `run.sh` runs
-each request in a new session and checks the result with commands. Nobody reads
-the result to check it.
+`test/skills/build-a-behavior/` has the requests that measure the skill, and
+`run.sh`. They test the skill, so they are not part of it, and the binary does
+not have them. `run.sh` runs each request in a new session and checks the result
+with commands. Nobody reads the result to check it.
 
 The tool loads `SKILL.md` when a request matches its description. A reference
 loads only when the routing table sends the agent to it. Thus a session pays
