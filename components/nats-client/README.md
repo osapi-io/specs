@@ -1,9 +1,14 @@
 # nats-client
 
-`nats-client` wraps the upstream NATS client. One package, `pkg/client`, one
-constructor, no binary. A consumer holds one `Client` and reaches connection,
-core publish and subscribe, JetStream streams, consumers, key-value buckets and
-object stores through it.
+`nats-client` wraps the upstream NATS client. It has one package, `pkg/client`,
+one constructor and no binary. A consumer keeps one `Client`. Through it, the
+consumer gets these parts of NATS:
+
+- the connection
+- core publish and subscribe
+- JetStream streams and consumers
+- key-value buckets
+- object stores
 
 ```go
 c := client.New(logger, &client.Options{
@@ -18,43 +23,44 @@ if err := c.Connect(); err != nil {
 defer c.Close()
 ```
 
-What it adds over using the upstream library directly is the only part a
-consumer cannot read in NATS's own documentation. One `Client` holds the
-connection and the JetStream context together. Authentication reduces to four
-declared modes. Streams, consumers, key-value buckets and object stores get
-create-or-update helpers.
+The NATS documentation does not tell what the wrapper adds to the upstream
+library. It adds these things:
 
-What it does not add: a new protocol, a new wire format, and no reconnection
-policy of its own.
+- One `Client` keeps the connection and the JetStream context together.
+- Authentication has four declared modes.
+- Streams, consumers, key-value buckets and object stores get create-or-update
+  helpers.
+
+It does not add a new protocol, a new wire format or its own reconnection
+policy.
 
 ## It does not hide NATS
 
-Upstream types reach a consumer through the wrapper's signatures.
-`jetstream.Msg` arrives in a message handler, and `nats.Conn` is reachable
-through the connection. So this is a convenience layer over NATS rather than an
-abstraction over it, and a consumer who expected to be insulated from the
-upstream library is not.
+Upstream types get to a consumer through the signatures of the wrapper. A
+message handler gets `jetstream.Msg`, and the connection gives `nats.Conn`. Thus
+this is a convenience layer over NATS. It is not an abstraction over NATS. A
+consumer is not isolated from the upstream library.
 
-Nothing in the repository says so. A consumer finds out by reading a signature.
+Nothing in the repository says so. A consumer learns it from a signature.
 
 ## Where it sits
 
-`osapi` imports it to talk to the message bus. Nothing else in the organization
-depends on it, and it depends on nothing in the organization.
+`osapi` imports it to connect to the message bus. Nothing else in the
+organization depends on it, and it depends on nothing in the organization.
 
-osapi pins it by commit rather than by tag, so a change to `pkg/client`'s
-exported surface breaks osapi at the bump rather than at the change. Land a
-rename and its bump together.
+osapi pins a released tag of it. Thus a change to the exported API of
+`pkg/client` breaks osapi when somebody updates the pin, not when the change
+merges. Merge a rename and its pin update together.
 
-`nats-server` wraps the server end of the same upstream library. Anybody working
-on osapi's transport reads both. Neither imports the other.
+`nats-server` wraps the server end of the same upstream library. A person who
+works on the transport of osapi reads the two. Neither imports the other.
 
-The build fetches `osapi-justfiles` through a justfile recipe, from `main`
-rather than from a release. That edge is in no `go.mod`.
+The build gets `osapi-justfiles` through a justfile recipe, from `main`, not
+from a release. No `go.mod` shows that connection.
 
 ## The package (`pkg/client/`)
 
-One type with one responsibility per file.
+Each file has one type with one responsibility.
 
 ```
 types.go             Options, AuthOptions, AuthType
@@ -70,16 +76,16 @@ objectstore.go       object stores
 mocks/               generated
 ```
 
-`NATSConnector` is the only interface the package declares. It exists so the
-connection can be substituted in tests, and nothing else can be.
+`NATSConnector` is the only interface that the package declares. With it, a test
+can replace the connection. A test cannot replace other parts.
 
-Five runnable examples ship alongside, one per authentication mode and one per
-JetStream pattern. They are the executable form of the documentation rather than
-an extra to keep in step.
+The repository has five examples that you can run: one for each authentication
+mode and one for each JetStream pattern. They are the documentation in a form
+that runs. They are not a separate thing to keep current.
 
 ## Authentication
 
-Four modes, and each needs something different from a consumer.
+There are four modes. Each needs a different thing from a consumer.
 
 | Mode           | Needs                                                    |
 | -------------- | -------------------------------------------------------- |
@@ -88,48 +94,51 @@ Four modes, and each needs something different from a consumer.
 | `NKeyAuth`     | `NKeyFile`, the path to an Ed25519 private seed file     |
 | `CredsAuth`    | `CredsFile`, a credentials file: a user JWT and its seed |
 
-`AuthType` and `AuthOptions` in `types.go` declare them. A mode that needs a
-field and does not get it fails at connect time rather than at construction.
+`AuthType` and `AuthOptions` in `types.go` declare them. If a mode needs a field
+and does not get it, it fails at connect time, not at construction.
 
-`CredsAuth` is how a client joins a NATS server in operator (decentralized JWT)
-mode, where each user's JWT carries its permissions and expiry and a new user
-needs no change on the server. `nats.UserCredentials` reads the file on every
-connect, so `Connect` checks the file exists first and reports a missing one as
-`failed to read creds file` rather than as the server's authorization error.
+`CredsAuth` connects a client to a NATS server in operator mode (decentralized
+JWT). In that mode, the JWT of each user has its permissions and expiry, and a
+new user needs no change on the server. `nats.UserCredentials` reads the file on
+each connect. Thus `Connect` first checks that the file exists. It reports a
+missing file as `failed to read creds file`, not as the authorization error of
+the server.
 
 ## What happens when the connection drops
 
-Whatever the upstream library does by default.
+The default of the upstream library applies.
 
-`Connect` passes exactly three options through: `nats.Name`, and then
-`nats.UserInfo`, `nats.Nkey` or `nats.UserCredentials` depending on the mode. It
-sets no reconnection options, and it registers no disconnect, reconnect or
-closed handler. So the upstream default governs reconnection entirely, and **a
-consumer is never notified when a drop or a recovery happens**, because there is
-no callback to receive it.
+`Connect` gives exactly three options to the library: `nats.Name`, and then
+`nats.UserInfo`, `nats.Nkey` or `nats.UserCredentials`, as the mode requires. It
+sets no reconnection options. It registers no disconnect, reconnect or closed
+handler. Thus the upstream default controls all reconnection, and **a consumer
+never gets a notification of a drop or a recovery**, because there is no
+callback.
 
-Resilience is not configurable through this wrapper's `Options`. A consumer who
-needs different behaviour has to change this package.
+You cannot configure resilience through the `Options` of this wrapper. A
+consumer who needs a different operation must change this package.
 
-The upstream defaults themselves are not restated here. They belong to the NATS
-library and change with it, and prose about another project's settings drifts
-while continuing to read as authoritative.
+This page does not give the upstream defaults. They belong to the NATS library
+and change with it. Prose about the settings of a different project becomes
+incorrect, but it continues to look correct.
 
 ## The contract
 
-The exported surface of `pkg/client`: one constructor, 25 `Client` methods, 9
-exported types. Everything under `pkg/client/mocks/` is generated and is not
-part of it.
+The contract is the exported API of `pkg/client`: one constructor, 25 `Client`
+methods and 9 exported types. Everything under `pkg/client/mocks/` is generated
+and is not part of it.
 
-What the contract does not promise: no retry or reconnection policy of the
-wrapper's own, no insulation from the upstream types above, and **no stability
-beyond the commit a consumer pins.** The repository publishes no tags, so a
-consumer depends on a commit rather than on a version, and a rename on `main`
-reaches them at their next bump.
+The contract does not promise these things:
+
+- a retry or reconnection policy of the wrapper
+- isolation from the upstream types above
+- **stability between releases.** A consumer depends on a tag. A rename on
+  `main` gets to the consumer at the next pin update.
 
 ## How big it is
 
-Eleven non-test files in `pkg/client`, 25 methods on `Client`.
+There are eleven files that are not tests in `pkg/client`, and 25 methods on
+`Client`.
 
 ```sh
 find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' | wc -l   # 11
@@ -137,25 +146,21 @@ find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' | wc -l   # 11
 
 ## Known limitations
 
-**No published tags.** A consumer cannot name a version, only a commit. Nothing
-is wrong with the code; what is missing is a way to ask for a known one.
-
-**The upstream-type leak is undocumented.** The design above is deliberate, and
-no page states it, so a consumer expecting an abstraction learns otherwise from
-a signature.
+**The leak of upstream types has no documentation.** The design above is
+deliberate, but no page states it. A consumer who expects an abstraction learns
+the truth from a signature.
 
 ## Not covered here
 
-How NATS itself works. Streams, consumers, key-value and object stores are
-upstream concepts, and this describes what the wrapper does with them.
+How NATS works. Streams, consumers, key-value and object stores are upstream
+concepts. This page tells what the wrapper does with them.
 
-What each of the 25 methods does. They are the contract; the eight documentation
-pages under `docs/` describe their behaviour.
+What each of the 25 methods does. They are the contract. The eight documentation
+pages under `docs/` describe how they operate.
 
 The generated mocks.
 
-Whether this wrapper is the right shape for its one consumer. That is osapi's
-question.
+If this wrapper has the correct shape for its one consumer. osapi decides that.
 
 ______________________________________________________________________
 

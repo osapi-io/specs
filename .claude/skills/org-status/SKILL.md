@@ -22,11 +22,11 @@ metadata:
 gh repo list osapi-io --no-archived --visibility public --limit 200 --json name -q '.[].name' | sort
 ```
 
-Every run, before anything else. Never from a file, never reused from earlier in
-the conversation: a written list is right when written and wrong after the next
-repository is added, with nothing marking the moment
-([why](../../../CONSTITUTION.md)). Query all of them,
-`.github` included, unless the user names some.
+Do this on each run, before anything else. Never get the list from a file, and
+never use a list from earlier in the conversation. A written list is correct
+when you write it. It is incorrect after somebody adds the next repository, and
+nothing shows that change ([why](../../../CONSTITUTION.md)). Query all of them,
+with `.github`, unless the user names some.
 
 `--no-archived` matters. Archived repositories hold Dependabot PRs that can
 never merge, and `gh search prs --owner osapi-io` counts them.
@@ -50,9 +50,9 @@ never merge, and `gh search prs --owner osapi-io` counts them.
 
 ## 3. Report
 
-A grid of every repository, then one detail block per item needing the reader.
-The grid answers "which repo"; the blocks answer "what do I do". When nothing
-needs attention the grid stands alone.
+Give a grid of each repository. Then give one detail block for each item that
+needs the reader. The grid answers "which repo". The blocks answer "what do I
+do". When nothing needs attention, give only the grid.
 
 ```
 osapi-io · 12 Sep · 8 repos
@@ -78,48 +78,50 @@ osapi-io · 12 Sep · 8 repos
    no other repo depends on docker/docker
 ```
 
-- **Grid.** Fixed-width ASCII, repository column padded to the longest name.
-  Never pipe-delimited markdown, which wraps and turns one row into four. One
-  row per repository including clean ones, because the row count proves the
-  query covered them.
+- **Grid.** Fixed-width ASCII. Pad the repository column to the longest name.
+  Never use pipe-delimited markdown, because it wraps and makes one row into
+  four. Give one row for each repository, also the clean ones. The row count
+  proves that the query covered them.
 - **`ci` glyphs**, these four only: `✅` green, `🔴` failed, `🟡` running, `⚪` no
-  checks. Pending is never `🔴`. Variation-selector emoji (`⚙️`, `🛡️`) break
-  column alignment, so keep them out of the grid.
-- **Bare URLs, never `[text](url)`.** A terminal linkifies a bare address and
-  hides one behind markdown punctuation.
-- **Blocks** only for what needs the reader, failing first then oldest first,
-  led by the triage verdict rather than a count. CVE lines are severity, score,
-  CVE, effect in about seven words. Say in one line if another repository shares
-  a flagged dependency.
-- **Each block ends with the words that act on it**, as `→ say "..."`, quoted
-  as it should be typed. That phrase is the one thing a reader cannot guess.
-  Where no command applies, say so: `→ your call: narrow, replace, or accept.
-  No upgrade exists.` Nothing to do means no action line.
-- **Leave out** check counts for green branches, per-repository zeroes, endpoint
-  names, and the commands you ran. Offer detail in a sentence instead of
-  printing it.
+  checks. Pending is never `🔴`. Variation-selector emoji (`⚙️`, `🛡️`) break the
+  column alignment. Keep them out of the grid.
+- **Bare URLs, never `[text](url)`.** A terminal makes a bare address into a
+  link. Markdown punctuation hides the address.
+- **Blocks** only for what needs the reader: failures first, then the oldest
+  first. Start each block with the triage verdict, not a count. A CVE line has
+  the severity, the score, the CVE, and the effect in approximately seven words.
+  If a different repository has the same flagged dependency, say so in one line.
+- **Each block ends with the words that act on it**, as `→ say "..."`, in
+  quotes, as the reader must type them. The reader cannot guess that phrase.
+  When no command applies, say so:
+  `→ your call: narrow, replace, or accept. No upgrade exists.` When there is
+  nothing to do, give no action line.
+- **Leave out** check counts for green branches, zeroes for each repository,
+  endpoint names, and the commands that you ran. Offer detail in a sentence. Do
+  not print it.
 
 ## Rules
 
 1. **Zero is an answer, with its denominator.** "No open PRs in any of the 8
    repositories." The count proves the query ran.
-2. **A failed query is not a clean result**, but say so once and not again. Code
-   scanning returns nothing for a repository that never enabled it, which by
-   length alone looks like zero findings. Report that the first time it is
-   asked, or when it changes. Repeating it every sweep trains the reader to skip
-   the last line, which is where a real finding will one day sit.
-3. **A standing condition is not a finding.** Something the reader has already
-   seen and chosen not to act on is state, not news: branches whose pull request
-   was closed, a protected `gh-pages`, a feature nobody has enabled. Leave them
-   out unless the user asks for them, they changed, or they are what the question
-   was about. A finding earns its line by being new, actionable, or both, and an
-   action line on something the reader keeps declining is nagging.
-4. **No pull request is ready until it is vetted.** A green check says the code
-   builds, not that it is what it claims to be. Run
-   [vetting.md](references/vetting.md) before calling any pull request ready,
-   before approving or merging it, and before checking it out, and lead its
-   block with the verdict.
-5. **Read by default. Write only when told to.** On fix, dismiss or bump,
-   [triage.md](references/triage.md) has the write for each verdict and every
-   one needs the verdict established first. Never dismiss an alert to shorten a
-   list.
+2. **A failed query is not a clean result.** But say so one time, and not again.
+   Code scanning returns nothing for a repository that never enabled it. By its
+   length, that looks like zero findings. Report it the first time that somebody
+   asks, or when it changes. If you say it again in each sweep, the reader
+   learns to skip the last line. One day, a real finding will be on that line.
+3. **A standing condition is not a finding.** If the reader already saw
+   something and decided not to act, it is state, not news. Examples are
+   branches whose pull request was closed, a protected `gh-pages`, and a feature
+   that nobody enabled. Leave them out, unless the user asks for them, they
+   changed, or the question was about them. A finding gets its line when it is
+   new, when the reader can act on it, or both. An action line on something that
+   the reader always declines only annoys the reader.
+4. **No pull request is ready until it is vetted.** A green check says that the
+   code builds. It does not say that the code is what it claims to be. Run
+   [vetting.md](references/vetting.md) before you call a pull request ready,
+   before you approve or merge it, and before you check it out. Start its block
+   with the verdict.
+5. **Read by default. Write only when the user tells you to.** For fix, dismiss
+   or bump, [triage.md](references/triage.md) has the write for each verdict.
+   Each write needs the verdict first. Never dismiss an alert to make a list
+   shorter.

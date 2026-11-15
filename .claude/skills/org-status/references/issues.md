@@ -2,11 +2,10 @@
 
 Resolve the repository set first, per [SKILL.md](../SKILL.md).
 
-An issue is an intent nobody is working on yet: something that should change,
-recorded so it survives being put down. Work under way is tracked by its Spec Kit
-task list instead, so an issue with a pull request already open against it is not
-waiting on anyone
-([why](../../../../CONSTITUTION.md)).
+An issue is an intent that nobody works on yet. It records something that must
+change, so that the intent stays when nobody works on it. The Spec Kit task list
+tracks work in progress. Thus an issue with an open pull request does not wait
+for anybody ([why](../../../../CONSTITUTION.md)).
 
 ## What is open
 
@@ -18,8 +17,8 @@ while read -r r; do
 done
 ```
 
-`gh issue list` returns issues only. The search endpoint does not: `gh search
-issues --owner osapi-io` reaches archived repositories, the same trap
+`gh issue list` returns issues only. The search endpoint does not:
+`gh search issues --owner osapi-io` reaches archived repositories, the same trap
 `--no-archived` exists to avoid for pull requests.
 
 Detail for a repository with a non-zero count:
@@ -35,8 +34,8 @@ says whether anyone has started.
 
 ## What is already in hand
 
-An open pull request declares the issues it closes, so ask before reporting an
-issue as untouched:
+An open pull request declares the issues that it closes. Thus ask before you
+report that nobody touched an issue:
 
 ```bash
 gh pr list --repo "osapi-io/$r" --state open \
@@ -44,24 +43,25 @@ gh pr list --repo "osapi-io/$r" --state open \
   -q '.[] | "\(.number) closes \([.closingIssuesReferences[].number]|join(","))"'
 ```
 
-An issue named there is in flight, and belongs in the pull request block rather
-than in a block of its own. An issue whose fix has already merged is still open
-only because nobody closed it, say so, because it reads as outstanding work.
+Somebody works on an issue that is named there. It goes in the block of the pull
+request, not in its own block. If the fix of an issue already merged, the issue
+is open only because nobody closed it. Say so, because it looks like work that
+remains.
 
 ## Trackers
 
-A tracking issue here groups the others as a markdown checklist of links, not as
-GitHub sub-issues, so `/repos/{owner}/{repo}/issues/{n}/sub_issues` returns
-nothing and the boxes are ticked by hand. Read the tracker for the grouping and
-read the state from the issues themselves; the two disagree the moment a fix
-merges.
+A tracking issue here puts the others in a group as a markdown checklist of
+links, not as GitHub sub-issues. Thus
+`/repos/{owner}/{repo}/issues/{n}/sub_issues` returns nothing, and people mark
+the boxes by hand. Read the tracker for the group. Read the state from the
+issues themselves. The two disagree when a fix merges.
 
 ## Reporting
 
-The `iss` column counts open issues, trackers included. A long-standing list of
-review findings is a standing condition, not news: the count carries it, and a
-block is earned by an issue that is new since the last sweep, one whose fix has
-merged, or one the question was about.
+The `iss` column counts open issues, with the trackers. An old list of review
+findings is a standing condition, not news. The count shows it. An issue gets a
+block only when it is new since the last sweep, when its fix merged, or when the
+question was about it.
 
 ```
 🔴 osapi #494 · bug · 11d · fix merged, still open
@@ -72,10 +72,10 @@ merged, or one the question was about.
 
 ## Working one
 
-An action line that offers a fix is a route into
-[work-an-issue](../../work-an-issue/SKILL.md), which reproduces the issue before
-changing anything, decides whether it is a direct fix or a Spec Kit feature, and
-closes the issue through the pull request.
+An action line that offers a fix sends the reader to
+[work-an-issue](../../work-an-issue/SKILL.md). That skill makes the issue occur
+again before it changes anything. It decides if the issue is a direct fix or a
+Spec Kit feature. It closes the issue through the pull request.
 
 Reporting stops here. This skill reads by default, so an issue is worked only
 when the words that ask for it arrive:
@@ -84,9 +84,9 @@ when the words that ask for it arrive:
    → say "fix 179" to reproduce it, fix it, and close it through a PR
 ```
 
-An action line is earned the same way a block is. An issue the reader has
-declined to act on before does not get one again, because an offer repeated
-every sweep is nagging rather than routing.
+An action line has the same rule as a block. If the reader did not act on an
+issue before, it does not get an action line again. An offer that comes again in
+each sweep annoys the reader, and does not help.
 
 ## Writing
 
@@ -97,5 +97,6 @@ closed to shorten a list:
 gh issue close "$n" --repo "osapi-io/$r" --comment "Fixed in #<pr>."
 ```
 
-Something exploitable is never opened as an issue at all. It is a draft advisory,
+Something exploitable is never opened as an issue at all. It is a draft
+advisory,
 which only maintainers can read. [audit.md](audit.md#reporting) has the command.

@@ -2,17 +2,16 @@
 
 Resolve the repository set first, per [SKILL.md](../SKILL.md).
 
-Reached when the user asks whether anything has been hacked, exploited or
-compromised, and as part of every sweep. [vetting.md](vetting.md) judges a pull
-request before it lands. This page asks the same question of what already
-landed, and checks that the defences which make vetting cheap are still in
-place.
+Use this page when the user asks if somebody hacked, exploited or compromised
+anything, and in each sweep. [vetting.md](vetting.md) examines a pull request
+before it merges. This page asks the same question about what already merged. It
+also checks that the defences that make vetting easy are still there.
 
 It answers in two parts. **Compromise** looks for evidence that something
-happened. **Defences** looks for a missing guard, which is not evidence of
-anything but makes the next attack easier. Report them separately. A missing
-cooldown is not a breach, and putting the two in one list makes either look
-like the other.
+occurred. **Defences** looks for a missing guard. A missing guard is not
+evidence, but it makes the next attack easier. Report them separately. A missing
+cooldown is not a breach. If you put the two in one list, each looks like the
+other.
 
 ## Compromise
 
@@ -33,10 +32,10 @@ gh api "/repos/osapi-io/$r/keys" --jq '.[] | "\(.title)\tread_only=\(.read_only)
 gh api "/repos/osapi-io/$r/hooks" --jq '.[] | "\(.config.url)\t\(.created_at[:10])"'
 ```
 
-Anything the reader does not recognise is a **STOP**: an account, an app with
-`contents:write`, a deploy key that can write, a webhook to an unknown host.
-Org-level webhooks need the `admin:org_hook` scope. Without it, say the token
-cannot see them rather than reporting none.
+If the reader does not know one of these, it is a **STOP**: an account, an app
+with `contents:write`, a deploy key that can write, or a webhook to an unknown
+host. Org-level webhooks need the `admin:org_hook` scope. Without it, say that
+the token cannot see them. Do not report none.
 
 ### Who did push
 
@@ -47,13 +46,13 @@ gh api "/repos/osapi-io/$r/commits?sha=$def&since=$since&per_page=100" --paginat
   sort | uniq -c | sort -rn
 ```
 
-Merges through the web are committed by `web-flow` and signed. An author who is
-not an org member or `dependabot[bot]` is a **STOP**.
+`web-flow` commits and signs merges through the web. An author who is not an org
+member or `dependabot[bot]` is a **STOP**.
 
-Unsigned commits by a member are **LOOK**, not STOP. A local rebase pushed to
-the default branch strips GitHub's signature, Dependabot's commits included,
-and that is the usual cause here. List them with their dates and ask the reader
-to confirm the burst was theirs:
+Unsigned commits by a member are **LOOK**, not STOP. A local rebase that
+somebody pushes to the default branch removes the GitHub signature, also from
+the commits of Dependabot. That is the usual cause here. List them with their
+dates, and ask the reader to confirm that the group of commits was theirs:
 
 ```bash
 gh api "/repos/osapi-io/$r/commits?sha=$def&since=$since&per_page=100" --paginate \
@@ -62,7 +61,7 @@ gh api "/repos/osapi-io/$r/commits?sha=$def&since=$since&per_page=100" --paginat
 
 ### What the code depends on
 
-Every lockfile on the default branch, every version in it, against OSV:
+Check each lockfile on the default branch, and each version in it, against OSV:
 
 ```bash
 s=.claude/skills/org-status/scripts
@@ -70,30 +69,30 @@ for r in $repos; do (cd ~/git/osapi-io/$r && git fetch -q origin); "$s/deps.sh" 
   sort -u | "$s/osv-malicious.sh"
 ```
 
-`deps.sh` reads `go.sum`, `bun.lock` and `package-lock.json` from
-`origin/HEAD`, not the working tree, so a local branch cannot hide what ships.
-It names any lockfile kind it cannot parse on stderr. Report those, because a
-lockfile nobody scanned is not a clean one.
+`deps.sh` reads `go.sum`, `bun.lock` and `package-lock.json` from `origin/HEAD`,
+not from the working tree. Thus a local branch cannot hide what ships. On
+stderr, it names each kind of lockfile that it cannot parse. Report those,
+because a lockfile that nobody scanned is not clean.
 
 `osv-malicious.sh` prints `MALICIOUS` for a version on the OpenSSF
-malicious-packages list (`MAL-` ids), and for one whose advisory carries
-CWE-506 (embedded malicious code) or whose summary says so. The second test
-matters. A hijacked release of a real package is often published under a
-`GHSA-` id with a summary like "Critical severity vulnerability that affects
-event-stream", which a search for `MAL-` misses. Any `MALICIOUS` line is a
+malicious-packages list (`MAL-` ids). It also prints it for a version whose
+advisory has CWE-506 (embedded malicious code), or whose summary says so. The
+second test is important. A hijacked release of a real package often has a
+`GHSA-` id, with a summary like "Critical severity vulnerability that affects
+event-stream". A search for `MAL-` does not find it. Each `MALICIOUS` line is a
 **STOP**.
 
-It never reads an advisory's details. Ordinary write-ups say "a malicious actor
-could", and matching on that flagged an HTTP/2 denial of service in
+It never reads the details of an advisory. Ordinary advisories say "a malicious
+actor could". A match on those words reported an HTTP/2 denial of service in
 `golang.org/x/net` as a hijack 47 times.
 
-It also prints a count of versions with ordinary advisories. That is
-[triage.md](triage.md)'s question, and most of them are old versions `go.sum`
-keeps for graph resolution and never builds. Do not report the count as
+It also prints a count of versions with ordinary advisories.
+[triage.md](triage.md) answers that question. Most of them are old versions that
+`go.sum` keeps to resolve the graph and never builds. Do not report the count as
 compromise.
 
-Nothing to install. It needs `curl` and `jq`, and a full org scan takes about
-two minutes.
+You install nothing. It needs `curl` and `jq`. A scan of the full org takes
+approximately two minutes.
 
 ### What CI runs
 
@@ -108,20 +107,20 @@ grep -hoE 'uses:\s*[^ .][^ ]+' ~/git/osapi-io/*/.github/workflows/*.y*ml |
   done
 ```
 
-An advisory against an action in use is a **STOP** until the version in use is
-confirmed outside the affected range. `tj-actions/changed-files` is a known
-answer to test the query against.
+An advisory against an action in use is a **STOP**, until you confirm that the
+version in use is outside the affected range. `tj-actions/changed-files` is a
+known answer. Use it to test the query.
 
-Workflow triggers that hand PR code a privileged token:
+Workflow triggers that give a privileged token to PR code:
 
 ```bash
 grep -nE 'pull_request_target|workflow_run' ~/git/osapi-io/*/.github/workflows/*.y*ml
 ```
 
-`pull_request_target` runs with the base repository's token. It is safe while
-the job never checks out the pull request's head. The labeler and greetings
-workflows here do not. A `pull_request_target` job with an `actions/checkout`
-of `github.event.pull_request.head` is a **STOP**.
+`pull_request_target` runs with the token of the base repository. It is safe
+while the job never checks out the head of the pull request. The labeler and
+greetings workflows here do not check it out. A `pull_request_target` job with
+an `actions/checkout` of `github.event.pull_request.head` is a **STOP**.
 
 ### What was released
 
@@ -130,14 +129,14 @@ cd ~/git/osapi-io/$r && git fetch -q --tags --force origin
 for t in $(git tag); do git merge-base --is-ancestor "$t^{commit}" origin/HEAD || echo "$t"; done
 ```
 
-A release tag that points at a commit off the default branch is a **STOP**: the
-release shipped code nobody merged.
+A release tag that points to a commit that is not on the default branch is a
+**STOP**. The release shipped code that nobody merged.
 
 ## Defences
 
-These do not show that anything happened. A missing one is a hardening finding,
-reported as one block for the whole org because the fix is the same edit in each
-repository.
+These do not show that anything occurred. A missing defence is a hardening
+finding. Report it as one block for the full org, because the fix is the same
+edit in each repository.
 
 ### Every Dependabot entry has a cooldown
 
@@ -149,16 +148,17 @@ for r in $repos; do
 done
 ```
 
-Any output is a finding. Each line is an entry that proposes a release the day it ships,
-before a hijacked one has had time to be noticed and pulled. The house setting
-is `default-days: 7` on every entry, plus `semver-major-days: 14` on the
-ecosystems that version by semver (`gomod`, `bun`, `npm`, `swift`). Never put
-the `semver-*` keys on `github-actions` or `docker`. Dependabot rejects the
-whole file for it and runs no updates at all, and the only sign is a failed
-`.github/dependabot.yml` check on the commit that changed it. Security updates
-ignore the cooldown, so it never delays a fix for an alert.
+Each line of output is a finding. Each line is an entry that proposes a release
+on the day that it ships, before people can find and remove a hijacked release.
+The convention is `default-days: 7` on each entry, and `semver-major-days: 14`
+on the ecosystems that use semver (`gomod`, `bun`, `npm`, `swift`).
 
-After editing `dependabot.yml`, confirm Dependabot accepted it:
+Never put the `semver-*` keys on `github-actions` or `docker`. Dependabot then
+refuses the full file and runs no updates. The only sign is a failed
+`.github/dependabot.yml` check on the commit that changed it. Security updates
+ignore the cooldown. Thus it never makes a fix for an alert later.
+
+After you edit `dependabot.yml`, confirm that Dependabot accepted it:
 
 ```bash
 sha=$(gh api "/repos/$owner/$r/commits?path=.github/dependabot.yml&per_page=1" --jq '.[0].sha')
@@ -166,13 +166,15 @@ gh api "/repos/$owner/$r/commits/$sha/check-runs" \
   --jq '.check_runs[] | select(.name | test("dependabot")) | "\(.conclusion)\t\(.output.summary)"'
 ```
 
-A `failure` here is a finding, because it means the entries above it do nothing.
+A `failure` here is a finding, because it means that the entries above do
+nothing.
 
 ### Every lockfile is watched
 
-A lockfile with no Dependabot entry gets no alerts and no bumps, so a
-vulnerable version sits there and the alert count still reads zero. Compare the
-lockfiles `deps.sh` found against the ecosystems `dependabot.yml` declares:
+A lockfile with no Dependabot entry gets no alerts and no bumps. Thus a
+vulnerable version stays there, and the alert count still shows zero. Compare
+the lockfiles that `deps.sh` found with the ecosystems that `dependabot.yml`
+declares:
 
 | Lockfile | Ecosystem it needs |
 | --- | --- |
@@ -182,13 +184,14 @@ lockfiles `deps.sh` found against the ecosystems `dependabot.yml` declares:
 | `.github/workflows/*.yml` | `github-actions` |
 | `Dockerfile` | `docker` |
 
-A lockfile whose directory no entry covers is a finding. Name the directory.
+If no entry covers the directory of a lockfile, that is a finding. Name the
+directory.
 
 ### Actions are pinned
 
-The rule is in [Tooling](../../../../CONSTITUTION.md#tooling). An action from
-outside the organization is pinned by full commit SHA with its version in a
-comment. Anything else is a finding:
+The rule is in [Tooling](../../../../CONSTITUTION.md#tooling). Pin an action
+from outside the organization by its full commit SHA, with its version in a
+comment. Each other form is a finding:
 
 ```bash
 grep -nE 'uses:\s*[^ .][^ ]+' ~/git/osapi-io/*/.github/workflows/*.y*ml |
@@ -198,8 +201,8 @@ grep -nE 'uses:\s*[^ .][^ ]+' ~/git/osapi-io/*/.github/workflows/*.y*ml |
 ### Workflows declare their permissions
 
 The rule is in [Tooling](../../../../CONSTITUTION.md#tooling). A workflow with
-no `permissions:` block, or a repository whose default token can write, is a
-finding:
+no `permissions:` block is a finding. A repository whose default token can write
+is also a finding:
 
 ```bash
 for r in $repos; do
@@ -220,9 +223,9 @@ What each kind of workflow here needs:
 
 ## Reporting
 
-Compromise findings lead, as blocks, ahead of everything else in the report.
-When there are none, say so in one line with what was covered, because "nothing
-found" means little without it:
+Compromise findings come first in the report, as blocks. When there are none,
+say so in one line, with what you covered. Without that, "nothing found" means
+little:
 
 ```
 ✅ no sign of compromise · 8 repos
@@ -231,7 +234,7 @@ found" means little without it:
    24 actions, no advisories · every release tag on its default branch
 ```
 
-Defences follow as one block per kind:
+Defences come next, as one block for each kind:
 
 ```
 🟡 3 lockfiles unwatched by Dependabot · osapi
@@ -239,8 +242,8 @@ Defences follow as one block per kind:
    → say "watch the osapi lockfiles" to add the entries
 ```
 
-A compromise finding is never filed as a public issue, because the issue tells
-an attacker what was noticed. It goes to a draft repository advisory, which only
+Never report a compromise finding as a public issue, because the issue tells an
+attacker what you saw. It goes to a draft repository advisory, which only
 maintainers can read:
 
 ```bash
@@ -250,4 +253,4 @@ jq -n --arg r "$r" --arg s "<one line>" --arg d "<what was found, where, since w
   gh api -X POST "/repos/osapi-io/$r/security-advisories" --input -
 ```
 
-A defence finding is not exploitable on its own and can be an issue.
+A defence finding is not exploitable alone. It can be an issue.

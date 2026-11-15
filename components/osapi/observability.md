@@ -1,7 +1,7 @@
 # Observability
 
-Four separate things under `internal/telemetry`, and they answer different
-questions.
+`internal/telemetry` has four separate subsystems. Each answers a different
+question.
 
 | Subsystem | Answers                                      |
 | --------- | -------------------------------------------- |
@@ -12,29 +12,28 @@ questions.
 
 ## Tracing carries across the queue
 
-`InitTracer` sets up OpenTelemetry with an OTLP exporter, or a stdout one for
-development.
+`InitTracer` configures OpenTelemetry with an OTLP exporter. For development, it
+uses a stdout exporter.
 
-The part worth knowing is propagation. `ExtractTraceContext` and
-`ExtractTraceContextFromHeader` pull a trace context out of an incoming request,
-and because work reaches a host through the queue rather than through a call,
-that context has to travel **with the job** rather than down a stack. A trace
-that stopped at the API boundary would show a request that queued something and
-nothing after it.
+Propagation is the important part. `ExtractTraceContext` and
+`ExtractTraceContextFromHeader` get a trace context from an incoming request.
+Work gets to a host through the queue, not through a call. Thus that context
+must go **with the job**, not down a stack. If a trace stops at the API, it
+shows a request that queued something, and nothing after it.
 
-`NewTraceHandler` wraps `slog` so a log line carries its trace and span IDs.
-That is what joins a log to a trace without a correlation ID of its own, and it
-is why an audit entry carries `trace_id`: three records of the same request,
-joinable.
+`NewTraceHandler` wraps `slog`, so that a log line has its trace and span IDs.
+This connects a log to a trace without a separate correlation ID. For the same
+reason, an audit entry has `trace_id`. Thus you can join three records of the
+same request.
 
 ## Metrics run on their own port
 
-`controller.metrics.port`, 9090 by default, separate from the API's 8080, so
-scraping does not go through the authenticated surface and a scraper needs no
-token. The tradeoff is that the metrics port has no authentication at all, so it
-has to be firewalled rather than exposed.
+The metrics port is `controller.metrics.port`, 9090 by default. It is separate
+from the API port, 8080. Thus a scrape does not go through the authenticated
+API, and a scraper needs no token. The tradeoff: the metrics port has no
+authentication. Put it behind a firewall. Do not expose it.
 
-Three metrics, all about liveness rather than about work:
+There are three metrics. They are about liveness, not about work:
 
 | Metric                        | Is                                              |
 | ----------------------------- | ----------------------------------------------- |
@@ -46,25 +45,27 @@ Three metrics, all about liveness rather than about work:
 grep -rhoE 'osapi_[a-z_]+_(up|seconds)' --include='*.go' internal/ | sort -u | wc -l   # 3
 ```
 
-Nothing counts jobs or tracks queue depth. If you need that today you read it
-off the job status events in `job-queue`, which is the gap worth knowing about
-before you plan a dashboard.
+No metric counts jobs or measures the queue depth. If you need that now, read it
+from the job status events in `job-queue`. Know about this gap before you plan a
+dashboard.
 
 ## Behaviors measure their own work
 
-A [behavior](behaviors.md) gets telemetry without writing any.
-`internal/behaviors/telemetry.go` wraps every method call, so a new behavior is
-measured the moment it is registered. Providers that are not yet behaviors
-record none of this.
+A [behavior](behaviors.md) gets telemetry, and you write no telemetry code.
+`internal/behaviors/telemetry.go` wraps each method call. Thus osapi measures a
+new behavior when you register it. Providers that are not behaviors yet record
+none of this.
 
-Each call opens a span named `behavior.<name>.<method>` under the agent's job
-span, so a trace runs from the API request through the queue to the method that
-did the work. The span carries `osapi.behavior.name`, `.method`, `.verb`,
-`.outcome` and `.changed`. An input field tagged `telemetry:"attr"` is added as
-`osapi.behavior.input.<field>`. Untagged fields never are, so a password cannot
-reach a trace by accident.
+Each call opens a span with the name `behavior.<name>.<method>`, under the job
+span of the agent. Thus a trace goes from the API request, through the queue, to
+the method that did the work. The span has `osapi.behavior.name`, `.method`,
+`.verb`, `.outcome` and `.changed`.
 
-Three metrics come from the same wrapper, through the agent's meter provider:
+osapi adds an input field with the tag `telemetry:"attr"` as
+`osapi.behavior.input.<field>`. It never adds a field without the tag. Thus a
+password cannot get into a trace by accident.
+
+The same wrapper makes three metrics, through the meter provider of the agent:
 
 | Metric                            | Is                                                   |
 | --------------------------------- | ---------------------------------------------------- |
@@ -76,15 +77,15 @@ Three metrics come from the same wrapper, through the agent's meter provider:
 grep -rhoE 'osapi_behavior_[a-z_]+' --include='*.go' internal/behavior/ | sort -u | wc -l   # 3
 ```
 
-`osapi behavior get --name <name>` prints the span and metric names a behavior
-produces, and which of its inputs are recorded.
+`osapi behavior get --name <name>` prints the span and metric names of a
+behavior. It also prints which inputs osapi records.
 
 ## Conditions are a yes or no, not a number
 
 `EvaluateProcessConditions` in `internal/agent/condition.go` returns three
-booleans with a reason string each. A metric is a number over time; a condition
-is an answer right now, which is what a fleet view needs to say a host is
-degraded without an operator reading a graph.
+booleans. Each has a reason string. A metric is a number over time. A condition
+is an answer now. A fleet view needs that answer to show that a host is
+degraded, so that an operator does not have to read a graph.
 
 | Condition                 | True when                                 | Default                         |
 | ------------------------- | ----------------------------------------- | ------------------------------- |
@@ -92,25 +93,28 @@ degraded without an operator reading a graph.
 | `ConditionMemoryPressure` | memory used % over the threshold          | `memory_pressure_threshold: 90` |
 | `ConditionDiskPressure`   | **any** mount over the threshold          | `disk_pressure_threshold: 90`   |
 
-All three are under `agent.conditions` in `osapi.yaml`. Two details that bite:
-the high-load one scales with CPU count rather than being absolute, so a 2.0
-multiplier means load 8 on a four-core box and load 64 on a 32-core one; and
-disk pressure loops over every mount and trips on the first one over the
-threshold, so a full `/boot` degrades the host.
+The three are under `agent.conditions` in `osapi.yaml`. Two details can surprise
+you:
 
-Each condition carries the numbers that tripped it,
-`"load 9.12, threshold 8.00 for 4 CPUs"`, so an operator does not have to go and
-look them up to decide whether it matters.
+- The high-load condition changes with the CPU count. It is not absolute. A 2.0
+  multiplier means load 8 on a four-core machine, and load 64 on a 32-core
+  machine.
+- Disk pressure examines each mount. It becomes true on the first mount that is
+  over the threshold. Thus a full `/boot` degrades the host.
+
+Each condition has the numbers that made it true, for example
+`"load 9.12, threshold 8.00 for 4 CPUs"`. Thus an operator does not have to find
+the numbers to decide if the condition is important.
 
 ## Where this connects
 
-The `trace_id` on an audit entry, and how it joins to a log line, is
-[the audit trail](audit.md).
+[The audit trail](audit.md) has the `trace_id` on an audit entry, and how it
+joins to a log line.
 
-The health endpoints an orchestrator polls, which are a separate thing from
-these metrics, stay on the published site where an operator will look.
+The published site has the health endpoints that an orchestrator polls. They are
+separate from these metrics, and an operator looks for them there.
 
-`telemetry` as a config section is [configuration](configuration.md).
+[Configuration](configuration.md) has `telemetry` as a config section.
 
 ______________________________________________________________________
 

@@ -4,8 +4,8 @@ Resolve the repository set first, per [SKILL.md](../SKILL.md).
 
 ## Ask the organization, not each repository
 
-All three alert systems have an org-level endpoint. One call each, covering
-every repository:
+All three alert systems have an org-level endpoint. One call for each covers all
+repositories:
 
 ```bash
 for kind in dependabot secret-scanning code-scanning; do
@@ -38,11 +38,10 @@ gh api "/repos/osapi-io/$r/dependabot/alerts?state=open&per_page=100" \
   --jq '.[] | "\(.security_advisory.severity)\t\(.dependency.package.name)\t\(.security_vulnerability.first_patched_version.identifier // "NO PATCH")\t\(.created_at[:10])"'
 ```
 
-**A count is not a finding.** Before reporting alerts as work, establish the
-verdict in [triage.md](triage.md): whether a patch exists, and whether the
-vulnerable code is reachable from this repository. An alert with no patch and no
-reachable call path is not work, and listing it as work makes the report
-dishonest.
+**A count is not a finding.** Before you report alerts as work, find the verdict
+in [triage.md](triage.md): if a patch exists, and if this repository can get to
+the vulnerable code. An alert with no patch and no reachable call path is not
+work. If you list it as work, the report is not honest.
 
 Group by package. One dependency often carries several advisories, and listing
 them separately turns one decision into three.
@@ -63,9 +62,9 @@ gh api "/repos/osapi-io/$r/code-scanning/alerts?state=open&per_page=100" --jq 'l
 ```
 
 This returns `{"message":"no analysis found",...,"status":"404"}` for a
-repository that has never run a scan. That is not zero alerts. It means the
-question does not apply there, and reporting it as clean is wrong. Detect it by
-checking whether the response is an array:
+repository that has never run a scan. That is not zero alerts. It means that the
+question does not apply there. It is incorrect to report it as clean. To find
+it, check if the response is an array:
 
 ```bash
 out=$(gh api "/repos/osapi-io/$r/code-scanning/alerts?state=open&per_page=100" 2>/dev/null || true)
@@ -76,9 +75,9 @@ else
 fi
 ```
 
-The `|| true` matters. `gh api` exits non-zero on a 404, which kills the whole
-loop under `set -e` and leaves the remaining repositories unqueried with nothing
-to say they were skipped.
+The `|| true` is important. `gh api` exits with a value that is not zero on a
+404. Under `set -e`, that stops the full loop. The other repositories get no
+query, and nothing says that they were skipped.
 
 ## Secret scanning alerts
 
@@ -88,11 +87,11 @@ A committed credential.
 gh api "/repos/osapi-io/$r/secret-scanning/alerts?state=open&per_page=100" --jq 'length'
 ```
 
-Same array check applies: the endpoint 404s when secret scanning is off for the
-repository.
+The same array check applies. The endpoint returns 404 when secret scanning is
+off for the repository.
 
-Treat any finding here as urgent, and do not paste the secret itself into the
-conversation. Report the repository, the alert URL, and the secret type from
+Each finding here is urgent. Do not paste the secret into the conversation.
+Report the repository, the alert URL, and the secret type from
 `.secret_type`.
 
 ## Permissions

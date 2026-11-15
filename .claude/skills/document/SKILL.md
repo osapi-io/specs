@@ -10,10 +10,10 @@ metadata:
 
 # Document
 
-Design something by writing its page. Build it. Correct the page where building
-proved it wrong. Same page all three times.
+Design something when you write its page. Build it. Correct the page where the
+build showed an error. It is the same page all three times.
 
-This skill covers the writing. It does not build anything.
+This skill covers the page. It does not build anything.
 
 ## 1. Find out whether the page already exists
 
@@ -24,9 +24,9 @@ ls components/*/                      # every page, by component
 grep -ril '<subject>' components/     # anything already covering it
 ```
 
-Read the component's `README.md` and the pages it links first. Two pages stating
-the same rule is the common failure here, and the second one is always written by
-somebody who did not read the first.
+Read the `README.md` of the component and the pages that it links first. The
+usual failure here is two pages that state the same rule. A person who did not
+read the first page always writes the second.
 
 ## 2. Place it
 
@@ -39,11 +39,11 @@ of them must both keep**.
 | Something two repositories must agree on                   | `ARCHITECTURE.md`          |
 | A rule every repository follows                            | `CONSTITUTION.md`          |
 
-Job retry logic is osapi's behaviour. The subject naming that osapi and
-osapi-orchestrator both depend on belongs to neither, so it goes in
-`ARCHITECTURE.md`. A change touching several repositories is not automatically an
-agreement: if one repository's behaviour is the subject and the others consume it,
-that repository owns the page.
+Job retry logic is the operation of osapi. osapi and osapi-orchestrator both
+depend on the subject names, but neither owns them. Thus they go in
+`ARCHITECTURE.md`. A change to more than one repository is not always an
+agreement. If the subject is the operation of one repository, and the others use
+it, that repository owns the page.
 
 Within a component, a new subject is a new page named for the subject,
 `job-system.md`, `permissions.md`. A subject that outgrows one page becomes a
@@ -51,13 +51,15 @@ directory with its own `README.md` and pages beside it.
 
 ## 3. Work out what is true
 
-Read the code, not the existing prose. Then run something that would fail if you
-were wrong.
+Read the code, not the existing prose. Then run something that fails if you are
+wrong.
 
-Three errors found that way, all in pages that read as authoritative: a timeout
-documented as a fallback when it is a ceiling, fourteen audit fields when the
-struct has thirteen, and a role described as `admin` minus one permission when it
-is minus seven.
+That method found three errors, all in pages that looked correct:
+
+- a timeout that a page called a fallback, but that is a maximum
+- fourteen audit fields, but the struct has thirteen
+- a role that a page described as `admin` minus one permission, but that is
+  minus seven
 
 Where you state a number, state the command beside it:
 
@@ -69,16 +71,17 @@ grep -cE '^\tPerm[A-Za-z]+ +Permission = ' pkg/sdk/client/permissions.go  # 37
 ```
 ```
 
-`just check-counts` runs every one of those in the repository the page describes.
+`just check-counts` runs every one of those in the repository the page
+describes.
 A command that needs the line above it to make sense fails, so each one stands
 alone.
 
 ## 4. Write it
 
-The voice: an engineer explaining a system to another engineer who has to work on
-it. [references/voice.md](references/voice.md) has the specifics and the tells to
-avoid. Each sentence follows Simplified Technical English; check the page with
-[ste-100](../ste-100/SKILL.md) before the `unslop` pass.
+The voice: an engineer who explains a system to a different engineer who must
+work on it. [references/voice.md](references/voice.md) has the details, and the
+signs to avoid. Each sentence obeys Simplified Technical English. Check the page
+with [ste-100](../ste-100/SKILL.md) before the `unslop` pass.
 
 What a page does, in order of what a reader needs:
 
@@ -92,14 +95,15 @@ What a page does, in order of what a reader needs:
 - **What the page does not cover**, so a gap is not mistaken for an oversight.
 
 What never appears: requirement identifiers, "MUST", user stories, acceptance
-scenarios, or commentary about the document. `just check-docs` fails on the first
+scenarios, or commentary about the document. `just check-docs` fails on the
+first
 four.
 
 ## 5. Link it
 
-Add a row to the component's `README.md` saying what question the page answers,
-and link siblings from the body where a reader would want them. An unlinked page
-does not get read.
+Add a row to the `README.md` of the component. The row tells what question the
+page answers. Link sibling pages from the body where a reader needs them. Nobody
+reads a page without links to it.
 
 Cross-component links are relative: `../gohai/collectors.md` from an osapi page,
 `../../ARCHITECTURE.md` from any component page.
@@ -114,9 +118,9 @@ mise exec -- just test       # counts, contract, links, skills
 Then run `unslop` over what you wrote. The scripts catch em dashes and
 requirement labels; `unslop` catches the prose.
 
-Last, give somebody the page and nothing else and ask them the question it claims
-to answer. Fix what they could not work out. That has found four errors in pages
-that passed every script.
+Last, give a person only the page. Ask the question that the page says it
+answers. Fix what the person could not find. This test found four errors in
+pages that passed each script.
 
 ## Correcting a page
 

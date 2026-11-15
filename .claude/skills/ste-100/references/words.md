@@ -9,7 +9,7 @@ Use a word in one sense only, and use one word for one thing.
 | The agent picks up the job. Then it picks the provider. | The agent receives the job. Then it selects the provider. |
 | Restart the daemon. The service then reads the config. | Restart the agent. The agent then reads its configuration. |
 
-Decide the terms before writing. On a long page, list them.
+Decide the terms before you write. On a long page, list them.
 
 ## The simplest common word
 

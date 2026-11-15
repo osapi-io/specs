@@ -36,13 +36,14 @@ For each operation that needs privilege, use the first that works:
    timezone, reboot and service actions go this way.
 3. **sudo, for one privileged step of one behavior.** Only the steps below.
 
-polkit could authorize step 2 without sudo, but polkitd is not on every
-distribution and has two rule formats, so it is not the baseline.
+polkit can authorize step 2 without sudo. But polkitd is not on each
+distribution, and it has two rule formats. Thus it is not the baseline.
 
 ## Privileged steps
 
-A behavior declares the work that needs root as a privileged step: a typed
-function that runs as root, with arguments that sudo and the step both check.
+A behavior declares the work that needs root as a privileged step. A privileged
+step is a typed function that runs as root. sudo and the step both check its
+arguments.
 
 ```go
 behavior.Privileged("apply", Apply).
@@ -59,8 +60,8 @@ A write method calls `Escalate(ctx, "apply", input)`. When the agent is root,
 `sudo /usr/bin/osapi agent privileged sysctl apply <key> <value>`. That command
 is hidden from `--help`, and only sudo runs it. It decodes the arguments, checks
 the patterns and the `Refuses` list again, and calls `Apply`. The same Go code
-runs on both sides of sudo, so the checks a taken-over agent skips are still
-made, as root, where it cannot skip them.
+runs on the two sides of sudo. Thus root still makes the checks that a
+taken-over agent skips, and the agent cannot skip them there.
 
 `RootEquivalent()` marks a step that no pattern can make safe. The docs page of
 the behavior says so, and the operator turns it on knowingly.
@@ -70,9 +71,10 @@ Today only sysctl and managedfile declare `Sudo`. managedfile becomes a library
 that `Apply` calls, because the agent no longer writes `/etc/sysctl.d` itself.
 
 **The fake host enforces the declaration.** A behavior test fails when a method
-writes a path or runs a program that only root can, outside a privileged step. A
-sudo call that does not match a declared step fails too. So the declaration
-cannot drift from the code.
+writes a path that only root can write, outside a privileged step. It also fails
+when a method runs a program that only root can run there. A sudo call that does
+not match a declared step fails too. Thus the declaration and the code cannot
+become different.
 
 ## What each behavior puts on a host
 
@@ -155,10 +157,11 @@ privileged step is Linux only.
 
 ## Checks
 
-**`behavior validate`** fires probes at each step's rendered rule and at the
-step's own checks: a space in an argument, an extra argument, `;`, `|`, `../`, a
-refused value, an overlong value. A probe that gets through is a finding, and
-`just test` fails on it. `--json` names the step and the probe:
+**`behavior validate`** sends probes to the rendered rule of each step, and to
+the checks of the step. The probes are a space in an argument, an extra
+argument, `;`, `|`, `../`, a refused value and a value that is too long. If a
+probe gets through, that is a finding, and `just test` fails on it. `--json`
+names the step and the probe:
 
 ```json
 {"behavior": "sysctl", "step": "apply", "rule": "probe-passed",
@@ -209,35 +212,37 @@ which is one more reason to move it.
 ## Not planned yet
 
 AppArmor, as an optional profile rendered from the same `Writes` and `Runs`. It
-can only take permissions away, so it fences a root agent rather than replacing
-sudo. SELinux, when somebody asks: its rules are labels, not paths, and harder
-to render. polkit, as above.
+can only remove permissions. Thus it limits a root agent, but it does not
+replace sudo. SELinux, when somebody asks: its rules are labels, not paths, and
+harder to render. polkit, as above.
 
 ## Order of work
 
-1. Preflight: one `sudo -n -l`, warnings instead of refusal (osapi #693, #694).
+1. Done: preflight runs one `sudo -n -l` and gives warnings, not a refusal
+   (osapi #693, #694).
 2. Command exec and docker exec off by default.
-3. `Privileged`, `Escalate` and `osapi agent privileged`, with sysctl first. Fix
-   the silent apply failure on the way (osapi #692).
+3. `Privileged`, `Escalate` and `osapi agent privileged`, with sysctl first. The
+   silent apply failure is fixed (osapi #692).
 4. The probes in `behavior validate`; `--section`, the files and the flags in
    `behavior get`.
-5. The base unit, the `osapi` user and the per-behavior files in Packer and
-   osapi-lab, proved on the lab: a sysctl set works, and a `kernel.core_pattern`
-   attempt and an extra argument are refused.
+5. The base unit, the `osapi` user and the files for each behavior, in Packer
+   and osapi-lab. Prove them on the lab. A sysctl set must work. A
+   `kernel.core_pattern` attempt and an extra argument must fail.
 6. One customer page that replaces `architecture/security.md`'s privilege part
    and `features/agent-hardening.md`, whose sudoers examples grant root.
 7. The skills.
 
-Found on the way and filed: the agent replaces a key it cannot read (osapi
-#695), and no command removes an enrolled agent's key (osapi #696).
+Two problems found during this work are fixed. The agent no longer replaces a
+key that it cannot read (osapi #695). `osapi client agent remove` removes the
+key of an enrolled agent (osapi #696).
 
 ## Where this connects
 
-What runs a command and when sudo applies is [running commands](exec.md). The
-declarations the steps join are [behaviors](behaviors.md). The order domains
-move in is [moving domains to behaviors](behavior-migration.md). Whose messages
-the controller believes, which is a different question from what the agent may
-do, is [agent identity](agent-identity.md).
+[Running commands](exec.md) tells what runs a command and when sudo applies.
+[Behaviors](behaviors.md) has the declarations that the steps join.
+[Moving domains to behaviors](behavior-migration.md) has the order of the
+domains. [Agent identity](agent-identity.md) tells which messages the controller
+believes. That is a different question from what the agent can do.
 
 ______________________________________________________________________
 

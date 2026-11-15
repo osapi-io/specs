@@ -8,16 +8,14 @@ controller-only domains directly under `internal/controller/api/{domain}/`.
 
 ## The rules are in the corpus, not here
 
-Every rule this layer obeys is stated in
-[005-building-a-domain](../../../../components/osapi/domains.md).
-Read it before writing an endpoint. This file holds only what that specification
-does not: where the files go, what they are called, and the scaffolding to start
-from.
+[Building a domain](../../../../components/osapi/domains.md) states each rule
+that this layer obeys. Read it before you write an endpoint. This file has only
+what that page does not have: where the files go, their names, and the scaffold
+to start from.
 
-The split is deliberate. A rule restated here would drift from the one in the
-corpus, and the copy an agent happened to load would win, which is the failure
-[003-corpus-backfill](../../../../CONSTITUTION.md)
-exists to end.
+The split is deliberate. A second statement of a rule here becomes different
+from the rule in the corpus. Then the copy that an agent loads first applies.
+[The constitution](../../../../CONSTITUTION.md) exists to stop that failure.
 
 | What you need to know | Where |
 | --- | --- |
@@ -34,15 +32,16 @@ exists to end.
 | What the tests owe: validation proved to fire, the RBAC trio, every declared status | [what a domain's tests owe](../../../../components/osapi/domains.md#what-a-domains-tests-owe) |
 | A domain appears everywhere an existing domain appears | [every layer, or not done](../../../../components/osapi/domains.md#a-domain-is-in-every-layer-or-it-is-not-done) |
 
-What a caller sees when an agent does not answer is the job system's, not this
-layer's:
-[what a caller gets back](../../../../components/osapi/job-system.md#what-a-caller-gets-back) for the
-four per-host statuses, and [three limits](../../../../components/osapi/job-system.md#three-limits-bounding-different-things)
-for the clocks. Domain code
-does not handle the timeout; CLI and SDK output must not imply the operation ran.
+The job system decides what a caller sees when an agent does not answer. This
+layer does not. Refer to [what a caller gets
+back](../../../../components/osapi/job-system.md#what-a-caller-gets-back) for
+the four statuses of each host, and to [three
+limits](../../../../components/osapi/job-system.md#three-limits-bounding-different-things)
+for the clocks. Domain code does not handle the timeout. CLI and SDK output must
+not say that the operation ran.
 
-Read the reference domain's package alongside the specification. The
-specification says what must hold; `sysctl` and `cron` show it holding.
+Read the package of the reference domain together with the specification. The
+specification says what must be true. `sysctl` and `cron` show it in use.
 
 ## File layout
 
@@ -95,22 +94,23 @@ handlers = append(handlers,
 Stated here because they are real and nothing else states them. Both belong in
 the corpus and neither is there yet.
 
-**A custom validation rule is a registered validator.** It belongs in
-`internal/validation` with a hint in `customHints`, so the 400 says what shape
-was expected rather than naming the tag. `sysctl_key` and `cron_schedule` are the
+**A custom validation rule is a registered validator.** It goes in
+`internal/validation`, with a hint in `customHints`. Thus the 400 says what
+shape was expected, and does not only name the tag. `sysctl_key` and
+`cron_schedule` are the
 pattern.
 
 **`IsBroadcastTarget` has one implementation and never a second.** It lives in
 `internal/job/subjects.go`. What the corpus does not say is that a domain must
 not write its own target parser.
 
-**A permission is chosen by blast radius, not by endpoint group.** Two operations
-that differ in how much damage they can do want two permissions however similar
-their shape. A new one must be added to the built-in role expansion, the
-permission constants, the SDK, and the roles tables in
-`features/authentication.md` and `usage/configuration.md`, see
-[docs.md](docs.md). A permission that exists in the spec but in no role reaches
-nobody.
+**Select a permission by the possible damage, not by the endpoint group.** If
+two operations can do different amounts of damage, they need two permissions,
+also if their shape is the same. Add a new permission to the permission
+constants, `builtinPermissions`, `builtinRolePermissions` and the SDK.
+`osapi token roles` then prints it. Also add it to the roles table in
+`usage/configuration.md`. Refer to [docs.md](docs.md). A permission that is in
+the spec but in no role gets to nobody.
 
 ## Tests
 

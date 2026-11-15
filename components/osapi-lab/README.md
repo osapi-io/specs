@@ -1,14 +1,16 @@
 # osapi-lab
 
-`osapi-lab` is a small fleet of real machines that runs whatever osapi checkout
-you point it at. One Mac is the hub, Tart VMs on it run an agent each, and one
-command builds your osapi branch, uncommitted changes included, and restarts
-everything on it. It is where osapi gets restarted and new builds get pushed
-out, by hand, before anything is released.
+`osapi-lab` is a small fleet of real machines. It runs the osapi checkout that
+you point it at. One Mac is the hub. Tart VMs on it run one agent each. One
+command builds your osapi branch, with the uncommitted changes, and restarts all
+of the fleet on it. People restart osapi and send new builds here, by hand,
+before a release.
 
-It holds no Go and ships nothing. Its content is Ansible roles and playbooks
-that `uv` runs, Packer templates for the VM images, and a justfile that calls
-them.
+It has no Go and ships nothing. Its content is:
+
+- Ansible roles and playbooks that `uv` runs
+- Packer templates for the VM images
+- a justfile that calls them
 
 ## The shape
 
@@ -24,20 +26,24 @@ them.
  ubuntu-1    debian-1    fedora-1        Tart VMs, one agent each
 ```
 
-The hub runs osapi's embedded NATS server and the controller as launchd agents,
-and each VM as a launchd agent of its own running `tart run`, so the fleet comes
-back when the hub reboots. Each VM runs `osapi-agent` under systemd. Agents dial
-out to NATS, so nothing needs a route into a VM: a VM reaches the hub at its
-vmnet subnet's `.1`, and a remote machine reaches it by its tailnet name.
+The hub runs the embedded NATS server of osapi and the controller as launchd
+agents. Each VM is also a launchd agent that runs `tart run`. Thus the fleet
+starts again when the hub reboots. Each VM runs `osapi-agent` under systemd.
+Agents connect out to NATS. Thus nothing needs a route into a VM. A VM gets to
+the hub at the `.1` address of its vmnet subnet. A remote machine gets to the
+hub by its tailnet name.
 
-Every process sends its traces to Jaeger on the hub, over OTLP gRPC on 4317: the
-controller to `127.0.0.1`, a VM's agent to the subnet's `.1`, a remote agent to
-the tailnet name. One collector, because one trace runs from the controller
-through NATS to an agent. The UI listens on `127.0.0.1:16686` on the hub only.
+Each process sends its traces to Jaeger on the hub, over OTLP gRPC on 4317:
 
-Ansible runs on your machine, not on the hub. It reaches the hub over SSH and
-each VM by jumping through the hub, so the hub needs no checkout of this
-repository.
+- the controller to `127.0.0.1`
+- the agent of a VM to the `.1` address of the subnet
+- a remote agent to the tailnet name
+
+There is one collector, because one trace goes from the controller through NATS
+to an agent. The UI listens on `127.0.0.1:16686`, on the hub only.
+
+Ansible runs on your machine, not on the hub. It gets to the hub over SSH, and
+to each VM through the hub. Thus the hub needs no checkout of this repository.
 
 ```
 ansible/
@@ -63,24 +69,25 @@ packer/                     the images: OS preparation and the osapi binary
 .lab/ (gitignored)          builds, secrets, the VMs' SSH key, rendered configs
 ```
 
-`ansible/inventory.yml` is the only file that names a machine. It is gitignored
-and starts as a copy of `inventory.example.yml`, the way k3s-ansible keeps
-`inventory-sample.yml`. The VM names in `group_vars/all.yml` are committed,
-since they name nothing outside the lab.
+`ansible/inventory.yml` is the only file that names a machine. git ignores it.
+It starts as a copy of `inventory.example.yml`, as k3s-ansible keeps
+`inventory-sample.yml`. The VM names in `group_vars/all.yml` are in git, because
+they name nothing outside the lab.
 
 ## How to run it
 
-Everything goes through `just`. Each lab recipe is one call to
-`just ansible-run <playbook>`, which the `ansible` module from
-[osapi-justfiles](../osapi-justfiles/README.md) defines: it runs
+All work goes through `just`. Each lab recipe is one call to
+`just ansible-run <playbook>`. The `ansible` module from
+[osapi-justfiles](../osapi-justfiles/README.md) defines it. It runs
 `uv run ansible-playbook playbooks/<playbook>.yml` from `ansible/`, where
 `ansible.cfg` is.
 
-`uv` supplies the Ansible pinned in `ansible/uv.lock`, so a person and an agent
-run the same version. Nothing calls `ansible-playbook` from the path, for the
-same reason osapi's agents never call `go build` directly: the version on the
-path is whatever somebody happened to install. The same module gives
-`ansible-lint`, `ansible-fmt` and `ansible-test`, which `just test` runs.
+`uv` supplies the Ansible version that `ansible/uv.lock` pins. Thus a person and
+an agent run the same version. Nothing calls `ansible-playbook` from the path.
+The reason is the same as the reason that agents in osapi never call `go build`
+directly: the version on the path is the version that somebody installed. The
+same module gives `ansible-lint`, `ansible-fmt` and `ansible-test`, which
+`just test` runs.
 
 | Recipe          | Playbook       | Does                                                  |
 | --------------- | -------------- | ----------------------------------------------------- |
@@ -91,108 +98,125 @@ path is whatever somebody happened to install. The same module gives
 | `just ssh vm`   | `client.yml`   | Refresh `.lab/ssh/config`, then `ssh -F` through it   |
 | `just teardown` | `teardown.yml` | Remove the lab from the hub                           |
 
-`teardown` undoes `site` on the hub. It boots out every `io.osapi.lab.*` launchd
-agent and deletes its plist, deletes the `lab-*` VMs, removes the Jaeger
-container and the firewall entry for the osapi build, and deletes the hub's
-state directory. It keeps two things that are slow or impossible to make again:
-the `img-*` images the VMs clone from (`-e lab_teardown_images=true` deletes
-them), and this machine's `.lab`, which holds the NATS operator and its keys
-(`-e lab_teardown_local=true` deletes it). Deleting the operator means every
-issued credential stops working, so the next `site` makes a new one.
+`teardown` reverses `site` on the hub. It does these steps:
 
-`.lab/ssh/config` holds a `Host` per VM with its current address and a jump
-through the hub, so `ssh`, `scp` and `rsync` reach a VM with `-F`. It includes
-`~/.ssh/config`, since `-F` replaces it and the hub may be an alias defined
-there.
+- It stops each `io.osapi.lab.*` launchd agent and deletes its plist.
+- It deletes the `lab-*` VMs.
+- It removes the Jaeger container and the firewall entry for the osapi build.
+- It deletes the state directory of the hub.
+
+It keeps two things that are slow or impossible to make again:
+
+- the `img-*` images that the VMs clone from. `-e lab_teardown_images=true`
+  deletes them.
+- the `.lab` of this machine, which has the NATS operator and its keys.
+  `-e lab_teardown_local=true` deletes it.
+
+If you delete the operator, each credential that it gave stops working. Thus the
+next `site` makes a new operator.
+
+`.lab/ssh/config` has a `Host` for each VM, with its current address and a jump
+through the hub. Thus `ssh`, `scp` and `rsync` get to a VM with `-F`. It
+includes `~/.ssh/config`, because `-F` replaces it, and the hub can be an alias
+that is defined there.
 
 ## How a build reaches the fleet
 
-`playbooks/push.yml` rebuilds the fleet from your checkout:
+`playbooks/push.yml` builds the fleet again from your checkout:
 
-- **`build`** compiles the osapi checkout the inventory names, for darwin and
-  linux on arm64, on your machine. It builds the UI first, because osapi embeds
-  `ui/dist`. It records the branch, the commit and whether the tree was dirty in
-  `.lab/bin/REVISION`, so the lab always says which build it runs. It also
-  fingerprints the source (the commit, the uncommitted diff and the untracked
-  files) and skips the build when nothing changed since the last one.
-- **`hub`** copies the darwin build to the hub, re-admits it through the
-  firewall, and restarts the NATS and controller agents.
-- **`images`** bakes the linux build into an image per distribution, named
-  `img-<distro>-<tag>`. The tag is the build's short commit, with `-dirty` when
-  the checkout had uncommitted changes, so the hub's image list says which osapi
-  each image holds. The hub keeps the fingerprint each image was baked from, and
-  an image is rebuilt only when it is missing or that fingerprint differs, so a
-  dirty tree is rebaked only when it has changed. Images from other builds are
-  deleted.
-- **`vms`** reclones a VM whose recorded image and fingerprint differ from what
-  it should run, and adds every VM to the inventory.
-- **`agents`** drops each VM's config in and starts its agent.
+- **`build`** compiles the osapi checkout that the inventory names, for darwin
+  and linux on arm64, on your machine. It builds the UI first, because osapi
+  embeds `ui/dist`. It records the branch, the commit, and if the tree had
+  changes, in `.lab/bin/REVISION`. Thus the lab always tells which build it
+  runs. It also makes a fingerprint of the source: the commit, the uncommitted
+  diff and the untracked files. If nothing changed since the last build, it
+  skips the build.
+- **`hub`** copies the darwin build to the hub, admits it through the firewall
+  again, and restarts the NATS and controller agents.
+- **`images`** puts the linux build into an image for each distribution, with
+  the name `img-<distro>-<tag>`. The tag is the short commit of the build. It
+  ends with `-dirty` when the checkout had uncommitted changes. Thus the image
+  list of the hub tells which osapi each image has. The hub keeps the
+  fingerprint of each image. It builds an image again only when the image is
+  missing or the fingerprint is different. Thus a tree with changes gets a new
+  image only when it changed again. It deletes images from other builds.
+- **`vms`** clones a VM again when its recorded image and fingerprint are
+  different from what it must run. It adds each VM to the inventory.
+- **`agents`** puts the config of each VM in place, and starts its agent.
 
-Each VM is then exactly its image plus a config. When the source changed, that
-takes minutes, mostly Packer booting each image once; when it did not, a push
-changes nothing. `playbooks/deploy.yml` is the quick loop: it copies the build
-into the hub and the running VMs and leaves the images alone, so a VM runs a
-build its image does not hold until the next push.
+Each VM is then exactly its image and a config. When the source changed, this
+takes some minutes. Most of the time is Packer, which boots each image one time.
+When the source did not change, a push changes nothing.
+
+`playbooks/deploy.yml` is the fast loop. It copies the build into the hub and
+the running VMs, and does not change the images. Thus a VM runs a build that its
+image does not have, until the next push.
 
 ## Why it is built this way
 
-**A real host, not a container.** osapi's `just behavior-int-linux` runs a
-behavior's examples against an agent in one Debian container, which is enough to
-show that a provider does what its examples say. It cannot show what an operator
-sees: several agents answering one broadcast, a distribution osapi does not
-support, a Mac agent skipping almost everything, a restart under systemd. The
-lab shows those.
+**A real host, not a container.** `just behavior-int-linux` in osapi runs the
+examples of a behavior against an agent in one Debian container. That shows that
+a provider does what its examples say. It cannot show what an operator sees:
+
+- many agents that answer one broadcast
+- a distribution that osapi does not support
+- a Mac agent that skips almost everything
+- a restart under systemd
+
+The lab shows those.
 
 **Ansible, not a justfile of shell.** The first version was bash in the
-justfile: a render script for templates, an scp loop for the VMs, a sudo check
-written by hand, and a copy of the repository on the hub so recipes could run
-there. Ansible has each of those as a module, makes every step safe to run
-twice, and keeps the VMs in an inventory. The cost is a Python toolchain, which
-`uv` reduces to one lock file. Running Ansible through `uv` from a justfile is
-what pytorch's `ci-infra` does for its runner fleet.
+justfile. It had a render script for templates, an scp loop for the VMs and a
+sudo check written by hand. It also needed a copy of the repository on the hub,
+for the recipes that ran there. Ansible has a module for each of those. It makes
+each step safe to run two times, and keeps the VMs in an inventory. The cost is
+a Python toolchain, and `uv` reduces that to one lock file. pytorch runs Ansible
+through `uv` from a justfile for the runner fleet of its `ci-infra`.
 
-**The image holds osapi, never its config.** A VM rebuilt from its image runs
-exactly the build that went in, rather than whatever was last copied onto it.
-The config and the VM's NATS credentials stay out: Ansible drops them in after
-the clone, the way Mozilla's macos-vms has the Tart host supply a VM's
-credentials at boot rather than bake them in.
+**The image has osapi, never its config.** A VM that you build again from its
+image runs exactly the build that went into it. It does not run the last file
+that somebody copied onto it. The config and the NATS credentials of the VM stay
+out of the image. Ansible puts them in after the clone. In the same way, the
+macos-vms project of Mozilla has the Tart host give the credentials of a VM at
+boot, and does not put them in the image.
 
-**Packer still builds the images.** No Ansible collection drives Tart. The
+**Packer still builds the images.** No Ansible collection controls Tart. The
 `packer` role copies `packer/` to the hub and runs it there, because Tart runs
-only on the Mac that holds the VMs. The `tart_vm` role drives Tart with plain
-commands and `add_host`, the way every public Ansible-and-Tart setup does.
+only on the Mac that has the VMs. The `tart_vm` role controls Tart with plain
+commands and `add_host`, as each public Ansible-and-Tart setup does.
 
-**Small roles, composed.** `packer`, `tart_vm`, `launchd` and `firewall` know
-nothing about osapi and take their inputs as variables. The osapi roles use
-them, and the playbooks only list roles.
+**Small roles, put together.** `packer`, `tart_vm`, `launchd` and `firewall`
+know nothing about osapi, and take their inputs as variables. The osapi roles
+use them. The playbooks only list roles.
 
-**A launchd agent per VM, not a daemon.** Tart keeps VMs under the user's home,
-and a launchd daemon starts with no `HOME`. An agent in the user's session has
-it, and `KeepAlive` restarts a VM that stops.
+**One launchd agent for each VM, not a daemon.** Tart keeps VMs under the home
+directory of the user. A launchd daemon starts with no `HOME`. An agent in the
+session of the user has it. `KeepAlive` restarts a VM that stops.
 
-**Build where you edit.** The checkout that changes is on your machine, so the
-build happens there and only binaries move.
+**Build where you edit.** The checkout that changes is on your machine. Thus the
+build occurs there, and only binaries move.
 
-**An image says what it is.** Packer writes the image's name and the build's
-description to `/etc/osapi-lab/image`, and `list.yml` reads it from each VM
-beside `osapi version`, so what a VM runs is a lookup, not a guess.
+**An image tells what it is.** Packer writes the name of the image and the
+description of the build to `/etc/osapi-lab/image`. `list.yml` reads it from
+each VM, with `osapi version`. Thus you can read what a VM runs. You do not
+guess.
 
-**Every clone gets its own machine ID.** osapi identifies an agent by
-`/etc/machine-id`. The image ships that file empty, so systemd writes a new one
-on each clone's first boot.
+**Each clone gets its own machine ID.** osapi identifies an agent by
+`/etc/machine-id`. The image ships that file empty. Thus systemd writes a new
+one on the first boot of each clone.
 
-**Secrets never enter an image or the repository.** They are generated once on
-your machine, into `.lab/`, and the hub and each VM receive only their rendered
-config. An agent's config carries a throwaway signing key rather than the hub's,
-because osapi validates every key in the file, whatever the command.
+**Secrets never go into an image or the repository.** The lab makes them one
+time on your machine, in `.lab/`. The hub and each VM get only their rendered
+config. The config of an agent has a temporary signing key, not the key of the
+hub, because osapi validates each key in the file for each command.
 
 ## NATS in operator mode
 
-The hub runs osapi's own NATS server in operator mode, NATS's decentralized JWT
-model, the way an operator who wants per-host credentials would. An operator
-signs osapi's account, the account signs a user per process, and each process
-connects with its own credentials file. Adding a VM is issuing it a credential;
-the server's config does not change. The design is in osapi's
+The hub runs the NATS server of osapi in operator mode, the decentralized JWT
+model of NATS. An operator who wants credentials for each host does the same. An
+operator signs the account of osapi. The account signs a user for each process.
+Each process connects with its own credentials file. To add a VM, give it a
+credential. The config of the server does not change. The design is in osapi's
 [transport](../osapi/transport.md#who-may-connect) page.
 
 | User           | Used by                              | Credentials on                      |
@@ -267,26 +291,28 @@ which is the check that every credential reached the right place.
 
 ## What will surprise you
 
-**`-K` asks for the hub's sudo password.** The hub's macOS firewall admits a
-binary by its code signature, and every build has a new one, so each push
-re-admits it. The VMs need no password; their account has passwordless sudo.
+**`-K` asks for the hub's sudo password.** The macOS firewall of the hub admits
+a binary by its code signature. Each build has a new signature, so each push
+admits the binary again. The VMs need no password. Their account has
+passwordless sudo.
 
 **A binary is never overwritten in place.** macOS kills a signed binary whose
 bytes change while it runs. Ansible's `copy` writes a temporary file and renames
 it over the target, which gives the new binary its own inode.
 
-**Fedora runs with `IGNORE_LINUX=1`.** osapi's agent exits at startup on a
-distribution outside its supported list. The `agent` role sets osapi's own
-override in a systemd drop-in on every node that is not Ubuntu or Debian, so the
-agent starts, runs the generic Linux providers and skips the rest. Ubuntu and
-Debian nodes have the drop-in removed, so the supported-distribution gate still
-runs wherever it passes. Both are osapi's `debian` platform, so every behavior
-runs on them.
+**Fedora runs with `IGNORE_LINUX=1`.** The agent of osapi stops at startup on a
+distribution that is not on its supported list. On each node that is not Ubuntu
+or Debian, the `agent` role sets the override of osapi in a systemd drop-in.
+Thus the agent starts, runs the generic Linux providers and skips the others.
+The role removes the drop-in from Ubuntu and Debian nodes. Thus the check for
+supported distributions still runs where it passes. The two are the `debian`
+platform of osapi, so each behavior runs on them.
 
-**A config osapi would reject stops the deploy.** The `agent` role runs
-`client health liveness` with each rendered config, on your machine with the
-darwin build, before shipping it. A command that fails for any other reason,
-such as the controller still starting, does not stop it; `invalid config` does.
+**A config that osapi refuses stops the deploy.** Before the `agent` role sends
+a rendered config, it runs `client health liveness` with it, on your machine,
+with the darwin build. `invalid config` stops the deploy. A failure for a
+different reason does not stop it, for example a controller that has not started
+yet.
 
 **The VMs are reachable only through the hub.** They sit on the hub's vmnet
 subnet. Ansible jumps through the hub to reach them; nothing on your network can
@@ -306,6 +332,6 @@ from [osapi-justfiles](../osapi-justfiles/README.md). Nothing depends on it.
 
 ## Not covered here
 
-How to install Tart, set up Tailscale, or answer the first-run prompts. Those
-are in osapi-lab's own README, which is the operator's page. This page is what
-the lab is and why.
+How to install Tart, configure Tailscale, or answer the first-run prompts. The
+README of osapi-lab has those, and it is the page for the operator. This page
+tells what the lab is and why.

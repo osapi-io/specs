@@ -4,7 +4,7 @@ Resolve the repository set first, per [SKILL.md](../SKILL.md).
 
 ## Is the default branch green
 
-The head commit's check rollup is the direct answer:
+The check rollup of the head commit is the direct answer:
 
 ```bash
 gh repo list osapi-io --no-archived --visibility public --limit 200 --json name -q '.[].name' |
@@ -15,13 +15,13 @@ while read -r r; do
 done
 ```
 
-A repository with no CI workflow reports no checks. That is a finding in its own
-right, not a pass.
+A repository with no CI workflow reports no checks. That is a finding, not a
+pass.
 
 ## A specific workflow
 
-`gh run list --branch main` includes scheduled jobs and Dependabot's own runs,
-so it answers a different question than "did CI pass". Name the workflow:
+`gh run list --branch main` includes scheduled jobs and the runs of Dependabot.
+Thus it answers a different question from "did CI pass". Name the workflow:
 
 ```bash
 gh run list --repo "osapi-io/$r" --workflow go.yml --branch main --limit 1 \
@@ -29,14 +29,14 @@ gh run list --repo "osapi-io/$r" --workflow go.yml --branch main --limit 1 \
   -q '.[] | "\(.conclusion)  \(.createdAt[:10])  \(.headSha[:8])"'
 ```
 
-Every Go repository here runs `go.yml`. The specs repository does not, so skip
-it or expect an empty result.
+Each Go repository here runs `go.yml`. The specs repository does not. Skip it,
+or expect an empty result.
 
 ## Go version drift
 
 The `go` directive must name the older of the two newest Go minor releases
-([why](../../../../CONSTITUTION.md)). Nobody is notified
-when a new minor ships, so this is the check that catches it.
+([why](../../../../CONSTITUTION.md)). Nobody gets a notification when a new
+minor release ships. Thus this check finds it.
 
 ```bash
 floor=$(curl -s --max-time 20 'https://proxy.golang.org/golang.org/toolchain/@v/list' \
@@ -51,18 +51,18 @@ while read -r r; do
 done
 ```
 
-Derive the floor, never hardcode it. A number written into this file is right
-the day it is written and wrong after the next release, which is the failure
-this check exists to catch.
+Calculate the minimum. Never hardcode it. A number in this file is correct on
+the day that somebody writes it, and incorrect after the next release. This
+check exists to find that failure.
 
-That command reads the **root** `go.mod` only. Nested modules under `examples/`
-declare their own directive and drift separately, which is how six gohai
-examples sat at `go 1.25.7` against a root of `1.26.0`. See
-[modules.md](modules.md) for finding and fixing those.
+That command reads only the **root** `go.mod`. Nested modules under `examples/`
+declare their own directive, and they become old separately. Thus six gohai
+examples stayed at `go 1.25.7` while the root was `1.26.0`.
+[modules.md](modules.md) tells how to find and fix those.
 
-Report drift as one block naming every repository behind, not one per
-repository: the fix is the same edit in each, and a new Go release puts all of
-them behind at once.
+Report drift as one block that names each repository that is behind. Do not use
+one block for each repository. The fix is the same edit in each, and a new Go
+release puts all of them behind at the same time.
 
 ```
 🔴 go directive behind policy · want 1.26, Go 1.27 is out
@@ -70,20 +70,19 @@ them behind at once.
    → say "bump the go directive" to raise them
 ```
 
-A repository with no `go.mod` is skipped rather than reported.
+Skip a repository with no `go.mod`. Do not report it.
 
 ## Tool version drift
 
-The charter requires both provisioning paths to resolve to the same version, and
-says what happens otherwise: a version pinned in one path and floating in the
-other guarantees divergence
-([why](../../../../CONSTITUTION.md)). So the linter version
-is not a per-repository choice, and four repositories linting with four
-different versions is a finding.
+The constitution requires that the two provisioning paths use the same version.
+It also says what occurs if they do not: if one path pins a version and the
+other does not, the two become different ([why](../../../../CONSTITUTION.md)).
+Thus no repository selects its own linter version. Four repositories that lint
+with four different versions is a finding.
 
-Ask the module what will actually run. **Do not grep `go.mod`**: a tool can be
-satisfied by an indirect requirement with no version line of its own, which a
-grep reads as "not pinned" while the module resolves something specific.
+Ask the module what will really run. **Do not grep `go.mod`.** An indirect
+requirement with no version line of its own can supply a tool. A grep reads that
+as "not pinned", but the module resolves a specific version.
 
 ```bash
 latest=$(curl -s --max-time 20 'https://proxy.golang.org/github.com/golangci/golangci-lint/v2/@latest' \
@@ -98,18 +97,17 @@ while read -r r; do
 done
 ```
 
-Report drift as one block naming every repository behind, the same shape as the
-go directive: the fix is the same command in each, and a new linter release puts
-all of them behind at once.
+Report drift as one block that names each repository that is behind, as for the
+go directive. The fix is the same command in each, and a new linter release puts
+all of them behind at the same time.
 
-A stale pin is not cosmetic. A linter predating the toolchain crashes rather
-than reporting findings, v2.12.2 died inside `buildir` under Go 1.27, and the
-crash arrives as a red build on an unrelated pull request.
+An old pin is not only cosmetic. A linter that is older than the toolchain can
+crash and report no findings. v2.12.2 crashed in `buildir` under Go 1.27. The
+crash shows as a red build on an unrelated pull request.
 
-This drift was invisible for as long as it existed, because the shared `deps`
-recipes re-resolved every tool on each run and linted with whatever was newest.
-The pins were decorative, so nothing compared them. That is fixed, which is what
-makes this check worth running now.
+Before, nobody could see this drift. The shared `deps` recipes resolved each
+tool again on each run, and linted with the newest version. The pins did
+nothing, so nothing compared them. That is fixed. Thus this check is now useful.
 
 ## Release state
 
@@ -118,26 +116,26 @@ gh release list --repo "osapi-io/$r" --limit 1 2>/dev/null
 git ls-remote --tags "https://github.com/osapi-io/$r" | tail -3
 ```
 
-No tags at all means the repository has never been released, which is worth
-reporting when a repository has release tooling configured. osapi was in that
-state as of 2026-09: a `.goreleaser.yaml` and a release workflow, no tags.
+No tags means that the repository never had a release. Report that when a
+repository has release tooling. osapi was in that state in 2026-09: it had a
+`.goreleaser.yaml` and a release workflow, and no tags.
 
 ## Coverage
 
-Coverage is enforced in CI rather than reported through the API. `just test`
-fails below the target, and the target is declared twice, in
-`.github/codecov.yml` and in the shared `go` justfile module. A green CI run is
-the coverage answer. Do not try to read a number out of the Codecov badge SVG.
+CI enforces coverage. The API does not report it. `just test` fails below the
+target. Two files declare the target: `.github/codecov.yml` and the shared `go`
+justfile module. A green CI run is the coverage answer. Do not try to read a
+number from the SVG of the Codecov badge.
 
 ## What this does not cover
 
-Lint findings are not queryable per repository. `golangci-lint` runs inside CI,
-so a green `lint` check means zero findings under that repository's
-`.golangci.yml`. To see findings, run it locally:
+You cannot query lint findings for each repository. `golangci-lint` runs in CI.
+Thus a green `lint` check means zero findings under the `.golangci.yml` of that
+repository. To see findings, run it locally:
 
 ```bash
 cd ~/git/osapi-io/<repo> && just go-vet
 ```
 
-The config is identical across every Go repository in the org by policy, so a
-finding in one is usually a finding waiting to happen in the others.
+By policy, the config is the same in each Go repository in the org. Thus a
+finding in one usually becomes a finding in the others later.

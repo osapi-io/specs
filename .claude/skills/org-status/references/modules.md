@@ -21,12 +21,13 @@ untidy: examples/timings
 run 'just go-mod' and commit the result
 ```
 
-It no-ops in a repository with no `examples/`, so it is safe to run across all of
+It no-ops in a repository with no `examples/`, so it is safe to run across all
+of
 them.
 
-Why a committed module can be untidy while CI is green: `just test` calls
-`go-mod`, which tidies, but CI does that in a throwaway checkout. The tidying is
-discarded and nothing compares it against what is committed.
+A committed module can be untidy while CI is green. The reason: `just test`
+calls `go-mod`, which tidies, but CI does that in a temporary checkout. CI
+discards the tidy, and nothing compares it with what is committed.
 
 ## Fix
 
@@ -39,13 +40,14 @@ cd ~/git/osapi-io/$r && just go-mod-bump && just test
 repository's own gate afterwards: several of these examples are referenced from
 the README, and a broken example is broken documentation.
 
-It leaves the root module alone on purpose. Dependabot owns that, and bumping it
-would drag along the tool versions `go get -tool` rewrites on every run, which is
-churn rather than a change.
+It does not touch the root module, on purpose. Dependabot owns that. A bump of
+it also moves the tool versions that `go get -tool` writes again on each run.
+That is noise, not a change.
 
 ## The go directive
 
-A nested module declares its own, and nothing keeps it in step with the root. Six
+A nested module declares its own, and nothing keeps it in step with the root.
+Six
 gohai examples sat at `go 1.25.7` against a root of `1.26.0`. The rule in
 [the charter](../../../../CONSTITUTION.md) applies to these
 files too.
@@ -55,23 +57,24 @@ find ~/git/osapi-io/$r -name go.mod -not -path '*/.worktrees/*' \
   -exec sh -c 'printf "%s\t%s\n" "$1" "$(grep -m1 "^go " "$1" | cut -d" " -f2)"' _ {} \;
 ```
 
-`just go-mod-bump` moves it as a side effect of tidying against the current
-toolchain, so this is a check rather than a separate fix.
+`just go-mod-bump` moves it as a side effect, when it tidies against the current
+toolchain. Thus this is a check, not a separate fix.
 
-Exclude `.worktrees/`. Another agent may have a branch checked out there, and its
+Exclude `.worktrees/`. Another agent may have a branch checked out there, and
+its
 modules are not this repository's to tidy.
 
 ## Do not compile the examples to check them
 
-`go build ./...` writes a binary into each directory, which is how 52 stray
-binaries once ended up committed-adjacent across three repositories. `-o /dev/null`
-fails outright when a directory holds several `main` packages, which several of
-these do. `just test` is the check; if something beyond that is needed, `go vet`
-compiles without emitting anything.
+`go build ./...` writes a binary into each directory. One time, that put 52
+stray binaries next to committed files in three repositories. `-o /dev/null`
+fails when a directory has more than one `main` package, and some of these do.
+`just test` is the check. If you need more, `go vet` compiles and writes
+nothing.
 
 ## The durable fix, which is not this
 
-Dependabot v2 takes `directories` with globs, so the drift could stop happening:
+Dependabot v2 takes `directories` with globs. With this, the drift stops:
 
 ```yaml
 - package-ecosystem: "gomod"
@@ -80,7 +83,7 @@ Dependabot v2 takes `directories` with globs, so the drift could stop happening:
     - "/examples/*"
 ```
 
-And adding `go-mod-check` to a repository's `test` recipe would fail the build
-rather than leaving the drift to be noticed. Both trade noise for not having to
-remember, and both change how a repository behaves, so propose them rather than
-making them.
+Also, `go-mod-check` in the `test` recipe of a repository fails the build, so
+that nobody needs to find the drift. Both changes add noise, and both remove a
+thing to remember. Both change how a repository operates. Thus propose them. Do
+not make them.

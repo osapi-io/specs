@@ -1,35 +1,43 @@
 # Behaviors
 
-A behavior is one area of a host that osapi manages, such as kernel parameters,
-declared once as a typed definition. The route, the permission, the agent's
-dispatch, the CLI command, the OpenAPI spec, the docs pages and the telemetry of
-every method are built from that definition rather than written by hand in each
-layer.
+A behavior is one area of a host that osapi manages, for example kernel
+parameters. You declare it one time, as a typed definition. osapi builds these
+parts of each method from that definition:
 
-Behaviors are replacing [providers](providers.md) one domain at a time. sysctl
-is the first. The order of the rest, and the parts not built yet, are in
-[the migration plan](behavior-migration.md).
+- the route
+- the permission
+- the dispatch on the agent
+- the CLI command
+- the OpenAPI spec
+- the docs pages
+- the telemetry
+
+Nobody writes these by hand in each layer.
+
+Behaviors replace [providers](providers.md), one domain at a time. sysctl is the
+first. [The migration plan](behavior-migration.md) has the order of the others,
+and the parts that are not built yet.
 
 ## Why
 
-Adding a domain is slow because most of the code is glue, not logic. Measured on
-`main` on 12 November 2026, before sysctl moved:
+A new domain is slow to add, because most of the code connects layers and has no
+logic. A measurement on `main` on 12 November 2026, before sysctl moved, found:
 
-- `sysctl get` is 59 lines of logic in `debian.go` and 312 hand-written lines
+- `sysctl get` has 59 lines of logic in `debian.go`, and 312 hand-written lines
   around it: handler 153, validator 10, agent processor 28, SDK 56, CLI 63,
-  operation constants 2. Its spec is another 104 lines of hand-written YAML.
-- Across the repository, the handlers, agent processors, SDK and CLI are 47,792
-  hand-written lines against 15,189 lines of provider.
-- The last three domain additions touched 130 files (`service`), 75
+  operation constants 2. Its spec is 104 more lines of hand-written YAML.
+- In the full repository, the handlers, agent processors, SDK and CLI are 47,792
+  hand-written lines, against 15,189 lines of provider.
+- The last three domain additions changed 130 files (`service`), 75
   (`certificate`) and 47 (the SSH key operations).
 
-The glue is the same every time, and it is retyped every time. The `key`
-argument to `sysctl get` is declared by hand in eight places. Its pattern,
-`^[a-zA-Z0-9][a-zA-Z0-9._-]*$`, is written three times. The handler sends the
-job payload as a `map[string]string`, and the agent reads it back into an
+The connecting code is the same each time, and somebody types it again each
+time. The `key` argument to `sysctl get` is declared by hand in eight locations.
+Its pattern, `^[a-zA-Z0-9][a-zA-Z0-9._-]*$`, is written three times. The handler
+sends the job payload as a `map[string]string`. The agent reads it back into an
 anonymous `struct{ Key string }`. Nothing checks that the two agree.
 
-The same shapes repeat across the codebase:
+The same shapes occur again and again in the codebase:
 
 - 40 anonymous payload structs in `internal/agent`.
 - 90 copies of the `ok`/`failed`/`skipped`/`timeout` switch in the handlers.
@@ -37,14 +45,14 @@ The same shapes repeat across the codebase:
 - 136 hand-written SDK result types, with 127 functions that copy generated
   types into them.
 
-The cost is the obvious one, and it also blocks agents. An agent asked to add a
-domain has to reproduce all of it from convention. An agent asked to use osapi
-had nothing to discover operations from until `osapi init`, `help --json` and
-`behavior get` existed, and those read the definitions.
+The cost is clear, and it also blocks agents. An agent that must add a domain
+must copy all of it from convention. An agent that must use osapi had nothing to
+learn operations from, until `osapi init`, `help --json` and `behavior get`
+existed. Those read the definitions.
 
 ## What a definition is
 
-A behavior lives under `internal/behaviors/<name>/`. Its definition is one call:
+A behavior is under `internal/behaviors/<name>/`. Its definition is one call:
 
 ```go
 var Behavior = behavior.Register(behavior.Define(
@@ -65,25 +73,33 @@ type GetInput struct {
 func Get(ctx context.Context, p Provider, in GetInput) (Entry, error)
 ```
 
-A method is a function taking a context, the platform's provider and one typed
-input, and returning one typed output or an error. `Read` and `Write` are
-generic over those three types, so the definition carries the Go types and
-nothing restates them.
+A method is a function. It takes a context, the provider of the platform and one
+typed input. It returns one typed output or an error. `Read` and `Write` are
+generic over those three types. Thus the definition has the Go types, and
+nothing states them again.
 
-The package registers itself when imported, and `internal/behaviors/all` imports
-every behavior. Adding one is a directory and a line in `all.go`.
+The package registers itself when it is imported. `internal/behaviors/all`
+imports each behavior. To add one, add a directory and a line in `all.go`.
 
-Every behavior's directory has the same files: `behavior.go` for the definition,
-`types.go` for the input and output types, `methods.go`, `provider.go`, one
-`<platform>.go` per platform such as `debian.go`, an optional `settings.go`,
-`mocks/` for the provider's double, and `gen/` for what is generated from them.
-Every file with code has a test named for it, the house rule for the rest of the
-repository: `methods_public_test.go` calls each method on the mocked provider,
-and `debian_public_test.go` tests the Debian provider. The platform files sit
-beside the definition rather than in a subdirectory, as the hand-written
-providers' `debian.go`, `darwin.go` and `linux.go` do. The layout and the tags
-are written for authors in osapi's `docs/docs/sidebar/development/behaviors.md`;
-this page records why it is built the way it is.
+The directory of each behavior has the same files:
+
+- `behavior.go` for the definition
+- `types.go` for the input and output types
+- `methods.go`
+- `provider.go`
+- one `<platform>.go` for each platform, for example `debian.go`
+- an optional `settings.go`
+- `mocks/` for the test double of the provider
+- `gen/` for the generated files
+
+Each file with code has a test with its name. This is the rule for the rest of
+the repository too. `methods_public_test.go` calls each method on the mocked
+provider. `debian_public_test.go` tests the Debian provider. The platform files
+are next to the definition, not in a subdirectory, as the `debian.go`,
+`darwin.go` and `linux.go` of the hand-written providers are.
+
+`docs/docs/sidebar/development/behaviors.md` in osapi describes the layout and
+the tags for authors. This page records why the design is as it is.
 
 ## What the definition decides
 
@@ -104,160 +120,201 @@ this page records why it is built the way it is.
 | `behavior.Runs("prog")`     | A program the provider runs without sudo; the agent warns at startup when it is missing                                                                          |
 | `behavior.Validator(...)`   | A `validate` tag of the behavior's own: its check, its schema and its message                                                                                    |
 
-The permission prefix is the group when there is one and the behavior's name
-otherwise, so `dns` under `network` needs `network:read`, as it does today.
+The permission prefix is the group when there is one, and the name of the
+behavior when there is no group. Thus `dns` under `network` needs
+`network:read`, as it does now.
 
-What the controller answers itself, audit, jobs, agent enrollment and health, is
-not a behavior and has no placement. It never reaches a host.
+The things that the controller answers itself (audit, jobs, agent enrollment and
+health) are not behaviors, and have no placement. They never go to a host.
 
-`API` and `CLI` are separate because not every behavior is called from outside.
-One that only other behaviors use has neither, and is reachable through the job
-system alone.
+`API` and `CLI` are separate, because not each behavior is called from outside.
+A behavior that only other behaviors use has neither. Only the job system can
+get to it.
 
-`internal/behaviors/behavior.go` holds `Path`, `HTTPMethod`, `Permission` and
-`Command`, which turn a definition into those four. For sysctl they give the
-same routes and permissions the hand-written API serves today.
+`internal/behaviors/behavior.go` has `Path`, `HTTPMethod`, `Permission` and
+`Command`. They change a definition into those four values. For sysctl, they
+give the same routes and permissions that the hand-written API serves now.
 
 ## Types become JSON Schema
 
-`behavior.SchemaFor` reads a Go type's tags: `json` names the field, `doc`
-describes it, and `validate` gives the constraints. Standard tags map directly:
-`required`, `min`, `max` and `len` by the field's type, `oneof` to an enum, and
-`ip`, `url`, `email`, `hostname`, `uuid` and `cidr` to formats.
+`behavior.SchemaFor` reads the tags of a Go type. `json` names the field. `doc`
+describes it. `validate` gives the constraints. The standard tags map directly:
 
-A custom validator is a Go function, and nothing can read a schema out of one.
-So each custom tag is registered with the schema it means. A behavior declares
-its own in its definition, check, schema and message together:
+- `required`, `min`, `max` and `len`, by the type of the field
+- `oneof` to an enum
+- `ip`, `url`, `email`, `hostname`, `uuid` and `cidr` to formats
+
+A custom validator is a Go function, and nothing can read a schema from it. Thus
+each custom tag is registered with the schema that it means. A behavior declares
+its own tags in its definition, with the check, the schema and the message
+together:
 
 ```go
 behavior.Validator("motd_text", noEscapes, behavior.Pattern(`^[^\x1b]*$`),
     "is not a valid message: it has an escape sequence")
 ```
 
-`internal/validation` registers each one with the validator the server uses,
-through `behavior.OnRule`, whichever package initialises first. The tags the
-hand-written domains use, `sysctl_key` among them, stay in `internal/validation`
-with `behavior.ValidatorSchema` beside each, because those domains use them too;
-`sysctl_key` moves to the behavior at its cutover.
+`internal/validation` registers each one with the validator of the server,
+through `behavior.OnRule`, in either order of package initialization. The tags
+of the hand-written domains, for example `sysctl_key`, stay in
+`internal/validation`, with `behavior.ValidatorSchema` next to each, because
+those domains also use them. `sysctl_key` moves to the behavior at its cutover.
 
-`SchemaFor` fails on a tag that is neither standard nor registered. A spec that
-silently dropped a constraint would validate less than the server does, and
-nothing would report it.
+`SchemaFor` fails on a tag that is not standard and not registered. A spec that
+loses a constraint without a signal validates less than the server does, and
+nothing reports it.
 
-An output may be a struct or a slice of structs. A slice becomes one result row
-per element, each carrying the host's name, which is how sysctl `list` answers
-today.
+An output can be a struct or a slice of structs. A slice becomes one result row
+for each element, and each row has the name of the host. sysctl `list` answers
+in this way now.
 
-Two more tags are read by the platform rather than the schema. `render` says how
-an output field shows in a table (`-` hides it, `bytes`, `age`, `status`), so
-every behavior's output renders through one layout instead of per-command
-formatting. `telemetry:"attr"` records an input field on the method's span;
-nothing untagged is recorded, so a password or a file's contents cannot reach a
-trace by default.
+The platform, not the schema, reads two more tags:
+
+- `render` tells how an output field shows in a table (`-` hides it, `bytes`,
+  `age`, `status`). Thus the output of each behavior renders through one layout,
+  not through formatting for each command.
+- `telemetry:"attr"` records an input field on the span of the method. osapi
+  records no field without the tag. Thus by default, a password or the content
+  of a file cannot get into a trace.
 
 ## Served beside the hand-written domains
 
-A behavior runs through three generic pieces, each written once:
+A behavior runs through three generic parts. Each is written one time.
 
-- **The API.** Each behavior with `API` gets generated code in its `gen/`:
-  `api_<method>.go` holds the method's handler and the decoder that builds its
-  typed input from the path, query and body and checks its tags, and `api.go`
-  holds the route table, each route's HTTP method, path and permission, which
-  its `init` registers. The runtime they call,
-  `internal/controller/api/behavior`, is written once: it checks the token
-  against the route's permission, validates the target, queues the job and
-  shapes the `{job_id, results[]}` envelope. An earlier version served every
-  method through one handler that read the definition when osapi started. It
-  worked, but nothing per endpoint could be opened, debugged or tested on its
-  own, and the HTTP tests were a loop no file named. Generating a handler per
-  method gives each endpoint a file and a test file, the shape of the
-  hand-written domains.
-- **The agent.** `internal/agent/processor_behavior.go` builds each behavior's
-  provider once at startup, for the agent's platform, from what the definition
-  declares with `behavior.Platform`, and runs any behavior's methods with it. A
-  platform matches exactly first. Failing that, any host but macOS gets the
-  provider declared for `linux`, since the agent runs on Linux and macOS only:
-  `platform.Detect` names the Debian family `debian` and other distributions by
-  their own name, so without the fallback a behavior that works the same on
-  every distribution would need a line per distribution. The builder gets a
-  `host.Host`, from `internal/behavior/host`: the platform, the filesystem, the
-  command runner, the file state store, the hostname and the behavior's
-  settings. A behavior with no provider on the platform, or whose builder
-  returns `provider.ErrUnsupported`, has its methods reported as `skipped`, and
-  the agent logs which it built. The built providers go in the agent's registry,
-  which wires facts into them as into every other provider.
-- **The CLI.** `internal/cli/behavior` holds the one helper every generated
-  command calls, and the one table layout every behavior renders in. It sits
-  under `internal/cli` as the API runtime sits under `internal/controller/api`,
-  and generated code imports the two as `behaviorcli` and `behaviorapi`.
+**The API.** Each behavior with `API` gets generated code in its `gen/`:
 
-Behaviors live under `internal/`: the framework in `internal/behavior/`, with
-what builds or tests a definition in subdirectories (`host`, `behaviortest`,
-`openapi`, `gen`), and the behaviors themselves in `internal/behaviors/<name>/`,
-a grouped one under its group as its routes are, so a behavior's directory
-mirrors its URL. Each runtime's test helper sits beside the runtime it drives:
+- `api_<method>.go` has the handler of the method, and the decoder that makes
+  its typed input from the path, query and body and checks its tags.
+- `api.go` has the route table: the HTTP method, path and permission of each
+  route. Its `init` registers them.
+
+The runtime that they call, `internal/controller/api/behavior`, is written one
+time. It checks the token against the permission of the route, validates the
+target, queues the job, and makes the `{job_id, results[]}` envelope.
+
+An earlier version served each method through one handler that read the
+definition when osapi started. It worked. But you could not open, debug or test
+one endpoint alone, and the HTTP tests were a loop that no file named. A
+generated handler for each method gives each endpoint a file and a test file,
+which is the shape of the hand-written domains.
+
+**The agent.** `internal/agent/processor_behavior.go` builds the provider of
+each behavior one time at startup, for the platform of the agent. It uses what
+the definition declares with `behavior.Platform`, and runs the methods of any
+behavior with it.
+
+A platform matches exactly first. If no platform matches, a host that is not
+macOS gets the provider declared for `linux`, because the agent runs only on
+Linux and macOS. `platform.Detect` names the Debian family `debian`, and names
+other distributions by their own names. Without the fallback, a behavior that
+works the same on each distribution needs a line for each distribution.
+
+The builder gets a `host.Host` from `internal/behavior/host`: the platform, the
+filesystem, the command runner, the file state store, the hostname and the
+settings of the behavior. If a behavior has no provider on the platform, or its
+builder returns `provider.ErrUnsupported`, its methods report `skipped`. The
+agent logs which providers it built. The built providers go into the registry of
+the agent, which gives them facts as it does for each other provider.
+
+**The CLI.** `internal/cli/behavior` has the one helper that each generated
+command calls, and the one table layout that each behavior renders in. It is
+under `internal/cli`, as the API runtime is under `internal/controller/api`.
+Generated code imports the two as `behaviorcli` and `behaviorapi`.
+
+Behaviors are under `internal/`:
+
+- the framework in `internal/behavior/`, with the parts that build or test a
+  definition in subdirectories (`host`, `behaviortest`, `openapi`, `gen`)
+- the behaviors in `internal/behaviors/<name>/`. A grouped behavior is under its
+  group, as its routes are. Thus the directory of a behavior matches its URL.
+
+The test helper of each runtime is next to the runtime that it drives:
 `internal/controller/api/behavior/apitest` and `internal/cli/behavior/clitest`.
-`behavior validate` refuses a behavior or group named `all`, which is the
-registration index in `internal/behaviors/all`. Nothing outside osapi imports a
-behavior: the SDK talks to the HTTP API, and the spec describes everything a
-client needs, so `pkg/` holds only the SDK and imports nothing from `internal/`.
-`just go-pkg-check`, run by `just test`, fails when it does. An earlier version
-kept behaviors in `pkg/behavior` because the SDK's generic call took a
-behavior's definition; that call is now a plain `Client.Request` to an API path,
-and the CLI runtime, which knows behaviors, builds the path.
+`behavior validate` refuses a behavior or group with the name `all`, which is
+the registration index in `internal/behaviors/all`.
 
-Inside, the same habits hold. `host.Exec` is the part of the command runner a
-provider calls, declared in `host` where providers use it, so the agent's runner
-and the fake host's generated mock both satisfy it. The errors a provider
-returns that the API answers differently, `ErrUnsupported`, `ErrNotFound`,
-`ErrNotManaged` and `ErrNotInstalled`, are `internal/behavior`'s, and
-`internal/provider` gives the hand-written providers the same values under its
-own names. The file-state record, `managedfile.State` and its key
-`managedfile.StateKey`, belongs to `managedfile`, the behavior that owns managed
-files, and the hand-written providers and the controller read it from there.
+Nothing outside osapi imports a behavior. The SDK connects to the HTTP API, and
+the spec describes all that a client needs. Thus `pkg/` has only the SDK, and
+imports nothing from `internal/`. `just go-pkg-check`, which `just test` runs,
+fails if it does. An earlier version kept behaviors in `pkg/behavior`, because
+the generic call of the SDK took the definition of a behavior. That call is now
+a plain `Client.Request` to an API path. The CLI runtime knows behaviors, and
+makes the path.
 
-Permissions and sudo come from the definitions too. `internal/authtoken` builds
-the known permissions and each built-in role's from the hand-written lists plus
-every registered behavior's methods: `admin` and `write` get a behavior's read
-and write, `read` gets its read. The agent's preflight checks every program a
-behavior declares with `Sudo`, beside its own list, and the agent warns at
-startup about any program declared with `Runs` that is not installed: a missing
-one fails only that behavior, so it does not stop the agent. Neither is a list
-anyone edits for a behavior. The fake host fails an example that runs a program
-without its declaration, counting the programs the behaviors it requires
-declare, and the integration test fails when its image lacks a declared program.
+Inside, the same conventions apply:
 
-A behavior is served under `/api` and `osapi client node`, and its jobs are in
-their own `behavior` category, whose operations are `behavior.<name>.<method>`.
-Its `gen/api.yaml` joins the main spec, so the SDK client, the UI client and the
-API docs cover it. One that replaces a hand-written domain is marked
-`behavior.Next` while both exist: its routes are under `/api/next`, its commands
-under `osapi client next`, its spec is `gen/api.next.yaml`, which the join does
-not read, and the combined `internal/controller/api/next/gen/api.yaml` holds
-every `Next` behavior. The hand-written routes, commands, spec and docs are not
-touched, so the behavior can be compared with the domain it will replace on the
-same server. sysctl is marked so until its cutover.
+- `host.Exec` is the part of the command runner that a provider calls. It is
+  declared in `host`, where providers use it. Thus the runner of the agent and
+  the generated mock of the fake host both satisfy it.
+- The errors that a provider returns and that the API answers differently are in
+  `internal/behavior`: `ErrUnsupported`, `ErrNotFound`, `ErrNotManaged` and
+  `ErrNotInstalled`. `internal/provider` gives the hand-written providers the
+  same values under its own names.
+- The file-state record, `managedfile.State`, and its key,
+  `managedfile.StateKey`, belong to `managedfile`, the behavior that owns
+  managed files. The hand-written providers and the controller read them from
+  there.
 
-The cutover is removing the mark and following what fails. A test in
-`internal/behaviors/all` fails while a behavior that is not `Next` shares a
-route with a hand-written spec, and names that domain's directory; the CLI
-refuses to start while a hand-written command has a behavior command's name; the
-compiler finds the processor case; and `behavior-gen-check` fails until
-`just generate` has joined the spec and regenerated the clients from it.
+Permissions and sudo also come from the definitions. `internal/authtoken` makes
+the known permissions, and those of each built-in role, from the hand-written
+lists and the methods of each registered behavior. `admin` and `write` get the
+read and write of a behavior. `read` gets its read.
 
-A test holds that comparison for every domain being migrated.
-`TestOpenAPIParity` in `internal/behavior/openapi/openapi_public_test.go`,
-beside the code that builds the spec, has one row per behavior that replaces a
-hand-written domain, naming that domain's spec. For each row it generates the
-behavior's spec and compares it with the hand-written one: every operation's
-path without `/next`, verb, operationId, scopes, parameters, request body and
-response codes, and every schema property's type, format, enum and whether it is
-required. Prose and constraints are left out, because the generated spec words
-things differently and carries constraints the old one omitted.
+The preflight of the agent checks each program that a behavior declares with
+`Sudo`, together with its own list. At startup, the agent warns about each
+program declared with `Runs` that is not installed. A missing program fails only
+that behavior, so it does not stop the agent. Nobody edits either list for a
+behavior. The fake host fails an example that runs a program without its
+declaration, and counts the programs that the required behaviors declare. The
+integration test fails when its image does not have a declared program.
 
-A domain's row is added when its behavior is built and deleted with its
-hand-written spec at the cutover. The table is the list of domains still
-mid-migration, and when it is empty the test is deleted.
+osapi serves a behavior under `/api` and `osapi client node`. Its jobs are in
+their own `behavior` category, with operations `behavior.<name>.<method>`. Its
+`gen/api.yaml` joins the main spec. Thus the SDK client, the UI client and the
+API docs cover it.
+
+A behavior that replaces a hand-written domain has the mark `behavior.Next`
+while the two exist:
+
+- Its routes are under `/api/next`.
+- Its commands are under `osapi client next`.
+- Its spec is `gen/api.next.yaml`, which the join does not read.
+- The combined `internal/controller/api/next/gen/api.yaml` has each `Next`
+  behavior.
+
+The hand-written routes, commands, spec and docs do not change. Thus you can
+compare the behavior with the domain that it will replace, on the same server.
+sysctl has the mark until its cutover.
+
+For the cutover, remove the mark and fix what fails:
+
+- A test in `internal/behaviors/all` fails while a behavior that is not `Next`
+  has the same route as a hand-written spec. It names the directory of that
+  domain.
+- The CLI does not start while a hand-written command has the name of a behavior
+  command.
+- The compiler finds the processor case.
+- `behavior-gen-check` fails until `just generate` has joined the spec and made
+  the clients from it again.
+
+A test holds that comparison for each domain in migration. `TestOpenAPIParity`
+in `internal/behavior/openapi/openapi_public_test.go`, next to the code that
+makes the spec, has one row for each behavior that replaces a hand-written
+domain. The row names the spec of that domain. For each row, the test generates
+the spec of the behavior and compares it with the hand-written spec. It
+compares:
+
+- for each operation: the path without `/next`, the verb, the operationId, the
+  scopes, the parameters, the request body and the response codes
+- for each schema property: the type, the format, the enum, and if it is
+  required
+
+It does not compare prose and constraints. The generated spec uses different
+words, and has constraints that the old spec did not have.
+
+The row of a domain is added when its behavior is built. It is deleted with the
+hand-written spec at the cutover. The table is the list of domains that are
+still in migration. When it is empty, the test is deleted.
 
 ## Generated, and committed
 
@@ -275,63 +332,70 @@ writes:
 | `internal/controller/api/next/gen/api.yaml`      | one spec for the behaviors marked `Next`, while any is                                                    |
 | `docs/docs/sidebar/behaviors/<name>/`            | the behavior's page, with its settings, and a page per method                                             |
 
-The code is generated into files rather than built when osapi starts, so a
-reviewer reads and diffs exactly what a route or command does, the way
-oapi-codegen's output is read today. It lives in the behavior's own `gen/`,
-keeping everything about a behavior in its directory, and `gen/` holds nothing
-written by hand.
+osapi generates the code into files. It does not build it when it starts. Thus a
+reviewer reads and diffs exactly what a route or a command does, as people read
+the output of oapi-codegen now. The code is in the `gen/` of the behavior. Thus
+all of a behavior is in its directory, and `gen/` has nothing written by hand.
 
-The generator builds Go with jen (`github.com/dave/jennifer`) rather than text
-templates. Templates splice strings, so a template that renders code that does
-not parse, or forgets an import, fails only when the output is compiled; jen
-builds the code as statements and manages the imports. The output then goes
-through goimports, gofumpt and golines, so it reads, and passes the format
-check, like the rest of the repository. Kubernetes' code-generator was the other
-candidate and was left: it reads comment markers on type declarations, and a
-behavior's examples and refusals are values no marker can carry.
+The generator makes Go with jen (`github.com/dave/jennifer`), not with text
+templates. Templates join strings. A template can render code that does not
+parse, or forget an import, and that fails only when the output compiles. jen
+makes the code as statements and manages the imports. Then the output goes
+through goimports, gofumpt and golines. Thus it reads like the rest of the
+repository, and passes the format check.
 
-The spec is built with kin-openapi's `openapi3` types, the library oapi-codegen
-reads specs with, rather than as ordered maps, and a test loads the written spec
-back and validates it. Keys come out in kin-openapi's order, alphabetical,
-rather than the order a person would write them.
+The other candidate was the code-generator of Kubernetes. It was not used. It
+reads comment markers on type declarations, and the examples and refusals of a
+behavior are values that no marker can hold.
 
-`osapi behavior new` still writes its starting files from templates. Those are
-not generated code: they are a person's to edit from the first minute, so they
-are kept as the Go source they produce, where a reader can see the result.
+The generator makes the spec with the `openapi3` types of kin-openapi, the
+library that oapi-codegen uses to read specs. It does not use ordered maps. A
+test loads the written spec back and validates it. The keys are in the order of
+kin-openapi, which is alphabetical, not the order that a person uses.
 
-The spec for every behavior is joined by the generator itself rather than by
-`redocly join`, the start of dropping that tool. The docs site builds an "API
-(next)" reference from it alongside the existing one.
+`osapi behavior new` still writes its first files from templates. Those files
+are not generated code. A person edits them from the first minute. Thus they are
+kept as the Go source that they make, where a reader can see the result.
 
-A docs page's examples are the definition's `Example`s run through the CLI's
-real renderer, captured with color by `cli.Capture` and turned into HTML, so a
-page shows exactly what the terminal prints. Heading colors come from the
-palette's fixed order while capturing rather than the run's shuffle, which keeps
-the pages byte-for-byte stable between runs.
+The generator joins the spec of each behavior itself, not through
+`redocly join`. This is the start of the removal of that tool. The docs site
+builds an "API (next)" reference from it, next to the current reference.
 
-`just behavior-gen-check`, run by `just test`, regenerates and fails if any of
-these files changed, so a behavior edited without `go generate` fails CI rather
-than shipping commands and pages that describe its old shape. It compares only
-the generated files, so other uncommitted work does not trip it.
+The examples on a docs page are the `Example`s of the definition, run through
+the real renderer of the CLI. `cli.Capture` captures them with color, and the
+generator changes them into HTML. Thus a page shows exactly what the terminal
+prints. During the capture, heading colors come from the fixed order of the
+palette, not from the random order of a run. Thus the pages stay exactly the
+same between runs.
+
+`just behavior-gen-check`, which `just test` runs, generates the files again. It
+fails if any of them changed. Thus a behavior that somebody edits without
+`go generate` fails CI. It does not ship commands and pages that describe its
+old shape. It compares only the generated files, so other uncommitted work does
+not make it fail.
+
 `just behavior-cover-check`, also in `just test`, holds each behavior package to
-100% coverage on its own, since the repository's 99.9% is a total that one short
-behavior can pass.
+100% coverage alone. The 99.9% of the repository is a total, and one behavior
+with low coverage can still pass it.
 
 ## Telemetry every method gets
 
-`Method.Invoke` is the one call every behavior method passes through on the
-agent, so the telemetry is there rather than in each behavior: a
-`behavior.<name>.<method>` span under the agent's `job.process` span carrying
-the behavior, method, verb, outcome and `changed`, and three metrics,
-`osapi_behavior_calls_total`, `osapi_behavior_duration_seconds` and
-`osapi_behavior_changes_total`. They are created on the agent's meter provider,
-so they export wherever the agent's metrics already go. The API request's span
-records the behavior, method and target it ran.
+Each behavior method goes through `Method.Invoke` on the agent. Thus the
+telemetry is there, not in each behavior. It makes:
+
+- a `behavior.<name>.<method>` span under the `job.process` span of the agent,
+  with the behavior, method, verb, outcome and `changed`
+- three metrics: `osapi_behavior_calls_total`, `osapi_behavior_duration_seconds`
+  and `osapi_behavior_changes_total`
+
+They are made on the meter provider of the agent. Thus they export to the same
+location as the other metrics of the agent. The span of the API request records
+the behavior, method and target that it ran.
 
 ## Inspecting behaviors from the CLI
 
-Three commands read the registry. They need no config file and no controller,
-because they describe the binary rather than a fleet:
+These commands read the registry. They need no config file and no controller,
+because they describe the binary, not a fleet:
 
 ```sh
 osapi behavior list                               # the behaviors and their methods
@@ -342,28 +406,35 @@ osapi behavior new --name motd --description "x"  # write a new behavior's layou
 osapi behavior new --group network --name neighbors --description "x"  # under a group
 ```
 
-Each takes `--json`, and values arrive as flags, as everywhere in the
-[CLI](cli.md). `get` shows whether the behavior has an API and a CLI and where
-they are served today, what it uses (empty until behaviors can require one
-another), and for each method its verb, route, permission, command, input and
-output fields and examples, its settings with the `agent start` flag for each,
-the platforms it has a provider for, the programs it runs with sudo, its
-refusals, and the span and metrics its calls record.
+Each one takes `--json`. Values come as flags, as in all of the [CLI](cli.md).
+`get` shows these things:
+
+- if the behavior has an API and a CLI, and where osapi serves them now
+- the behaviors that it uses, and the behaviors that use it
+- for each method: its verb, route, permission, command, input and output fields
+  and examples
+- its settings, with the `agent start` flag for each
+- the platforms that it has a provider for
+- the programs that it runs with sudo
+- its refusals
+- the span and metrics that its calls record
 
 `behavior new` writes `internal/behaviors/<name>/` as a working behavior that
-keeps a value in a file, with every standard file, and adds its import to
-`internal/behaviors/all`. It builds, validates, lints and passes every test with
-100% coverage before anything is changed, so the layout is stated once, in code,
-and an agent starts from a correct skeleton rather than a description of one.
-`osapi token roles` lists every permission and which roles grant it, behaviors'
-included, as the binary has them. `--json` gives the input and output as JSON
-Schema, which is what an agent reads before building a request. Tables render
-through [the CLI's output style](cli.md#output-style).
+keeps a value in a file, with each standard file. It adds its import to
+`internal/behaviors/all`. Before you change anything, it builds, validates,
+lints and passes each test with 100% coverage. Thus the layout is stated one
+time, in code. An agent starts from a correct skeleton, not from a description
+of one.
+
+`osapi token roles` lists each permission, and which roles give it, with the
+permissions of behaviors, as the binary has them. `--json` gives the input and
+output as JSON Schema. An agent reads that before it makes a request. Tables
+render through [the output style of the CLI](cli.md#output-style).
 
 ## The rules validate checks
 
 `behavior validate`, from `internal/behaviors/validate.go`, fails a definition
-the platform could not build from. Each problem names its rule:
+that the platform cannot build from. Each problem names its rule:
 
 | Rule        | Fails when                                                                                                                                                        |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -385,13 +456,13 @@ the platform could not build from. Each problem names its rule:
 | `secret`    | an input field is tagged both `secret:"true"` and `telemetry:"attr"`, which would record a secret on a span                                                       |
 | `requires`  | a required behavior is not registered, or behaviors require each other in a cycle                                                                                 |
 
-It exits 1 when any rule fails. It is the check an agent runs after writing a
+It exits 1 when any rule fails. An agent runs this check after it writes a
 behavior, before the tests.
 
 ## Settings a behavior declares
 
-Some behaviors need configuration and most do not, so settings are optional and
-belong to the behavior that reads them:
+Some behaviors need configuration, and most do not. Thus settings are optional,
+and they belong to the behavior that reads them:
 
 ```go
 type Settings struct {
@@ -406,8 +477,8 @@ var Behavior = behavior.Register(behavior.Define(
 ))
 ```
 
-The struct carries the same `mapstructure`, `doc` and `validate` tags as osapi's
-own config, and the value passed is the defaults. From that one declaration:
+The struct has the same `mapstructure`, `doc` and `validate` tags as the config
+of osapi. The value that you give is the defaults. That one declaration gives:
 
 | Where                    | What appears                                                                              |
 | ------------------------ | ----------------------------------------------------------------------------------------- |
@@ -419,37 +490,45 @@ own config, and the value passed is the defaults. From that one declaration:
 | The docs site            | a settings table on the behavior's page                                                   |
 | The agent                | `behavior.Settings[T](Behavior)`, the decoded struct                                      |
 
-There is no ordering problem in this. Behaviors register in package `init`,
-before `main`, so the flags exist when cobra parses the command line, and
-`initConfig` runs after that and walks the same registry. `BindPFlag` only
-records the mapping; viper resolves flag, then environment, then file, then
-default when the config is decoded.
+The order causes no problem. Behaviors register in the package `init`, before
+`main`. Thus the flags exist when cobra parses the command line. `initConfig`
+runs after that, and reads the same registry. `BindPFlag` only records the
+mapping. When the config is decoded, viper resolves the flag, then the
+environment, then the file, then the default.
 
-Settings are not inputs. A method's input is per call, a flag on the client
-command that is never bound to the config, so a value in a file can never pick
-what a write acts on. A setting is standing configuration of the process that
-reads it, and the agent is the process that runs a behavior's methods, so the
-flags go on `agent start`. A flag on a client command would change nothing on
-the host.
+Settings are not inputs. The input of a method applies to each call. It is a
+flag on the client command, and is never bound to the config. Thus a value in a
+file can never select what a write acts on.
 
-sysctl's one setting is `behaviors.sysctl.dir`, the directory its conf files are
-written to, which was a constant in the Debian provider before. A provider
-builder reads settings from the host it is given, `host.Settings[Settings](h)`,
-because the behavior's own variable cannot be named inside its initialiser. The
-hand-written sysctl domain's provider, built in `createSysctlProvider`, reads
-the same setting, so both write to the same directory.
+A setting is permanent configuration of the process that reads it. The agent is
+the process that runs the methods of a behavior. Thus the flags go on
+`agent start`. A flag on a client command does not change the host.
+
+The one setting of sysctl is `behaviors.sysctl.dir`, the directory where it
+writes its conf files. Before, this was a constant in the Debian provider. A
+provider builder reads settings from the host that it gets,
+`host.Settings[Settings](h)`, because the builder cannot name the variable of
+the behavior in its own initializer. The provider of the hand-written sysctl
+domain, built in `createSysctlProvider`, reads the same setting. Thus the two
+write to the same directory.
 
 ## Tests a behavior gets from its definition
 
-A behavior's examples are its tests at every layer above the provider. An
-example can say what the host looks like before the call, with `After` (another
-method run first), `Prints` (a command's output), `PrintsAfter` (its output once
-another command has run) and `Exists` (a file), and what the call changes, with
-`Wrote`, `Removed` and `Ran`. `PrintsAfter` is for state a program keeps rather
-than a file: a package query prints "not installed" until the install runs and
-"installed" after it, which the second-run check needs to see. The skill's
-`aptpkg` eval found the gap: without it, a package behavior's install example
-could not pass that check honestly, and the session stopped and said so.
+The examples of a behavior are its tests at each layer above the provider. An
+example can tell how the host is before the call:
+
+- `After`: a different method runs first
+- `Prints`: the output of a command
+- `PrintsAfter`: the output of a command after a different command ran
+- `Exists`: a file
+
+It can also tell what the call changes, with `Wrote`, `Removed` and `Ran`.
+
+`PrintsAfter` is for state that a program keeps, not a file. A package query
+prints "not installed" until the install runs, and "installed" after it. The
+second-run check needs to see that. The `aptpkg` eval of the skill found the
+gap. Without it, the install example of a package behavior could not pass that
+check correctly, and the session stopped and said so.
 
 | Layer       | Where                                              | Checks                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ----------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -460,46 +539,63 @@ could not pass that check honestly, and the session stopped and said so.
 | Wiring      | `internal/behaviors/all/all_public_test.go`        | every registered behavior validates, every route is mounted and every command attached                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Live server | `test/integration/behavior_test.go`                | every unkeyed read against a real agent; the write examples with `OSAPI_INTEGRATION_WRITE_BEHAVIORS=1`, each reporting the example's `changed` and then `false`; `just behavior-int-linux` runs them on Debian in a container, since the CI agent cannot write `/etc`                                                                                                                                                                                                                                                                |
 
-The generated HTTP tests split each method's cases the way the hand-written
-domains' handler tests do: `Test<Method>` for the answers,
+The generated HTTP tests split the cases of each method as the handler tests of
+the hand-written domains do: `Test<Method>` for the answers,
 `Test<Method>ValidationHTTP` for the 400s and `Test<Method>RBACHTTP` for the
-tokens. `internal/controller/api/behavior/apitest` runs the rows. A failing
-generated test is fixed in the definition or the generator, never in `gen/`.
+tokens. `internal/controller/api/behavior/apitest` runs the rows. Fix a failed
+generated test in the definition or the generator, never in `gen/`.
 
-The fake host is `internal/behavior/behaviortest`: an in-memory filesystem, a
-command runner that records each command line and prints what `Prints` gives,
-and an in-memory file state store. The command runner and the store are the
-repository's generated mocks, configured by the harness, and a call they have no
-answer for is reported rather than faked. Coverage is measured per package, so
-the harness runs from the behavior's own test, one line `behavior new` writes.
-The methods and each platform's provider also have their own tests, so every
-file with code has one, the repository's rule.
+The fake host is `internal/behavior/behaviortest`. It has:
 
-Every string input field of every example is also probed, one at a time, with a
-path that climbs out of its directory, a value that starts a new line, and a
-value that reads as an option. A probe passes when the field's `validate` tags
-refuse it, as the API would, when the method fails, or when it changes nothing
-it should not; it fails when it writes outside the directories the example
-writes, puts its line in a file beside other content, reaches a command as an
-option with no `--` before it, or reaches a `sh -c` script. Declared refusals
-only cover the inputs an author thought of; the probes cover the three ways a
-string most often becomes an injection, for every behavior, without the author
-thinking of them. An internal behavior is not probed: its input comes from other
-behaviors. The free-text case is allowed: a file whose whole content is the
-value, as a message of the day is, may hold any line.
+- an in-memory filesystem
+- a command runner that records each command line and prints what `Prints` gives
+- an in-memory file state store
+
+The command runner and the store are the generated mocks of the repository, and
+the harness configures them. If they have no answer for a call, they report it.
+They do not make a false answer. Coverage is measured for each package. Thus the
+harness runs from the test of the behavior, which is one line that
+`behavior new` writes. The methods and the provider of each platform also have
+their own tests. Thus each file with code has one, as the rule of the repository
+requires.
+
+The harness also probes each string input field of each example, one at a time,
+with three values:
+
+- a path that goes out of its directory
+- a value that starts a new line
+- a value that reads as an option
+
+A probe passes in three cases. The `validate` tags of the field refuse it, as
+the API does. Or the method fails. Or it changes nothing that it must not
+change. It fails when it:
+
+- writes outside the directories that the example writes
+- puts its line in a file next to other content
+- gets to a command as an option with no `--` before it
+- gets to a `sh -c` script
+
+Declared refusals cover only the inputs that an author thought of. The probes
+cover the three most common ways that a string becomes an injection, for each
+behavior, and the author does not need to think of them. An internal behavior
+gets no probes, because its input comes from other behaviors. The free-text case
+is permitted. A file whose full content is the value, as a message of the day
+is, can have any line.
 
 A method declares what it refuses with `.Fails(doc, input, errorText)`, with the
-same host options: bad input, or state it cannot act on, such as a parameter
-osapi stopped managing. The provider test checks each fails with that text, the
-API test checks one whose input breaks a `validate` tag gets a 400 with no job
-queued, and the docs page lists them. On the fake host every filesystem, command
-and store call fails in turn, and every store read returns a damaged record in
-turn: not JSON, empty JSON, and a file state record with empty metadata.
+same host options: bad input, or state that it cannot act on, for example a
+parameter that osapi stopped managing. The provider test checks that each one
+fails with that text. The API test checks that a refusal whose input breaks a
+`validate` tag gets a 400, and that no job is queued. The docs page lists them.
 
-sysctl's examples and refusals reach 150 of the 152 statements of its Debian
-provider, against 152 for its 1,820 lines of hand-written tests. The two left
-are a JSON encoding error that a struct of strings cannot produce, reachable
-only through the test seam the hand-written tests use.
+On the fake host, each filesystem, command and store call fails in turn. Each
+store read also returns a damaged record in turn: not JSON, empty JSON, and a
+file state record with empty metadata.
+
+The examples and refusals of sysctl get to 150 of the 152 statements of its
+Debian provider. Its 1,820 lines of hand-written tests get to 152. The two that
+remain are a JSON encoding error that a struct of strings cannot make. Only the
+test seam of the hand-written tests can get to it.
 
 ```sh
 go test ./internal/behaviors/sysctl -run TestBehaviorPublicTestSuite/TestExamples -coverprofile=c.out && go tool cover -func=c.out | grep debian.go
@@ -507,9 +603,10 @@ go test ./internal/behaviors/sysctl -run TestBehaviorPublicTestSuite/TestExample
 
 ## Behaviors built on other behaviors
 
-A behavior that needs another's work declares it with `behavior.Requires`, and
-calls the other's methods as Go calls on the same host, inside the same job:
-there is no second job, no API call and no round trip.
+A behavior that needs the work of a different behavior declares it with
+`behavior.Requires`. It calls the methods of the other behavior as Go calls on
+the same host, in the same job. There is no second job, no API call and no round
+trip.
 
 ```go
 var Behavior = behavior.Register(behavior.Define(
@@ -521,83 +618,95 @@ var Behavior = behavior.Register(behavior.Define(
 ))
 ```
 
-- **Building.** `host.Build` builds each required behavior's provider first, for
-  the same host, and puts it in the host the requiring builder gets; the builder
-  reads it with `host.Require[P](h, managedfile.Behavior)`. The agent and the
-  fake host in `behaviortest` both build through it, so a behavior's examples
-  run through its requirements exactly as they do on an agent.
-- **Unsupported spreads.** A required behavior with no provider on a platform,
-  or one that declines the host, leaves the requiring builder without it; the
-  builder answers `provider.ErrUnsupported`, and its methods report `skipped`. A
-  required builder that fails fails the requiring one, with both names in the
-  error.
+- **Building.** `host.Build` builds the provider of each required behavior
+  first, for the same host. It puts the provider in the host that the requiring
+  builder gets. The builder reads it with
+  `host.Require[P](h, managedfile.Behavior)`. The agent and the fake host in
+  `behaviortest` both build through it. Thus the examples of a behavior run
+  through its requirements exactly as they do on an agent.
+- **Unsupported spreads.** A required behavior can have no provider on a
+  platform, or it can refuse the host. Then the requiring builder does not get
+  it. The builder answers `provider.ErrUnsupported`, and its methods report
+  `skipped`. If a required builder fails, the requiring builder fails too, with
+  the two names in the error.
 - **Internal.** `behavior.Internal` marks a behavior that only other behaviors
-  use. It has no route, no command, no spec and no permissions, and
-  `behavior validate` fails one that also declares `API` or `CLI`. It still has
-  examples, refusals, tests and a docs page, and `behavior list` marks it.
+  use. It has no route, no command, no spec and no permissions.
+  `behavior validate` fails an internal behavior that also declares `API` or
+  `CLI`. It still has examples, refusals, tests and a docs page, and
+  `behavior list` marks it.
 - **Checks.** `behavior validate` fails a requirement that is not registered,
   and a cycle, under the rule `requires`. `behavior get` lists what a behavior
-  uses and what uses it, and the Behaviors section's landing page carries a
-  table of every behavior with both, generated from the registry.
+  uses and what uses it. The landing page of the Behaviors section has a table
+  of each behavior with the two lists, generated from the registry.
 
-`managedfile` is the first internal behavior: files osapi writes on a host and
-keeps a record of in `file-state`. A caller sets the file's mode, owner and
-group, and marks content that is a secret, whose record then keeps no checksum
-of it: a short secret's SHA-256 can be recovered by guessing. Ownership is read
-with `stat` and set with `chown` through sudo, which `managedfile` declares, so
-the fake host tests it like any other command. The `apptoken` eval found it
-missing: a token written through `managedfile` would have been readable by every
-user on the host, and the session stopped rather than write it. sysctl's Debian
-provider writes and removes its conf files through it, and the hand-written
-sysctl domain builds its own `managedfile` provider, so both write the same
-files with the same records. The code moved out of sysctl unchanged, which the
-hand-written sysctl provider tests, untouched apart from two marshal-failure
-cases that moved with the code, confirm.
+`managedfile` is the first internal behavior. It writes files on a host, and
+keeps a record of them in `file-state`. A caller sets the mode, owner and group
+of the file. A caller can also mark content as a secret. Then the record keeps
+no checksum of it, because somebody can recover a short secret from its SHA-256
+by guessing.
 
-Shared work becomes an internal behavior at its second use: one behavior doing
-something is its own code, and a second that needs the same thing is when it
-becomes a behavior both require. The build-a-behavior skill asks the question
-before a behavior is written, and
-[the migration plan](behavior-migration.md#internal-behaviors-the-migration-extracts)
-lists the candidates the hand-written domains share.
+It reads ownership with `stat` and sets it with `chown` through sudo, which
+`managedfile` declares. Thus the fake host tests it like each other command. The
+`apptoken` eval found that it was missing. A token written through `managedfile`
+was readable by each user on the host, and the session stopped and did not write
+it.
 
-Chaining across hosts or steps, the output of one method feeding the input of
-the next, is a workflow, and stays osapi-orchestrator's.
+The Debian provider of sysctl writes and removes its conf files through it. The
+hand-written sysctl domain builds its own `managedfile` provider. Thus the two
+write the same files with the same records. The code moved out of sysctl without
+changes. The hand-written sysctl provider tests confirm this. They did not
+change, except two marshal-failure cases that moved with the code.
+
+Shared work becomes an internal behavior at its second use. When one behavior
+does something, that is its own code. When a second behavior needs the same
+thing, it becomes a behavior that the two require. The build-a-behavior skill
+asks this question before somebody writes a behavior.
+[The migration plan](behavior-migration.md#internal-behaviors-the-migration-extracts)
+lists the candidates that the hand-written domains share.
+
+A chain across hosts or steps, where the output of one method is the input of
+the next, is a workflow. It stays with osapi-orchestrator.
 
 ## Secret inputs
 
-An input field that carries a secret, such as a password or an API key, is
-tagged `secret:"true"`. The tag does three things, so a behavior's secret is
-kept out of everything that records or publishes it without editing anything
-outside the behavior's directory:
+Tag an input field that has a secret, for example a password or an API key, with
+`secret:"true"`. The tag does three things. Thus osapi keeps the secret of a
+behavior out of all records and publications, and you edit nothing outside the
+directory of the behavior:
 
-- **Audit.** The audit summary redacts every field name tagged secret in any
-  registered behavior, beside the fixed denylist in `internal/audit`. Without
-  the tag, a field called `passphrase` would be stored as sent, because the
-  denylist matches names and does not have that one.
-- **Spec.** The field's schema has `format: password` and `writeOnly: true`, so
-  a generated client and the API reference treat it as a secret.
-- **Telemetry.** It is never recorded on a span. `behavior validate` fails a
-  field tagged both `secret` and `telemetry:"attr"`, under the rule `secret`.
+- **Audit.** The audit summary redacts each field name that is tagged secret in
+  any registered behavior, together with the fixed denylist in `internal/audit`.
+  Without the tag, osapi stores a field with the name `passphrase` as it came,
+  because the denylist matches names and does not have that name.
+- **Spec.** The schema of the field has `format: password` and
+  `writeOnly: true`. Thus a generated client and the API reference treat it as a
+  secret.
+- **Telemetry.** osapi never records it on a span. `behavior validate` fails a
+  field that is tagged both `secret` and `telemetry:"attr"`, under the rule
+  `secret`.
 
-Redaction matches names, the way the denylist does: tagging a field `value`
-secret redacts every request field called `value`, in every behavior. A secret
-field gets a name that says what it holds.
+Redaction matches names, as the denylist does. If you tag a field `value` as
+secret, osapi redacts each request field with the name `value`, in each
+behavior. Give a secret field a name that tells what it has.
 
-The value still arrives as a CLI flag, as a hand-written domain's `--password`
-does. Reading it from standard input or a prompt instead is not built.
+The value still comes as a CLI flag, as the `--password` of a hand-written
+domain does. A read from standard input or a prompt is not built.
 
 ## Not built yet
 
-The cutover: routes moving from `/api/next` to `/api`, commands from
-`client next` to `client`, the generated spec joining the main one, and sysctl's
-hand-written handler, processor and commands being deleted. sysctl's provider
-already lives in the behavior's directory, as `debian.go`, `darwin.go` and
-`linux.go` with their tests moved unchanged, and the hand-written domain imports
-it from there until the cutover.
+The cutover:
 
-The SDK knows routes, not behaviors: it has a generic `Client.Request` to any
-API path, and its typed services, such as `client.Sysctl`, are hand-written over
-the client oapi-codegen generates from the spec. Generating those typed services
-from the spec too, once every behavior's spec has joined the main one, is a
-later step in [the migration plan](behavior-migration.md).
+- routes move from `/api/next` to `/api`
+- commands move from `client next` to `client`
+- the generated spec joins the main spec
+- the hand-written handler, processor and commands of sysctl are deleted
+
+The provider of sysctl is already in the directory of the behavior, as
+`debian.go`, `darwin.go` and `linux.go`, with their tests moved without changes.
+The hand-written domain imports it from there until the cutover.
+
+The SDK knows routes, not behaviors. It has a generic `Client.Request` to any
+API path. Its typed services, for example `client.Sysctl`, are hand-written over
+the client that oapi-codegen generates from the spec. To generate those typed
+services from the spec too, after the spec of each behavior joins the main spec,
+is a later step in [the migration plan](behavior-migration.md).

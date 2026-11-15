@@ -18,8 +18,8 @@ machine translation.
 
 A **procedure** tells the reader what to do. A **description** says what a
 thing is or how it works. A **safety instruction** warns. Each has its own
-rules, so classify every paragraph before writing it, and never mix two kinds
-in one paragraph.
+rules. Thus classify each paragraph before you write it. Never put two kinds in
+one paragraph.
 
 ## 2. Route
 
@@ -39,9 +39,9 @@ it holds.
 
 ## 3. Report
 
-When rewriting, give the page, then the terms you settled on: each thing's one
-name and each action's one verb. When checking, give each sentence that breaks
-a rule, the rule, and its rewrite, in page order.
+When you rewrite, give the page, then the terms that you selected: the one name
+of each thing and the one verb of each action. When you check, give each
+sentence that breaks a rule, the rule and its rewrite, in page order.
 
 ## Rules
 

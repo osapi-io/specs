@@ -4,8 +4,8 @@ How every document in this repository is written, and every skill that writes
 one. Cited rather than restated: if you are about to paraphrase this into a
 skill or a page, link here instead.
 
-A plain engineering voice. Something engineers would want to read and maintain,
-not an academic paper, not marketing, not AI prose.
+A plain engineering voice. Engineers want to read and maintain it. It is not an
+academic paper, not marketing and not AI prose.
 
 **The engineering is not simplified. The language is.**
 
@@ -14,17 +14,17 @@ not an academic paper, not marketing, not AI prose.
 - Simple, direct language over jargon. Use the normal engineering term.
 - Do **not** oversimplify the technical detail. Keep the architecture,
   constraints, tradeoffs and reasoning intact.
-- Concrete: what it does, why it exists, how it works, what the tradeoffs are.
+- Be concrete: what it does, why it exists, how it works, and the tradeoffs.
 - The reader is an experienced engineer who does not know this system.
 - No buzzwords: leverage, robust, seamless, scalable, paradigm, orchestration as
   a synonym for running things, surface as a synonym for API.
-- No padding with generic statements or obvious best practice.
+- Do not add general statements or obvious best practice.
 - Not everything as a numbered list. Prose, diagrams, tables and short lists,
   whichever makes it clearer.
-- Technically precise without being formal for its own sake.
+- Technically precise, but not formal without a reason.
 - State the decision. Where there is a tradeoff, say what it is and which side
   you took.
-- Concrete examples over explaining terminology.
+- Use concrete examples. Do not explain terms.
 - Tight. Every paragraph explains the system, justifies a decision, or clarifies
   a tradeoff.
 
@@ -32,9 +32,9 @@ The test:
 
 > Would a senior engineer actually write this in an internal design doc?
 
-If it reads like an academic paper, rewrite it. If it reads like documentation
-for beginners, rewrite it. If it reads like something trying to sound technical,
-rewrite it.
+If it reads like an academic paper, write it again. If it reads like
+documentation for beginners, write it again. If it reads like text that tries to
+sound technical, write it again.
 
 ## Sentences follow STE
 
@@ -46,12 +46,18 @@ disagree on a sentence.
 
 ## The unslop pass is required
 
-After writing, run the whole document through `unslop`. It is an editing pass,
+After you write, run `unslop` on the full document. It is a necessary edit pass,
 not a suggestion.
 
-It removes AI phrasing, verbosity, corporate and academic language, repeated
-explanations, fake transitions, filler, excessive headings and bullets, jargon,
-and prose that is too polished to be natural. It keeps the technical meaning.
+It removes these things, and keeps the technical meaning:
+
+- AI phrases and too many words
+- corporate and academic language
+- explanations that occur two times
+- false transitions and filler
+- too many headings and bullets
+- jargon
+- prose that is too polished to be natural
 
 Then read the result again and fix anything it bent out of shape. **Do not let a
 shorter document lose technical information.**
@@ -61,8 +67,8 @@ shorter document lose technical information.**
 **Significance instead of substance.** Do not write "that indirection is the
 whole reason the API cannot do the work, and everything below follows from it".
 Write what follows: "at-least-once delivery, the idempotency providers owe, two
-independent timeouts, a per-host result instead of one answer." Naming the
-consequences is useful; asserting that there are consequences is not.
+independent timeouts, a per-host result instead of one answer." A list of the
+results is useful. A claim that results exist is not.
 
 **Commentary about the document.** "This section is short because the subsystem
 is thin" tells the reader nothing about the system. Cut it.
@@ -70,15 +76,15 @@ is thin" tells the reader nothing about the system. Cut it.
 **Em dashes.** Use a comma or end the sentence. `just check-docs` fails on them.
 
 **Bold labels that restate the line after them.** "**Performance:** performance
-improved by..." A bold lead-in that names a thing and is followed by new detail
-is fine.
+improved by..." A bold lead-in that names a thing, with new detail after it, is
+correct.
 
 **Hedged numbers.** "roughly 108 fields" invites nobody to check it, and a count
 here stayed wrong for weeks behind a tilde. State the number and the command.
 
 **Aphorisms.** "Prose is a lead; the code is the source" sounds like wisdom and
 tells you nothing to do. Write the instruction: read the code, then run
-something that would fail if you were wrong.
+something that fails if you are wrong.
 
 ## Worked example
 

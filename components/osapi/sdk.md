@@ -1,10 +1,11 @@
 # The Go SDK
 
-`pkg/sdk/client` is osapi's public API for programs. It is generated from the
-combined OpenAPI specification, wrapped in hand-written services, and it is the
-contract [osapi-orchestrator](../osapi-orchestrator/README.md) depends on.
+`pkg/sdk/client` is the public API of osapi for programs. It comes from the
+combined OpenAPI specification, and hand-written services wrap it. It is the
+contract that [osapi-orchestrator](../osapi-orchestrator/README.md) depends on.
 
-31 services, 117 exported methods, one field per service on the `Client` struct.
+It has 31 services and 117 exported methods. The `Client` struct has one field
+for each service.
 
 ```sh
 grep -hcE '^type [A-Za-z]+Service struct' pkg/sdk/client/*.go | paste -sd+ - | bc  # 31
@@ -13,7 +14,7 @@ grep -hE '^func \(s \*[A-Za-z]+Service\)' pkg/sdk/client/*.go | wc -l           
 
 ## What a service owes
 
-Five things, and a domain is not finished until all five exist.
+A service needs five things. A domain is not complete until all five exist.
 
 | Artifact                       | Where                      |
 | ------------------------------ | -------------------------- |
@@ -25,37 +26,38 @@ Five things, and a domain is not finished until all five exist.
 
 ## Method naming
 
-Five rules. They were **derived from the methods that already exist** rather
-than decided in the abstract, because no convention had ever been written down.
-The document that derived them said 110; the count is 117, and the rules were
-read off the whole set either way.
+There are five rules. They **come from the methods that already exist**. Nobody
+invented them, because nobody wrote a convention before. The document that found
+them said 110 methods. The count is 117. The rules come from the full set in the
+two cases.
 
 **1. The five CRUD verbs are exactly `List`, `Get`, `Create`, `Update`,
-`Delete`.** Never `GetAll`, `Fetch`, `Set`, `Put` or `Remove` for the service's
-own resource. Eleven services use some or all of them and none deviates.
+`Delete`.** For the resource of the service, never use `GetAll`, `Fetch`, `Set`,
+`Put` or `Remove`. Eleven services use some or all of them, and none is
+different.
 
-**2. A method acting on the service's own resource takes the bare verb, no
+**2. A method on the resource of the service uses only the verb, with no
 object.** `Service.Start`, not `Service.StartService`. Also `Power.Reboot`,
 `Agent.Accept`, `Job.Retry`, `Package.Install`, `Docker.Pull`.
 
-**3. A method acting on a sub-resource takes verb then object.** `User.AddKey`,
+**3. A method on a sub-resource uses the verb, then the object.** `User.AddKey`,
 `User.ListKeys`, `User.RemoveKey`, `User.ChangePassword`, `Agent.ListPending`,
 `Package.ListUpdates`, `Log.QueryUnit`.
 
-**4. A single getter is named `Get` and nothing else.** Six services expose one
-read each, `Disk`, `Load`, `Memory`, `OS`, `Status` and `Uptime`, and each names
-it `Get`, taking its subject from the service.
+**4. A single getter has the name `Get` and no other name.** Six services have
+one read each: `Disk`, `Load`, `Memory`, `OS`, `Status` and `Uptime`. Each names
+it `Get`. The service gives the subject.
 
-**5. Where a service exposes several distinct reads, each takes verb then
-object.** Rule 4's bare `Get` applies only where there is exactly one read.
+**5. When a service has more than one read, each uses the verb, then the
+object.** The `Get` of rule 4 applies only when there is exactly one read.
 
-`Docker.Pull` is deliberately **not** `PullImage`. It would be more symmetric
-with `RemoveImage`, but pull applies to nothing but images in Docker, so the
-object adds length without removing ambiguity.
+`Docker.Pull` is deliberately **not** `PullImage`. `PullImage` is more
+symmetrical with `RemoveImage`. But in Docker, pull applies only to images. Thus
+the object makes the name longer, and it does not make it more clear.
 
 ## Seven methods do not conform, and are to be renamed
 
-Not recorded as permitted exceptions. Renamed.
+These are not permitted exceptions. They get new names.
 
 | Current              | Becomes       | Which rule                                         |
 | -------------------- | ------------- | -------------------------------------------------- |
@@ -67,14 +69,15 @@ Not recorded as permitted exceptions. Renamed.
 | `Health.Ready`       | `GetReady`    | 5.                                                 |
 | `Health.Status`      | `GetStatus`   | 5.                                                 |
 
-**Why renaming rather than excepting.** The SDK has no released version. osapi
-carries no `v*` tag and the orchestrator pins a pseudo-version commit, so these
-are renames today and breaking changes after the first tag. Twenty-six call
-sites here and three there is the whole cost, and it only grows.
+**Why a rename and not an exception.** The cost of a rename becomes larger with
+each release. osapi has released tags, and the orchestrator pins one. Thus each
+rename is now a breaking change for the next pin update. There are twenty-six
+call sites here and three in the orchestrator, and that number only increases.
 
 ## How the package is laid out
 
-One file per domain service, and four files that are not a service.
+There is one file for each domain service, and four files that are not a
+service.
 
 ```
 pkg/sdk/client/
@@ -87,13 +90,13 @@ pkg/sdk/client/
 pkg/sdk/platform/   platform detection, not a service
 ```
 
-The split between `<domain>.go` and `<domain>_types.go` is what keeps the
-conversion from generated types in one place per domain. A service that returns
-a generated type directly has skipped that file, which is the rule below.
+The split between `<domain>.go` and `<domain>_types.go` keeps the conversion
+from generated types in one location for each domain. A service that returns a
+generated type directly did not make that file. The rule below forbids that.
 
-`pkg/sdk/` held the orchestrator engine once. It now lives in
-[osapi-orchestrator](../osapi-orchestrator/README.md)'s `internal/engine/`, and
-that is the only thing that has ever left this package.
+`pkg/sdk/` had the orchestrator engine before. The engine is now in the
+`internal/engine/` of [osapi-orchestrator](../osapi-orchestrator/README.md). It
+is the only thing that ever left this package.
 
 ## Every method returns the same envelope
 
@@ -104,50 +107,51 @@ type Response[T any] struct {
 }
 ```
 
-`Data` is the typed result. `RawJSON()` is the response body as it arrived, and
-it exists for one caller: the CLI's `--json` mode, which has to print what the
-server said rather than what the SDK parsed.
+`Data` is the typed result. `RawJSON()` is the response body as it came. It
+exists for one caller: the `--json` mode of the CLI. That mode must print what
+the server said, not what the SDK parsed.
 
-So a method cannot return a bare value even where a bare value would do, because
-the envelope is what makes `--json` possible without a second code path. A
-collection returns `Response[Collection[T]]` rather than `Response[[]T]`, which
-is the same reason stated for the shape a broadcast returns in
-[building a domain](domains.md).
+Thus a method cannot return a bare value, also where a bare value is sufficient.
+The envelope makes `--json` possible without a second code path. A collection
+returns `Response[Collection[T]]`, not `Response[[]T]`.
+[Building a domain](domains.md) gives the same reason for the shape that a
+broadcast returns.
 
 ## The SDK knows routes, not behaviors
 
-The SDK talks to the HTTP API, so what it needs is the spec, never a
-[behavior](behaviors.md)'s Go definition, and `pkg/sdk` imports nothing from
-`internal/`. A route the SDK has no typed method for is reached with one generic
-call:
+The SDK connects to the HTTP API. Thus it needs the spec, never the Go
+definition of a [behavior](behaviors.md). `pkg/sdk` imports nothing from
+`internal/`. For a route with no typed method, use one generic call:
 
 ```go
 resp, err := c.Request(ctx, http.MethodGet, "/api/next/node/_all/sysctl/vm.swappiness", nil)
 ```
 
-It returns the body as the API sent it, with an answer outside 2xx as the same
-error types every typed method returns. osapi's own generated commands call it,
-through the CLI runtime that builds a behavior's path from its definition.
+It returns the body as the API sent it. An answer outside 2xx becomes the same
+error types that each typed method returns. The generated commands of osapi call
+it, through the CLI runtime that makes the path of a behavior from its
+definition.
 
-Until a behavior's cutover, its routes have no typed SDK method. After it, its
-spec joins the main one, so oapi-codegen's generated client covers it like any
-other domain, and the typed services above can be generated from the spec rather
-than written by hand.
+Before the cutover of a behavior, its routes have no typed SDK method. After the
+cutover, its spec joins the main spec. Thus the client that oapi-codegen
+generates covers it like each other domain. Then the typed services above can
+come from the spec, and nobody needs to write them by hand.
 
 ## The rest of the conventions
 
-**Type exposure, JSON tags on result fields, and error wrapping** are stated
-where the site's SDK guidelines page demonstrates each one working. Showing a
-rule working is not stating it twice, so those are cited rather than repeated
-here.
+**Type exposure, JSON tags on result fields, and error wrapping.** The SDK
+guidelines page of the site states these, and shows each one in use. An example
+of a rule in use is not a second statement of the rule. Thus this page links to
+them and does not repeat them.
 
 ## Where this connects
 
-What generates the specification the SDK is built from, and why a domain absent
-from the combined file is invisible to it, is [building a domain](domains.md).
+[Building a domain](domains.md) tells what generates the specification of the
+SDK. It also tells why the SDK cannot see a domain that is not in the combined
+file.
 
-The UI's client is generated from **the same** combined specification, by a
-different generator, and is [the embedded UI](ui.md).
+The client of the UI comes from **the same** combined specification, through a
+different generator. [The embedded UI](ui.md) describes it.
 
 ______________________________________________________________________
 

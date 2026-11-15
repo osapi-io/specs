@@ -1,7 +1,7 @@
 # Agent wiring
 
-Two files connect a provider to the job pipeline, and the registry handles
-dispatch and facts wiring.
+Two files connect a provider to the job pipeline. The registry handles the
+dispatch and the facts.
 
 ## Two rules are in the corpus, not here
 
@@ -34,7 +34,7 @@ func process{Domain}Operation(
 }
 ```
 
-Two shapes, depending on whether the domain is its own category:
+There are two shapes. The shape depends on if the domain is its own category:
 
 - **Its own category**, as `schedule` and `docker` are: add a
   `New{Domain}Processor` factory beside the helpers.
@@ -42,27 +42,28 @@ Two shapes, depending on whether the domain is its own category:
   category's processor and delegate to helpers in the new file. Read
   `processor_node.go` for the current switch.
 
-Operation constants are defined once in `pkg/sdk/client/operations.go` as
-`JobOperation` strings shaped `{category}.{domain}.{operation}`, for example
-`"node.sysctl.list"`. `internal/job/types.go` aliases each one as
-`Operation{Domain}{Operation}` for use inside the repository. Add the constant
-to `operations.go` and the alias beside its siblings, and never write the string
-literal at a call site: that is how a handler and an agent come to disagree
-about an operation name.
+`pkg/sdk/client/operations.go` defines the operation constants one time, as
+`JobOperation` strings with the shape `{category}.{domain}.{operation}`, for
+example `"node.sysctl.list"`. `internal/job/types.go` gives each one an alias,
+`Operation{Domain}{Operation}`, for use in the repository.
+
+Add the constant to `operations.go`, and the alias next to its siblings. Never
+write the string literal at a call site. That is how a handler and an agent
+start to disagree about an operation name.
 
 ## What a domain does not touch
 
-The sibling NATS projects stay out of this. Nothing under `internal/provider/`,
-`internal/controller/` or `pkg/sdk/` imports `osapi-io/nats-client`; only
-`cmd/` wiring, `internal/agent/consumer.go` and `internal/cli` do. A new domain
-reuses the subjects that already exist (`jobs.query.*` and `jobs.modify.*`,
-routed per host) and the buckets that already exist, so it adds no stream, no
-consumer and no KV bucket.
+The sibling NATS projects are not part of this. Nothing under
+`internal/provider/`, `internal/controller/` or `pkg/sdk/` imports
+`osapi-io/nats-client`. Only the `cmd/` wiring, `internal/agent/consumer.go` and
+`internal/cli` do. A new domain uses the subjects that already exist
+(`jobs.query.*` and `jobs.modify.*`, routed for each host) and the buckets that
+already exist. Thus it adds no stream, no consumer and no KV bucket.
 
-Streams and buckets are declared once in `internal/job/config.go`. A domain
-that genuinely needs storage of its own is a change to the job layer, with its
-own spec, rather than part of adding a domain. Meta providers write through the
-file-state KV the file provider already owns.
+`internal/job/config.go` declares streams and buckets one time. If a domain
+really needs its own storage, that is a change to the job layer, with its own
+spec. It is not part of a new domain. Meta providers write through the
+file-state KV that the file provider already owns.
 
 ## 2. The registration
 
@@ -97,14 +98,14 @@ default:
 }
 ```
 
-An SDK-based provider has no switch. Construct it, check availability, and
-leave it nil when unavailable so the operation reports unsupported rather than
-panicking.
+A provider that uses an SDK has no switch. Make it and check availability. When
+it is not available, leave it nil. Then the operation reports unsupported, and
+does not panic.
 
 ## Delivery semantics worth knowing before you add an operation
 
-The job system's guarantees are specified in the corpus, which is where to read them
-in full. What matters when adding an operation, and where each rule is stated:
+The corpus specifies the guarantees of the job system. Read all of them there.
+These are important when you add an operation, with the location of each rule:
 
 | What you are relying on | Stated in |
 | --- | --- |
@@ -116,23 +117,24 @@ in full. What matters when adding an operation, and where each rule is stated:
 
 Two consequences for a new operation, which are yours rather than the system's:
 
-- **Redelivery is not your safety net.** The provider's idempotency is what makes a
-  repeat safe, the contract's own requirement, not this one.
-- **`job retry` creates a new job** rather than replaying the old message, so
-  nothing per-domain handles it.
+- **A new delivery does not protect you.** The idempotency of the provider makes
+  a repeat safe. That is a requirement of the contract, not of this page.
+- **`job retry` makes a new job.** It does not send the old message again. Thus
+  no domain code handles it.
 
 ## Facts
 
 `provider.WireProviderFacts(a.GetFacts, registry.AllProviders()...)` injects
 facts into every registered provider, one call, in `internal/agent/agent.go`. A
 provider registered through the registry is covered; one constructed and passed
-somewhere else is not. What a provider does with facts is [facts](../../../../components/osapi/providers.md#facts).
+somewhere else is not. What a provider does with facts is
+[facts](../../../../components/osapi/providers.md#facts).
 
 ## Tests
 
-- `internal/agent/processor_{domain}_public_test.go`: one suite method per
-  helper, table rows covering each sub-operation, an unknown operation, and a
+- `internal/agent/processor_{domain}_public_test.go`: one suite method for each
+  helper, with table rows for each sub-operation, an unknown operation and a
   provider error.
 - Mock the provider from `internal/provider/{category}/{domain}/mocks/`.
-- `cmd/` is excluded from the coverage gate by `.coverignore`, so the wiring in
-  `agent_setup.go` is proved by the integration suite rather than a unit test.
+- `.coverignore` removes `cmd/` from the coverage gate. Thus the integration
+  suite proves the wiring in `agent_setup.go`. A unit test does not.

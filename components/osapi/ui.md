@@ -1,8 +1,8 @@
 # The embedded UI
 
-osapi ships a React single-page application compiled into the controller binary.
-There is no separate deployment, no second process and no extra port: the built
-assets go into the Go binary through `//go:embed`, and the controller serves
+osapi ships a React single-page application inside the controller binary. There
+is no separate deployment, no second process and no additional port. The build
+puts the assets into the Go binary through `//go:embed`. The controller serves
 them from the same host and port as the REST API.
 
 ```yaml
@@ -11,24 +11,23 @@ controller:
     enabled: true # default
 ```
 
-Setting it false makes the controller skip registering the SPA handler and serve
-only the REST API. That is the one thing about the UI an operator acts on.
+If you set it to false, the controller does not register the SPA handler. It
+serves only the REST API. This is the only UI setting that an operator changes.
 
 ## Its API client is generated from the same specification as the Go SDK
 
-Not a hand-written client, and not a second specification. `orval` generates it
-from the combined OpenAPI file that the Go SDK also generates from, so **an
-endpoint added to a domain reaches both** without anybody writing TypeScript.
+Nobody writes the client by hand, and there is no second specification. `orval`
+generates it from the combined OpenAPI file. The Go SDK comes from the same
+file. Thus **an endpoint that you add to a domain goes to the two clients**, and
+nobody writes TypeScript for it.
 
-A fetch mutator adapts the generated client for the browser, which is where the
-bearer token is attached.
-
-So the UI ships inside osapi's binary rather than being deployed beside it.
+A fetch mutator changes the generated client for the browser. It attaches the
+bearer token.
 
 ## The four kinds of component
 
-What separates them is **what each one knows and whether it renders**, not what
-it is called. A new file goes where those two answers put it.
+Two answers separate the kinds: **what each one knows, and if it renders**. The
+name does not separate them. Put a new file where those two answers put it.
 
 | Kind             | Knows                           | Lives in                    |
 | ---------------- | ------------------------------- | --------------------------- |
@@ -37,47 +36,51 @@ it is called. A new file goes where those two answers put it.
 | layout           | none; it holds page chrome      | `ui/src/components/layout/` |
 | hook             | a resource, and renders nothing | `ui/src/hooks/`             |
 
-So: markup with one resource is a domain component, a resource with no markup is
-a hook, and markup with no resource is a primitive unless it is page chrome,
-which is a layout. Primitive and layout are the pair the knowledge column cannot
-separate, because neither knows a resource; what separates them is that a
-primitive is reused anywhere and a layout exists to position pages.
+Thus:
 
-The hook rule is enforced by the file extension. Every file in `ui/src/hooks/`
-is `.ts` rather than `.tsx`, so a hook **cannot** contain markup.
+- Markup with one resource is a domain component.
+- A resource with no markup is a hook.
+- Markup with no resource is a primitive. If it is page chrome, it is a layout.
 
-## Authentication, and the asymmetry worth knowing
+The knowledge column cannot separate a primitive from a layout, because neither
+knows a resource. A primitive can be used again in any location. A layout exists
+to put pages in position.
 
-The UI uses the same JWT the rest of osapi uses. A token comes from
-`osapi token generate`, is pasted into the sign-in page or supplied through the
-environment, and is sent as a bearer header on every request.
+The file extension enforces the hook rule. Each file in `ui/src/hooks/` is
+`.ts`, not `.tsx`. Thus a hook **cannot** contain markup.
 
-**The UI decodes that token without verifying it.** It reads the roles claim to
-decide what to show. Verification is the server's job, and the server does it on
-every request.
+## Authentication, and the difference to know
 
-A contributor who read only the client would take the decode for a check. It is
-not one. Nothing the UI hides is protected by the UI hiding it.
+The UI uses the same JWT as the rest of osapi. A token comes from
+`osapi token generate`. You paste it into the sign-in page, or you give it
+through the environment. The UI sends it as a bearer header on each request.
 
-Its permission model is osapi's, not a second one. The roles claim it reads
-resolves through the same 37 permissions and three roles the API checks,
-described in [permissions](permissions.md). What each role permits for an
-*operator* is also on the published site, where somebody configuring one will
-look.
+**The UI decodes that token, but it does not verify it.** It reads the roles
+claim to decide what to show. The server verifies the token on each request.
+
+A contributor who reads only the client can think that the decode is a check. It
+is not a check. When the UI hides something, that does not protect it.
+
+The permission model of the UI is the model of osapi. There is not a second
+model. The roles claim uses the same 37 permissions and three roles that the API
+checks. [Permissions](permissions.md) describes them. The published site also
+tells what each role permits for an *operator*, because a person who configures
+a role looks there.
 
 ## Coverage says nothing about it
 
-`/ui/` is in `.coverignore`, so osapi's coverage figure excludes the UI
-entirely. A contributor who assumed the gate covered it would be wrong, and
-nothing in the gate's output says so.
+`/ui/` is in `.coverignore`. Thus the coverage figure of osapi does not include
+the UI. The gate does not cover the UI, and nothing in the output of the gate
+says so.
 
-The UI's correctness rests on its own checks: `just react-lint`,
-`just react-test` and the Docusaurus build for its documentation.
+The UI has its own checks: `just react-lint`, `just react-test` and the
+Docusaurus build for its documentation.
 
 ## Where this connects
 
-What the generated client is generated *from*, and why a domain absent from the
-combined specification is invisible to it, is [building a domain](domains.md).
+[Building a domain](domains.md) tells what the client comes *from*. It also
+tells why the client cannot see a domain that is not in the combined
+specification.
 
 ______________________________________________________________________
 

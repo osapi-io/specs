@@ -1,51 +1,57 @@
 # Contributing
 
-This repo is the design record for [osapi-io]. It holds no product code. The
-documents under `components/` describe how each repository behaves, and they are
-the thing you change.
+This repo is the design record for [osapi-io]. It has no product code. The
+documents under `components/` describe how each repository operates. You change
+these documents.
 
 ## How work happens here
 
-Doc-driven: you design something by writing the page, build it in the repository
-it belongs to, then correct the page where building proved it wrong.
+This repo is doc-driven. You design something when you write the page. Then you
+build it in its repository. Then you correct the page where the build showed an
+error.
 
-The page is the design up front and the description afterwards. It is the same
-page either way, which is the point. There is no separate spec that gets
-converted into documentation later, because that conversion is where the two
-drift apart.
+Before the build, the page is the design. After the build, it is the
+description. It is the same page in the two stages, and that is the purpose.
+There is no separate spec that somebody changes into documentation later,
+because that change is where the two become different.
 
-So a change here is one of three things:
+Thus a change here is one of three things:
 
-- A new subject: a new page under the component, linked from its README.
-- A change to how something behaves: an edit to the page that already covers it.
-- An agreement between repositories: an edit to `ARCHITECTURE.md`, or a rule in
-  `CONSTITUTION.md` if every repository has to honour it.
+- A new subject: a new page under the component, with a link from its README.
+- A change to how something operates: an edit to the page that already covers
+  it.
+- An agreement between repositories: an edit to `ARCHITECTURE.md`. If each
+  repository must obey the agreement, add a rule to `CONSTITUTION.md`.
 
-Pick the component by asking whether the subject is how one repository behaves
-or an agreement two of them must both keep. Job retry logic is osapi's
-behaviour. The subject naming that osapi and osapi-orchestrator both depend on
-belongs to neither, so it goes in `ARCHITECTURE.md`.
+To select the component, ask one question. Is the subject how one repository
+operates, or an agreement that two repositories must keep? Job retry logic is
+the operation of osapi. osapi and osapi-orchestrator both depend on the subject
+names, but neither owns them. Thus the subject names go in `ARCHITECTURE.md`.
 
 ## Issues
 
 The rule is [Tracking](CONSTITUTION.md#tracking). In practice:
 
-An issue is opened in the repository the change lands in. A finding about
-osapi's code is an osapi issue, not one here, because that is where the person
-who fixes it is looking. An issue here is for the design record itself: a page
-that is wrong, a subject with no page, a rule stated in two places.
+Open an issue in the repository where the change goes. A finding about the code
+of osapi is an osapi issue, not an issue here, because the person who fixes it
+looks there. An issue here is for the design record itself:
 
-Open one when the work is larger than the change in hand. A one-line fix found
-while editing a page is part of that change. A provider that decides idempotency
-the wrong way is not, and widening the change to cover it buries the fix in a
-diff about something else.
+- a page that is incorrect
+- a subject with no page
+- a rule that two places state
 
-Carry the evidence. The counts and commands that found it belong in the issue
-for the same reason they belong in a page: a reader who cannot reproduce it has
-to take your word for it, and in six months so do you.
+Open an issue when the work is larger than the current change. A one-line fix
+that you find when you edit a page is part of that change. A provider that
+decides idempotency incorrectly is not part of it. If you make the change larger
+to include it, the fix is hidden in a diff about a different subject.
 
-Something exploitable is never an issue, because an issue is public the moment
-it is opened. It is a draft advisory on the repository it affects.
+Give the evidence. The counts and commands that found the problem go in the
+issue, for the same reason that they go in a page. A reader who cannot show the
+problem again must trust you. In six months, you must also trust yourself.
+
+Do not open an issue for a problem that an attacker can use, because an issue is
+public when you open it. Make a draft advisory on the repository that it
+affects.
 
 ## Prerequisites
 
@@ -56,59 +62,63 @@ just fetch
 just test
 ```
 
-[mise] provisions `just` and `uv` from `.mise.toml`. `gh` is installed
-separately because `mise` resolves it through `aqua`, whose attestation check
-fails for that package.
+[mise] installs `just` and `uv` from `.mise.toml`. Install `gh` separately.
+`mise` gets `gh` through `aqua`, and the attestation check of `aqua` fails for
+that package.
 
 ## What a page looks like
 
 Read [components/osapi/job-system.md](components/osapi/job-system.md) for the
-shape. The rules are in [CONSTITUTION.md](CONSTITUTION.md); the ones you will
-hit immediately:
+shape. [CONSTITUTION.md](CONSTITUTION.md) has the rules. You will need these
+rules first:
 
-- Explain the system to somebody who has to work on it. `/document` carries the
-  voice and runs `unslop`; use it rather than writing a page by hand.
+- Explain the system to a person who must work on it. `/document` has the voice
+  and runs `unslop`. Use it. Do not write a page by hand.
 - Write each sentence in Simplified Technical English, as
-  [the constitution](CONSTITUTION.md) requires of every repository. `/ste-100`
+  [the constitution](CONSTITUTION.md) requires of each repository. `/ste-100`
   checks it.
-- Every count carries the command that produces it, and the command has to work
-  on its own.
-- State a fact once. Link to it from anywhere else that needs it.
-- Say what the tradeoff was when there was one.
+- Give each count with the command that gives it. The command must work alone.
+- State a fact one time. Link to it from each other location that needs it.
+- When there was a tradeoff, say what it was.
 
-`just test` enforces the first three. The fourth is on you.
+`just test` enforces the first three rules. You must obey the fourth rule
+yourself.
 
-## Before committing
+## Before you commit
 
 ```bash
 just test
 ```
 
-That runs markdown formatting, justfile lint, skill validation, every count
-against its command, and the documentation contract. `just md-fmt` fixes
-formatting.
+That command checks the markdown format, the justfile lint, the skills, each
+count against its command, and the documentation contract. `just md-fmt` fixes
+the format.
 
-[mdformat] rewrites two things silently, so write them correctly the first time:
-GitHub alert syntax (`> [!WARNING]`) becomes a plain blockquote and stops
-rendering, and link definitions get lowercased and sorted.
+[mdformat] changes two things and does not tell you. Thus write them correctly
+the first time:
+
+- GitHub alert syntax (`> [!WARNING]`) becomes a plain blockquote, and GitHub
+  does not show it as an alert.
+- mdformat changes link definitions to lowercase and sorts them.
 
 ## Branches and commits
 
-Branch from `main` as `type/short-description`, matching the
+Make a branch from `main` as `type/short-description`. Use the
 [Conventional Commits] type: `docs/add-firewall-page`,
 `fix/correct-retry-count`.
 
-Commit subjects max 50 characters, imperative, capitalized, no period. Body
-wraps at 72. Say what changed and why, not how.
+A commit subject has 50 characters or fewer. Use the imperative, start with a
+capital letter, and do not end with a period. Wrap the body at 72 characters.
+Say what changed and why, not how.
 
-Keep PRs to a single commit where you can. Describe what changed and why in the
-description; a reviewer should not have to read the diff to find the reason.
+If possible, keep a PR to one commit. Tell what changed and why in the
+description. A reviewer must not need the diff to find the reason.
 
 ## AI usage
 
-This repo is written with AI assistance and the workflow assumes it. The
-[AI Usage Policy](AI_POLICY.md) applies. Disclose the tool, and be able to
-explain what your page says without it.
+People write this repo with AI help, and the workflow expects it. The
+[AI Usage Policy](AI_POLICY.md) applies. Tell which tool you used. You must be
+able to explain your page without the tool.
 
 [conventional commits]: https://www.conventionalcommits.org
 [mdformat]: https://pypi.org/project/mdformat/

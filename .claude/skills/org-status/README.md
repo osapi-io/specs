@@ -1,12 +1,12 @@
 # org-status
 
-Answers "what needs my attention across [osapi-io]?" without opening eight
-browser tabs.
+Answers "what needs my attention across [osapi-io]?", and you do not need to
+open eight browser tabs.
 
 ## Install
 
-Nothing to install. The skill lives in this repository and any skills-aware
-agent working from the repository root finds it. It needs the [gh] CLI,
+You install nothing. The skill is in this repository. Each agent that reads
+skills finds it when it works from the repository root. It needs the [gh] CLI,
 authenticated.
 
 Security alert queries need one scope a stock `gh auth login` does not grant:
@@ -18,9 +18,9 @@ gh auth refresh -h github.com -s security_events
 Without it the alert endpoints return 403, which the skill reports as "the token
 cannot see them" rather than as a clean result.
 
-Reading needs nothing further. Merging, rebasing, dismissing an alert and
-deleting a branch all write, so they need push access to the repository they
-act on.
+A read needs nothing more. A merge, a rebase, the dismissal of an alert and the
+deletion of a branch are writes. Thus they need push access to the repository
+that they act on.
 
 ## Usage
 
@@ -44,13 +44,13 @@ Ask in plain language, or invoke it directly with `/org-status`.
 Reading is the default. Two paths write, and they differ in what they ask of
 you.
 
-`fix` always shows the verdict and the exact command first, and confirms even
-when you have already said fix, because you would be approving a verdict you
-have not seen.
+`fix` always shows the verdict and the exact command first. It asks for
+confirmation also when you already said fix, because without it you approve a
+verdict that you did not see.
 
-`merge` merges only what is already green. A failing check is reported with its
-cause rather than rebased and hoped over, because the usual failure here is not
-one a rebase can fix.
+`merge` merges only what is already green. It reports a failed check with its
+cause. It does not rebase and hope, because a rebase cannot fix the usual
+failure here.
 
 The skill's `allowed-tools` grants those writes for the turn that invokes it,
 and the grant clears on your next message. A queue that spans turns is invoked
@@ -58,31 +58,30 @@ again, which is deliberate: each turn restates the intent.
 
 ## How it works
 
-The repository list comes from `gh repo list osapi-io` on every run, never from
-a file here, so a new repository is covered the day it is created. The reasoning
-is in
-[.charter/fragments/global/repositories.md](../../../CONSTITUTION.md).
+The repository list comes from `gh repo list osapi-io` on each run, never from a
+file here. Thus the skill covers a new repository on the day that somebody makes
+it. The reason is in [the constitution](../../../CONSTITUTION.md#repositories).
 
 `SKILL.md` routes and holds the output contract. One reference file loads for
 the category you asked about, and nothing else enters context.
 
-Issues and task lists answer different questions, so the skill does not treat
-them alike. An issue is an intent nobody has picked up; work under way is tracked
-by its Spec Kit task list. An issue with an open pull request against it is
-reported as in flight rather than as outstanding, and the division is stated in
-[.charter/fragments/global/tracking.md](../../../CONSTITUTION.md).
+Issues and task lists answer different questions. Thus the skill does not treat
+them in the same way. An issue is an intent that nobody works on. The Spec Kit
+task list tracks work in progress. The skill reports an issue with an open pull
+request as in progress, not as remaining work. [The
+constitution](../../../CONSTITUTION.md#tracking) states the division.
 
 Alerts are triaged, not counted. Dependabot knows a vulnerable version is in
 `go.mod`; it does not know whether the vulnerable code runs. Each alert resolves
 to upgrade available, not affected, exposed with no patch, or already dismissed,
 and the fix follows from which.
 
-A red bump is read the same way. `mergeable` and the check rollup answer
-different questions, and the failure that recurs here is the repository's own
-tidiness gate rather than the dependency: the bump leaves the module untidy, or
-the committed root module was already untidy because `go get -tool` moved the
-linter's dependencies upstream. Neither is fixed by rebasing, so the cause is
-established before anything is queued.
+Read a red bump in the same way. `mergeable` and the check rollup answer
+different questions. The failure that occurs again and again here is the tidy
+gate of the repository, not the dependency. The bump leaves the module untidy.
+Or the committed root module was already untidy, because `go get -tool` moved
+the dependencies of the linter upstream. A rebase fixes neither. Thus find the
+cause before you queue anything.
 
 ## Documentation
 
@@ -107,16 +106,15 @@ Format details are in the [Agent Skills specification].
 
 ## Contributing
 
-See the [Contributing](../../../CONTRIBUTING.md) guide. Run `just skill-lint`
-after editing, and keep `SKILL.md` a router: an explanation of how to run a
-query belongs in a reference file, which loads only when the question calls for
-it. The output shape stays in `SKILL.md` because every route produces it, so a
-reference would load on every run anyway.
+Refer to the [Contributing](../../../CONTRIBUTING.md) guide. Keep `SKILL.md` a
+router. An explanation of how to run a query goes in a reference file, which
+loads only when the question needs it. The output shape stays in `SKILL.md`,
+because each route makes it. A reference with it loads on each run.
 
-Do not run mdformat over this directory. `just md-fmt` already excludes
-`.claude/**`, because mdformat reads the opening `---` as a horizontal rule and
-collapses YAML frontmatter into a heading, which makes a skill silently
-undiscoverable.
+Do not run mdformat on this directory. `just md-fmt` already excludes
+`.claude/**`. mdformat reads the first `---` as a horizontal rule, and changes
+the YAML frontmatter into a heading. Then agents cannot find the skill, and
+nothing reports it.
 
 ## License
 

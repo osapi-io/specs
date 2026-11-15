@@ -2,15 +2,20 @@
 
 Resolve the repository set first, per [SKILL.md](../SKILL.md).
 
-A green check says the code builds. It does not say the code is what it claims
-to be. A pull request that brings in a typosquatted module, a hijacked release,
-or a workflow change dressed as a version bump passes CI the same way an honest
-one does. Vetting is the check that tells them apart.
+A green check says that the code builds. It does not say that the code is what
+it claims to be. CI passes these pull requests as it passes an honest one:
 
-Vet every pull request before calling it ready, before approving it, and before
-[merging.md](merging.md) touches it. That includes checking the branch out:
-`just test`, `just go-mod` and `go generate` run whatever the branch contains, so
-a checkout followed by the gate executes the pull request on this machine.
+- a pull request that adds a typosquatted module
+- a pull request that adds a hijacked release
+- a workflow change that looks like a version update
+
+Vetting is the check that tells them apart.
+
+Vet each pull request before you call it ready, before you approve it, and
+before [merging.md](merging.md) touches it. This also applies before you check
+out the branch. `just test`, `just go-mod` and `go generate` run the content of
+the branch. Thus a checkout and then the gate runs the pull request on this
+machine.
 
 Every pull request ends with one of three verdicts:
 
@@ -26,15 +31,17 @@ Every pull request ends with one of three verdicts:
 .claude/skills/org-status/scripts/vet-pr.py <owner/repo> <number>
 ```
 
-It runs every step below and prints one `LOOK` or `STOP` line per finding, then
-`VERDICT CLEAN|LOOK|STOP`, and exits 0, 1 or 2 to match. It takes any owner, so
-bitsugar-io and retr0h pull requests vet the same way as osapi-io's. It fetches
-the base and the pull request's head into a temporary bare clone and reads the
-lockfiles from those commits, so nothing is checked out and nothing in the pull
-request runs. A lookup that fails is a `LOOK`, never a pass.
+It runs each step below. It prints one `LOOK` or `STOP` line for each finding,
+then `VERDICT CLEAN|LOOK|STOP`, and exits 0, 1 or 2 to match. It takes any
+owner. Thus it vets bitsugar-io and retr0h pull requests in the same way as
+those of osapi-io.
 
-Use the script rather than the snippets below. They are here to say what each
-check means and why, and to rerun one by hand when a finding needs reading. The
+It gets the base and the head of the pull request into a temporary bare clone,
+and reads the lockfiles from those commits. Thus it checks out nothing, and
+nothing in the pull request runs. A lookup that fails is a `LOOK`, never a pass.
+
+Use the script, not the snippets below. The snippets tell what each check means
+and why. You can also run one again by hand when you must read a finding. The
 snippets take `$repo` as `owner/repo`.
 
 ## Step 1: who made it
@@ -52,12 +59,11 @@ GitHub committed and signed it.
 
 - **STOP** when the title reads like a bump and the author is not
   `app/dependabot`, or when a `dependabot/` branch comes from a fork. Both are
-  impersonation, and the second is how one gets past a reviewer who trusts the
-  branch name.
+  impersonation. The second gets past a reviewer who trusts the branch name.
 - **LOOK** when any commit on a Dependabot branch is not the signed
-  `dependabot[bot]` one. A tidy commit pushed by a maintainer, per
-  [merging.md](merging.md), is the usual reason and is fine, but it is now a
-  human change and gets read like one. Name the commit and its author.
+  `dependabot[bot]` one. The usual reason is a tidy commit that a maintainer
+  pushed, as [merging.md](merging.md) tells. That is correct. But it is now a
+  human change, and you must read it as one. Name the commit and its author.
 
 ## Step 2: what it touches
 
@@ -73,7 +79,8 @@ gh pr view "$n" --repo "$repo" --json files -q '.files[].path'
 | `dependabot/github_actions/...` | `.github/workflows/*.yml`, `uses:` lines only |
 | `dependabot/bun/...`, `dependabot/npm_and_yarn/...` | `package.json` and its lockfile, in the directory the entry names |
 
-**STOP** for any other path on a Dependabot branch. For a workflow bump, read the
+**STOP** for any other path on a Dependabot branch. For a workflow bump, read
+the
 diff and confirm every changed line is a `uses:` line:
 
 ```bash
@@ -89,8 +96,8 @@ gh pr diff "$n" --repo "$repo" |
   awk '/^diff --git/ { mod = ($0 ~ /go\.mod$/) } mod && /^[-+][^-+]/ { print }'
 ```
 
-Every `+` line should be a `-` line with the same module path and a newer
-version. Anything else needs a reader:
+Each `+` line must match a `-` line with the same module path and a newer
+version. Each other line needs a reader:
 
 - **STOP** for an added or changed `replace` directive. It swaps a module for
   different code while `go.mod` still names the original.
@@ -201,8 +208,8 @@ Any `MALICIOUS` line is a **STOP**.
 
 ## Step 6: an Actions bump
 
-For each changed `uses:` line, the owner and repository on the `+` side must
-match the `-` side exactly, and the new ref must exist upstream:
+For each changed `uses:` line, the owner and repository on the `+` side must be
+exactly the same as on the `-` side. The new ref must exist upstream:
 
 ```bash
 gh api "/repos/$owner/$repo/git/ref/tags/$tag" --jq .object.sha
@@ -224,11 +231,11 @@ gh api "/repos/$owner/$repo/releases/tags/$tag" --jq .published_at
 
 ## A pull request a person wrote
 
-The steps above assume a bump, where anything unexpected is a signal. A human
-pull request is expected to change code, so there is nothing to compare it
-against, and the verdict is never better than LOOK until somebody has read it.
-Vetting says where to read first. These paths run code in CI or on a
-maintainer's machine, and a change to any of them is named in the report:
+The steps above assume a bump, where each unexpected change is a signal. A human
+pull request changes code, so there is nothing to compare it with. Its verdict
+is never better than LOOK until somebody reads it. Vetting tells where to read
+first. These paths run code in CI or on the machine of a maintainer. The report
+names each change to them:
 
 | Path | Why |
 | --- | --- |
@@ -239,12 +246,15 @@ maintainer's machine, and a change to any of them is named in the report:
 | `Dockerfile`, `scripts/`, any `*.sh` | runs during a build |
 | any binary file | cannot be read |
 
-In a workflow, these are a **STOP** until a maintainer has read them:
-`pull_request_target`, a new `permissions:` grant of `write`, a new reference to
-`secrets.`, and `curl ... | sh` or anything else that runs a download.
+In a workflow, these are a **STOP** until a maintainer reads them:
 
-A first-time contributor's workflows wait for approval before they run. Approve
-that run only after reading the workflow files in the diff.
+- `pull_request_target`
+- a new `permissions:` grant of `write`
+- a new reference to `secrets.`
+- `curl ... | sh`, or any other command that runs a download
+
+The workflows of a first-time contributor wait for approval before they run.
+Approve that run only after you read the workflow files in the diff.
 
 ## Reporting
 
@@ -262,7 +272,7 @@ CLEAN bump earns no block of its own.
 ## Never
 
 - **Approve, merge, rebase, or check out a STOP.** A rebase asks Dependabot to
-  rebuild the branch, and a checkout followed by any recipe runs it.
+  build the branch again. A checkout and then any recipe runs it.
 - **Clear a verdict because CI is green.** CI ran the code; it did not judge it.
-- **Skip vetting because the author is Dependabot.** The author line is the
-  first thing an impersonation copies.
+- **Skip the vetting because the author is Dependabot.** An impersonation copies
+  the author line first.
