@@ -12,24 +12,25 @@ the code of osapi. It is described below.
 
 ## Where the skill lives
 
-The files are under `cmd/resources/skills/`, with one directory for each skill.
-`cmd/resources/resources.go` embeds them with `//go:embed skills`. `go:embed`
-gets only files in the directory of its own package. That is why the package
-exists. The source of the skill is in the repository next to the code that it
-describes. Thus a release ships exactly the skill that matches it.
+The files are under `internal/skills/resources/skills/`, with one directory for
+each skill. `internal/skills/resources.go` embeds them with
+`//go:embed resources/skills resources/dev-skills`. `go:embed` gets only files
+in the directory of its own package. That is why the package exists. The source
+of the skill is in the repository next to the code that it describes. Thus a
+release ships exactly the skill that matches it.
 
 There are two skills, because different requests start them. `osapi` changes
 hosts through osapi. `osapi-operations` runs osapi itself. A request to start
 the controller must not load the sysctl guide, and the opposite is also true.
 
 ```
-cmd/resources/skills/osapi/
+internal/skills/resources/skills/osapi/
   SKILL.md                  rules and a routing table
   references/behaviors.md   reading behavior get --json and building a request
   references/targets.md     --target: a host, _any, _all, a label
   references/errors.md      the error codes and what to do about each
 
-cmd/resources/skills/osapi-operations/
+internal/skills/resources/skills/osapi-operations/
   SKILL.md                  rules and a routing table
   references/components.md  the NATS server, controller and agent, together or apart
   references/config.md      config list, get and validate; precedence; required keys
@@ -38,7 +39,7 @@ cmd/resources/skills/osapi-operations/
 ```
 
 `SKILL.md` starts with YAML frontmatter, `name` and `description`. The tool uses
-it to decide if it loads the skill. `cmd/resources/resources_public_test.go`
+it to decide if it loads the skill. `internal/skills/resources_public_test.go`
 fails a skill without it. `md_extra_excludes` keeps mdformat out of the
 directory. One time, mdformat changed the frontmatter into a heading, and the
 installed skill never loaded. Nothing reported it.
@@ -46,8 +47,8 @@ installed skill never loaded. Nothing reported it.
 ### The skill that builds a behavior
 
 A third skill changes osapi. The binary also has it, in
-`cmd/resources/dev-skills/build-a-behavior/`. The binary is the only source of
-the skill. No repository keeps a copy.
+`internal/skills/resources/dev-skills/build-a-behavior/`. The binary is the only
+source of the skill. No repository keeps a copy.
 
 `osapi init` does not install it, because only a checkout of osapi can build a
 behavior. `osapi skill` serves each embedded skill:
