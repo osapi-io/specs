@@ -381,7 +381,8 @@ These rules apply to each Go repository:
    have the same name, rename one of the packages. An alias is a different name
    in each file that uses the package. Mock packages are the exception: each is
    named `mocks`, beside the code that it mocks, so a test that uses two of them
-   gives one an alias.
+   gives one an alias. A clash with a package outside the module, or between two
+   names that are both correct, also takes an alias.
 4. **A directory can group packages that belong together.** The name of the
    directory tells what the group is, for example `telemetry/` for `metrics` and
    `tracing`.
@@ -389,7 +390,7 @@ These rules apply to each Go repository:
    packages collect under it, find the group that they make, and give that group
    its own directory.
 
-These rules come from the Go documentation:
+Rules 1 to 3 come from the Go documentation:
 [Effective Go](https://go.dev/doc/effective_go#package-names) and
 [Package names](https://go.dev/blog/package-names). A repository puts its own
 rules about the layout in its `CONTRIBUTING.md`, after these.
