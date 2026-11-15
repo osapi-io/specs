@@ -1,22 +1,24 @@
 # How the osapi-io repositories fit together
 
-**The product exists to make a Linux host behave like an appliance.** You
-install one binary, point it at a config file, and get a REST API and a CLI for
-reading and changing system configuration: hostname, DNS, disk, memory, load,
-packages, services, users.
+**The product makes a Linux host operate like an appliance.** You install one
+binary and give it a config file. You then get a REST API and a CLI that read
+and change the system configuration: hostname, DNS, disk, memory, load,
+packages, services and users.
 
-An appliance is a machine you configure through an interface instead of logging
-in and editing files. Wanting that across a fleet rather than one box is what
-drives the design: work is queued so the API does not block on twenty machines,
-results come back per host, and an agent has to prove who it is before anything
-targets it.
+You configure an appliance through an interface. You do not log in and edit
+files. The design comes from the need to do this on a fleet, not on one machine:
 
-One product. osapi is the thing an operator runs; everything else either
-supports it or drives it.
+- osapi queues the work, so that the API does not wait for twenty machines.
+- The results come back for each host.
+- An agent must prove its identity before a job can target it.
 
-The `specs` repository holds this documentation and is not a component. It
-matters once below, because it consumes `osapi-justfiles` like the others do,
-which is why the blast radius of a justfiles change is eight and not seven.
+There is one product. An operator runs osapi. Each other repository supports
+osapi or controls it.
+
+The `specs` repository has this documentation and is not a component. It is
+important in one location below, because it uses `osapi-justfiles` like the
+other repositories. Thus a change to the justfiles has an effect on eight
+repositories, not seven.
 
 ```
       nats-client ─┐
@@ -33,98 +35,108 @@ which is why the blast radius of a justfiles change is eight and not seven.
 | Repository                                                    | Is                                     | Read it to learn                               |
 | ------------------------------------------------------------- | -------------------------------------- | ---------------------------------------------- |
 | [osapi](components/osapi/README.md)                           | The API and the agent                  | how a request becomes work on a host           |
-| [osapi-orchestrator](components/osapi-orchestrator/README.md) | A declarative layer over osapi's SDK   | how ordered work across hosts is described     |
-| [nats-client](components/nats-client/README.md)               | A wrapper over the NATS client         | what osapi's transport gives it                |
+| [osapi-orchestrator](components/osapi-orchestrator/README.md) | A declarative layer over osapi's SDK   | how to describe ordered work across hosts      |
+| [nats-client](components/nats-client/README.md)               | A wrapper over the NATS client         | what the transport of osapi gives it           |
 | [nats-server](components/nats-server/README.md)               | A NATS server embedded in its consumer | how osapi runs its own bus                     |
-| [gohai](components/gohai/README.md)                           | A system fact collection library       | how facts are gathered, if you need them       |
-| [osapi-justfiles](components/osapi-justfiles/README.md)       | Shared `just` recipes                  | why every repository's `just test` is the same |
-| [osapi-lab](components/osapi-lab/README.md)                   | A fleet of real machines running osapi | how a branch is tried on hosts before release  |
+| [gohai](components/gohai/README.md)                           | A system fact collection library       | how gohai collects facts, if you need them     |
+| [osapi-justfiles](components/osapi-justfiles/README.md)       | Shared `just` recipes                  | why `just test` is the same in each repository |
+| [osapi-lab](components/osapi-lab/README.md)                   | A fleet of real machines running osapi | how to try a branch on hosts before a release  |
 
 ## Where to start
 
-**Start with osapi.** Five of the other six feed it, consume it or run it, so
-its document is the one that makes the rest legible. gohai is the sixth and is
-the exception, below. Read its [job system](components/osapi/job-system.md)
-next, because the queue is the mechanism the whole product is built on.
+**Start with osapi.** Five of the other six repositories give data to it, use it
+or run it. Thus its document makes the others clear. gohai is the sixth
+repository and the exception, below. Read the
+[job system](components/osapi/job-system.md) of osapi next, because the full
+product uses the queue.
 
-**gohai is the exception.** It has no edge in either direction, so it reads
-standalone and is the right place to start if you want to see the documentation
-shape without holding another repository in your head.
+**gohai is the exception.** It has no connection in either direction. Thus you
+can read it alone. Start there if you want to see the shape of the documentation
+without a second repository to remember.
 
 ## What crosses a boundary
 
 ### The transport
 
-osapi embeds a NATS server through `nats-server` and talks to it through
-`nats-client`. **Neither of those repositories knows about the other**, and
-neither knows about osapi. They wrap opposite ends of the same upstream library,
-and osapi is the only thing that holds both.
+osapi embeds a NATS server through `nats-server` and connects to it through
+`nats-client`. **Neither of these repositories knows about the other**, and
+neither knows about osapi. They wrap the two ends of the same upstream library.
+osapi is the only thing that uses the two.
 
-Two things about that pairing matter and are stated in neither wrapper alone.
-`nats-client` adds no reconnection policy, so a dropped connection is handled by
-whatever the upstream library does by default and osapi is not notified.
-`nats-server` forces debug and trace logging on and attaches its logger after
-the server is already running, so osapi's own startup logging from the bus goes
-somewhere else. Both are in [the message bus](components/osapi/transport.md),
-which is where somebody debugging the transport will look.
+Two facts about that pair are important, and neither wrapper states them alone:
+
+- `nats-client` adds no reconnection policy. The default of the upstream library
+  handles a dropped connection, and osapi gets no notification.
+- `nats-server` always turns on debug and trace logging. It attaches its logger
+  after the server starts. Thus the startup log of the bus does not go to the
+  log of osapi.
+
+[The message bus](components/osapi/transport.md) has the two facts. A person who
+debugs the transport looks there.
 
 ### The SDK surface
 
-`pkg/sdk/client` is the contract between osapi and its orchestrator. A change to
-it is the widest-reaching code change in the organization after a justfile
-change.
+`pkg/sdk/client` is the contract between osapi and its orchestrator. After a
+justfile change, a change to it has the widest effect of all code changes in the
+organization.
 
-The orchestrator pins osapi by **pseudo-version commit rather than tag**, so the
-break is delayed rather than absent: a rename lands green in osapi and fails in
-the orchestrator at whatever later moment somebody bumps the pin. **Land a
-rename and its bump together** is the rule that follows, and it is the only
-coordination rule in this organization that spans repositories.
+The orchestrator pins a **released tag of osapi**. Thus a break comes later, but
+it comes. A rename passes in osapi. It then fails in the orchestrator when
+somebody updates the pin. The rule is: **merge a rename and its version update
+together**. This is the only coordination rule in this organization that applies
+to more than one repository.
 
-The coupling reaches further than the layer built for it. The orchestrator's
-`internal/engine` imports osapi's SDK directly, so `internal` there describes
-visibility rather than independence, and it declares no interface that would
-have insulated it.
+The connection goes further than the layer for it. The `internal/engine` of the
+orchestrator imports the SDK of osapi directly. Thus `internal` there controls
+visibility, but it does not make the engine independent. The engine declares no
+interface that can isolate it.
 
 ### The build
 
-Every repository fetches `osapi-justfiles` through a justfile recipe, from
-`refs/heads/main`. Nothing is pinned, nothing records which version a build
-used, and `.just/` is gitignored everywhere.
+Each repository gets `osapi-justfiles` through a justfile recipe, from
+`refs/heads/main`. Nothing is pinned. Nothing records the version that a build
+used. Each repository ignores `.just/` in git.
 
-`md` reaches all eight consumers, `just` seven, `go` five, and `react` and
-`docusaurus` one each. So **`md.just` is the widest change available in the
-organization.** The specs repository, whose `just test` gates every change to
-these docs, is downstream of it.
+`md` goes to all eight consumers, `just` to seven, `go` to five, and `react`,
+`docusaurus` and `ansible` to one each. Thus **a change to `md.just` has the
+widest effect in the organization.** The specs repository uses it. Its
+`just test` checks each change to these documents.
 
 ## Facts that span repositories
 
-Four of them. Each is true of a pair or of the whole set, so no single
-repository's page is the right home.
+There are four. Each is true of a pair, or of the full set. Thus the page of one
+repository is not the correct location.
 
-**The dependency graph has one hub and one terminal.** osapi is the only
-repository with edges in both directions. osapi-orchestrator has an incoming Go
-edge and no outgoing one. gohai has no Go edge in either direction, though its
-build fetches justfile modules like everything else.
+**The dependency graph has one center and one end.** osapi is the only
+repository with connections in the two directions. osapi-orchestrator has an
+incoming Go connection and no outgoing connection. gohai has no Go connection in
+either direction. But its build gets justfile modules, like each other
+repository.
 
-**A change's blast radius is not proportional to the repository's size.**
-`osapi-justfiles` has no Go at all and reaches eight repositories. `nats-server`
-has twelve Go files and forces a logging decision on the largest one.
+**The effect of a change does not follow the size of the repository.**
+`osapi-justfiles` has no Go code, and it goes to eight repositories.
+`nats-server` has twelve Go files, and it forces a logging decision on the
+largest repository.
 
-**Two repositories wrap the same upstream library from opposite ends**, and the
-facts a consumer needs about reconnection and logging are split between them.
-osapi is the only consumer of either, and it now holds both in one place:
-[the message bus](components/osapi/transport.md). Recording them only here was a
-correct finding filed in the wrong repository, which an onboarding reading
-caught by needing them and not finding them where a contributor would look.
+**Two repositories wrap the two ends of the same upstream library.** The facts
+about reconnection and logging that a consumer needs are in the two. osapi is
+the only consumer of either repository. It now has the two facts in one
+location: [the message bus](components/osapi/transport.md).
 
-**Two repositories read system facts from `gopsutil` independently**, pinned to
-the same `v4.26.8`. gohai does it in 14 of its 62 collector directories and
-osapi in 21 non-test files, mostly under `internal/provider/node/`. Neither
-imports the other. Whether that is duplication depends on what each needs, and
-the jobs do differ: gohai produces a fact catalogue in OCSF, and osapi wants a
-few host attributes for targeting. What is worth knowing is that the overlap
-exists, since a contributor in either repository would otherwise assume the
-other is a consumer or a supplier, and neither is.
+Before, only this page had those facts. That was a correct finding in the
+incorrect repository. A new contributor needed them and did not find them where
+a contributor looks.
+
+**Two repositories read system facts from `gopsutil` independently.** The two
+pin the same version, `v4.26.8`. gohai uses it in 14 of its 62 collector
+directories. osapi uses it in 21 files that are not tests, most of them under
+`internal/provider/node/`. Neither imports the other.
+
+This is a duplication only if the two need the same thing, and the two jobs are
+different. gohai makes a catalog of facts in OCSF. osapi needs some host
+attributes for targets. It is useful to know about the overlap. Without it, a
+contributor in either repository can think that the other repository is a
+consumer or a supplier. Neither is.
 
 ```sh
 grep -h gopsutil gohai/go.mod osapi/go.mod   # the same version twice
@@ -132,12 +144,13 @@ grep -h gopsutil gohai/go.mod osapi/go.mod   # the same version twice
 
 ## What is not here
 
-How any one repository works. That is its own document, linked above.
+How one repository works. Each repository has its own document, with a link
+above.
 
-Anything about `specs` or `.github`, which are the organization's own
-repositories rather than components. `specs` is where components are described;
-`.github` holds shared configuration and has no justfile.
+`specs` and `.github`. They are the repositories of the organization, not
+components. `specs` describes the components. `.github` has shared configuration
+and has no justfile.
 
 ______________________________________________________________________
 
-Written from every repository's `go.mod` and justfile.
+Written from the `go.mod` and justfile of each repository.

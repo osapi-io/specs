@@ -29,17 +29,16 @@ gh api "repos/osapi-io/$r/compare/<latest-tag>...main" --jq '.ahead_by'
 curl -s "https://proxy.golang.org/github.com/osapi-io/$r/@v/list"
 ```
 
-The three answers disagree more often than not. gohai had a perfectly valid
-`v1.0.0` and eighty-one commits sitting behind it. nats-client and nats-server
-were tagged `v1.0`, which the proxy ignores, so both served pseudo-versions
-while looking released.
+Usually, the three answers do not agree. gohai had a valid `v1.0.0`, and
+eighty-one commits after it. nats-client and nats-server had the tag `v1.0`,
+which the proxy ignores. Thus both served pseudo-versions, but looked released.
 
 An empty proxy list on a repository that has tags means the tags are not valid
 Go versions. Go requires three parts: `v1.0` is not a version, `v1.0.0` is.
 
-Not every repository takes a tag. osapi-justfiles is consumed by curling from
-`refs/heads/main` and specs is documentation. Neither has release machinery and
-neither should get a tag.
+Not each repository gets a tag. Consumers get osapi-justfiles with `curl` from
+`refs/heads/main`, and specs is documentation. Neither has release tooling, and
+neither must get a tag.
 
 ## 2. Pick the number
 
@@ -54,25 +53,26 @@ Then read the list and ask which of those changed what a consumer can call.
 A `feat:` that adds a justfile recipe or a coverage gate is a patch. A `feat:`
 that adds an exported function is a minor bump.
 
-Counting gets this backwards, and did. nats-client had seven `feat:` commits
-and nats-server two, which looked like the larger release was nats-client's by
-a wide margin and the smaller one nearly nothing. In fact nats-client's seven
-were Object Store support, core Subscribe and PublishCore, KV CreateOrUpdate
-and OTel trace propagation, all API, while nats-server's two were a justfile
-recipe and a coverage gate and touched no consumer at all. The recommendation
-that came out of counting was `v1.0.1` for the one with seven API additions
-and `v1.1.0` for the one with none.
+A count gives the opposite result, and it did. nats-client had seven `feat:`
+commits and nats-server had two. Thus the release of nats-client looked much
+larger, and the other looked almost empty.
+
+But the seven commits of nats-client were all API: Object Store support, core
+Subscribe and PublishCore, KV CreateOrUpdate and OTel trace propagation. The two
+commits of nats-server were a justfile recipe and a coverage gate, and touched
+no consumer. The count recommended `v1.0.1` for the release with seven API
+additions, and `v1.1.0` for the release with none.
 
 A repository that has never been tagged starts at `v0.1.0`, because `v1.0.0` is
 a promise about API stability, and a library makes that promise once.
 
-The first release of an application is a product decision rather than a
-mechanical one. Ask instead of picking.
+The first release of an application is a product decision, not a mechanical one.
+Ask. Do not select it yourself.
 
 ## 3. Check the workflow will publish
 
-A tag that fires a workflow that cannot authenticate leaves a tag with no
-release, and the tag is the half that cannot be taken back.
+If a tag starts a workflow that cannot authenticate, the result is a tag with no
+release. Nobody can take back the tag.
 
 ```bash
 gh api "repos/osapi-io/$r/contents/.github/workflows/release.yml" --jq .content \
@@ -126,9 +126,9 @@ Do not delete the tag. If the proxy fetched the version, it is in
 curl -s "https://sum.golang.org/lookup/github.com/osapi-io/$r@vX.Y.Z"
 ```
 
-Anything there is published forever. Re-pointing the tag at a different commit
-makes `go get` report a checksum mismatch, which Go treats as tampering rather
-than as a mistake, and every consumer sees it.
+Each version there is published permanently. If you move the tag to a different
+commit, `go get` reports a checksum mismatch. Go treats that as tampering, not
+as an error, and each consumer sees it.
 
 Fix the cause, then create the missing release against the tag that already
 exists:
@@ -137,6 +137,6 @@ exists:
 gh release create vX.Y.Z -R "osapi-io/$r" --generate-notes
 ```
 
-Re-running the failed workflow does not work. A re-run uses the workflow file
-as it was at that tag's commit, so a token fix merged afterwards is not in it,
-and it fails again identically.
+A second run of the failed workflow does not work. It uses the workflow file
+from the commit of that tag. Thus a token fix that merged after that is not in
+it, and it fails again in the same way.

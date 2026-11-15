@@ -6,7 +6,7 @@
   </picture>
 </p>
 
-<p align="center">The design docs for osapi-io. Written before the code, corrected when the code proves them wrong.</p>
+<p align="center">The design docs for osapi-io. We write them before the code, and correct them when the code shows an error.</p>
 
 <p align="center">
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge"></a>
@@ -21,25 +21,29 @@
 </p>
 
 <p align="center">
-You design something by writing its page, build it, then correct the page where
-building proved it wrong. Same page all three times, so nothing is converted from
-one form into another, because that conversion is where the design and the docs
-drift apart.
+You design something when you write its page. Then you build it. Then you
+correct the page where the build showed an error. It is the same page all three
+times. Nothing changes from one form into another, because that change is where
+the design and the docs become different.
 </p>
 
 ## Usage
 
-[osapi-io] makes a Linux host behave like an appliance. One binary and a config
-file give you a REST API, a CLI, a Go SDK and an embedded dashboard over
+[osapi-io] makes a Linux host operate like an appliance. One binary and a config
+file give you a REST API, a CLI, a Go SDK and an embedded dashboard. They manage
 hostname, DNS, disk, memory, load, packages, services, users, sysctl, cron,
-certificates, containers, files and command execution, across a fleet rather
-than one box.
+certificates, containers, files and command execution. They do this on a fleet,
+not on one machine.
 
-The design fact everything else follows from: **work reaches a host by being
-queued, not by being called.** The controller writes a job and waits; an agent
-picks it up and a provider does the work on the machine. At-least-once delivery,
-the idempotency providers owe, two independent timeouts and a per-host result
-all come out of that one choice.
+All of the design follows from one fact: **osapi queues work for a host. It does
+not call the host.** The controller writes a job and waits. An agent takes the
+job, and a provider does the work on the machine. These properties come from
+that one decision:
+
+- at-least-once delivery
+- the idempotency that each provider must have
+- two independent timeouts
+- a result for each host
 
 ```
 components/     one page per repository, plus a page per subject
@@ -47,17 +51,17 @@ ARCHITECTURE.md how they fit together, and what breaks what
 CONSTITUTION.md the rules every repository follows
 ```
 
-Read [osapi](components/osapi/README.md) first. Its subject pages hang off it,
-and four of the other five repositories either feed it or consume it.
+Read [osapi](components/osapi/README.md) first. Its subject pages are below it.
+Four of the other five repositories give data to it or use it.
 
 ## Doc-driven development
 
-Design something by writing its page. Build it. Correct the page where building
-proved it wrong. Same page all three times, and nothing is converted from one
-form into another, because that conversion is where the design and the docs
-drift apart.
+Design something when you write its page. Build it. Correct the page where the
+build showed an error. It is the same page all three times. Nothing changes from
+one form into another, because that change is where the design and the docs
+become different.
 
-So a change here is one of four things:
+Thus a change here is one of four things:
 
 | You are                                 | Change                          |
 | --------------------------------------- | ------------------------------- |
@@ -66,15 +70,17 @@ So a change here is one of four things:
 | Agreeing something between repositories | `ARCHITECTURE.md`               |
 | Binding every repository to a rule      | `CONSTITUTION.md`               |
 
-[CONTRIBUTING.md](CONTRIBUTING.md) has the test for which, and what a page looks
-like.
+[CONTRIBUTING.md](CONTRIBUTING.md) has the test that selects one, and tells what
+a page looks like.
 
 ### What keeps it honest
 
-A reader. Hand somebody the page and nothing else, ask them the question it
-claims to answer, and fix what they could not work out. That has found seven
-permissions where a page said one, thirteen struct fields where it said
-fourteen, and a bucket TTL described backwards.
+A reader. Give a person only the page. Ask the question that the page says it
+answers. Fix what the person could not find. This test found these errors:
+
+- seven permissions where a page said one
+- thirteen struct fields where a page said fourteen
+- a bucket TTL that a page described in the opposite direction
 
 ## The design docs
 
@@ -87,46 +93,50 @@ fourteen, and a bucket TTL described backwards.
 | [gohai](components/gohai/README.md)                           | A system fact collection library, standalone |
 | [osapi-justfiles](components/osapi-justfiles/README.md)       | Shared `just` recipes                        |
 
-The four things most likely to catch you out, all written up: a
-[missing row in a broadcast result](components/osapi/agent-identity.md) is not
-an error and nothing reports it, [audit redaction](components/osapi/audit.md) is
-a name-matched denylist with no test behind it, a
-[direct permission](components/osapi/permissions.md) silently nullifies every
-role on the token, and [ten minutes](components/osapi/exec.md) is a ceiling
-rather than a fallback, so a job that needs twenty does not get them.
+These four facts surprise people most often. Each one has a page:
+
+- A [missing row in a broadcast result](components/osapi/agent-identity.md) is
+  not an error, and nothing reports it.
+- [Audit redaction](components/osapi/audit.md) is a denylist that matches names,
+  and no test checks it.
+- A [direct permission](components/osapi/permissions.md) cancels each role on
+  the token, and nothing tells you.
+- [Ten minutes](components/osapi/exec.md) is a maximum, not a fallback. A job
+  that needs twenty minutes does not get them.
 
 ## Skills
 
-Skills here answer questions that span every repository, and carry the
-operational knowledge for working in them.
+The skills here answer questions about all of the repositories. They also have
+the operational knowledge for work in them.
 
-None of them lists what it describes. `org-status` takes the repository list
-from GitHub on each run, `add-a-domain` resolves its reference domain from the
-codebase, and `document` reads the component pages that exist rather than a
-table of them. An inventory written into a skill is right the day it is written
-and wrong after the next change, with nothing marking the moment.
+No skill lists what it describes. `org-status` gets the repository list from
+GitHub each time it runs. `add-a-domain` finds its reference domain in the
+codebase. `document` reads the component pages that exist, not a table of them.
+An inventory in a skill is correct on the day that somebody writes it. It is
+incorrect after the next change, and nothing shows that change.
 
-| Skill                                                   | Answers                                                                                                                   |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| [document](.claude/skills/document/README.md)           | Where a design goes, what the page looks like, and whether one already covers it                                          |
-| [org-status](.claude/skills/org-status/README.md)       | Open pull requests, Dependabot bumps, security alerts, whether CI is green, and working the merge queue across [osapi-io] |
-| [add-a-domain](.claude/skills/add-a-domain/README.md)   | Adding an osapi domain: the provider and every layer it has to appear in, in the order that avoids rework                 |
-| [release](.claude/skills/release/README.md)             | Whether a repository needs a tag, which number it takes, and whether the tag will actually publish                        |
-| [work-an-issue](.claude/skills/work-an-issue/README.md) | Taking an issue to a merged pull request: whether it still reproduces, how big it is, the fix and its test                |
-| [ste-100](.claude/skills/ste-100/README.md)             | Writing and checking pages in ASD-STE100 Simplified Technical English, the sentence rules every page here follows         |
+| Skill                                                   | Answers                                                                                                               |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| [document](.claude/skills/document/README.md)           | Where a design goes, what the page looks like, and if a page already covers it                                        |
+| [org-status](.claude/skills/org-status/README.md)       | Open pull requests, Dependabot updates, security alerts, CI status, and the merge queue across [osapi-io]             |
+| [add-a-domain](.claude/skills/add-a-domain/README.md)   | How to add an osapi domain: the provider and each layer that must have it, in the order that prevents rework          |
+| [release](.claude/skills/release/README.md)             | If a repository needs a tag, which number it gets, and if the tag will publish                                        |
+| [work-an-issue](.claude/skills/work-an-issue/README.md) | How to take an issue to a merged pull request: if the problem still occurs, its size, the fix and its test            |
+| [ste-100](.claude/skills/ste-100/README.md)             | How to write and check pages in ASD-STE100 Simplified Technical English, the sentence rules that each page here obeys |
 
-Each follows the [Agent Skills] format: a slim `SKILL.md` that routes, with the
-detail in reference files an agent reads only when the question calls for them.
+Each skill uses the [Agent Skills] format. A short `SKILL.md` sends the agent to
+the correct reference file. An agent reads a reference file only when the
+question needs it.
 
-Claude Code and Codex both read them. They live in `.claude/skills/`, and
-`.agents/skills` is a link to it, the directory Codex reads, so there is one
-copy of each. `AGENTS.md` is the instructions file for both: Codex reads it, and
-`CLAUDE.md` points Claude Code at it.
+The skills are in `.claude/skills/`. `.agents/skills` is a link to that
+directory, so each coding agent finds the same copy. `AGENTS.md` is the
+instructions file for all agents. `CLAUDE.md` points to it.
 
 ## Contributing
 
-See the [Contributing](CONTRIBUTING.md) guide for prerequisites, the test for
-where a change belongs, what a page looks like, and the PR workflow.
+Refer to the [Contributing](CONTRIBUTING.md) guide for the prerequisites, the
+test that tells where a change goes, what a page looks like, and the PR
+workflow.
 
 ## License
 

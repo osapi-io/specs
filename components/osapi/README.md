@@ -1,31 +1,36 @@
 # osapi
 
-osapi manages Linux hosts over a message bus, so a host can be configured
-through an interface rather than by logging in and editing files. Almost every
-constraint below comes from wanting that across a fleet rather than one box.
+osapi manages Linux hosts over a message bus. Thus you can configure a host
+through an interface. You do not log in and edit files. Almost each constraint
+below comes from the need to do this on a fleet, not on one machine.
 
-Two things ship together: a **controller** exposing a REST API, and an **agent**
-running on each managed host. `cmd/` holds both entry points and `main.go`
-dispatches between them.
+osapi ships two parts together: a **controller** with a REST API, and an
+**agent** on each managed host. `cmd/` has the two entry points, and `main.go`
+selects between them.
 
-**Work reaches a host by being queued, not by being called.** The controller
-does not run anything itself. A request becomes a job, an agent picks it up, and
-a provider does the work on the machine. At-least-once delivery, the idempotency
-providers owe, two independent timeouts and a per-host result all come out of
-that.
+**osapi queues work for a host. It does not call the host.** The controller runs
+nothing itself. A request becomes a job. An agent takes the job, and a provider
+does the work on the machine. These properties come from that decision:
+
+- at-least-once delivery
+- the idempotency that each provider must have
+- two independent timeouts
+- a result for each host
 
 ```
 CLI → SDK → REST API → job client → NATS → agent → provider
 ```
 
-Three kinds of consumer: an operator through the CLI, a program through the Go
-SDK at `pkg/sdk/client`, and
-[osapi-orchestrator](../osapi-orchestrator/README.md) through that same SDK.
+There are three kinds of consumer:
+
+- an operator, through the CLI
+- a program, through the Go SDK at `pkg/sdk/client`
+- [osapi-orchestrator](../osapi-orchestrator/README.md), through the same SDK
 
 ## The six layers
 
-Each does one thing, and the boundary is what keeps a domain's code from
-spreading.
+Each layer does one thing. The boundaries keep the code of a domain in its
+layers.
 
 | Layer           | Does                                         | Lives in                   |
 | --------------- | -------------------------------------------- | -------------------------- |
@@ -36,50 +41,53 @@ spreading.
 | Agent lifecycle | registers providers, dispatches to them      | `internal/agent/`          |
 | Configuration   | resolved once, at startup                    | `internal/config/`         |
 
-A handler validates and delegates. It never touches the operating system.
+A handler validates and gives the work to the job client. It never touches the
+operating system.
 
 ## Read about it
 
-| Subject                                              | What it answers                                                                                                                          |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| [The message bus](transport.md)                      | What NATS carries, how it is namespaced, and the three things osapi cannot control                                                       |
-| [The job system](job-system.md)                      | How work reaches a host, what is guaranteed, the three limits, the four statuses, and one request traced end to end                      |
-| [Providers](providers.md)                            | How work gets done on the machine, the idempotency rule, the four patterns                                                               |
-| [Behaviors](behaviors.md)                            | A typed definition that the routes, permissions, CLI commands and schemas are built from, and the rules `behavior validate` checks       |
-| [Agent skills](agent-skills.md)                      | The skill compiled into the binary, what it tells an agent, and how `osapi init` installs and upgrades it                                |
-| [Agent identity](agent-identity.md)                  | Enrollment, signing, rotation, and why targeting needs verification                                                                      |
-| [Building a domain](domains.md)                      | What a new endpoint touches, in what order, and what is forced by tooling                                                                |
-| [The embedded UI](ui.md)                             | The dashboard compiled into the binary, and what it does not verify                                                                      |
-| [The Go SDK](sdk.md)                                 | What a service owes, the five naming rules, and the seven methods that break them                                                        |
-| [The CLI](cli.md)                                    | A thin shell over the SDK: one command per endpoint, two inherited flags, command and flag names, shared renderers, and the output style |
-| [Running commands](exec.md)                          | The five ways to run one, why ten minutes is a ceiling, and where a secret goes                                                          |
-| [Permissions](permissions.md)                        | The 37 permissions, the three roles, and why a direct permission overrides them                                                          |
-| [The audit trail](audit.md)                          | What is recorded, why redaction is a denylist, and what a read does not capture                                                          |
-| [Configuration](configuration.md)                    | Where a value comes from, and how secrets stay out of the log                                                                            |
-| [Observability](observability.md)                    | Tracing across the queue, metrics on their own port, conditions                                                                          |
-| [Moving domains to behaviors](behavior-migration.md) | Which domains are behaviors yet, what is built, and the steps left: the cutover, chains, the skill, the rest of the domains              |
-| [Least privilege](least-privilege.md)                | A plan: the agent as a non-root user, privileged steps a behavior declares, and the sudoers and systemd files rendered from them         |
-| [Workflows](workflows.md)                            | A proposal: named, ordered behavior calls written as a file, checked against the registry, and run again with the same result            |
+| Subject                                              | What it answers                                                                                                                           |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| [The message bus](transport.md)                      | What NATS carries, its namespaces, and the three things that osapi cannot control                                                         |
+| [The job system](job-system.md)                      | How work gets to a host, what is guaranteed, the three limits, the four statuses, and one request from start to end                       |
+| [Providers](providers.md)                            | How the work occurs on the machine, the idempotency rule, the four patterns                                                               |
+| [Behaviors](behaviors.md)                            | A typed definition that the routes, permissions, CLI commands and schemas come from, and the rules that `behavior validate` checks        |
+| [Agent skills](agent-skills.md)                      | The skill in the binary, what it tells an agent, and how `osapi init` installs and updates it                                             |
+| [Agent identity](agent-identity.md)                  | Enrollment, signatures, rotation, and why targeting needs verification                                                                    |
+| [Building a domain](domains.md)                      | What a new endpoint changes, in what order, and what the tools force                                                                      |
+| [The embedded UI](ui.md)                             | The dashboard in the binary, and what it does not verify                                                                                  |
+| [The Go SDK](sdk.md)                                 | What a service must do, the five naming rules, and the seven methods that break them                                                      |
+| [The CLI](cli.md)                                    | A thin shell over the SDK: one command per endpoint, two inherited flags, command and flag names, shared renderers, and the output style  |
+| [Running commands](exec.md)                          | The five ways to run a command, why ten minutes is a maximum, and where a secret goes                                                     |
+| [Permissions](permissions.md)                        | The 37 permissions, the three roles, and why a direct permission replaces them                                                            |
+| [The audit trail](audit.md)                          | What osapi records, why redaction is a denylist, and what a read does not record                                                          |
+| [Configuration](configuration.md)                    | Where a value comes from, and how secrets stay out of the log                                                                             |
+| [Observability](observability.md)                    | Tracing across the queue, metrics on their own port, conditions                                                                           |
+| [Moving domains to behaviors](behavior-migration.md) | Which domains are behaviors now, what is built, and the steps that remain: the cutover, chains, the skill, the other domains              |
+| [Least privilege](least-privilege.md)                | A plan: the agent as a user that is not root, privileged steps that a behavior declares, and the sudoers and systemd files made from them |
+| [Workflows](workflows.md)                            | A proposal: named, ordered behavior calls in a file, checked against the registry, and run again with the same result                     |
 
 ## Where it sits
 
 It imports [nats-client](../nats-client/README.md) for the client side of the
-bus and [nats-server](../nats-server/README.md) for the embedded server.
+bus, and [nats-server](../nats-server/README.md) for the embedded server.
 [osapi-orchestrator](../osapi-orchestrator/README.md) imports osapi.
 
-A change to either NATS repository can break osapi's transport. A change to
-osapi's SDK surface breaks the orchestrator, but the orchestrator pins a commit
-rather than a tag, so nothing breaks there until somebody bumps it. Land a
-rename and its bump together.
+A change to either NATS repository can break the transport of osapi. A change to
+the SDK API of osapi breaks the orchestrator. But the orchestrator pins a
+released tag, so it does not break until somebody updates the pin. Merge a
+rename and its pin update together.
 
-Its build fetches [osapi-justfiles](../osapi-justfiles/README.md) through a
-justfile recipe, from `main`. That edge is in no `go.mod`.
+Its build gets [osapi-justfiles](../osapi-justfiles/README.md) through a
+justfile recipe, from `main`. No `go.mod` shows that connection.
 
-The organization-wide picture is [system's architecture](../../ARCHITECTURE.md).
+[The architecture of the system](../../ARCHITECTURE.md) shows the full
+organization.
 
 ## How big it is
 
-24 API domains over 6 provider categories, and 1,814 non-test Go files.
+There are 24 API domains in 6 provider categories, and 1,814 Go files that are
+not tests.
 
 ```sh
 ls -d internal/provider/*/ | wc -l    # 6
@@ -87,27 +95,26 @@ ls -d internal/provider/*/ | wc -l    # 6
 
 ## Known limitations
 
-**`sdk/guidelines.md` is still partly contributor knowledge on an operator's
-site.** Its rules are stated here and the page demonstrates them with worked
-examples, which is fine. What it holds beyond demonstration, the package
-structure and the response pattern, has no counterpart here and no feature open
-for it.
+**`sdk/guidelines.md` still has some contributor knowledge on a site for
+operators.** This page states its rules, and that page shows them with examples.
+That is correct. But it also has the package structure and the response pattern.
+This page has no copy of them, and no feature is open for them.
 
-**The orchestrator pins a commit, not a tag.** A rename here lands green and
-breaks there at the bump.
+**The orchestrator pins a tag of osapi.** A rename here passes, and breaks the
+orchestrator at the next pin update.
 
-**The `osapi-justfiles` fetch is unpinned.** Nothing records which version of a
+**The `osapi-justfiles` fetch has no pin.** Nothing records which version of a
 shared recipe a build used.
 
 ## Not covered here
 
-How any individual provider or domain works. There are 24 domains and 6 provider
-categories, and the contract they share is in the subject documents above.
+How one provider or domain works. There are 24 domains and 6 provider
+categories. The subject documents above have the contract that they share.
 
-The CLI's full command surface, which is 143 pages of reference under
-`usage/cli` where an operator should read it.
+The full command set of the CLI. That is 143 reference pages under `usage/cli`,
+where an operator reads them.
 
-osapi's testing conventions, which are its own `CONTRIBUTING.md`'s.
+The test conventions of osapi. They are in its own `CONTRIBUTING.md`.
 
 ______________________________________________________________________
 

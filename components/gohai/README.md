@@ -1,31 +1,33 @@
 # gohai
 
-gohai collects system facts. It is an SDK first, importable at `pkg/gohai`, and
-it ships a CLI over the same collectors with its entry point at `main.go` and
-commands under `cmd/`. Its README calls it SDK first in its own first sentence,
-so consumers are programs rather than people, and a program that depends on an
-undocumented shape breaks quietly when the shape changes.
+gohai collects system facts. It is an SDK first, which you import at
+`pkg/gohai`. It also ships a CLI over the same collectors. The entry point of
+the CLI is `main.go`, and its commands are under `cmd/`. The first sentence of
+its README calls it SDK first. Thus its consumers are programs, not people. A
+program that depends on a shape with no documentation breaks without a signal
+when the shape changes.
 
-62 collector packages, 10 categories, 314 Go files of which 205 are not tests.
+It has 62 collector packages and 10 categories. It has 314 Go files, and 205 of
+them are not tests.
 
 ## Where it sits
 
-No Go dependency runs in either direction. Nothing in the organization imports
-gohai, and gohai's `go.mod` names one `osapi-io` path, its own module line. That
-is why `system`'s repository map uses it as the worked example. You can read
-this document without holding another repository in your head.
+No Go dependency goes in either direction. Nothing in the organization imports
+gohai. The `go.mod` of gohai names one `osapi-io` path: its own module line. For
+this reason, the repository map of the system uses it as the example. You can
+read this document without a second repository to remember.
 
-One edge exists and no `go.mod` records it. gohai's build fetches the `go`,
-`just` and `md` modules from `osapi-justfiles` by `curl` from `main` rather than
-from a release, so a change there reaches gohai's next CI run with nothing
-recording which version built it.
+One connection exists, and no `go.mod` records it. The build of gohai gets the
+`go`, `just` and `md` modules from `osapi-justfiles` with `curl`, from `main`,
+not from a release. Thus a change there gets to the next CI run of gohai, and
+nothing records which version built it.
 
-Isolation is not the same as doing a different job. gohai and `osapi` read
-system facts from the same upstream library at the same pinned version,
-independently, which is a fact between repositories and so lives in
-[how they fit together](../../ARCHITECTURE.md). What matters for anybody working
-here: osapi is not a consumer of gohai and will not break if a collector
-changes.
+Isolation does not mean a different job. gohai and `osapi` read system facts
+from the same upstream library, at the same pinned version, independently. That
+fact is between repositories, so it is in
+[how they fit together](../../ARCHITECTURE.md). For a person who works here, the
+important part is this: osapi is not a consumer of gohai, and does not break if
+a collector changes.
 
 ## Read about it
 
@@ -35,7 +37,7 @@ changes.
 
 ## The collector contract (`internal/collector/collector.go`)
 
-Five methods, and that is the entire interface.
+The interface has five methods, and nothing more.
 
 ```go
 type Collector interface {
@@ -47,97 +49,100 @@ type Collector interface {
 }
 ```
 
-`Collect` may return nil when a platform does not support what the collector
-gathers. That is a normal outcome, not an error, so a caller checking for nil is
-handling the ordinary case.
+`Collect` can return nil when a platform does not support what the collector
+reads. That is a normal result, not an error. Thus a caller that checks for nil
+handles the ordinary case.
 
-`DefaultEnabled` keeps heavy and privileged collectors off until a caller asks
-for them. The interface names the cases: ssh host keys, full package inventory,
-full service list. A consumer who expected one of those in a default run gets
-nothing and no error.
+`DefaultEnabled` keeps large and privileged collectors off until a caller asks
+for them. The interface names the cases: ssh host keys, the full package
+inventory and the full service list. A consumer who expects one of those in a
+default run gets nothing and no error.
 
-`Category` returns one of ten, and the set is closed by constants rather than by
-convention.
+`Category` returns one of ten values. Constants close the set. A convention does
+not.
 
 ```
 system  hardware  network  cloud  virtualization
 security  software  users  linux  misc
 ```
 
-All ten are in use by at least one collector. Adding an eleventh means adding a
-constant, not passing a new string.
+One or more collectors use each of the ten. To add an eleventh, add a constant.
+Do not give a new string.
 
 ### Dependencies between collectors
 
-`Dependencies` declares what must run first. `PriorResults` carries the typed
-output of what finished, and the generic `GetDep[T]` pulls one out with its type
-intact.
+`Dependencies` declares what must run first. `PriorResults` has the typed output
+of the collectors that completed. The generic `GetDep[T]` gets one result with
+its type.
 
-The interface's own caveat matters more than the mechanism. `prior` always
-includes everything the collector declared, and it **may** include additional
-upstream siblings. So a collector that reads a sibling it never declared works,
-until the day scheduling changes and it does not. Declare what you read.
+The warning of the interface is more important than the mechanism. `prior`
+always has each collector that you declared, and it **can** have more upstream
+collectors. Thus a collector that reads an undeclared collector works until the
+schedule changes. Then it does not work. Declare what you read.
 
 ## The registry (`internal/collector/registry.go`)
 
-Eight exported functions, and that is the entire surface a caller uses.
+A caller uses eight exported functions, and nothing more.
 
 ```
 NewRegistry  Register  Get  Names  NamesInCategory  Selected  SelectedWith  Run
 ```
 
-The registry expands declared dependencies and runs collectors in topological
-levels. Ordering comes from `Dependencies`, never from the order a caller
-registered or requested them, so a caller cannot sequence work by listing it in
-sequence. `expandWithDeps` and `topoLevels` do this.
+The registry adds the declared dependencies, and runs the collectors in
+topological levels. The order comes from `Dependencies`. It never comes from the
+order of registration or of the request. Thus a caller cannot put work in order
+with the order of a list. `expandWithDeps` and `topoLevels` do this.
 
-All 62 collector packages are registered in one place, `pkg/gohai/gohai.go`. A
-collector that exists and is not registered there is unreachable, and nothing
-reports that.
+`pkg/gohai/gohai.go` registers all 62 collector packages, in one location. If a
+collector exists and is not registered there, nobody can use it, and nothing
+reports it.
 
 ## Output
 
-Facts come out as Go values from the collectors. `FromFacts` in `pkg/gohai/ocsf`
-converts them to an OCSF representation, and it is a conversion of what was
-already collected rather than a second collection path.
+The collectors give facts as Go values. `FromFacts` in `pkg/gohai/ocsf` changes
+them to an OCSF form. It converts what gohai already collected. It is not a
+second collection path.
 
-`schemas/gohai.schema.json` describes the fact output. It is generated, by the
-code under `schemas/gen`, so editing it by hand is lost on the next run.
+`schemas/gohai.schema.json` describes the fact output. The code under
+`schemas/gen` generates it. Thus the next run removes a change that you make by
+hand.
 
 ## Counting collectors
 
-Two numbers, and both are right about different questions.
+There are two numbers. Each one is correct for a different question.
 
 **62 implemented.** `ls -d pkg/gohai/collectors/*/ | wc -l`.
 
-**65 catalogued.** The 62 implemented rows, which link to a page each, plus
-three deliberately unimplemented entries that do not: `rackspace`, `softlayer`
-and `eucalyptus`. They carry a tombstone marker and have no package.
+**65 in the catalog.** These are the 62 implemented rows, each with a link to a
+page, and three entries that are deliberately not implemented: `rackspace`,
+`softlayer` and `eucalyptus`. They have no link, a tombstone marker and no
+package.
 
 ```sh
 grep -cE '^\| (\[|[a-z])' docs/collectors/README.md   # 65, both kinds of row
 grep -c '^| \[' docs/collectors/README.md             # 62, the linked ones
 ```
 
-That pair sits in a code block rather than in the table below because a command
-holding a regex alternation cannot survive a markdown table cell. The table
-escapes a pipe as a backslash-pipe and so does the alternation, so nothing can
-tell them apart afterwards.
+That pair is in a code block, not in a table. A command with a regex alternation
+cannot stay correct in a markdown table cell. The table writes a pipe as a
+backslash and a pipe, and so does the alternation. Thus nothing can tell them
+apart after that.
 
-Moving it out was not enough on its own. The second command carried the table's
-escaping with it and read `'^\| \['`, where basic grep treats `\|` as the
-alternation operator rather than a literal pipe. The pattern then means "an
-empty string or a bracket", every line matches, and it returned 180 instead of
-62\. The fix is the pipe unescaped, since a code block needs no escaping and the
-two conventions mean opposite things by the same two characters.
+The move out of the table was not sufficient alone. The second command kept the
+escape of the table and read `'^\| \['`. Basic grep reads `\|` as the
+alternation operator, not as a pipe. Thus the pattern means "an empty string or
+a bracket", each line matches, and it returned 180, not 62. The fix is a pipe
+without the escape. A code block needs no escape, and the two conventions use
+the same two characters for opposite meanings.
 
-A reader who compares `ls` against the catalogue and has been told only one of
-the figures concludes something is broken. Nothing is. The catalogue documents
-both figures and what each counts, which it did not do until gohai#201.
+A reader who compares `ls` with the catalog, and knows only one of the numbers,
+thinks that something is broken. Nothing is broken. The catalog gives the two
+numbers and what each counts. It did not do this until gohai#201.
 
 ## What is in the repository
 
-62 collector packages across 10 categories. 205 non-test Go files.
+There are 62 collector packages in 10 categories, and 205 Go files that are not
+tests.
 
 ```sh
 ls -d pkg/gohai/collectors/*/ | wc -l                                  # 62
@@ -146,57 +151,55 @@ grep -cE '^\tCategory[A-Za-z]+ +=' internal/collector/collector.go      # 10
 
 ## Known limitations
 
-Five, and the first four are cases where nothing reports the mistake.
+There are five. In the first four, nothing reports the error.
 
-**The registration error is discarded, and the test it defers to does not
-exist.** `registerBuiltins` in `pkg/gohai/gohai.go` calls `_ = reg.Register(c)`
-for each of the 62, with a comment saying a duplicate or empty name "would only
-occur from programmer bugs ... which are caught by tests". The test that exists
-checks that `Register` rejects a duplicate on a fresh registry. Nothing
-exercises `registerBuiltins`, and the whole assertion on the built-in registry
-is that it contains one name:
+**gohai ignores the registration error, and the test that the comment names does
+not exist.** `registerBuiltins` in `pkg/gohai/gohai.go` calls
+`_ = reg.Register(c)` for each of the 62. Its comment says that a duplicate or
+empty name can come only from programmer bugs, and that tests catch those bugs.
+The test that exists checks that `Register` refuses a duplicate on a new
+registry. No test runs `registerBuiltins`. The only check of the built-in
+registry is that it has one name:
 
 ```sh
 grep -rn 'registerBuiltins\|builtinCollectors' --include='*_test.go' .   # nothing
 grep -A2 'func.*TestNewRegistry' pkg/gohai/registry_public_test.go
 ```
 
-So a duplicate name among the 62 drops one collector silently, and the
-justification for discarding the error is a test nobody wrote.
+Thus a duplicate name in the 62 removes one collector without a signal. The
+reason to ignore the error is a test that nobody wrote.
 
-**The registered count does not check registration.** The
-`Registered collectors` row above counts `collectors/<name>` paths in
-`pkg/gohai/gohai.go`, which is source text. It catches a collector that exists
-and was never added to that file, which is the failure it was written for, and
-it cannot catch a collector that is in the file and did not register. Those are
-different failures and only the first has a check.
+**The count of registered collectors does not check registration.** The count
+reads the `collectors/<name>` paths in `pkg/gohai/gohai.go`, which is source
+text. It finds a collector that exists but is not in that file. That is the
+failure that it is for. It cannot find a collector that is in the file but did
+not register. These are different failures, and only the first has a check.
 
-**An undeclared dependency works until it does not.** `prior` always carries
-what a collector declared and **may** carry upstream siblings it did not.
-Reading one of those works today and breaks whenever scheduling changes, with
-nothing in between to warn. Declare what you read.
+**An undeclared dependency works until it does not.** `prior` always has what a
+collector declared. It **can** also have upstream collectors that it did not
+declare. A read of one of those works now. It breaks when the schedule changes,
+and nothing warns before that. Declare what you read.
 
-**A default run omits the heavy collectors and says nothing.** `DefaultEnabled`
-returns false for ssh host keys, full package inventory and full service list. A
-consumer expecting one of those in a default run gets no value and no error,
-which is indistinguishable from the collector finding nothing.
+**A default run does not include the large collectors, and says nothing.**
+`DefaultEnabled` returns false for ssh host keys, the full package inventory and
+the full service list. A consumer who expects one of those in a default run gets
+no value and no error. A collector that finds nothing gives the same result.
 
-**`schemas/gohai.schema.json` is generated.** Editing it by hand is lost on the
-next run of `schemas/gen`.
+**`schemas/gohai.schema.json` is generated.** The next run of `schemas/gen`
+removes a change that you make by hand.
 
 ## Not covered here
 
-What any individual collector reads. There are 62 of them and the catalogue
-lists what each returns. The rule all 62 follow is
-[its own document](collectors.md); what stays out here is the 62 instances of
-it.
+What each collector reads. There are 62, and the catalog lists what each
+returns. [Its own document](collectors.md) has the rule that all 62 obey. This
+page does not describe the 62 instances.
 
-The CLI's flag surface beyond the `--collector.<name>` form the catalogue
-documents.
+The CLI flags, other than the `--collector.<name>` form that the catalog
+describes.
 
 The OCSF field mapping in `schemas/field-mapping.md`.
 
-gohai's testing conventions, which are its own `CONTRIBUTING.md`'s.
+The test conventions of gohai. They are in its own `CONTRIBUTING.md`.
 
 ______________________________________________________________________
 

@@ -10,7 +10,7 @@
 5. Report each sentence that breaks a rule, the rule, and its rewrite, in page
    order.
 
-A sentence that breaks a rule is rewritten, not excused. If the rewrite would
-lose technical meaning, split the sentence instead of cutting the meaning.
+Rewrite a sentence that breaks a rule. Do not excuse it. If the rewrite loses
+technical meaning, split the sentence. Do not cut the meaning.
 
 Then run the repository's format and test recipes through `mise exec -- just`.

@@ -1,113 +1,129 @@
 # Agent identity
 
-The controller has to know that an answer came from the machine it addressed,
-and that a machine claiming a hostname is the one that enrolled under it. Both
-come down to one stored public key per agent.
+The controller must know two things. An answer came from the machine that it
+addressed. A machine that claims a hostname is the machine that enrolled with
+that hostname. The two facts come from one stored public key for each agent.
 
 ## Enrollment is the only thing that writes a key
 
-An accepted agent's public key is retained beyond the enrollment handshake, held
-against its **machine ID** rather than its hostname, with the fingerprint
-recorded at the moment of acceptance.
+osapi keeps the public key of an accepted agent after the enrollment handshake.
+It keeps the key for the **machine ID** of the agent, not for its hostname. It
+records the fingerprint at the time of acceptance.
 
-**Accepting an enrollment is the only event that may create or replace that
-key.** Not a message signed with a different key, not a re-registration, not a
-restart. So an attacker who can publish to the bus cannot rotate a key by
-publishing, and the trust anchor stays where an operator put it.
+**Only the acceptance of an enrollment can make or replace that key.** A message
+with a different key cannot do it. A new registration cannot do it. A restart
+cannot do it. Thus an attacker who can publish to the bus cannot change a key by
+a publish. The trust anchor stays where an operator put it.
 
-The agent keeps the same rule for its own key. It generates a keypair only when
-neither file exists. A key file it cannot read, such as one still owned by root
-after the agent's user changed, or one half of a pair, stops the agent with an
-error. Replacing it would be quiet: the new key is not the accepted one, so the
-host drops out of targeting and nothing at the agent says why.
+The agent obeys the same rule for its own key. It makes a keypair only when
+neither file exists. A key file that it cannot read stops the agent with an
+error. Examples are a file that root still owns after the user of the agent
+changed, or one half of a pair. A replacement key gives no signal. The new key
+is not the accepted key. Thus the host stops getting jobs, and nothing at the
+agent tells why.
 
-A key is destroyed on two events and no others: an operator rejecting a pending
-enrollment, and an operator removing an enrolled agent. Both take effect
-immediately, with no interval in which a removed agent's signature still
-verifies.
+Only two events destroy a key:
 
-Removal is `DELETE /api/agent/{hostname}`, `osapi client agent remove`. It
-deletes the accepted record and drops the cached key. A hostname is not an
-identity, so when two accepted agents share one the call answers 409 with both
-machine IDs, and `machine_id` chooses. It does not guess.
+- an operator rejects a pending enrollment
+- an operator removes an enrolled agent
 
-The removed agent is not told. It keeps the controller's key from its
-acceptance, so it believes it is enrolled and does not ask again. Enrolling it
-again is a step on the host: delete `controller.pub` and restart the agent.
+The two take effect immediately. There is no time when the signature of a
+removed agent still verifies.
+
+The removal is `DELETE /api/agent/{hostname}`, or `osapi client agent remove`.
+It deletes the accepted record and removes the cached key. A hostname is not an
+identity. Thus when two accepted agents have the same hostname, the call answers
+409 with the two machine IDs, and `machine_id` selects one. The call does not
+guess.
+
+osapi does not tell the removed agent. The agent keeps the key of the controller
+from its acceptance. Thus it thinks that it is enrolled, and does not ask again.
+To enroll it again, do a step on the host: delete `controller.pub` and restart
+the agent.
 
 ## What gets verified
 
-Two things, and they answer different questions.
+osapi verifies two things. They answer different questions.
 
-**A job response** is verified against the key recorded at acceptance. That is
-what makes a result trustworthy: the controller knows which machine produced it.
+**A job response.** The controller verifies it against the key that it recorded
+at acceptance. This makes a result trustworthy: the controller knows which
+machine made it.
 
-**A registration** is signed by the agent and verified by the controller. That
-is what makes *targeting* trustworthy, and it is the less obvious half.
+**A registration.** The agent signs it, and the controller verifies it. This
+makes *targeting* trustworthy. This half is less clear.
 
-Registration carries hostname, labels, machine ID and status, and targeting
-reads it. Without verification, a second machine could publish the same hostname
-and receive work addressed to the first. **Targeting resolves only verified
-registrations**, so an unverified registration is not a candidate for work.
+A registration has the hostname, labels, machine ID and status, and targeting
+reads it. Without verification, a second machine can publish the same hostname
+and get the jobs for the first machine. **Targeting uses only verified
+registrations.** Thus an unverified registration cannot get work.
 
-What that looks like in a result depends on how the job was addressed. A job
-sent to a named host that has no verified registration fails to resolve a
-target. A broadcast is different: `ExpectedAgentHostnames` builds the expected
-set from verified registrations, so an unverified agent is **not in the set and
-produces no row at all**. It does not appear as `timeout`, because nothing was
-expecting it.
+The effect on a result depends on the target of the job:
 
-That distinction matters when an enrollment has gone wrong. A broadcast
-returning nineteen rows for a twenty-machine fleet is the symptom, and the
-missing row is silent. `GET /agent` reporting `key_stored` and `verified` is
-where to look.
+- A job for a named host that has no verified registration cannot find a target.
+- A broadcast is different. `ExpectedAgentHostnames` makes the expected set from
+  verified registrations. Thus an unverified agent is **not in the set and makes
+  no row**. It does not show as `timeout`, because nothing expected it.
+
+This difference is important when an enrollment has a problem. The symptom is a
+broadcast that returns nineteen rows for a fleet of twenty machines. The missing
+row gives no error. Look at `GET /agent`, which reports `key_stored` and
+`verified`.
 
 ## Rotation without an outage
 
-A replaced key keeps its predecessor accepted for a grace period, so an agent
-rotating its key does not have a window where its messages are refused.
+After a key changes, osapi accepts the old key for a grace period. Thus an agent
+that changes its key has no time when osapi refuses its messages.
 
-`ControllerPKI.RotationGracePeriod` sets it. Once it lapses, messages signed
-with the old key stop verifying.
+`ControllerPKI.RotationGracePeriod` sets the period. After it ends, messages
+with the old key do not verify.
 
 ## Failure is never silent
 
-**Verification does not fail open.** When the key store is unavailable, the
-outcome is not "treat as verified"; a message that cannot be checked is not
-believed.
+**Verification does not fail open.** When the key store is not available, osapi
+does not treat a message as verified. osapi does not believe a message that it
+cannot check.
 
-Every rejection is attributable to a named cause rather than a generic failure,
-so an operator can tell an unenrolled agent from a wrong signature from an
-unreachable store.
+Each rejection has a named cause, not a general failure. Thus an operator can
+tell these causes apart:
+
+- an agent that did not enroll
+- an incorrect signature
+- a key store that osapi cannot reach
 
 ## Enabling it on a live fleet
 
-Enforcement is separately switchable per side: `ControllerPKI.Enabled` for the
-controller, `AgentPKI.Enabled` for the agent. **With PKI disabled, behaviour is
-byte-for-byte what it was before the key store existed.**
+You can switch enforcement on each side separately: `ControllerPKI.Enabled` for
+the controller, `AgentPKI.Enabled` for the agent. **When PKI is off, osapi
+operates exactly as it did before the key store existed.**
 
-`GET /agent` reports `key_stored` and `verified` per agent, which is what makes
-a staged rollout possible: turn on one side, see which agents would be refused,
-re-enrol them, and finish the rollout at a moment of your choosing rather than
-the moment you flipped a flag.
+`GET /agent` reports `key_stored` and `verified` for each agent. Thus you can
+enable PKI in stages:
+
+1. Turn on one side.
+2. See which agents osapi will refuse.
+3. Enroll them again.
+4. Complete the change at a time that you select, not at the time that you
+   changed a flag.
 
 ## What this is not
 
-**Transport credentials are not identity.** NATS credentials control who may
-connect. This controls whose messages are believed once connected. An attacker
-with valid NATS credentials still cannot forge a response.
+**Transport credentials are not identity.** NATS credentials control who can
+connect. This mechanism controls which messages osapi believes after the
+connection. An attacker with valid NATS credentials still cannot make a false
+response.
 
-Two machines presenting the same hostname is a supported state rather than an
-error, because identity is the machine ID. Both exist, and targeting chooses
-deterministically rather than by whichever arrived last.
+Two machines with the same hostname is a supported state, not an error, because
+the identity is the machine ID. The two machines exist. Targeting selects one by
+a fixed rule, not by the order of arrival.
 
-A reused machine ID, a restored VM image being the usual cause, does not inherit
-trust: the stored key is replaced only through an accepted enrollment.
+A machine ID that a second machine uses again does not get trust. The usual
+cause is a restored VM image. Only an accepted enrollment replaces the stored
+key.
 
 ## Where this connects
 
-What a signed response is answering, and where the signature sits in the job
-lifecycle, is [the job system](job-system.md).
+[The job system](job-system.md) tells what a signed response answers, and where
+the signature is in the life of a job.
 
 ______________________________________________________________________
 

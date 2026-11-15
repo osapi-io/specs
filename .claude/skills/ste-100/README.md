@@ -1,12 +1,12 @@
 # ste-100
 
-Answers "is this clear to a reader whose first language is not English?" by
-writing and checking documentation in ASD-STE100 Simplified Technical English.
+Answers "is this clear to a reader whose first language is not English?". It
+writes and checks documentation in ASD-STE100 Simplified Technical English.
 
 ## Install
 
-Nothing to install. The skill lives in this repository and any skills-aware
-agent working from the repository root finds it.
+You install nothing. The skill is in this repository. Each agent that reads
+skills finds it when it works from the repository root.
 
 ## Usage
 
@@ -21,17 +21,16 @@ Ask in plain language, or invoke it directly with `/ste-100`.
 
 ## How it works
 
-STE is a rule set looked up as the text needs it. `SKILL.md` classifies each
-paragraph as a procedure, a description or a safety instruction, then routes to
-the reference for that kind of text and for the words and sentences in it.
-Nothing else enters context.
+STE is a set of rules. The skill reads a rule only when the text needs it.
+`SKILL.md` classifies each paragraph as a procedure, a description or a safety
+instruction. Then it sends the agent to the reference for that kind of text, and
+for its words and sentences. Nothing else goes into the context.
 
 It decides sentences, not content. What a page says still comes from the house
 [voice](../document/references/voice.md), and `unslop` still runs after.
 
-The STE dictionary of approved words belongs to ASD and is not included. The
-skill applies the writing rules and the one-word, one-meaning principle without
-it.
+The STE dictionary of approved words belongs to ASD, and is not included. The
+skill applies the rules and the one-word, one-meaning principle without it.
 
 ## Documentation
 
@@ -50,13 +49,13 @@ Format details are in the [Agent Skills specification].
 ## Contributing
 
 See the [Contributing](../../../CONTRIBUTING.md) guide. Keep `SKILL.md` a
-router: a rule and its examples belong in the reference for that kind of text,
-which loads only when the text needs it.
+router. A rule and its examples go in the reference for that kind of text, which
+loads only when the text needs it.
 
-Do not run mdformat over this directory. `just md-fmt` already excludes
-`.claude/**`, because mdformat reads the opening `---` as a horizontal rule and
-collapses YAML frontmatter into a heading, which makes a skill silently
-undiscoverable.
+Do not run mdformat on this directory. `just md-fmt` already excludes
+`.claude/**`. mdformat reads the first `---` as a horizontal rule, and changes
+the YAML frontmatter into a heading. Then agents cannot find the skill, and
+nothing reports it.
 
 ## License
 

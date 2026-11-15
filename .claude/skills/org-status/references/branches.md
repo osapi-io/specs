@@ -23,7 +23,7 @@ while read -r r; do
 done
 ```
 
-Four outcomes, and only the first is safe without asking:
+There are four results. Only the first is safe without a question to the reader:
 
 | Signal | Meaning | Action |
 | --- | --- | --- |
@@ -34,10 +34,10 @@ Four outcomes, and only the first is safe without asking:
 
 ## Two traps
 
-**`ahead_by` is not a merge test.** A squash merge rewrites history, so the
-branch stays ahead of the default branch while its work is fully landed.
-`ahead:4` alongside a `MERGED` pull request is safe to delete. Judging by
-`ahead_by` alone keeps every squash-merged branch forever.
+**`ahead_by` is not a merge test.** A squash merge writes history again. Thus
+the branch stays ahead of the default branch, and all its work is merged. You
+can safely delete `ahead:4` with a `MERGED` pull request. If you use only
+`ahead_by`, you keep each squash-merged branch always.
 
 **An orphan branch is not stale.** `gh-pages` shares no history with `main`, so
 the compare call returns 404 with "No common ancestor". Treat a 404 there as
@@ -63,11 +63,12 @@ another.
 
 Report the merged ones, because they are work with nothing left to decide.
 
-**Do not report the abandoned ones in a sweep.** A branch whose pull request was
-closed is a decision the reader already made, and repeating it every run with an
-action line attached is nagging rather than reporting. Name them when asked about
-branches directly, and leave them out otherwise. The same holds for a protected
-branch: nobody needs telling that `gh-pages` is still `gh-pages`.
+**Do not report the abandoned branches in a sweep.** A branch whose pull request
+was closed is a decision that the reader already made. If you report it again in
+each run with an action line, that annoys the reader and gives no information.
+Name them when somebody asks about branches directly. Otherwise, leave them out.
+The same is true for a protected branch: nobody needs to know that `gh-pages` is
+still `gh-pages`.
 
 ## Deleting
 
@@ -75,8 +76,8 @@ branch: nobody needs telling that `gh-pages` is still `gh-pages`.
 gh api -X DELETE "/repos/osapi-io/$r/git/refs/heads/$b"
 ```
 
-One at a time, and echo each deletion. `gh` has no bulk branch delete, and a
-loop that fails halfway should leave a record of how far it got.
+Delete one at a time, and echo each deletion. `gh` has no bulk branch delete. If
+a loop fails in the middle, it must leave a record of how far it got.
 
 Never delete a local branch as part of this: the user may have work checked out
 against it. This deletes remote refs only, and `git fetch --prune` is how their

@@ -2,74 +2,77 @@
 
 Test: `just test` | Format: `just md-fmt`
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) first, then
-[CONSTITUTION.md](CONSTITUTION.md). This file has only what is specific to
-agents.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first. Then read
+[CONSTITUTION.md](CONSTITUTION.md). This file has only the rules that are
+specific to agents. They apply to each coding agent.
 
-## Running tools
+## Run tools
 
-Invoke tools through `mise`, not from your path:
+Run tools through `mise`, not from your path:
 
 ```bash
 mise exec -- just test
 ```
 
-`mise` is active in a person's shell and supplies the versions `.mise.toml`
-declares. An agent's shell has no activation, so a bare `just` resolves to
-whatever is installed globally, usually an older version. The symptom is a check
-that fails here and passes in continuous integration, on a file nobody edited.
+`mise` is active in the shell of a person. It supplies the versions that
+`.mise.toml` declares. The shell of an agent does not activate `mise`. Thus a
+bare `just` runs the version that is installed globally. That version is usually
+older.
 
-## Read the documents before changing them
+The symptom is a check that fails here but passes in CI, on a file that nobody
+changed. If this occurs, find the version that ran. Do this before you accept
+the failure as real.
 
-Read the component's page under `components/` and the subjects it links. That is
-the standing description of how the component behaves and it is more current
-than any prose written about it elsewhere.
+## Read the documents before you change them
 
-Read [ARCHITECTURE.md](ARCHITECTURE.md) when the work touches how repositories
-fit together. A component's page describes only its own behaviour, so an
-agreement between components is not in it and its absence there is not evidence
-the agreement does not exist.
+Read the page of the component under `components/`, and the subjects that it
+links. That page is the current description of how the component operates. It is
+more current than other prose about the component.
 
-Nothing here authorizes work the constitution forbids. When you cannot satisfy
-both a request and the constitution, say so rather than picking one silently.
+Read [ARCHITECTURE.md](ARCHITECTURE.md) when the work has an effect on how the
+repositories fit together. The page of a component describes only its own
+operation. Thus it does not have an agreement between components. If the page
+does not have an agreement, that is not evidence that the agreement does not
+exist.
 
-## What you find on the way
+Nothing here permits work that the constitution forbids. If you cannot obey a
+request and the constitution together, say so. Do not select one and say
+nothing.
 
-Record an inconsistency rather than widening the change or dropping it. Open an
-issue on the repository the fix lands in, with the command that found it, and
-carry on with what you were doing. [Issues](CONTRIBUTING.md#issues) has the
-rule; the part agents get wrong is the widening.
+## What you find during the work
 
-A page that disagrees with the code is the same situation. Say so and fix the
-page in its own change, rather than writing around it.
+Record an inconsistency. Do not make the change larger, and do not ignore the
+inconsistency. Open an issue on the repository where the fix goes, with the
+command that found it. Then continue your work. [Issues](CONTRIBUTING.md#issues)
+has the rule. Agents most often make the change larger.
 
-## Writing a page
+A page that does not agree with the code is the same situation. Say so. Fix the
+page in its own change. Do not write around the error.
 
-**Run `unslop` over anything you write.** It applies to prose here the way
-`mdformat` applies to formatting. Em dashes are the tell it catches most often.
+## Write a page
 
-**Use `/document` rather than writing a page by hand.** It carries the voice,
-places the subject, and runs `unslop`.
+**Run `unslop` on all text that you write.** It applies to prose here as
+`mdformat` applies to the format. The sign that it finds most often is the em
+dash.
+
+**Use `/document`. Do not write a page by hand.** It has the voice, puts the
+subject in the correct location and runs `unslop`.
 
 **Write sentences in Simplified Technical English.** The constitution requires
-it of every repository's pages, not only these. `/ste-100` writes and checks
-them, here and when you change another repository's docs from this one. The
-voice decides what a page says; STE decides how each sentence says it.
+STE for the pages of each repository, not only these pages. `/ste-100` writes
+and checks them. Use it here, and when you change the docs of a different
+repository from this one. The voice decides what a page says. STE decides how
+each sentence says it.
 
-**Place content in the subject it belongs to.** A component's README is an
-index: what the repository is, and a table linking its subjects. Something about
-queuing work goes in the page about queuing work, merged with what is there
-rather than appended after it.
+**Put content in the page of its subject.** The README of a component is an
+index. It tells what the repository is, and has a table of links to its
+subjects. Text about how osapi queues work goes in the page about the queue.
+Merge it with the text that is there. Do not add it at the end.
 
 ## Commit trailer
 
-Codex reads the skills through `.agents/skills`, a link to `.claude/skills`, so
-both tools use the same ones.
+When an agent writes a commit, end the commit message with a trailer that names
+the agent. Use the trailer that the documentation of the agent gives.
 
-When committing via Claude Code, end the message with:
-
-```
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
+The skills are in `.claude/skills`. `.agents/skills` is a link to that
+directory. Thus each coding agent uses the same skills.

@@ -1,16 +1,17 @@
 # document
 
-Answers "where does this design go, and what does the page look like?" so writing
-one is a prompt rather than a guess about which of twenty files to edit.
+Answers "where does this design go, and what does the page look like?". Thus a
+new page needs one prompt, not a guess about which of twenty files to edit.
 
-This repository is doc-driven: you design something by writing its page, build it,
-then correct the page where building proved it wrong. Same page all three times.
-The skill covers the writing.
+This repository is doc-driven. You design something when you write its page.
+Then you build it. Then you correct the page where the build showed an error. It
+is the same page all three times. The skill covers the page.
 
 ## Install
 
-Nothing to install. The skill lives in this repository and any skills-aware agent
-working from the repository root finds it. The checks it runs need [mise] and
+You install nothing. The skill is in this repository. Each agent that reads
+skills finds it when it works from the repository root. The checks it runs need
+[mise] and
 [just].
 
 ## Usage
@@ -26,15 +27,19 @@ Ask in plain language, or invoke it directly with `/document`.
 
 ## What it does
 
-Six steps, in order: find whether the page exists, place the subject, work out
-what is true from the code rather than from existing prose, write it, link it from
-the component's index, then run the checks and `unslop`.
+There are six steps, in order:
 
-The placement test is the one worth knowing without the skill: ask whether the
-subject is how one repository behaves, or an agreement two of them must both keep.
-The first is a page under `components/<name>/`, the second belongs in
-`ARCHITECTURE.md`, and a rule every repository follows belongs in
-`CONSTITUTION.md`.
+1. Find if the page exists.
+1. Put the subject in its location.
+1. Find what is true from the code, not from the existing prose.
+1. Write it.
+1. Link it from the index of the component.
+1. Run the checks and `unslop`.
+
+Know the placement test without the skill. Ask if the subject is how one
+repository operates, or an agreement that two repositories must keep. The first
+is a page under `components/<name>/`. The second goes in `ARCHITECTURE.md`. A
+rule for each repository goes in `CONSTITUTION.md`.
 
 [references/voice.md](references/voice.md) carries the writing standard: plain
 engineering prose, concrete over abstract, say the tradeoff, and the tells to

@@ -10,22 +10,27 @@ metadata:
 
 # Add a domain
 
-Domains are moving to [behaviors](../../../components/osapi/behaviors.md): one
-typed definition under `internal/behaviors/<name>/` that the routes, agent dispatch,
-CLI, spec and docs are generated from, served under `/api/next` and
-`osapi client next` beside the hand-written domains
-([the plan](../../../components/osapi/behavior-migration.md)). Ask which the work is before
-starting. A new behavior uses the `build-a-behavior` skill in the osapi
-repository, `.claude/skills/build-a-behavior/`, which starts from
-`osapi behavior new`; not the steps below. This skill covers the hand-written domains, which is every domain
-not yet converted.
+Domains move to [behaviors](../../../components/osapi/behaviors.md). A behavior
+is one typed definition under `internal/behaviors/<name>/`. osapi generates the
+routes, agent dispatch, CLI, spec and docs from it. osapi serves it under
+`/api/next` and `osapi client next`, next to the hand-written domains ([the
+plan](../../../components/osapi/behavior-migration.md)).
+
+Before you start, ask which kind of work it is. A new behavior uses the
+`build-a-behavior` skill in the osapi repository,
+`.claude/skills/build-a-behavior/`, which starts from `osapi behavior new`. It
+does not use the steps below. This skill covers the hand-written domains: each
+domain that did not move yet.
 
 ## 1. Establish the reference domain
 
-Every run, before writing anything. Pick a recently completed domain of the same
-shape as the one being added and read it. `sysctl` for a direct-write domain,
-`cron` for a meta provider that deploys files, `docker` for one that talks to an
-external API, `ntp` for the simplest CRUD shape.
+Do this on each run, before you write anything. Select a domain that somebody
+completed recently, with the same shape as the new domain, and read it:
+
+- `sysctl` for a direct-write domain
+- `cron` for a meta provider that deploys files
+- `docker` for a domain that connects to an external API
+- `ntp` for the simplest CRUD shape
 
 ```bash
 grep -rl 'sysctl\|Sysctl' --include='*.go' --include='*.yaml' --include='*.md' . \
@@ -53,16 +58,16 @@ Never copy a domain's files wholesale. Read one, then write the new one.
 
 ## 3. The order that avoids rework
 
-The layers depend on each other in one direction. Going out of order means
-regenerating or rewriting.
+The layers depend on each other in one direction. If you go out of order, you
+must generate or write again.
 
-1. **Provider**, the operations, with its own tests passing.
+1. **Provider**: the operations, with its own tests that pass.
 2. **Agent**, processor and registry, so a job reaches the provider.
 3. **OpenAPI spec**, then `just generate`, which produces the server, the
    combined spec, and the SDK's generated client together.
 4. **Handler**, with validation and broadcast, then registration and startup.
-5. **SDK service**, wrapping the generated client.
-6. **CLI**, wrapping the SDK.
+5. **SDK service**, which wraps the generated client.
+6. **CLI**, which wraps the SDK.
 7. **Docs and tables**, feature page, CLI pages, permissions, navbars.
 
 A new permission is decided at step 3 and lands in step 7. Write it down when
@@ -70,8 +75,9 @@ you choose it; it is the thing most often missed.
 
 ## 4. Cross-layer checklist
 
-Run this before calling a domain done. Every line is a place a domain appears,
-and a domain that is missing from one of them is half-finished.
+Run this before you say that a domain is complete. Each line is a location where
+a domain occurs. A domain that is missing from one of them is only half
+complete.
 
 ```
 provider    internal/provider/{category}/{domain}/    types.go, platform files, mocks/
@@ -94,8 +100,9 @@ docs        docs/docs/sidebar/features/{domain}-management.md
             usage/configuration.md                   permission tables
 ```
 
-Prove it rather than reading it back: the `grep -rl` from step 1, run against
-the new domain, should return the same shape of list as the reference domain.
+Prove it. Do not only read it again. Run the `grep -rl` from step 1 against the
+new domain. It must return a list with the same shape as the list of the
+reference domain.
 
 ## 5. Verify
 
@@ -107,44 +114,48 @@ mise exec -- just test                   # lint, unit, coverage gate
 mise exec -- just docs-fmt-check   # the site formatter, see below
 ```
 
-Coverage is gated at 99.9%, so an untested branch fails the build rather than
-merging. `just test` also runs `go-mod-check`, which fails when a nested module
+The coverage gate is 99.9%. Thus a branch without tests fails the build, and
+does not merge. `just test` also runs `go-mod-check`, which fails when a nested
+module
 under `examples/` is untidy: a new SDK example adds one.
 
-Never run `go build ./...` or `go test ./...` directly. The UI is embedded with
-`//go:embed dist/*`, so both fail unless `ui/dist/` is populated, which the
-`just` recipes do first. In a fresh clone or worktree, run `just react-build`
-before `just ready`: `ready` lints before it builds the UI, so the linter fails
-to import the embed package and reports a `typecheck` error on a file nobody
-touched.
+Never run `go build ./...` or `go test ./...` directly. The build embeds the UI
+with `//go:embed dist/*`. Thus both fail unless `ui/dist/` has files. The `just`
+recipes put them there first.
+
+In a new clone or worktree, run `just react-build` before `just ready`. `ready`
+lints before it builds the UI. Thus the linter cannot import the embed package,
+and reports a `typecheck` error on a file that nobody touched.
 
 **`just ready` and `just test` do not check the documentation site.** `md-fmt`
-excludes `docs/` because Prettier owns that tree through `just docs-fmt`,
-so a change touching a feature page, a CLI page or the configuration reference
-passes both gates and still fails CI's `Docusaurus Lint`. Three merged security
-fixes left five pages unformatted that way in September 2026, and main was red
-until osapi-io/osapi#512. Run `just docs-fmt-check` whenever the change
-touches `docs/`, which [docs.md](references/docs.md) says it always does.
+excludes `docs/`, because Prettier owns that tree through `just docs-fmt`. Thus
+a change to a feature page, a CLI page or the configuration reference passes the
+two gates, and still fails `Docusaurus Lint` in CI.
+
+In September 2026, three merged security fixes left five pages unformatted in
+that way. main was red until osapi-io/osapi#512. Run `just docs-fmt-check` each
+time that the change touches `docs/`. [docs.md](references/docs.md) says that it
+always does.
 
 ## Rules
 
-1. **The reference domain settles style questions.** Naming, file splits, table
-   output, error wording: read the sibling domain rather than inventing. A
-   difference in wording reads as a difference in rule.
-2. **Idempotency is not optional.** Create on an existing resource is
-   `Changed: false`, delete on a missing one is `Changed: false`, update on a
-   missing one is an error. The table in
-   [provider.md](references/provider.md) is the contract, and it is what makes
-   these operations safe to run repeatedly.
-3. **Every node-targeted operation supports broadcast.** `_all`, `_any`,
-   hostname, and label selectors, returning the same collection shape whether
-   one host answered or forty.
-4. **Validation is declared in the OpenAPI spec**, enforced by
-   `validation.Struct()` in the handler, and checked again in the provider where
-   a value becomes a path or a command argument.
-5. **Generated code is never hand-edited.** Change the spec and regenerate. A
-   hand-edit survives until the next `just generate` and then disappears.
-6. **Stop at the first disagreement with the code.** This skill is written from
-   the codebase of September 2026. When a step no longer matches, correct the
-   skill in its own change before continuing, so the next run does not hit the
-   same wall.
+1. **The reference domain answers style questions.** For names, file splits,
+   table output and error words, read the sibling domain. Do not invent. A
+   different word means a different rule.
+2. **Idempotency is necessary.** Create on an existing resource is
+   `Changed: false`. Delete on a missing resource is `Changed: false`. Update on
+   a missing resource is an error. The table in
+   [provider.md](references/provider.md) is the contract. It makes these
+   operations safe to run many times.
+3. **Each node-targeted operation supports broadcast.** It accepts `_all`,
+   `_any`, a hostname and label selectors. It returns the same collection shape
+   when one host answers and when forty answer.
+4. **The OpenAPI spec declares validation.** `validation.Struct()` in the
+   handler enforces it. The provider checks it again where a value becomes a
+   path or a command argument.
+5. **Never edit generated code by hand.** Change the spec and generate again. An
+   edit by hand stays until the next `just generate`, and then it is gone.
+6. **Stop at the first difference from the code.** This skill comes from the
+   codebase of September 2026. When a step does not match now, correct the skill
+   in its own change before you continue. Then the next run does not hit the
+   same problem.

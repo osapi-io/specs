@@ -1,45 +1,50 @@
 # How a collector gathers facts
 
-gohai is an aggregator rather than a reimplementation. A collector's job is to
-wrap a well-maintained source, a Go library, a provider SDK, or a thin file or
-command parser, and reshape its output into a typed struct. The 62 collectors
-share one contract, which [the entry point](README.md) states; what they share
-beyond that is this: how the source is chosen, what the collector may add on
-top, and what the resulting fields are called.
+gohai collects facts from other sources. It does not implement them again. A
+collector wraps a well-maintained source and changes its output into a typed
+struct. The source is a Go library, a provider SDK, or a small file or command
+parser.
+
+The 62 collectors share one contract, which [the entry point](README.md) states.
+They also share the content of this page:
+
+- how to select the source
+- what the collector can add to it
+- the names of the fields that result
 
 ## Choosing what to wrap
 
-Seven positions, in order. The order is the content: a collector takes the first
-one that covers what it needs.
+There are seven positions, in order. The order is the rule. A collector uses the
+first position that covers what it needs.
 
-1. **ghw**, for physical hardware topology. CPU and NUMA layout, memory DIMMs
-   and page sizes, block devices including UUID, label and unmounted state,
-   network drivers and speed, DMI, GPU, PCI. Anything about static hardware
-   shape.
-2. **gopsutil**, for dynamic runtime state. Memory free and available, disk and
-   network I/O counters, process enumeration, sessions, virtualization
-   detection, host info. Anything that changes between collections.
-3. **go-sysinfo**, where gopsutil is weaker on host, platform or kernel. Judged
-   case by case, and never stacked with gopsutil for the same fact.
-4. **procfs**, for raw `/proc` and `/sys` parsing when nothing above covers a
-   field. Preferred over a hand-rolled scanner.
-5. **Official provider SDKs** for cloud collectors, or plain `net/http` against
-   the instance metadata endpoint where the SDK is too heavy.
-6. **A gohai extension**, last. Only the fields the libraries above do not
-   expose.
-7. **Ohai's plugins, as a methodology reference and never an import.** Read to
-   learn which edge cases exist, then checked against the libraries above. Only
-   the residual gap becomes code here.
+1. **ghw**, for physical hardware topology: CPU and NUMA layout, memory DIMMs
+   and page sizes, block devices with UUID, label and unmounted state, network
+   drivers and speed, DMI, GPU and PCI. Use it for the static shape of the
+   hardware.
+2. **gopsutil**, for runtime state that changes: free and available memory, disk
+   and network I/O counters, the process list, sessions, virtualization
+   detection and host information. Use it for data that changes between
+   collections.
+3. **go-sysinfo**, where gopsutil is weaker on host, platform or kernel. Decide
+   for each case. Never use it together with gopsutil for the same fact.
+4. **procfs**, to parse raw `/proc` and `/sys` when no source above covers a
+   field. Use it in place of a scanner that you write yourself.
+5. **Official provider SDKs** for cloud collectors. If the SDK is too large, use
+   plain `net/http` against the instance metadata endpoint.
+6. **A gohai extension**, last. Use it only for the fields that the libraries
+   above do not give.
+7. **Ohai's plugins, as a reference for the method. Never import them.** Read
+   them to learn which special cases exist. Then check the libraries above. Only
+   the gap that remains becomes code here.
 
-The reason the order matters more than any one position: replacing a library
-wholesale because it misses one field discards years of accumulated bug fixes
-and cross-platform handling. A library that genuinely does not match what the
-collector reports is replaced, and the collector's own Data Sources page says
-why.
+The order is more important than any one position. If you replace a library
+because it does not have one field, you lose years of bug fixes and
+cross-platform work. If a library really does not match what the collector
+reports, replace it. The Data Sources page of the collector then tells why.
 
 ## What an extension may do
 
-An extension layers onto the library's output rather than substituting for it.
+An extension adds to the output of the library. It does not replace it.
 
 ```go
 info, err := upstream.Get(ctx)
@@ -52,22 +57,22 @@ if shouldAddOurBit(info) {
 ```
 
 **An extension reads through `avfs.VFS` and runs commands through
-`executor.Executor`, never `os.ReadFile` or `exec.Command` in a `Collect`
-method.** Those two seams are what let a test run without touching the host, so
-a collector that reaches for the standard library directly is a collector whose
-tests need the machine they describe. This is the rule a new collector is most
-likely to break and the one a reviewer should look for first.
+`executor.Executor`. A `Collect` method never uses `os.ReadFile` or
+`exec.Command`.** With these two seams, a test runs and does not touch the host.
+If a collector uses the standard library directly, its tests need the machine
+that they describe. A new collector breaks this rule most often. A reviewer must
+look for it first.
 
 ## Compiling everywhere
 
-Collector code compiles on every target platform, with no `//go:build` tag
-anywhere. So `go test ./...` on any machine compiles and runs every collector's
-tests, and coverage is visible cross-platform rather than per-runner.
+Collector code compiles on each target platform, and no file has a `//go:build`
+tag. Thus `go test ./...` on any machine compiles and runs the tests of each
+collector. Coverage shows for all platforms together, not for each runner.
 
-This is osapi's pattern, and [its providers](../osapi/providers.md) state why it
-is worth the cost: a platform a collector does not support is a stub that
-returns the unsupported outcome, which makes an unsupported platform a
-compile-time fact rather than a runtime nil.
+osapi uses the same pattern, and [its providers](../osapi/providers.md) tell why
+it is worth the cost. On a platform that a collector does not support, a stub
+returns the unsupported result. Thus an unsupported platform is a compile-time
+fact, not a runtime nil.
 
 The shape that follows:
 
@@ -80,15 +85,15 @@ pkg/gohai/collectors/<name>/
   <name>_public_test.go     one table-driven TestCollect keyed by variant
 ```
 
-One `TestCollect` per collector, table-driven by a variant column that builds
-the right per-OS struct. Not one test file per platform, because that multiplies
-the file count by the platform count and tests the dispatch once per file
-instead of once.
+Each collector has one `TestCollect`. It uses a table with a variant column that
+makes the correct struct for each OS. There is not one test file for each
+platform. That makes the file count larger by the number of platforms, and tests
+the dispatch one time in each file, not one time in total.
 
 ## What a field is called
 
-Three tiers, applied in order of precedence. A field takes its name from the
-first tier that has an opinion.
+There are three tiers, in order of precedence. A field gets its name from the
+first tier that has a name for it.
 
 | Tier | Authority                                   | Fields | Share |
 | ---: | ------------------------------------------- | -----: | ----: |
@@ -103,21 +108,21 @@ grep -cE '^\|[^|]*\|[^|]*\|[^|]*\| T3 +\|' schemas/field-mapping.md   # 752
 grep -cE '^\| [a-z]' schemas/field-mapping.md                          # 950
 ```
 
-**Four fifths of the fields follow neither standard**, which is the number worth
-knowing before reading the rules. The third tier is the common case and the
-first two are the exception, so a contributor naming a new field is usually
-applying gohai's own convention rather than looking up OCSF.
+**Four fifths of the fields obey neither standard.** Know this number before you
+read the rules. The third tier is the usual case, and the first two are the
+exception. Thus a contributor who names a new field usually uses the convention
+of gohai, and does not look in OCSF.
 
-Tier three starts from the backing library's field name in `snake_case`, mirrors
-the kernel's name for anything read from `/proc` or `/sys`, and adds a unit
-suffix where the unit is ambiguous. Abbreviations are the universal ones only:
-`ip`, `mac`, `pid`, `uid`, `gid`, `mtu`, `fqdn`, `uuid`, `cidr`, `arn`, `id`.
+Tier three starts from the field name of the backing library in `snake_case`.
+For data from `/proc` or `/sys`, it uses the name of the kernel. It adds a unit
+suffix where the unit is not clear. Use only the universal abbreviations: `ip`,
+`mac`, `pid`, `uid`, `gid`, `mtu`, `fqdn`, `uuid`, `cidr`, `arn`, `id`.
 
 ### The redundant-prefix rule
 
-Output nests by collector, so `{"cpu": {"cpu_count": 4}}` states the collector
-name twice. A JSON key takes the schema's leaf name with any parent prefix
-stripped when that prefix duplicates the collector's name.
+The output nests by collector. Thus `{"cpu": {"cpu_count": 4}}` gives the
+collector name two times. A JSON key uses the leaf name of the schema. If a
+parent prefix is the same as the name of the collector, remove that prefix.
 
 | Schema path          | Collector  | Key         |
 | -------------------- | ---------- | ----------- |
@@ -127,38 +132,38 @@ stripped when that prefix duplicates the collector's name.
 | `process.cmd_line`   | `process`  | `cmd_line`  |
 | `host.cpu.vendor.id` | `cpu`      | `vendor_id` |
 
-The last two rows are the ones to read. `cmd_line` keeps its name because
-`process` is not a prefix of it, and `vendor_id` keeps `vendor` because the
-parent object is not the collector.
+Read the last two rows. `cmd_line` keeps its name, because `process` is not a
+prefix of it. `vendor_id` keeps `vendor`, because the parent object is not the
+collector.
 
-The Go field is the PascalCase rendering of the final key, except where Go idiom
-on initialisms conflicts: OCSF's `cpu_id` becomes `CPUID` rather than `CpuId`,
-and the JSON tag still follows the rule above. A name with no schema-mapping
-claim behind it is invented, and the per-field citations in
-`schemas/field-mapping.md` are what make that visible.
+The Go field is the PascalCase form of the last key. The exception is where the
+Go convention for initialisms is different. The `cpu_id` of OCSF becomes
+`CPUID`, not `CpuId`, and the JSON tag still obeys the rule above. A name
+without a schema-mapping claim is invented. The citations for each field in
+`schemas/field-mapping.md` make that visible.
 
 ## What Ohai is for, and what it is not
 
-Ohai is read for **collection approach**: which file or command to read, which
-distro edge cases exist, where a fallback chain is needed. If it reads `/proc/X`
-and falls back to a command on SUSE, gohai should too.
+Read Ohai for the **collection method**: which file or command to read, which
+distribution has special cases, and where a fallback chain is necessary. If Ohai
+reads `/proc/X` and uses a command as a fallback on SUSE, gohai must do the
+same.
 
-Ohai is not read for **output shape**. Its JSON is a Ruby artifact and pinning
-gohai's structs to it byte for byte buys nothing. The same goes for
-node_exporter, which is a reference for tricky `/proc` parsing and not for
-naming.
+Do not read Ohai for the **output shape**. Its JSON comes from Ruby. If you make
+the structs of gohai match it exactly, you get nothing. The same is true of
+node_exporter. It is a reference for difficult `/proc` parsing, not for names.
 
-Where a specific choice needs attribution, the collector's own page says so
-inline. The Data Sources pages are a description of gohai's behaviour rather
-than a diff against Ohai's.
+Where a specific choice needs attribution, the page of the collector gives it in
+the text. The Data Sources pages describe how gohai operates. They are not a
+diff against Ohai.
 
 ## Where this connects
 
 [The entry point](README.md) has the collector contract, the registry, and what
-happens to a collector that is never registered. The per-collector pages under
-`docs/collectors/` in the repository say what each one returns.
-`schemas/field-mapping.md` carries the per-field citations this document's tier
-table counts.
+occurs to a collector that is not registered. The pages for each collector under
+`docs/collectors/` in the repository tell what each one returns.
+`schemas/field-mapping.md` has the citations for each field, which the tier
+table of this page counts.
 
 ______________________________________________________________________
 

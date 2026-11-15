@@ -1,282 +1,309 @@
 # Constitution
 
-The rules binding every repository in this organization. One file, because there
-are seven repositories and a rule stated seven times is seven things to keep in
-agreement.
+These are the rules for each repository in this organization. They are in one
+file because there are seven repositories. If you write a rule seven times, you
+must keep seven copies the same.
 
-Each rule below is here because the organization got it wrong first. A rule
-invented to fill out a document is noise, so the evidence is named where there
-is any.
+Each rule is here because the organization made the error first. A rule that
+somebody adds only to fill a document is noise. Thus each rule names its
+evidence, where there is evidence.
 
 ## Documentation
 
-A repository states in full the conventions binding it. A reference to guidance
-held elsewhere does not stand in place of stating them: a reviewer reading a
-pull request in a browser, a contributor working offline, and an agent with a
-single checkout each see only that repository.
+A repository states all of the conventions that apply to it. A reference to
+guidance in a different location does not replace that statement. These readers
+see only the one repository:
 
-Where a convention binds several repositories, each states it in the same words,
-so a difference in wording means a difference in rule.
+- a reviewer who reads a pull request in a browser
+- a contributor who works offline
+- an agent with one checkout
 
-A rule a tool already enforces is never restated as prose. The configuration is
-the statement of record; documentation names where it lives. Prose describing a
-tool's settings is maintained by hand and checked by nothing, so it drifts while
-continuing to read as authoritative.
+When a convention applies to more than one repository, each repository states it
+in the same words. Thus a different word means a different rule.
+
+Do not write a rule as prose if a tool already enforces it. The configuration is
+the statement of record. The documentation says where the configuration is.
+People must update prose about the settings of a tool by hand, and no check
+finds an error in it. Thus the prose becomes incorrect, but it continues to look
+correct.
 
 ## Verification
 
-A claim about the codebase is measured, not inspected. Reading code and
-concluding is a hypothesis; running something that would fail if the claim were
-false is a result.
+Measure a claim about the codebase. Do not only examine the code. If you read
+the code and make a conclusion, that is a hypothesis. If you run a check that
+fails when the claim is false, that is a result.
 
-Completion is reported with the output that demonstrates it. "Tests pass" is a
-claim; the command and its output are evidence.
+When you report that work is complete, give the output that shows it. "Tests
+pass" is a claim. The command and its output are evidence.
 
-Where a check can be automated it is automated. A rule enforced only by review
-is a rule that holds until someone is busy.
+If a check can be automatic, make it automatic. A rule that only a review
+enforces stays true only until the reviewer is busy.
 
 ## Tooling
 
-A tool a repository invokes is declared where the repository declares its tools.
-A tool resolved from whatever the developer happens to have installed is not the
-same tool across machines, and is not what continuous integration runs.
+Declare each tool that a repository runs in the location where the repository
+declares its tools. A tool that comes from the installation of each developer is
+not the same tool on each machine. It is also not the tool that continuous
+integration runs.
 
-Both provisioning paths resolve to the same version. Where nothing maintains a
-version automatically, both track the latest release so they move together;
-where something does, both pin it and that mechanism moves both. A version
-pinned in one path and floating in the other guarantees divergence.
+The two provisioning paths use the same version. If nothing updates a version
+automatically, the two paths use the latest release, so that they change
+together. If a mechanism updates the version, the two paths pin it, and that
+mechanism changes the two. If one path pins a version and the other path does
+not, the two versions become different.
 
-A tool whose output is committed is pinned, so the committed artifact does not
-change under whoever runs the generator.
+Pin a tool when you commit its output. Then the committed file does not change
+when a different person runs the generator.
 
-A GitHub Action from outside the organization is pinned by full commit SHA, with
-its version in a trailing comment:
+Pin a GitHub Action from outside the organization by its full commit SHA. Put
+its version in a comment at the end of the line:
 
 ```yaml
 uses: actions/checkout@<40-character sha> # v7.0.0
 ```
 
-A tag is a pointer whoever controls the action can move, and a workflow pinned
-to one runs whatever it points at today. That is how the
-tj-actions/changed-files compromise reached its users. A SHA cannot be moved.
-Dependabot reads the comment and bumps the SHA and the comment together, so the
-pin costs no upkeep.
+The owner of an action can move a tag. A workflow that pins a tag runs the code
+that the tag points to today. That is how the tj-actions/changed-files
+compromise got to its users. Nobody can move a SHA. Dependabot reads the comment
+and changes the SHA and the comment together. Thus the pin needs no maintenance.
 
-Every workflow declares the token permissions it needs in a `permissions:`
-block, at the top of the workflow or on each job, and the repository's default
-token is read-only:
+Each workflow declares the token permissions that it needs in a `permissions:`
+block. Put the block at the top of the workflow or on each job. The default
+token of the repository is read-only:
 
 ```yaml
 permissions:
   contents: read
 ```
 
-The default is whatever the repository setting says, and on an older repository
-that is write to everything, including approving pull requests. A workflow that
-declares nothing inherits it, so every third-party action it runs could push to
-the default branch. A declared block also says what a workflow is for: one that
-labels stale issues asks for `issues: write`, and a reader can see why. A
-workflow that needs write and does not declare it fails quietly instead, as a
-stale job on a read-only default does.
+Without a block, the workflow gets the default of the repository setting. On an
+older repository, that default is write access to all things, which includes the
+approval of pull requests. A workflow that declares nothing gets that default.
+Thus each third-party action that it runs can push to the default branch.
+
+A declared block also tells the purpose of a workflow. A workflow that labels
+stale issues asks for `issues: write`, and a reader can see why. If a workflow
+needs write access and does not declare it, it fails without a clear error. A
+stale-issue job on a read-only default fails in this way.
 
 ## The language version
 
 A tool version and a language version are different promises. The tool version
-is what this repository builds with. The language version in `go.mod` is a
-floor: the oldest release a consumer may build with, and the only one of the two
-that binds somebody else.
+is the version that this repository builds with. The language version in
+`go.mod` is a minimum. It is the oldest release that a consumer can build with.
+Of the two versions, only the language version applies to other people.
 
-A repository supports the two most recent Go minor releases, so the directive
-names the older of them. Naming the newest drops support for the one before it,
-which is the opposite of the rule. Tool provisioning still tracks the latest
-release, because building with a newer toolchain than the floor is always
-allowed and surfaces new vet findings early.
+A repository supports the two most recent Go minor releases. Thus the directive
+names the older of the two. If the directive names the newest release, the
+repository stops support for the release before it. That is the opposite of the
+rule. Tool provisioning still uses the latest release. A toolchain that is newer
+than the minimum is always permitted, and it shows new vet findings early.
 
-The floor is built in continuous integration, not only declared. A repository
-testing one version while promising two has not tested the promise, and the day
-a newer standard library call compiles locally is the day the floor breaks for
-every consumer with nothing reporting it. The job building the floor reads the
-version from `go.mod` rather than repeating it, so moving the directive moves
-the build with it.
+Continuous integration builds the minimum version. A declaration alone is not
+sufficient. A repository that tests one version and promises two did not test
+the promise. A day can come when a newer standard library call compiles locally.
+On that day, the build of the minimum version breaks for each consumer, and
+nothing reports it. The job that builds the minimum reads the version from
+`go.mod`. It does not write the version again. Thus a change to the directive
+also changes the build.
 
-Which release is current is not recorded here. It is what the toolchain list
-returns, for the same reason the repository list is not recorded either.
+This file does not record the current release. The toolchain list gives it. The
+reason is the same as the reason that this file does not record the repository
+list.
 
 ## Correction
 
-When applying a rule shows the rule is wrong, work stops and the rule is
-corrected first, in its own change. Correcting the rule and the code together
-produces a rule written to describe what was already done, and buries the
-correction where nobody reviews it as a change of rule.
+If a rule is incorrect when you apply it, stop the work. Correct the rule first,
+in its own change. If you correct the rule and the code together, the rule only
+describes what you already did. Also, the correction is in a place where no
+reviewer examines it as a change of rule.
 
-Write a requirement from evidence the repository already carries: its
-configuration, its history, a failure it has had. A standard invented to fill a
-template creates noise rather than a constraint, and is non-conformant from the
-day it is written.
+Write a requirement from evidence that the repository already has: its
+configuration, its history, or a failure that occurred. A standard that you
+invent to fill a template is noise, not a constraint. The repository does not
+obey it from the first day.
 
 ## Repositories
 
-The repositories in this organization are what
-`gh repo list osapi-io --no-archived --visibility public` returns. No document
-holds a copy of that list.
+The repositories in this organization are the result of
+`gh repo list osapi-io --no-archived --visibility public`. No document keeps a
+copy of that list.
 
-A written list is correct when written and wrong after the next repository is
-added, and nothing marks the moment it turns. Work spanning repositories takes
-the set from the command each time, and narrows it at the point of use rather
-than by keeping a second list.
+A written list is correct when you write it. It is incorrect after somebody adds
+the next repository, and nothing shows that change. Work on more than one
+repository gets the set from the command each time. To use fewer repositories,
+make the set smaller when you use it. Do not keep a second list.
 
-What a command can produce is not recorded. A record of it is a cache that
-nothing refreshes and nothing checks, and it reads as current for exactly as
-long as nobody measures.
+Do not record what a command can give. Such a record is a cache that nothing
+updates and nothing checks. It looks current until somebody measures it.
 
 ## Tracking
 
-An issue records that something should change. The page records what changing it
-means. These are stages of one piece of work rather than two records of it, and
-an issue is closed by the pull request that makes its page true.
+An issue records that something must change. The page records the result of that
+change. These are two stages of one piece of work, not two records of it. The
+pull request that makes the page true closes the issue.
 
-An issue exists so an intent survives being put down. Work under way is tracked
-wherever it is being done, and copying that into issues produces a second list
-that drifts from the first and is read by whoever finds it first.
+An issue keeps an intent when nobody works on it. Track work in progress where
+you do it. If you copy it into issues, you make a second list. That list becomes
+different from the first, and a reader can find the incorrect list first.
 
-Open one when the work is larger than the change in hand, and fix it directly
-when it is not. An inconsistency found while doing something else is the case
-this rule is for: widening the change buries the fix in a diff about something
-unrelated, and saying nothing loses it. Neither is tracking.
+Open an issue when the work is larger than the current change. When the work is
+not larger, fix it directly. This rule applies most to an inconsistency that you
+find during a different task. If you make the change larger, the fix is hidden
+in a diff about a different subject. If you say nothing, the fix is lost.
+Neither result is tracking.
 
-An issue carries the evidence that found it, with the command that reproduces
-it, for the same reason a page does.
+An issue has the evidence that found it, with the command that shows the problem
+again. The reason is the same as for a page.
 
-An issue is opened in the repository the change lands in, never in the design
-record, because that is where the reader of the code looks. Work spanning the
-organization therefore reads issues alongside pull requests and alerts, and an
-intent nobody wrote down as one is work nobody can find.
+Open an issue in the repository where the change goes. Do not open it in the
+design record, because the reader of the code looks in the repository. Thus work
+across the organization reads issues together with pull requests and alerts. If
+nobody writes an intent as an issue, nobody can find that work.
 
-Something exploitable is never an issue. An issue is public the moment it is
-opened, so it is reported as a draft advisory on the repository it affects.
+Do not open an issue for a problem that an attacker can use. An issue is public
+when you open it. Report the problem as a draft advisory on the repository that
+it affects.
 
 ## The documents
 
-A repository's page states what the repository is before it states anything that
-was decided about it: what it is, where it sits among the others, how it is
-built, what a consumer may depend on, what was measured and the command that
-measures it again, where its own prose and its code disagree, and what it leaves
-out.
+The page of a repository tells what the repository is before it tells what
+people decided about it. In this order, it tells:
 
-Documentation that grows only by appending records a sequence of changes. It
-answers what was decided and never what the thing is, so a reader arriving at it
-learns how one mechanism works before learning what the repository is for. That
-is the state osapi's was in after five changes: 1,840 lines, no statement of
-purpose, no dependency, no architecture.
+1. what the repository is
+2. where it is among the other repositories
+3. how to build it
+4. what a consumer can depend on
+5. what somebody measured, and the command that measures it again
+6. where its prose and its code do not agree
+7. what it does not include
 
-A count is written with the command that produces it. A number alone is a claim
-that was true when somebody typed it, and nothing marks the moment it stops
-being true.
+Documentation that only grows at the end records a sequence of changes. It tells
+what people decided, and never what the thing is. A new reader learns how one
+mechanism works before the reader learns the purpose of the repository. The
+osapi documentation was in that state after five changes: 1,840 lines, no
+statement of purpose, no dependency and no architecture.
 
-A page explains a system to somebody who has to work on it. It is not a
-specification: no requirement identifiers, no "MUST", no user stories, no
-acceptance scenarios. A page is read repeatedly by somebody learning the system,
-and the formalism that serves a reviewer once obstructs that reader every time.
+Write a count with the command that gives it. A number alone is a claim that was
+true when somebody wrote it. Nothing shows when it stops being true.
 
-A heading names the thing, with its path where a path helps. A statement is made
-in the present tense and stated once. A design decision carries its reason, in a
-sentence, the first time it appears: why the liveness probe checks nothing
-belongs beside the liveness probe. What never appears is commentary about the
-document: how a fact was found, that a fact is important, or what an earlier
-version said.
+A page explains a system to a person who must work on it. It is not a
+specification. It has no requirement identifiers, no "MUST", no user stories and
+no acceptance scenarios. A person who learns the system reads a page many times.
+The formal style helps a reviewer one time, and it makes the page more difficult
+for that reader each time.
 
-Show the thing where showing it is shorter than describing it. A configuration
-block, a directory tree, a response shape and a command are documentation; a
-paragraph about the shape of a configuration block is not.
+A heading names the thing. Add its path if the path helps. Write a statement in
+the present tense, and write it one time. A design decision gives its reason in
+one sentence, at the first location where it occurs. For example, the reason
+that the liveness probe checks nothing goes next to the liveness probe.
 
-The documentation is a tree. A component's `README.md` says what the repository
-is and links to its subjects. A subject with enough in it to explain gets its
-own page beside it, and a repository small enough to explain in one page keeps
-one.
+A page has no comments about the document itself. It does not tell how somebody
+found a fact, that a fact is important, or what an earlier version said.
 
-A change lands in the subject it belongs to. Something about how work is queued
-goes in the page about queuing work, merged with what is already there, and the
-README gains a link at most. Appending everything to one page produces a file
-that answers everything and explains nothing, which is what one repository's
-documentation became after seven changes: five subjects in 266 lines, saying
-something about each and enough about none.
+If it is shorter to show a thing than to describe it, show it. A configuration
+block, a directory tree, a response shape and a command are documentation. A
+paragraph about the shape of a configuration block is not documentation.
 
-The merging is the work. Two statements about the same mechanism become one, and
-the one that survives carries what both said. A page that grew by appending is a
-record of how it was written rather than a description of what is true.
+The documentation is a tree. The `README.md` of a component tells what the
+repository is and links to its subjects. A subject that needs an explanation
+gets its own page next to the README. A repository that one page can explain
+keeps one page.
 
-A page is written in a human voice and checked for the tells that mark machine
-prose: em dashes, bold labels that restate the line after them, title case
-headings, "serves as" where "is" would do, rule-of-three lists that were not
-three things to begin with.
+A change goes into the page of its subject. For example, a change about how
+osapi queues work goes into the page about the queue. Merge it with the text
+that is already there. The README gets one link, or nothing.
 
-Every page in every repository in this organization is written in Simplified
-Technical English (ASD-STE100): one word for one thing, short sentences, the
-active voice, commands for steps. That covers each README, CONTRIBUTING, the
-documentation site, and the skills a binary ships. A reader whose first language
-is not English reads the page one way, and an agent that writes the next page
-has one style to match. The rule is stated here and nowhere else; a repository's
-own files do not repeat it. [ste-100](.claude/skills/ste-100/SKILL.md) holds the
-rules and checks a page against them.
+If you add each change at the end of one page, the page tells something about
+each subject but explains nothing. The documentation of one repository was in
+that state after seven changes. It had five subjects in 266 lines. It told a
+small amount about each subject, and not sufficient information about any
+subject.
 
-Text a generator writes follows the rule through its source: the definition, the
-comment or the template it is written from. Command names, flags, code and
-example output are technical names, not sentences, and do not change.
+The merge is the work. Two statements about the same mechanism become one
+statement. The statement that stays has the content of the two. A page that
+grows only at the end is a record of how somebody wrote it. It does not describe
+what is true.
+
+Write a page in a human voice. Check it for the signs of machine prose:
+
+- em dashes
+- bold labels that say the same thing as the line after them
+- title case headings
+- "serves as" in place of "is"
+- lists of three items where the subject does not have three items
+
+Each page in each repository in this organization uses Simplified Technical
+English (ASD-STE100). STE uses one word for one thing, short sentences, the
+active voice, and commands for steps. This rule applies to each README, each
+CONTRIBUTING, the documentation site, and the skills that a binary ships.
+
+A reader whose first language is not English can understand the page in only one
+way. An agent that writes the next page has one style to copy. This file states
+the rule, and no other file states it. The files of a repository do not write it
+again. [ste-100](.claude/skills/ste-100/SKILL.md) has the rules and checks a
+page against them.
+
+Text that a generator writes obeys the rule through its source: the definition,
+the comment or the template. Command names, flags, code and example output are
+technical names, not sentences. Do not change them.
 
 ## What the repositories agree on
 
-These bind more than one repository, so they live here rather than in whichever
-one noticed first.
+These rules apply to more than one repository. Thus they are here, and not in
+the repository that found them first.
 
 ### The repository list is a command, not a document
 
-The repositories in this organization are what this returns:
+The repositories in this organization are the result of this command:
 
 ```sh
 gh repo list osapi-io --no-archived --visibility public
 ```
 
-**No document holds a copy of that list.** A written list is correct when
-written and wrong after the next repository is added, and nothing marks the
-moment it turns. So work spanning repositories takes the set from the command
-each time and narrows it at the point of use.
+**No document keeps a copy of that list.** A written list is correct when you
+write it. It is incorrect after somebody adds the next repository, and nothing
+shows that change. Thus work on more than one repository gets the set from the
+command each time. To use fewer repositories, make the set smaller when you use
+it.
 
-`--no-archived` matters. Archived repositories hold Dependabot pull requests
-that can never merge, and a search across the organization counts them.
+`--no-archived` is important. Archived repositories have Dependabot pull
+requests that cannot merge, and a search of the organization counts them.
 
-This rule started as a deletion. A hand-maintained list of the repositories held
-a hand-maintained dependency graph, and the graph was already derivable from
-`go.mod` files and justfiles. It went, and the rule that replaced it is
-`global/repositories` in every constitution.
+This rule started as a deletion. A list of the repositories, which people
+updated by hand, had a dependency graph, which people also updated by hand. The
+`go.mod` files and the justfiles already gave that graph. The list was removed,
+and the rule that replaced it is `global/repositories` in each constitution.
 
-**It has been broken since, which is the useful part.** `osapi-justfiles`' own
-baseline listed six consumers. The command returns seven, because `specs`
-fetches justfile modules too, and the list was written from the six *components*
-rather than from what the command returns. **It was wrong when written, not
-stale.** Ageing was never the failure mode; the writer's frame was.
+**People broke the rule after that, and that is the useful part.** The baseline
+of `osapi-justfiles` listed six consumers. The command gives seven, because
+`specs` also gets justfile modules. The writer made the list from the six
+*components*, not from the result of the command. **It was incorrect when the
+writer made it. It did not become stale.** Age did not cause the error. The
+point of view of the writer caused it.
 
 ### A count carries the command that produces it
 
-A number alone is a claim that was true when somebody typed it, and nothing
-marks the moment it stops being true.
+A number alone is a claim that was true when somebody wrote it. Nothing shows
+when it stops being true.
 
-A count is written with the command that produces it, so a reader can run the
-repository it describes. Getting there fixed seven counts nobody could have
-checked: six written as "the same, plus `-not -name '*_test.go'`", which is a
-shortcut for whoever wrote the table and cannot be run by anything.
+Write a count with the command that gives it. Then a reader can run the command
+in the repository that the count describes. This rule fixed seven counts that
+nobody could check. Six of them said "the same, plus `-not -name '*_test.go'`".
+That was a short form for the writer of the table, and nothing can run it.
 
-Each command has to stand alone for that reason.
+Thus each command must be complete without the commands near it.
 
 ### A rule a document states is reachable from the repository it binds
 
-Where these docs state a rule somebody must follow, the repository they are
-working in states it too, in one line. The reasoning lives here and stays here;
-what this asks is that the rule be reachable from one checkout.
+If these documents state a rule that people must obey, the repository where
+those people work also states it, in one line. The reasons stay here. The
+repository needs only the rule, so that a person with one checkout can find it.
 
-Measured at `osapi` on 2026-09-30: ten rules a contributor must follow, two of
-them stated in `osapi`'s own documentation and eight not. Two of the eight carry
-security advisories, so the rules this organization learned the hardest were
-among those a checkout could not show you.
+A measurement of `osapi` on 2026-09-30 found ten rules that a contributor must
+obey. The documentation of `osapi` stated two of them, and did not state eight.
+Two of the eight had security advisories. Thus a checkout did not show some of
+the rules that cost this organization the most.
 
 ```sh
 cd ~/git/osapi-io/osapi
@@ -286,14 +313,14 @@ grep -ilE 'upsert' CONTRIBUTING.md                          # was not
 
 ### Every CONTRIBUTING.md has one shape
 
-[templates/CONTRIBUTING.md](templates/CONTRIBUTING.md) holds the sections that
-every repository's `CONTRIBUTING.md` shares, with their headings, their order
+[templates/CONTRIBUTING.md](templates/CONTRIBUTING.md) has the sections that the
+`CONTRIBUTING.md` of each repository shares, with their headings, their order
 and their text. A repository copies them and puts its own sections between them.
 It does not rename, move or remove a shared section. A paragraph that the
 template marks as optional stays only where its condition is true. specs is the
-one exception: it has no code, so its `CONTRIBUTING.md` has its own shape.
+only exception. It has no code, so its `CONTRIBUTING.md` has its own shape.
 
-Every repository has these sections: Before you start, Prerequisites with Coding
+Each repository has these sections: Before you start, Prerequisites with Coding
 agents, Before you commit, Branches, Commit messages, Submit a pull request, AI
 usage and FAQ. The Go repositories also have Setup, Project structure, Code
 style with Documentation, Code standards with its five subsections, and Tests
@@ -301,12 +328,12 @@ with Test file conventions.
 
 A change to a shared section starts in its template. The same work then changes
 each repository and the `swamp-golang-starter` template, which copies this one.
-A convention that is different in each repository is a convention that nobody
-can trust.
+Nobody can trust a convention that is different in each repository.
 
-[templates/AGENTS.md](templates/AGENTS.md) does the same for `AGENTS.md`: the
-summary line, the introduction, Run tools, Where the rules come from, Commit
-trailer and Design pages. specs has its own `AGENTS.md`, for the same reason.
+[templates/AGENTS.md](templates/AGENTS.md) does the same for `AGENTS.md`. Its
+shared parts are the summary line, the introduction, Run tools, Where the rules
+come from, Commit trailer and Design pages. specs has its own `AGENTS.md`, for
+the same reason.
 
 ```sh
 cd ~/git/osapi-io

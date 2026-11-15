@@ -1,16 +1,17 @@
 # work-an-issue
 
 Takes an open issue to a merged pull request that closed it. Answers "is this a
-fix or a feature, does it still reproduce, and what closes the issue" so picking
-one up is a prompt rather than a procedure reinvented each time.
+fix or a feature, does it still occur, and what closes the issue". Thus work on
+an issue needs one prompt, not a new procedure each time.
 
 [org-status] finds issues and reports them. This skill is the other end of that
 arrow: its blocks end with `→ say "fix 179"`, and this is what that phrase runs.
 
 ## Install
 
-Nothing to install. The skill lives in this repository and any skills-aware agent
-working from the repository root finds it. It needs the [gh] CLI authenticated
+You install nothing. The skill is in this repository. Each agent that reads
+skills finds it when it works from the repository root. It needs the [gh] CLI
+authenticated
 against [osapi-io], a checkout of the repository the issue belongs to, and
 [mise] for the recipes.
 
@@ -27,35 +28,40 @@ Ask in plain language, or invoke it directly with `/work-an-issue`.
 
 ## What it does
 
-Six steps: read the issue and its comments, establish it still reproduces, size
-it as a direct fix or a Spec Kit feature, branch, fix it with the test that
-proves it, and close it through the pull request.
+There are six steps:
+
+1. Read the issue and its comments.
+1. Make sure that the problem still occurs.
+1. Decide if it is a direct fix or a Spec Kit feature.
+1. Make a branch.
+1. Fix it, with the test that proves it.
+1. Close it through the pull request.
 
 ## What it is for
 
 Four failures, three of them already on the record here.
 
-**An issue is a claim from the past.** The code moved under it. Fixing what the
-issue describes rather than what the code now does is the first trap, and
-reproducing first is the only thing that catches it.
+**An issue is a claim from the past.** The code changed after it. The first
+error is to fix what the issue describes, not what the code does now. Only a
+test of the problem first finds that error.
 
-**The sizing decision gets made by drifting.** Running specify, plan, tasks and
-implement over a two-line timeout change costs more than the bug does, and
-hand-fixing something that changes a stated contract leaves the contract
-unstated. Nothing routed that choice before this skill, so it got made by
-whichever path started first.
+**Without a decision, the size is an accident.** The full specify, plan, tasks
+and implement pipeline for a two-line timeout change costs more than the bug. A
+fix by hand to something that changes a stated contract leaves the contract
+without a statement. Before this skill, nothing made that decision. Thus the
+path that started first decided.
 
-**`Closes #n` is the step that gets missed.** Without it the fix merges and the
-issue stays open, so a finished piece of work keeps appearing in every sweep as
-outstanding. `nats-client` #179 sat from 27 October with nothing on it but the
-greeting bot, which is the other half of the same problem: no path from a
-reported issue to a worked one.
+**People forget `Closes #n` most often.** Without it, the fix merges and the
+issue stays open. Thus completed work shows in each sweep as work that remains.
+`nats-client` #179 stayed open from 27 October with only a comment from the
+greeting bot. That is the other half of the same problem: no path from a
+reported issue to work on it.
 
-**A single green run is not evidence.** `go-mod-check` names only the first
-untidy module it finds, so one fix and one green line can hide five more. And a
-mock expectation that asserts a timing property is a coin flip, which is what
-#179 is: a 20ms deadline against a 10ms poll interval, so the ticker tick and
-the context deadline land on the same instant and `select` picks one.
+**One green run is not evidence.** `go-mod-check` names only the first untidy
+module that it finds. Thus one fix and one green line can hide five more. A mock
+expectation that asserts a timing property is a coin toss. #179 is that case: a
+20ms deadline against a 10ms poll interval. The ticker tick and the context
+deadline occur at the same time, and `select` selects one.
 
 ## License
 

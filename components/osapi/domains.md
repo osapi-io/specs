@@ -1,27 +1,26 @@
 # Building a domain
 
-A domain is a coherent area of system behaviour exposed as API endpoints. Adding
-one touches every layer, and the obligation is **consistency**: a domain appears
-in every place an existing domain appears.
+A domain is one area of system operation that osapi exposes as API endpoints. A
+new domain touches each layer. The obligation is **consistency**: a domain must
+be in each location where an existing domain is.
 
-That makes the completeness check mechanical rather than a matter of judgement.
-Pick a finished domain, `sysctl` or `cron`, and search the codebase for its
-name. Anything that exists for it and not for yours is missing.
+Thus the completeness check is mechanical. It does not need judgment. Select a
+finished domain, `sysctl` or `cron`, and search the codebase for its name. If
+something exists for it and not for your domain, it is missing.
 
 ## Node-targeted or controller-only
 
-This decides where the code goes, and **the directory is the consequence rather
-than the rule**.
+This decides where the code goes. **The directory is the result, not the rule.**
 
-An operation is **node-targeted** when the work happens on a managed machine: it
-is addressed to a host, dispatched through the job system, and carried out by a
-provider on an agent. Those live under `internal/controller/api/node/{domain}/`.
+An operation is **node-targeted** when the work occurs on a managed machine. It
+goes to a host, through the job system, and a provider on an agent does it.
+These operations are under `internal/controller/api/node/{domain}/`.
 
-An operation is **controller-only** when the controller answers it itself. Those
-live directly under `internal/controller/api/{domain}/`.
+An operation is **controller-only** when the controller answers it itself. These
+operations are directly under `internal/controller/api/{domain}/`.
 
-A contributor who picks the directory first and reasons backwards gets this
-wrong.
+If a contributor selects the directory first and reasons from it, the result is
+incorrect.
 
 ## The request path
 
@@ -29,39 +28,39 @@ wrong.
 CLI → SDK → REST API → job client → NATS → agent → provider
 ```
 
-The provider runs on the agent, not the controller, so a handler has nothing to
-call: the work is on a different machine. Everything a domain owes the job
-system comes from that.
+The provider runs on the agent, not on the controller. Thus a handler has
+nothing to call: the work is on a different machine. Everything that a domain
+must give the job system comes from that.
 
 ## What the build order forces, and what is habit
 
-Some of the sequence is imposed by code generation. Stating the rest as a rule
-would freeze a preference.
+Code generation forces part of the order. A rule for the rest makes a preference
+permanent. Thus this page does not state one.
 
-**Forced by tooling:**
+**The tools force this order:**
 
-1. The OpenAPI specification precedes generation, because generation reads it.
-2. Generation precedes the handler, because the handler implements a generated
-   interface.
-3. The **combined** specification precedes the SDK client, because the SDK
-   generates from the combined file.
+1. The OpenAPI specification comes before generation, because generation reads
+   it.
+2. Generation comes before the handler, because the handler implements a
+   generated interface.
+3. The **combined** specification comes before the SDK client, because the SDK
+   is generated from the combined file.
 
-That third one has a consequence worth stating on its own.
-`internal/controller/api/gen/api.yaml` is assembled by `redocly join` from every
-domain's own `gen/api.yaml` inside `just generate`. **A domain absent from the
-combined file is invisible to the SDK however complete its own specification
-is**. It fails silently too, because nothing reports a domain that simply is not
-there.
+The third has an important result. `redocly join` makes
+`internal/controller/api/gen/api.yaml` from the `gen/api.yaml` of each domain,
+in `just generate`. **The SDK cannot see a domain that is not in the combined
+file, also if its own specification is complete.** This failure gives no signal,
+because nothing reports a domain that is not there.
 
-Everything else is convention. A new area of a host is now a
-[behavior](behaviors.md) rather than a hand-written domain, and osapi's
-`docs/docs/sidebar/development/your-first-behavior.md` builds one from scratch;
-this page stays for the domains that have not moved yet.
+The rest is convention. A new area of a host is now a [behavior](behaviors.md),
+not a hand-written domain.
+`docs/docs/sidebar/development/your-first-behavior.md` in osapi builds one from
+the start. This page stays for the domains that have not moved yet.
 
 ## Validation
 
 The OpenAPI specification is the source of truth for input validation. A tag
-goes in three places and does nothing in a fourth.
+goes in three locations, and does nothing in a fourth.
 
 | Where                                    | What                                |
 | ---------------------------------------- | ----------------------------------- |
@@ -70,37 +69,40 @@ goes in three places and does nothing in a fourth.
 | UUID path parameters                     | `format: uuid`                      |
 | path parameters                          | **nothing. No tags are generated.** |
 
-The last row is a property of the generator's configuration. `cfg.yaml` sets
-`strict-server: true`, which makes oapi-codegen produce an interface taking
-typed parameters rather than raw request objects, and in that mode it generates
-no validation tags on path parameters at all. So a path parameter needing
-validation beyond `format: uuid` is validated by hand in the handler. There is
-**no shared helper** for it: `validateHostname` is unexported and exists per
-domain, so a handler writes its own or calls into `internal/validation` where a
-registered validator fits.
+The last row comes from the configuration of the generator. `cfg.yaml` sets
+`strict-server: true`. With it, oapi-codegen makes an interface that takes typed
+parameters, not raw request objects. In that mode, it makes no validation tags
+on path parameters.
 
-A custom validation rule belongs in `internal/validation` with a hint in
-`customHints`, so a 400 tells the caller what shape was expected rather than
-naming a tag. `sysctl_key` and `cron_schedule` are the pattern.
+Thus the handler validates a path parameter by hand, when it needs more than
+`format: uuid`. There is **no shared helper** for it. `validateHostname` is
+unexported, and each domain has its own. Thus a handler writes its own check, or
+calls `internal/validation` where a registered validator fits.
+
+A custom validation rule goes in `internal/validation`, with a hint in
+`customHints`. Thus a 400 tells the caller what shape was expected, and does not
+only name a tag. `sysctl_key` and `cron_schedule` are the pattern.
 
 ## Verbs
 
-A mutable domain uses **separate verbs for create and update**.
+A domain that changes things uses **separate verbs for create and update**.
 
 - `POST` creates, with the name in the body.
-- `PUT /{name}` updates, taking the name from the path.
+- `PUT /{name}` updates, with the name from the path.
 
-A combined set or upsert endpoint is forbidden, and the reason is that it is
-what gives 404 a meaning. If one endpoint both creates and updates, a caller
-cannot find out that the thing they meant to change does not exist.
+A combined set or upsert endpoint is forbidden, because the split gives 404 a
+meaning. If one endpoint creates and updates, a caller cannot learn that the
+thing that it wanted to change does not exist.
 
 ## Design guidelines
 
-Endpoints group by functional domain under their own top-level prefix. Paths are
-resource-oriented, with sub-resources nested under their parent. An area
-expected to grow is split into its own category early rather than after it gets
-crowded. Everything targeting a managed machine sits under `/node/{hostname}`.
-Path parameters identify; query parameters filter.
+- Endpoints are in groups by functional domain, under their own top-level
+  prefix.
+- Paths are about resources. Sub-resources go under their parent.
+- If an area will become larger, split it into its own category early, not after
+  it becomes full.
+- Each endpoint that targets a managed machine is under `/node/{hostname}`.
+- Path parameters identify. Query parameters filter.
 
 `{hostname}` accepts a literal hostname, the reserved values `_any` and `_all`,
 or a `key:value` label selector. `IsBroadcastTarget` in
@@ -109,32 +111,36 @@ domain must not write its own target parser.
 
 ## Whether the driver is in the URL
 
-Most domains are implemented by some tool. `package` runs apt, `ntp` runs
-chrony, `container` runs Docker, `schedule` writes crontab entries. Whether that
-tool appears in the URL comes down to one question.
+A tool implements most domains. `package` runs apt, `ntp` runs chrony,
+`container` runs Docker, and `schedule` writes crontab entries. One question
+decides if the tool is in the URL.
 
-**Does the caller choose it, or does the host?**
+**Does the caller select it, or does the host?**
 
-A caller chooses a container runtime. Running Docker rather than Podman is a
-decision somebody made and wants to address directly, so the runtime is a path
-segment: `/container/docker`. Adding Podman adds `/container/podman` beside it,
-and both can exist on one host.
+A caller selects a container runtime. A person decided to run Docker and not
+Podman, and wants to address it directly. Thus the runtime is a path segment:
+`/container/docker`. Podman adds `/container/podman` next to it, and the two can
+exist on one host.
 
-A caller does not choose a package manager. The host already decided, and asking
-a fleet to install a package cannot mean knowing which of them run apt. So the
-tool is absent: `/package`, with the provider picking apt or anything else by OS
-family. `/ntp` is the same, with chrony behind it today and room for another
-driver later at the same entrypoint. `/schedule` likewise: cron now, possibly
-`at` later, and the caller should not have to care which.
+A caller does not select a package manager. The host already decided. A request
+to a fleet to install a package cannot depend on which hosts run apt. Thus the
+tool is not in the URL. The path is `/package`, and the provider selects apt or
+a different tool by OS family.
 
-Getting this backwards in either direction costs something real. A tool in the
-URL that the caller did not choose makes a fleet-wide call impossible. A tool
-missing from the URL that the caller did choose makes two runtimes on one host
-unaddressable.
+`/ntp` is the same. chrony is behind it now, and a different driver can use the
+same entry point later. `/schedule` is also the same. It uses cron now, and
+possibly `at` later. The caller does not need to know which.
+
+An error in either direction has a real cost:
+
+- If the URL has a tool that the caller did not select, a call to the full fleet
+  is not possible.
+- If the URL does not have a tool that the caller did select, the caller cannot
+  address two runtimes on one host.
 
 ## Each layer takes the name from the URL it serves
 
-Once the URL is settled, nothing below it invents a name.
+After you decide the URL, no layer below it invents a name.
 
 | Layer                 | Takes its name from | `/container/docker`      | `/network/dns`         |
 | --------------------- | ------------------- | ------------------------ | ---------------------- |
@@ -144,97 +150,95 @@ Once the URL is settled, nothing below it invents a name.
 | SDK service           | the last segment    | `client/docker.go`       | `client/dns.go`        |
 | CLI command           | the path            | `node container docker`  | `node network dns`     |
 
-The API layer is flat. A domain gets one directory named for the first segment,
-and the second segment is a filename prefix inside it rather than a
+The API layer is flat. A domain gets one directory with the name of the first
+segment. The second segment is a filename prefix in that directory, not a
 subdirectory.
 
-The provider tree is the exception, and deliberately. It nests by what
-implements a thing, so a second driver is a new directory beside the first
-rather than a scattering of files: `provider/container/docker` and, when it
-exists, `provider/container/podman`. That tree may therefore be deeper than the
-URL, which is how `provider/network/netplan/dns` serves `/network/dns`.
+The provider tree is the exception, and this is deliberate. It nests by what
+implements a thing. Thus a second driver is a new directory next to the first,
+not a set of files in many places: `provider/container/docker` and, when it
+exists, `provider/container/podman`. Thus that tree can be deeper than the URL.
+For example, `provider/network/netplan/dns` serves `/network/dns`.
 
 ## Broadcast is not optional
 
-Every operation under `/node/{hostname}/...` supports broadcast targeting, and
-**both paths return the same collection shape.** A single target returns one
-result; a broadcast returns as many as there are agents. Every result item
-carries `hostname` and `error`.
+Each operation under `/node/{hostname}/...` supports broadcast targets, and
+**the two paths return the same collection shape.** A single target returns one
+result. A broadcast returns one result for each agent. Each result item has
+`hostname` and `error`.
 
-So a caller writes one parser rather than two, and a partial failure is a row
-rather than an exception.
+Thus a caller writes one parser, not two. A partial failure is a row, not an
+exception.
 
 ## The job client needs nothing added
 
-`JobClient` has four generic methods: `Query`, `QueryBroadcast`, `Modify`,
-`ModifyBroadcast`. A new operation adds **none**, because a handler passes a
-category string and an operation constant rather than calling a per-operation
-method.
+`JobClient` has four generic methods: `Query`, `QueryBroadcast`, `Modify` and
+`ModifyBroadcast`. A new operation adds **none**. A handler gives a category
+string and an operation constant. It does not call a method for each operation.
 
 ## Wiring
 
-A domain package exports `Handler()`, returning route-registration closures, and
-wraps the handler in scope middleware itself. **The `Server` struct does not
-change.** Startup wiring is one appended line in `registerControllerHandlers` in
-`cmd/controller_setup.go`.
+A domain package exports `Handler()`, which returns route-registration closures.
+The package wraps the handler in scope middleware itself. **The `Server` struct
+does not change.** The startup wiring is one added line in
+`registerControllerHandlers` in `cmd/controller_setup.go`.
 
 On the agent side, two files connect a provider: a processor under
-`internal/agent/` and the registration in `cmd/agent_setup.go`. What does
-**not** change is `agent/types.go`, `agent/agent.go` and the `JobClient`
-interface, because the registry handles dispatch and facts wiring.
+`internal/agent/`, and the registration in `cmd/agent_setup.go`. These do
+**not** change: `agent/types.go`, `agent/agent.go` and the `JobClient`
+interface. The registry handles the dispatch and the facts.
 
 ## Permissions
 
-How to choose one is [permissions](permissions.md)' subject, in a sentence there
-about blast radius. What belongs here is the mechanics.
+[Permissions](permissions.md) tells how to select one, in one sentence about the
+possible damage. This page has the mechanics.
 
-A new one has to be added in four places, and [permissions](permissions.md) says
-what each omission costs. **A permission that exists in the specification and in
-no role reaches nobody**, and nothing reports it.
+You must add a new permission in four places. [Permissions](permissions.md)
+tells the cost if you forget each one. **If a permission is in the specification
+and in no role, nobody gets it**, and nothing reports it.
 
 ## One name, and it is the URL's
 
-A domain is called the same thing in its provider directory, its agent
-processor, its URL segment, its SDK service and its CLI command. The URL decides
-what that name is, because the URL is the one of those a consumer depends on and
-the only one that cannot be changed without a major version.
+A domain has the same name in its provider directory, its agent processor, its
+URL segment, its SDK service and its CLI command. The URL decides that name. A
+consumer depends on the URL, and you cannot change the URL without a major
+version.
 
 The name is the concept, never the tool that implements it. A container domain
-is `container` with a Docker implementation inside it, the way the NTP domain is
-`ntp` with a chrony implementation inside it. Naming the directory `docker` is a
-claim that stops being true the day a second runtime is supported, and renaming
-it then is the expensive version of this change.
+is `container`, with a Docker implementation in it. The NTP domain is `ntp`,
+with a chrony implementation in it. If you name the directory `docker`, the name
+becomes untrue when osapi supports a second runtime. A rename then is the
+expensive form of this change.
 
-Abbreviations are not names either. `memory`, not `mem`.
+Abbreviations are also not names. Use `memory`, not `mem`.
 
-Two shapes are allowed to break the one-to-one mapping, because they are real
-rather than accidental:
+Two shapes can break the one-to-one mapping, because they are real and not
+accidental:
 
-A provider may serve several URL segments when it gathers facts that are
-genuinely separate resources. The host provider answers `hostname`, `os` and
-`uptime`, and collapsing those into one endpoint would be worse.
+- A provider can serve more than one URL segment, when it collects facts that
+  are really separate resources. The host provider answers `hostname`, `os` and
+  `uptime`. One endpoint for all three is worse.
+- More than one provider can serve one URL segment, when they implement one
+  concept. The providers for interfaces, routes and reachability serve
+  `network`.
 
-A URL segment may be served by several providers when they are implementations
-of one concept. `network` is served by the providers for interfaces, routes and
-reachability.
-
-What is not allowed is the same concept carrying a different name in each layer,
-because the only check there is for cross-layer completeness is searching for a
-domain's name, and that check cannot work when the name changes on the way.
+The same concept with a different name in each layer is not permitted. The only
+check for completeness across layers is a search for the name of a domain. That
+check cannot work if the name changes between layers.
 
 ## What a domain's tests owe
 
-A rule that is declared and never exercised is a rule nobody knows is broken.
-The specification carries the validation tags, the generator turns them into
-struct tags, and `validation.Struct()` runs them. Nothing in that chain fails
-loudly if a tag is dropped, so the tests are what hold it.
+If nothing tests a declared rule, nobody knows when it breaks. The specification
+has the validation tags. The generator changes them into struct tags.
+`validation.Struct()` runs them. Nothing in that chain fails clearly if a tag is
+lost. Thus the tests must hold it.
 
-**Validation is proved to fire, not proved to exist.** Each endpoint gets a
-`TestXxxValidationHTTP` that sends a request through the full middleware stack
-with a field missing or malformed, asserts 400, and asserts the body names the
-rule that rejected it. Naming the rule is the part that matters: a test
-asserting only the status code passes just as happily when the handler rejects
-for some unrelated reason.
+**Prove that validation runs, not only that it exists.** Each endpoint gets a
+`TestXxxValidationHTTP`. It sends a request through the full middleware stack
+with a missing or malformed field. It asserts 400, and it asserts that the body
+names the rule that refused the request. The name of the rule is the important
+part. A test that asserts only the status code also passes when the handler
+refuses for a different reason.
 
 ```go
 name: "when missing key returns 400",
@@ -245,42 +249,49 @@ name: "when target agent not found",
     s.Contains(rec.Body.String(), "valid_target")
 ```
 
-**Permission is proved three ways.** `TestXxxRBACHTTP` per endpoint: no token is
-401, a token without the permission is 403, a token with it succeeds. The third
-case is what catches a permission that was spelled differently in the
-specification than in the table.
+**Prove the permission in three ways.** Each endpoint has a `TestXxxRBACHTTP`:
 
-**Every status the specification declares has a path through the tests.** A
-declared 404 nobody produces is either an undocumented behaviour or a lie in the
-specification, and both are worth finding.
+- no token gives 401
+- a token without the permission gives 403
+- a token with the permission succeeds
 
-**Broadcast returns the same shape for one host and for forty.** The collection
-is asserted in both directions, because the single-host case is the one that
-tends to get special-cased.
+The third case finds a permission with a different spelling in the specification
+and in the table.
 
-**The integration tier covers what unit tests cannot.** `cmd/` is excluded from
-the coverage gate, so the wiring from CLI flag to HTTP request to agent is only
-exercised by `test/integration/{domain}_test.go` against a real binary.
+**Each status that the specification declares has a path through the tests.** A
+declared 404 that nothing makes is an undocumented operation or an error in the
+specification. Both are worth finding.
 
-Measured in October 2026, the domains carry 75 validation suites and 80 RBAC
-suites between them, and 21 of 22 have an integration test. The exceptions are
-listed as gaps rather than tolerated.
+**A broadcast returns the same shape for one host and for forty.** Assert the
+collection in the two directions, because code often has a special case for a
+single host.
+
+**The integration tests cover what unit tests cannot.** The coverage gate does
+not include `cmd/`. Thus only `test/integration/{domain}_test.go`, against a
+real binary, runs the path from CLI flag to HTTP request to agent.
+
+A measurement in October 2026 found 75 validation suites and 80 RBAC suites in
+the domains. 21 of 22 domains have an integration test. The exceptions are on a
+list of gaps. They are not accepted.
 
 ## A domain is in every layer, or it is not done
 
-A domain is not one artifact. It is a provider, an agent processor and its
-registration, a spec and the code generated from it, a handler and its route, an
-SDK service, CLI commands, and the documentation pages and permission tables
-that name it.
+A domain is not one artifact. It has these parts:
 
-Missing one of those is not a smaller domain. It is a domain that works until
-somebody reaches it the way the missing layer would have been reached, and the
-gap shows up as a bug rather than as an absence.
+- a provider
+- an agent processor and its registration
+- a spec and the code generated from it
+- a handler and its route
+- an SDK service
+- CLI commands
+- the documentation pages and permission tables that name it
 
-The check is to pick a finished domain and search for its name across the
-repository, then run the same search for the new one. The two lists should have
-the same shape. A name that appears in eighty files and a name that appears in
-sixty is the answer.
+If one part is missing, the domain is not smaller. It works until somebody uses
+the missing layer. Then the gap shows as a bug, not as a missing part.
+
+To check, select a finished domain and search the repository for its name. Then
+do the same search for the new domain. The two lists must have the same shape. A
+name in eighty files and a name in sixty files is the answer.
 
 ```bash
 grep -rl 'sysctl\|Sysctl' --include='*.go' --include='*.yaml' --include='*.md' . \
@@ -289,14 +300,14 @@ grep -rl 'sysctl\|Sysctl' --include='*.go' --include='*.yaml' --include='*.md' .
 
 ## Where this connects
 
-What the provider you are adding must implement, and the three boundary rules it
-owes, is [providers](providers.md).
+[Providers](providers.md) tells what the new provider must implement, and the
+three boundary rules that it must obey.
 
-Delivery semantics, the two clocks and the four result statuses are
-[the job system](job-system.md).
+[The job system](job-system.md) has the delivery rules, the two clocks and the
+four result statuses.
 
-The generated client the combined specification also feeds is
-[the embedded UI](ui.md).
+[The embedded UI](ui.md) has the generated client that the combined
+specification also supplies.
 
 ______________________________________________________________________
 

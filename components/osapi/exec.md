@@ -1,8 +1,8 @@
 # Running commands
 
-Every command a provider runs goes through `internal/exec`. Nothing spawns a
-process directly, and the reason is not tidiness: two of osapi's security
-advisories were about how a command was constructed, and both fixes live here.
+Each command that a provider runs goes through `internal/exec`. No code starts a
+process directly. The reason is security, not order: two security advisories of
+osapi were about how a command was built, and the two fixes are here.
 
 ```go
 out, err := e.RunPrivilegedCmd(ctx, "sysctl", "-w", key+"="+value)
@@ -19,83 +19,88 @@ out, err := e.RunPrivilegedCmd(ctx, "sysctl", "-w", key+"="+value)
 | `RunPrivilegedCmdWithStdin` | a command needing root **and** a secret       |
 | `RunCmdImpl`                | not an entry point: what the five above call  |
 
-"Privileged" means sudo when sudo is enabled: the command becomes an argument to
-`sudo` rather than being invoked directly. When it is not enabled the command
-runs as whatever the agent runs as, so a provider cannot assume it has root by
-asking for it.
+"Privileged" means sudo, when sudo is on. The command becomes an argument to
+`sudo`. When sudo is off, the command runs as the user of the agent. Thus a
+provider does not get root only because it asks for root.
 
 ## Ten minutes is a ceiling, not a fallback
 
-This is the part most likely to be misunderstood, including by osapi's own
-documentation until it was checked.
+People misunderstand this part most often. The documentation of osapi also had
+it incorrect until somebody checked it.
 
-`run` wraps the caller's context unconditionally:
+`run` always wraps the context of the caller:
 
 ```go
 ctx, cancel := context.WithTimeout(ctx, DefaultCommandTimeout)
 ```
 
-`context.WithTimeout` derives from the context it is given, so the effective
-deadline is whichever comes first. A caller passing a shorter deadline gets the
-shorter one. **A caller wanting longer than ten minutes cannot have it**,
-because this line is on every path: `Execute` and `ExecuteWithStdin` both call
-`run`, and nothing else runs a process.
+`context.WithTimeout` comes from the context that it gets. Thus the deadline
+that comes first applies. A caller that gives a shorter deadline gets the
+shorter deadline. **A caller that wants more than ten minutes cannot get it**,
+because this line is on each path. `Execute` and `ExecuteWithStdin` both call
+`run`, and no other code runs a process.
 
-So `DefaultCommandTimeout` is not the backstop for a command that supplied no
-deadline. It is the maximum any command can be given. A long-running operation
-that legitimately needs twenty minutes will be killed at ten, and the caller's
-own deadline is the only thing that can make it shorter.
+Thus `DefaultCommandTimeout` is not the fallback for a command that gave no
+deadline. It is the maximum time for each command. If an operation really needs
+twenty minutes, osapi stops it at ten. Only the deadline of the caller can make
+the time shorter.
 
 `RunCmdFull` takes a timeout in seconds and applies its own
-`context.WithTimeout`, which then sits inside the ten-minute one. It can shorten
-and cannot lengthen.
+`context.WithTimeout`. That timeout is inside the ten-minute timeout. It can
+make the time shorter. It cannot make the time longer.
 
 ## A secret never reaches a command through its arguments
 
-Arguments are logged. `run` logs the command name and its arguments, and they
-are visible in the process table besides, so anything in them is public.
+osapi logs the arguments. `run` logs the command name and its arguments. The
+process table also shows them. Thus all of the arguments are public.
 
-`RunPrivilegedCmdWithStdin` exists for the case where a command needs a secret.
-The secret goes to the process's standard input, and **stdin is never logged.**
-The doc comment on `ExecuteWithStdin` says so, and `run` logs arguments and
-output and not stdin.
+`RunPrivilegedCmdWithStdin` is for a command that needs a secret. The secret
+goes to the standard input of the process, and **osapi never logs stdin.** The
+doc comment on `ExecuteWithStdin` says so. `run` logs the arguments and the
+output, but not stdin.
 
-A provider that needs to pass a password and reaches for `RunPrivilegedCmd` has
-put it in a log file. GHSA-6gc6-px2x-q95j is what that cost, and the stdin
-variant is the fix.
+If a provider gives a password to `RunPrivilegedCmd`, the password goes into a
+log file. GHSA-6gc6-px2x-q95j was the cost of that error. The stdin variant is
+the fix.
 
 ## A caller's value is never parsed as an option
 
-A value that begins with a dash and reaches a command unguarded becomes a flag.
-The provider is responsible for preventing that before it calls anything here,
-because this package passes arguments through.
+If a value starts with a dash and gets to a command without a guard, it becomes
+a flag. The provider must prevent that before it calls this package, because
+this package gives the arguments to the command without a change.
 
-This is the other advisory, GHSA-7fjw-v3g9-326g, and it is why
+This is the other advisory, GHSA-7fjw-v3g9-326g. Because of it,
 [providers](providers.md) states that validation on the request path does not
-discharge the provider's own. A value that was safe when it was stored arrives
-here later, and this package will not save it.
+replace the validation of the provider. A value that was safe when osapi stored
+it gets here later, and this package does not make it safe.
 
 ## Why a provider cannot go around it
 
-The executor is an interface, so a provider takes one rather than importing
-`os/exec`. That makes a provider testable without running anything, and it makes
-command construction reviewable in one place rather than in 224 provider files.
+The executor is an interface. Thus a provider gets an executor and does not
+import `os/exec`. You can then test a provider without a real command. You can
+also review how commands are built in one location, not in 224 provider files.
 
 ```sh
 find internal/provider -name '*.go' -not -name '*_test.go' | wc -l  # 224
 ```
 
-A provider that spawns a process directly loses the timeout ceiling, the
-argument logging, the stdin path for secrets, and its own testability, and
-nothing in the build will tell it.
+A provider that starts a process directly loses these things:
+
+- the timeout ceiling
+- the argument log
+- the stdin path for secrets
+- its own tests
+
+Nothing in the build tells the provider about the loss.
 
 ## Where this connects
 
-The rules a provider owes about arguments and secrets, and what the file
-deployer does instead of writing files directly, are [providers](providers.md).
+[Providers](providers.md) has the rules about arguments and secrets that a
+provider must obey. It also tells what the file deployer does in place of
+writing files directly.
 
-The clock a caller sees and how a command outliving it is reported are
-[the job system](job-system.md).
+[The job system](job-system.md) has the clock that a caller sees, and how osapi
+reports a command that runs longer than it.
 
 ______________________________________________________________________
 

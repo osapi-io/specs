@@ -14,11 +14,10 @@ combined spec as the server, so `just generate` covers it.
 | JSON tags, wrapped errors, one service per file | [the rest of the conventions](../../../../components/osapi/sdk.md#the-rest-of-the-conventions) |
 | A domain appears everywhere an existing domain appears | [every layer, or not done](../../../../components/osapi/domains.md#a-domain-is-in-every-layer-or-it-is-not-done) |
 
-There is no cross-repository SDK standard. The conventions in the corpus and
-below are what binds, because they are what can be checked against
-`pkg/sdk/client/`. If a shared standard with `osapi-orchestrator` is wanted it is
-a feature of its own, and inventing one inside a reference file is how a rule
-comes to exist that nobody agreed.
+There is no SDK standard across repositories. The conventions in the corpus and
+below apply, because you can check them against `pkg/sdk/client/`. If somebody
+wants a shared standard with `osapi-orchestrator`, that is a separate feature.
+If you invent one in a reference file, you make a rule that nobody agreed to.
 
 ## Files, one service per domain
 
@@ -75,14 +74,14 @@ type HostnameResult struct {
 ```
 
 `omitempty` on pointers, optional slices and maps, error strings and optional
-strings. Not on `Changed`, and not on a required field: a mutation result must
-say `"changed": false` rather than omitting it.
+strings. Not on `Changed`, and not on a required field. A mutation result must
+say `"changed": false`. It must not leave it out.
 
 `Changed` travels provider to agent to API to SDK. Breaking the chain anywhere
 makes every layer above it lie.
 
-Multi-target operations return `Collection[T]`, holding `Results` and `JobID`.
-Use `Collection.First()` rather than indexing.
+Operations with more than one target return `Collection[T]`, which has `Results`
+and `JobID`. Use `Collection.First()`. Do not use an index.
 
 ## Responses and errors
 
@@ -105,9 +104,9 @@ if resp.JSON200 == nil {
 }
 ```
 
-Every status the spec declares gets a branch. Wrap with context at the boundary
-so `errors.Is` and `errors.As` still work above it, and guard the nil body after
-`checkError`: a 200 with no body is reachable.
+Each status that the spec declares gets a branch. Wrap with context at the
+boundary, so that `errors.Is` and `errors.As` still work above it. Guard the nil
+body after `checkError`, because a 200 with no body can occur.
 
 ## Examples
 
@@ -115,16 +114,16 @@ One file per service in `examples/sdk/client/`, named for the `Client` field in
 lowercase.
 
 - One service per file, nothing mixed in.
-- Self-contained: read-only examples call and print; mutating examples clean up
-  first so they can run twice.
+- Complete alone: read-only examples call and print. Examples that change things
+  remove their old results first, so that they can run two times.
 - Print at least one result, so the example is not silent.
-- Under about 100 lines excluding the licence header.
-- `log.Fatalf` for unexpected errors; for an operation that may be unsupported
-  on the host, print the message rather than crashing.
+- Approximately 100 lines or less, without the licence header.
+- `log.Fatalf` for unexpected errors. For an operation that the host may not
+  support, print the message. Do not crash.
 - Never import `gen`.
 
-`examples/` holds its own module, so a new example means `just go-mod` and
-committing the tidy result, which `just test` checks.
+`examples/` has its own module. Thus a new example needs `just go-mod`, and a
+commit of the tidy result. `just test` checks it.
 
 ## Tests
 
@@ -132,4 +131,4 @@ committing the tidy result, which `just test` checks.
 - Every declared status path: 200, 400, 401, 403, 404, 500.
 - The nil-body path and a transport error against an unreachable server.
 - Every optional field branch in request conversion.
-- 100% coverage on SDK packages, excluding `gen/`.
+- 100% coverage on SDK packages, without `gen/`.

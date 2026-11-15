@@ -1,18 +1,18 @@
 # release
 
-Answers "does this repository need a tag, which number, and will the tag actually
-produce a release?" so cutting one is a prompt rather than a guess that publishes
-something you cannot withdraw.
+Answers "does this repository need a tag, which number, and will the tag really
+make a release?". Thus a release needs one prompt, not a guess that publishes
+something that you cannot remove.
 
-A release here is one thing: a git tag. GoReleaser watches for `v*`, builds
-whatever the repository builds, writes the changelog, and creates the GitHub
-release. The skill covers deciding and checking, not running anything by hand.
+A release here is one thing: a git tag. GoReleaser watches for `v*`. It builds
+what the repository builds, writes the changelog, and makes the GitHub release.
+The skill covers the decisions and the checks. It does not run anything by hand.
 
 ## Install
 
-Nothing to install. The skill lives in this repository and any skills-aware agent
-working from the repository root finds it. It needs the [gh] CLI authenticated
-against [osapi-io] and a checkout of whatever is being released.
+You install nothing. The skill is in this repository. Each agent that reads
+skills finds it when it works from the repository root. It needs the [gh] CLI,
+authenticated against [osapi-io], and a checkout of the repository to release.
 
 ## Usage
 
@@ -27,26 +27,30 @@ Ask in plain language, or invoke it directly with `/release`.
 
 ## What it does
 
-Five steps: work out whether a tag is needed at all, pick the number by reading
-what landed, check the workflow can authenticate, push the tag, and confirm the
-version reached the Go module proxy.
+There are five steps:
+
+1. Find if a tag is necessary.
+1. Select the number. Read what merged to decide.
+1. Check that the workflow can authenticate.
+1. Push the tag.
+1. Confirm that the version got to the Go module proxy.
 
 ## What it is for
 
 Four traps, three of which this organization hit in one afternoon.
 
-A valid tag is not a current one. gohai had a good `v1.0.0` and eighty-one
-commits sitting behind it, and the tag list looks healthy in exactly that case.
+A valid tag is not always current. gohai had a good `v1.0.0`, and eighty-one
+commits after it. In that case, the tag list looks correct.
 
-Go requires three-part versions. `v1.0` is not one, so nats-client and
-nats-server served pseudo-versions while appearing released.
+Go requires versions with three parts. `v1.0` is not one. Thus nats-client and
+nats-server served pseudo-versions, but looked released.
 
-A tag that fires a workflow which cannot authenticate leaves a tag with no
-release, and the tag is the half that cannot be taken back.
+If a tag starts a workflow that cannot authenticate, the result is a tag with no
+release. Nobody can take back the tag.
 
-A version the module proxy has fetched is in `sum.golang.org` permanently.
-Moving that tag makes `go get` report a checksum mismatch, which Go treats as
-tampering rather than as a mistake.
+A version that the module proxy got is in `sum.golang.org` permanently. If you
+move that tag, `go get` reports a checksum mismatch. Go treats that as
+tampering, not as an error.
 
 The version rule is to read what landed rather than count it. Seven `feat:`
 commits that add exported functions are a minor release; two that add a justfile

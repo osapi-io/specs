@@ -13,9 +13,9 @@ while read -r r; do
 done
 ```
 
-Dependabot's author login is `app/dependabot`. That is how you tell a version
-bump from a human PR, and it is the split behind "any of my PRs" versus "any
-Dependabot PRs". Renovate, if it ever runs here, is `app/renovate`.
+The author login of Dependabot is `app/dependabot`. With it, you tell a version
+bump from a human PR. It is the split between "any of my PRs" and "any
+Dependabot PRs". If Renovate runs here, it is `app/renovate`.
 
 ## Filtering
 
@@ -35,14 +35,15 @@ gh pr list --repo "osapi-io/$r" --state open \
 
 ## Fields worth reporting
 
-- `isDraft`, a draft is not waiting on review. Say so rather than counting it
-  as pending.
+- `isDraft`: a draft does not wait for review. Say so. Do not count it as
+  pending.
 - `mergeable`: `CONFLICTING` means it needs a rebase before anything else.
-  `UNKNOWN` means GitHub is still computing it, so re-query rather than
-  reporting it as a problem.
-- `reviewDecision`, empty string means no review has been requested or given.
+  `UNKNOWN` means that GitHub still calculates it. Query again. Do not report it
+  as a problem.
+- `reviewDecision`: an empty string means that nobody asked for or gave a
+  review.
   `APPROVED` means it is ready to merge.
-- `createdAt`, sort oldest first. Age is the signal.
+- `createdAt`: sort the oldest first. Age is the signal.
 
 ## Checks on a PR
 
@@ -50,20 +51,20 @@ gh pr list --repo "osapi-io/$r" --state open \
 gh pr checks <number> --repo "osapi-io/$r"
 ```
 
-Exit status is non-zero when any check fails, which is useful in a loop. Only
-report a PR as failing when a check has actually concluded; a pending check is
-not a failure.
+The exit status is not zero when any check fails. This is useful in a loop.
+Report a PR as failed only when a check really completed. A pending check is not
+a failure.
 
 ## Before calling one ready
 
-A green PR is not a safe one. Vet each with [vetting.md](vetting.md) and
-report its verdict, Dependabot's included.
+A green PR is not always safe. Vet each one with [vetting.md](vetting.md), and
+report its verdict, also for Dependabot PRs.
 
 ## What not to do
 
-`gh search prs --owner osapi-io` answers in one call instead of one per
-repository, which is tempting. It reads GitHub's search index rather than the
-repositories, and that index updates on its own schedule, so a PR opened a
-moment ago may not appear. Use it only when the user wants a rough cross-org
-count and says timeliness does not matter. Otherwise loop `gh pr list`, which
-reads live state.
+`gh search prs --owner osapi-io` answers in one call, not one call for each
+repository. That is attractive. But it reads the search index of GitHub, not the
+repositories. That index updates on its own schedule. Thus a PR that somebody
+opened a short time ago may not show. Use it only when the user wants an
+approximate count for the org, and says that the time is not important.
+Otherwise, run `gh pr list` in a loop. It reads the live state.

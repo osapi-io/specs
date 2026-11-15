@@ -1,17 +1,17 @@
 # add-a-domain
 
-Answers "what does a new osapi domain have to touch, and in what order?" so
-adding one is a prompt rather than an afternoon of grepping a sibling domain.
+Answers "what must a new osapi domain touch, and in what order?". Thus a new
+domain needs one prompt, not an afternoon of searches in a sibling domain.
 
-A domain is a provider plus everything that has to exist for it to be reachable:
-agent wiring, an OpenAPI spec, a handler, an SDK service, CLI commands, docs and
-permission tables. In September 2026 one domain spanned 81 files.
+A domain is a provider, and each part that must exist so that callers can get to
+it: the agent wiring, an OpenAPI spec, a handler, an SDK service, CLI commands,
+docs and permission tables. In September 2026, one domain had 81 files.
 
 ## Install
 
-Nothing to install. The skill lives in this repository and any skills-aware
-agent working from the repository root finds it. The commands it runs need an
-[osapi] checkout with [mise] and [just] available.
+You install nothing. The skill is in this repository. Each agent that reads
+skills finds it when it works from the repository root. The commands that it
+runs need an [osapi] checkout, with [mise] and [just].
 
 ## Usage
 
@@ -30,18 +30,18 @@ Ask in plain language, or invoke it directly with `/add-a-domain`.
 
 ## How it works
 
-The reference domain comes from the codebase on every run, never from a list
-here: one `grep -rl` for an existing domain is the specification for the new
-one. A written inventory is right the day it is written and wrong after the next
-layer is added.
+The reference domain comes from the codebase on each run, never from a list
+here. One `grep -rl` for an existing domain is the specification for the new
+one. A written inventory is correct on the day that somebody writes it. It is
+incorrect after somebody adds the next layer.
 
 `SKILL.md` routes, and holds the two things every route needs: the dependency
 order that avoids rework, and the cross-layer checklist. One reference file
 loads for the layer you asked about, and nothing else enters context.
 
-The layer order is not a style preference. The OpenAPI spec generates the
-server, the combined spec and the SDK client together, so writing a handler
-before the spec means writing it twice.
+The layer order is not a preference. The OpenAPI spec generates the server, the
+combined spec and the SDK client together. Thus if you write a handler before
+the spec, you write it two times.
 
 ## Documentation
 
@@ -59,8 +59,9 @@ Format details are in the [Agent Skills specification].
 
 ## Citing the corpus instead of restating it
 
-A rule that the corpus states is cited here, never repeated. The citation is a
-table row naming the requirement, not a sentence pointing at a document:
+This skill cites a rule that the corpus states. It never repeats it. The
+citation is a table row that names the requirement, not a sentence that points
+to a document:
 
 | Rule | Stated in |
 | --- | --- |
@@ -68,32 +69,32 @@ table row naming the requirement, not a sentence pointing at a document:
 
 Three things make that a citation rather than a link:
 
-- **It is relative.** A relative link breaks visibly when the target moves. An
-  absolute URL to the same file goes on resolving to a page that no longer says
-  what the row claims.
-- **It names the section.** "See the provider contract" is a pointer; a link to
-  the heading tells a reader whether what they are looking for is there.
-- **It does not restate the rule.** The row names the rule and where it lives.
-  Two statements of one rule is what citing exists to prevent, because the copy
-  an agent happens to load wins.
+- **It is relative.** A relative link breaks clearly when the target moves. An
+  absolute URL to the same file continues to open a page that does not say what
+  the row claims now.
+- **It names the section.** "See the provider contract" is only a pointer. A
+  link to the heading tells a reader if the information is there.
+- **It does not state the rule again.** The row names the rule and its location.
+  Citations exist to prevent two statements of one rule. With two statements,
+  the copy that an agent loads first is the one that applies.
 
-`references/provider.md` is the worked example: citing the contract rather than
-restating it cut it from 171 lines to 127.
+`references/provider.md` is the example. A citation of the contract, not a copy,
+made it shorter: 127 lines, not 171.
 
 ## Contributing
 
-See the [Contributing](../../../CONTRIBUTING.md) guide. Run `just skill-lint`
-after editing, and keep `SKILL.md` a router: how to build one layer belongs in a
-reference file, which loads only when that layer is the question.
+Refer to the [Contributing](../../../CONTRIBUTING.md) guide. Keep `SKILL.md` a
+router. How to build one layer goes in a reference file, which loads only when
+the question is about that layer.
 
-This skill describes a codebase that moves. When a step no longer matches
-[osapi], correct the skill in its own change before continuing the work that
-found it, so the next run does not hit the same wall.
+This skill describes a codebase that changes. When a step does not match [osapi]
+now, correct the skill in its own change. Do that before you continue the work
+that found the difference. Then the next run does not hit the same problem.
 
-Do not run mdformat over this directory. `just md-fmt` already excludes
-`.claude/**`, because mdformat reads the opening `---` as a horizontal rule and
-collapses YAML frontmatter into a heading, which makes a skill silently
-undiscoverable.
+Do not run mdformat on this directory. `just md-fmt` already excludes
+`.claude/**`. mdformat reads the first `---` as a horizontal rule, and changes
+the YAML frontmatter into a heading. Then agents cannot find the skill, and
+nothing reports it.
 
 ## License
 

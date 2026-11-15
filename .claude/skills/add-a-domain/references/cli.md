@@ -46,9 +46,9 @@ case http.StatusUnauthorized, http.StatusForbidden:
 
 A code the spec declares and the switch omits becomes a silent success.
 
-A result row carries the hostname and, where the operation mutates, whether it
-changed. Follow the reference domain's column choice rather than inventing one:
-operators read these side by side.
+A result row has the hostname. When the operation changes something, it also
+tells if it changed. Use the columns of the reference domain. Do not invent new
+ones, because operators compare these outputs.
 
 ## Three rules the corpus does not yet hold
 
@@ -56,10 +56,10 @@ Stated here because they are real and nothing else states them, not the corpus,
 not osapi's `CONTRIBUTING.md`. Recorded as unstated rather than left to be
 discovered.
 
-**A command whose remote work failed exits non-zero.** For `command exec` and
-`command shell` the exit code is the remote command's, through
-`cli.MaxExitCode(results)`, and it must be applied on every output path including
-`--json` and the default table. Scripts branch on this.
+**A command whose remote work failed exits with a value that is not zero.** For
+`command exec` and `command shell`, the exit code is the code of the remote
+command, through `cli.MaxExitCode(results)`. Apply it on each output path, also
+`--json` and the default table. Scripts use it to decide.
 
 **`cmd/` is the only place that may call `os.Exit`**, and only at the top of a
 command. Below that, return an error. Nothing panics.
@@ -69,16 +69,18 @@ broken once and invisible to tests that read only stdout.
 
 ## Tests
 
-`cmd/` is excluded from the coverage gate by `.coverignore`, so unit tests are not
+`cmd/` is excluded from the coverage gate by `.coverignore`, so unit tests are
+not
 required there, which makes the integration suite the check:
 
 ```
 test/integration/{domain}_test.go
 ```
 
-Build-tagged `integration`, it starts a real binary and exercises the commands end
-to end. Guard every mutating test with `skipWrite(s.T())`, so CI runs read-only by
-default and `OSAPI_INTEGRATION_WRITES=1` enables the rest.
+It has the build tag `integration`. It starts a real binary and runs the
+commands from start to end. Guard each test that changes things with
+`skipWrite(s.T())`. Thus CI runs only reads by default, and
+`OSAPI_INTEGRATION_WRITES=1` enables the others.
 
 ```bash
 mise exec -- just go-unit-int

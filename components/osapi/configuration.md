@@ -1,7 +1,8 @@
 # Configuration
 
-One config file, one struct, resolved once at startup and validated before
-anything runs. `internal/config` holds the shape; `cmd/root.go` resolves it.
+There is one config file and one struct. osapi resolves the config one time, at
+startup, and validates it before anything runs. `internal/config` has the shape.
+`cmd/root.go` resolves it.
 
 ```yaml
 controller:
@@ -20,30 +21,32 @@ nats:
 
 ## Where a value comes from
 
-Viper, with four sources. Later beats earlier:
+Viper reads four sources. A later source replaces an earlier source:
 
-1. the defaults, `config.Defaults` in `internal/config/keys.go`, and the field
-   values of each behavior's declared settings
-2. the config file, YAML, found by the `--osapi-file` flag
+1. the defaults: `config.Defaults` in `internal/config/keys.go`, and the field
+   values of the settings that each behavior declares
+2. the config file, in YAML, at the path that the `--osapi-file` flag gives
 3. the environment
-4. a flag bound to the key, such as `controller --port`
+4. a flag that is bound to the key, for example `controller --port`
 
-An environment variable is the config path with `OSAPI_` in front and dots
-replaced by underscores, so `controller.api.port` is
-`OSAPI_CONTROLLER_API_PORT`. `config.Read` binds every key to its variable.
-Before it did, `AutomaticEnv` reached only keys viper already knew from a
-default or the file, so a variable for any other key was silently ignored.
+The name of an environment variable is the config path with `OSAPI_` at the
+start. Underscores replace the dots. Thus `controller.api.port` is
+`OSAPI_CONTROLLER_API_PORT`. `config.Read` binds each key to its variable.
 
-`config.Defaults` names keys of the config struct, and a test fails on one that
-is not. Two sets of defaults in `cmd/root.go` were set on
-`controller.api.nats.*` and `nats.api.*`, keys that do not exist, and never
-applied until they moved.
+Before that change, `AutomaticEnv` read only the keys that viper already knew
+from a default or from the file. Thus viper ignored a variable for each other
+key, and nothing reported it.
+
+`config.Defaults` names keys of the config struct. A test fails on a name that
+is not a key. Two sets of defaults in `cmd/root.go` used `controller.api.nats.*`
+and `nats.api.*`. These keys do not exist, so the defaults did not apply until
+somebody moved them.
 
 ## The binary describes its own settings
 
-`config.Keys` walks the config struct's `mapstructure` tags, so the list of
-settings is the code rather than a page about it. Every field carries a `doc`
-tag, and a test fails on one without.
+`config.Keys` reads the `mapstructure` tags of the config struct. Thus the code
+is the list of settings, not a page about it. Each field has a `doc` tag, and a
+test fails on a field without one.
 
 ```sh
 osapi config list                           # every key: value, source, env var
@@ -52,16 +55,18 @@ osapi config get --key controller.api.port  # one key in full
 osapi config validate                       # the checks start runs, starting nothing
 ```
 
-`list` and `get` read the config the way `start` does but skip the checks, and
-work without a file, so they can show what is wrong. Each value's source is
-`env`, `file`, `default` or `unset`. A field tagged `mask:"password"` prints as
-`********`. The site's configuration page points at these commands rather than
-listing the keys, because the list it carried had drifted: its sample YAML
-nested NATS settings where osapi never reads them.
+`list` and `get` read the config as `start` does, but they do not run the
+checks. They also work without a file. Thus they can show what is incorrect. The
+source of each value is `env`, `file`, `default` or `unset`. A field with the
+tag `mask:"password"` prints as `********`.
+
+The configuration page of the site points to these commands. It does not list
+the keys, because its old list was incorrect. Its sample YAML put NATS settings
+in a location that osapi never reads.
 
 ## The shape
 
-Four top-level sections and a flag.
+There are four top-level sections, a flag and the behavior settings.
 
 | Section      | For                                              |
 | ------------ | ------------------------------------------------ |
@@ -73,26 +78,26 @@ Four top-level sections and a flag.
 | `behaviors`  | each behavior's own settings, under its name     |
 
 `behaviors` is not in the config struct. Each behavior declares its settings
-beside its definition, and they join the registry under `behaviors.<name>`;
-[behaviors](behaviors.md#settings-a-behavior-declares) has how.
+next to its definition. They join the registry under `behaviors.<name>`.
+[Behaviors](behaviors.md#settings-a-behavior-declares) tells how.
 
-`agent` is `omitempty`, because a controller-only deployment does not need it.
-The same binary reads the same file and takes the half it needs.
+`agent` is `omitempty`, because a deployment with only a controller does not
+need it. The same binary reads the same file and uses the half that it needs.
 
 ## Validation happens before the process starts
 
-`config.Validate` runs the struct through the shared validator, and the
-validator registers osapi's own rules first. So a bad value fails at startup
-with a message naming the field rather than at the moment the value is first
-used.
+`config.Validate` gives the struct to the shared validator. The validator
+registers the rules of osapi first. Thus an incorrect value fails at startup,
+with a message that names the field. It does not fail later, when osapi first
+uses the value.
 
-That is the same validator [building a domain](domains.md) describes for request
-input, which is why a custom rule registered for one is available to the other.
+[Building a domain](domains.md) describes the same validator for request input.
+Thus a custom rule that you register for one is also available to the other.
 
 ## Secrets are masked before the config is logged
 
-The controller logs its whole resolved config at startup, which would otherwise
-put every password in the log.
+At startup, the controller logs all of its resolved config. Without masks, the
+log gets each password.
 
 Struct tags mark what must not appear:
 
@@ -101,25 +106,25 @@ Controller Controller `mapstructure:"controller" mask:"struct"`
 Password   string     `mapstructure:"password"   mask:"password"`
 ```
 
-`cmd/controller.go` runs the config through go-masker in `PersistentPreRun`
-before logging it, so the tags are read rather than decorative. Seven fields
-carry one.
+`cmd/controller.go` gives the config to go-masker in `PersistentPreRun`, before
+it logs the config. Thus the code reads the tags. They are not decoration. Seven
+fields have a mask tag.
 
 **The agent does not mask, because it does not log the struct.** It logs named
-fields instead, host, port and client name, and never a password. Two different
-approaches to the same problem, and the agent's only stays safe as long as
-nobody adds a secret to the list of fields it names.
+fields: host, port and client name. It never logs a password. These are two
+different solutions to the same problem. The solution of the agent stays safe
+only while nobody adds a secret to the list of fields that it logs.
 
 ## Where this connects
 
-The two clocks a job runs under, both configured here, are
-[the job system](job-system.md).
+[The job system](job-system.md) has the two clocks of a job. You configure the
+two here.
 
-`controller.ui.enabled`, the one setting an operator has over the dashboard, is
-[the embedded UI](ui.md).
+[The embedded UI](ui.md) has `controller.ui.enabled`, the only dashboard setting
+that an operator changes.
 
-The PKI switches that let enforcement be staged across a live fleet are
-[agent identity](agent-identity.md).
+[Agent identity](agent-identity.md) has the PKI switches. With them, you can
+enable enforcement in stages on a live fleet.
 
 ______________________________________________________________________
 

@@ -9,14 +9,12 @@ CLI -> SDK -> REST API -> job client -> NATS -> agent -> provider
 
 ## The contract is in the corpus, not here
 
-Every rule a provider obeys is stated in
-[001-provider-contract](../../../../components/osapi/providers.md).
-Read it before writing one. This file holds only what that specification does
-not: where the files go, what they are called, and the scaffolding to start
-from.
+[Providers](../../../../components/osapi/providers.md) states each rule that a
+provider obeys. Read it before you write one. This file has only what that page
+does not have: where the files go, their names, and the scaffold to start from.
 
-That split is deliberate. A rule restated here would drift from the one in the
-corpus, and the copy an agent happened to load would win.
+That split is deliberate. A second statement of a rule here becomes different
+from the rule in the corpus. Then the copy that an agent loads first applies.
 
 | What you need to know | Where |
 | --- | --- |
@@ -35,8 +33,8 @@ corpus, and the copy an agent happened to load would win.
 | What a provider does not touch | [what it does not touch](../../../../components/osapi/providers.md#what-a-provider-does-not-touch) |
 | The testing obligations that belong to the provider | [what its tests owe](../../../../components/osapi/providers.md#what-its-tests-owe) |
 
-Read the reference domain's provider package alongside it. The specification
-says what must hold; an existing domain shows it holding.
+Read the provider package of the reference domain together with it. The
+specification says what must be true. An existing domain shows it in use.
 
 ## Files
 
@@ -65,14 +63,16 @@ uncategorized ones directly under `internal/provider/{domain}/`.
 | `Linux`        | `NewLinuxProvider()`         | `linux.go`                     |
 | `Client`       | `New()`, `NewWithClient(c)`  | `{domain}.go`                  |
 
-`DebianDocker` either embeds `Debian`, delegating reads and overriding writes,
-or stands alone. `node/host` embeds and blocks `UpdateHostname`; `network/dns`
-stands alone and reads `/etc/resolv.conf` directly.
+`DebianDocker` embeds `Debian`, uses its reads and replaces its writes. Or it is
+independent. `node/host` embeds and blocks `UpdateHostname`. `network/dns` is
+independent, and reads `/etc/resolv.conf` directly.
 
 ## Scaffolding
 
 The shapes to start from. What they have to satisfy is
-[what an operation returns](../../../../components/osapi/providers.md#what-an-operation-returns) and
+[what an operation
+returns](../../../../components/osapi/providers.md#what-an-operation-returns)
+and
 [facts](../../../../components/osapi/providers.md#facts).
 
 ```go
@@ -122,7 +122,8 @@ type Deployer interface {
 internal/provider/{category}/{domain}/mocks/generate.go
 ```
 
-One `//go:generate go tool go.uber.org/mock/mockgen` directive per interface the
-domain defines, output committed. Never hand-write a double for an interface this
-organization defines: `just generate` regenerates them, and a hand-written one
-silently stops matching the interface it stands in for.
+Use one `//go:generate go tool go.uber.org/mock/mockgen` directive for each
+interface that the domain defines, and commit the output. Never write a double
+by hand for an interface that this organization defines. `just generate` makes
+them again. A double written by hand stops matching its interface, and nothing
+reports it.

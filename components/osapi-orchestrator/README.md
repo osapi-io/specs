@@ -1,9 +1,9 @@
 # osapi-orchestrator
 
-`osapi-orchestrator` describes ordered work across a fleet and runs it. It is a
-Go library over [osapi](../osapi/README.md)'s SDK, one package at
-`pkg/orchestrator`, no binary. A consumer imports it, describes what should
-happen, and calls `Run`.
+`osapi-orchestrator` describes ordered work across a fleet, and runs it. It is a
+Go library over the SDK of [osapi](../osapi/README.md). It has one package at
+`pkg/orchestrator`, and no binary. A consumer imports it, describes what must
+occur, and calls `Run`.
 
 ```go
 o := orchestrator.New(client)
@@ -15,38 +15,37 @@ o.HealthCheck().After("install").When(orchestrator.OS("debian"))
 result, err := o.Run(ctx)
 ```
 
-Every operation returns a `*Step`. Guards and ordering attach to the step, so
-the same vocabulary works on all 101 of them.
+Each operation returns a `*Step`. Guards and order attach to the step. Thus the
+same vocabulary works on all 101 operations.
 
 ## What it adds over calling the SDK directly
 
-Four things, and if the wrapping did not add them the library would have no
-reason to exist.
+It adds four things. Without them, the library has no reason to exist.
 
-**Ordering.** `After` declares that one step follows another, so the engine
-sequences from the declaration rather than from the order a consumer wrote the
-calls.
+**Order.** `After` declares that one step comes after a different step. Thus the
+engine uses the declaration for the order, not the order of the calls in the
+code.
 
-**Conditional execution.** A step can depend on what earlier work did, or on
-what a host is. Those are different questions and have different vocabularies,
+**Conditional execution.** A step can depend on the result of earlier work, or
+on what a host is. These are different questions with different vocabularies,
 below.
 
-**Retry.** `Retry` on a step, rather than a loop in the consumer.
+**Retry.** Put `Retry` on a step. The consumer does not need a loop.
 
-**Multi-host result handling.** One step targeting twenty machines returns
-twenty results, each of which succeeded, failed, changed or was skipped
+**Results from many hosts.** One step that targets twenty machines returns
+twenty results. Each one succeeded, failed, changed or was skipped
 independently.
 
 ## Guards ask what happened; predicates ask what a host is
 
-Two kinds of condition, split by what each one inspects. Mixing them up is the
-usual mistake.
+There are two kinds of condition. What each one examines separates them. People
+often confuse the two.
 
-Note the code and `docs/features/guards.md` both call all ten of these "guards".
-This page splits them because the two kinds fail differently, not because the
-code does.
+The code and `docs/features/guards.md` call all of these "guards". This page
+separates them because the two kinds fail in different ways. The code does not
+separate them.
 
-**Guards** look at earlier work. Eight of them:
+**Guards** examine earlier work. There are eight:
 
 ```
 OnlyIfChanged          OnlyIfFailed
@@ -55,15 +54,17 @@ OnlyIfAnyHostSkipped   OnlyIfAllHostsFailed
 OnlyIfAnyHostChanged   OnlyIfAllHostsChanged
 ```
 
-The per-host variants exist because a step spanning twenty machines has twenty
-outcomes, and "any host failed" and "all hosts failed" want different follow-up.
-A host counts as failed when its `Status` is `failed`, or when it has an `Error`
-and its `Status` is not `skipped` (`pkg/orchestrator/step.go`). A skipped host
-with an error is not a failure, so `OnlyIfAnyHostFailed` does not fire for it.
+The variants for each host exist because a step on twenty machines has twenty
+results. "Any host failed" and "all hosts failed" need different next steps.
 
-**Host predicates** look at the machine. Ten of them, reaching a step through
-`When` and `WhenFact`, the two methods the code counts as guards and this
-distinction does not:
+A host failed when its `Status` is `failed`. It also failed when it has an
+`Error` and its `Status` is not `skipped` (`pkg/orchestrator/step.go`). A
+skipped host with an error is not a failure. Thus `OnlyIfAnyHostFailed` does not
+start for it.
+
+**Host predicates** examine the machine. There are ten. They get to a step
+through `When` and `WhenFact`. The code counts these two methods as guards. This
+page does not.
 
 ```
 OS      Arch          MinMemory    MinCPU      HasLabel
@@ -77,68 +78,69 @@ grep -cE '^func \(s \*Step\) [A-Z]' pkg/orchestrator/step.go    # 15 methods on 
 grep -cE '^func [A-Z][A-Za-z]*\(' pkg/orchestrator/predicate.go  # 10 predicates
 ```
 
-`MatchAll` combines them. `FactEquals` reads a fact the agent gathered, which is
-what lets a step depend on something osapi discovered rather than something the
-consumer already knew.
+`MatchAll` joins predicates. `FactEquals` reads a fact that the agent collected.
+Thus a step can depend on something that osapi found, not only on something that
+the consumer already knew.
 
 ## The rest of the step vocabulary
 
-`Named` gives a step an identity for `After` to refer to. `Retry` sets attempts.
-`OnError` and `ContinueOnError` decide whether a failure stops the plan or is
-recorded and passed. Fifteen methods on `Step` in total.
+`Named` gives a step an identity, so that `After` can refer to it. `Retry` sets
+the attempts. `OnError` and `ContinueOnError` decide if a failure stops the
+plan, or if the engine records it and continues. `Step` has fifteen methods.
 
 ## Two layers, and a plan between them
 
-`pkg/orchestrator` is the vocabulary a consumer writes in. `internal/engine`
-executes. The boundary is a plan: the public package builds one, the engine runs
-it.
+`pkg/orchestrator` is the vocabulary that a consumer writes in.
+`internal/engine` runs the work. A plan is the boundary: the public package
+makes a plan, and the engine runs it.
 
 ```
 pkg/orchestrator/     ops.go, step.go, predicate.go, result.go, orchestrator.go, …
 internal/engine/      plan.go, task.go, runner.go, bridge.go, result.go
 ```
 
-**`internal/engine` imports osapi's SDK directly**, in `bridge.go`, `plan.go`
-and `task.go`. So the engine works on osapi's generated types rather than on an
-abstraction, and the word `internal` describes visibility rather than
-independence. See the limitations below.
+**`internal/engine` imports the SDK of osapi directly**, in `bridge.go`,
+`plan.go` and `task.go`. Thus the engine uses the generated types of osapi, not
+an abstraction. The word `internal` controls visibility. It does not make the
+engine independent. Refer to the limitations below.
 
 ## Where it sits
 
 It depends on [osapi](../osapi/README.md). **Nothing in the organization depends
-on it**, which makes it the only component with an incoming Go edge and no
-outgoing one.
+on it.** Thus it is the only component with an incoming Go connection and no
+outgoing connection.
 
-It pins osapi by pseudo-version commit rather than tag, so an SDK change does
-not reach here until somebody bumps it. A rename in osapi lands green there and
-fails here at the bump.
+It pins a released tag of osapi. Thus an SDK change does not get here until
+somebody updates the pin. A rename in osapi passes there and fails here at the
+pin update.
 
-Its build fetches [osapi-justfiles](../osapi-justfiles/README.md) through a
-justfile recipe, from `main`. That edge is in no `go.mod`.
+Its build gets [osapi-justfiles](../osapi-justfiles/README.md) through a
+justfile recipe, from `main`. No `go.mod` shows that connection.
 
-The organization-wide picture is [system's architecture](../../ARCHITECTURE.md).
+[The architecture of the system](../../ARCHITECTURE.md) shows the full
+organization.
 
 ## The contract
 
-The exported surface of `pkg/orchestrator`: 16 functions, 13 types, 127 methods,
-of which 101 are the operations. Everything under `internal/` is not the
-contract, **including the parts of it that import osapi's SDK.**
+The contract is the exported API of `pkg/orchestrator`: 16 functions, 13 types
+and 127 methods. 101 of the methods are the operations. Nothing under
+`internal/` is part of the contract, **also the parts that import the SDK of
+osapi.**
 
-`pkg/orchestrator` declares **no interfaces at all.** `nats-client` and
-`nats-server` each declare exactly one and use it as the seam for substituting
-what they wrap; this substitutes nothing, so a consumer cannot replace the SDK
-underneath it and the repository's own tests reach osapi's generated client
-directly.
+`pkg/orchestrator` declares **no interfaces.** `nats-client` and `nats-server`
+each declare exactly one. Each uses it to replace what it wraps in tests. This
+package can replace nothing. Thus a consumer cannot replace the SDK under it,
+and the tests of the repository use the generated client of osapi directly.
 
 ## Documentation coverage is exact, and nothing keeps it that way
 
-140 pages against 81 Go files, more documentation than code. **101 operation
-pages map one to one onto 101 operation methods**, with no orphan page and no
-undocumented method.
+There are 140 pages and 81 Go files. Thus there is more documentation than code.
+**101 operation pages map one to one to 101 operation methods.** No page is
+without a method, and no method is without a page.
 
-That was checked by iterating headings in both directions rather than by
-comparing totals, because 101 and 101 agreeing says nothing about whether they
-are the same 101. Reproduce it:
+A check of the headings in the two directions found this. A comparison of the
+totals is not sufficient: two totals of 101 do not show that they are the same
+101\. To do the check again:
 
 ```sh
 # every page has a method
@@ -151,46 +153,46 @@ for m in $(grep -oE '^func \(o \*Orchestrator\) [A-Z][A-Za-z]*' pkg/orchestrator
 done
 ```
 
-It is the only documentation set in the organization that reconciles. **Nothing
-enforces it**, which is the limitation below.
+It is the only documentation set in the organization where the two agree.
+**Nothing enforces it.** That is the limitation below.
 
 ## How big it is
 
-101 operation methods, and 140 documentation pages against 81 Go files.
+There are 101 operation methods, and 140 documentation pages for 81 Go files.
 
 ```sh
 grep -cE '^func \(o \*Orchestrator\) [A-Z]' pkg/orchestrator/ops.go   # 101
 ```
 
-Do not match on `) *Step {` to count those: most signatures wrap and it returns
-2\.
+To count them, do not match on `) *Step {`. Most signatures wrap, and that
+pattern returns 2.
 
 ## Known limitations
 
-**The engine is not insulated from osapi's SDK.** Four files in
-`internal/engine` import it. There may be no reason to abstract a dependency
-this repository exists to consume, but the decision is stated nowhere and a
-consumer cannot infer it.
+**The engine is not isolated from the SDK of osapi.** Four files in
+`internal/engine` import it. This repository exists to use that dependency, so
+maybe an abstraction is not necessary. But no document states the decision, and
+a consumer cannot find it.
 
-**No interface means no seam.** Even a consumer who wanted to substitute osapi's
-client could not.
+**No interface means no seam.** A consumer who wants to replace the client of
+osapi cannot do it.
 
-**Nothing verifies the documentation mapping.** It holds today and was checked
-by hand. The 102nd operation can be added without a page and no gate will say
-so, so the repository with the best documentation coverage in the organization
-has no mechanism protecting it.
+**Nothing verifies the documentation mapping.** It is true now, and a person
+checked it by hand. Somebody can add the 102nd operation without a page, and no
+gate reports it. Thus no mechanism protects the repository with the best
+documentation coverage in the organization.
 
 ## Not covered here
 
 What each of the 101 operations does. Each has its own page under
-`docs/operations/`, and the shape they share is above.
+`docs/operations/`. The shape that they share is above.
 
-What osapi's SDK does, which is [osapi's](../osapi/README.md).
+What the SDK of osapi does. [The osapi page](../osapi/README.md) covers that.
 
-The 14 feature pages, the `dist/` build output, and the repository's own
-contributor conventions.
+The 14 feature pages, the `dist/` build output, and the contributor conventions
+of the repository.
 
-Whether eight guards and ten predicates are the right eight and ten.
+If eight guards and ten predicates are the correct eight and ten.
 
 ______________________________________________________________________
 
