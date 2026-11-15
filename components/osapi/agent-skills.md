@@ -12,24 +12,26 @@ the code of osapi. It is described below.
 
 ## Where the skill lives
 
-The files are under `cmd/resources/skills/`, with one directory for each skill.
-`cmd/resources/resources.go` embeds them with `//go:embed skills`. `go:embed`
-gets only files in the directory of its own package. That is why the package
-exists. The source of the skill is in the repository next to the code that it
-describes. Thus a release ships exactly the skill that matches it.
+The files are under `internal/skills/resources/skills/`, with one directory for
+each skill. `internal/skills/resources.go` embeds them with
+`//go:embed resources/skills resources/dev-skills`. `go:embed` gets only files
+in the directory of its own package. Thus the files are in `resources/` of the
+package that reads them. The osapi CONTRIBUTING states this rule for each
+embedded file. The source of the skill is in the repository next to the code
+that it describes. Thus a release ships exactly the skill that matches it.
 
 There are two skills, because different requests start them. `osapi` changes
 hosts through osapi. `osapi-operations` runs osapi itself. A request to start
 the controller must not load the sysctl guide, and the opposite is also true.
 
 ```
-cmd/resources/skills/osapi/
+internal/skills/resources/skills/osapi/
   SKILL.md                  rules and a routing table
   references/behaviors.md   reading behavior get --json and building a request
   references/targets.md     --target: a host, _any, _all, a label
   references/errors.md      the error codes and what to do about each
 
-cmd/resources/skills/osapi-operations/
+internal/skills/resources/skills/osapi-operations/
   SKILL.md                  rules and a routing table
   references/components.md  the NATS server, controller and agent, together or apart
   references/config.md      config list, get and validate; precedence; required keys
@@ -38,17 +40,33 @@ cmd/resources/skills/osapi-operations/
 ```
 
 `SKILL.md` starts with YAML frontmatter, `name` and `description`. The tool uses
-it to decide if it loads the skill. `cmd/resources/resources_public_test.go`
+it to decide if it loads the skill. `internal/skills/resources_public_test.go`
 fails a skill without it. `md_extra_excludes` keeps mdformat out of the
 directory. One time, mdformat changed the frontmatter into a heading, and the
 installed skill never loaded. Nothing reported it.
 
 ### The skill that builds a behavior
 
-A third skill changes osapi. It does not use osapi, so the binary does not have
-it. It is `.claude/skills/build-a-behavior/` in the osapi repository. A session
-in a checkout loads it. `.agents/skills` there is a link to `.claude/skills`, so
-each coding agent in the checkout loads it.
+A third skill changes osapi. The binary also has it, in
+`internal/skills/resources/dev-skills/build-a-behavior/`. The binary is the only
+source of the skill. No repository keeps a copy.
+
+`osapi init` does not install it, because only a checkout of osapi can build a
+behavior. `osapi skill` serves each embedded skill:
+
+```sh
+osapi skill list                                         # each embedded skill
+osapi skill get --name build-a-behavior                  # its SKILL.md
+osapi skill get --name build-a-behavior --reference references/services.md
+```
+
+The osapi repository has a short pointer at
+`.claude/skills/build-a-behavior/SKILL.md`. It has the frontmatter of the skill,
+so that agents find it. Its body tells the agent to run
+`go run . skill get --name build-a-behavior` and obey the output. It has no
+rules of its own, so it cannot become different from the skill. `.agents/skills`
+is a link to `.claude/skills`, so each coding agent in the checkout finds the
+pointer.
 
 It sends the agent to the sources that cannot become incorrect. It does not copy
 them:
@@ -120,9 +138,10 @@ for one, it says so and stops. It does not add code around the platform. This
 list is the same as the blockers in [the migration plan](behavior-migration.md),
 and it becomes shorter as people build them.
 
-`evals/` has the requests that measure the skill, and `run.sh`. `run.sh` runs
-each request in a new session and checks the result with commands. Nobody reads
-the result to check it.
+`test/skills/build-a-behavior/` has the requests that measure the skill, and
+`run.sh`. They test the skill, so they are not part of it, and the binary does
+not have them. `run.sh` runs each request in a new session and checks the result
+with commands. Nobody reads the result to check it.
 
 The tool loads `SKILL.md` when a request matches its description. A reference
 loads only when the routing table sends the agent to it. Thus a session pays
