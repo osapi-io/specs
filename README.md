@@ -27,7 +27,7 @@ times. Nothing changes from one form into another, because that change is where
 the design and the docs become different.
 </p>
 
-## Usage
+## 🚀 Usage
 
 [osapi-io] makes a Linux host operate like an appliance. One binary and a config
 file give you a REST API, a CLI, a Go SDK and an embedded dashboard. They manage
@@ -54,7 +54,7 @@ CONSTITUTION.md the rules every repository follows
 Read [osapi](components/osapi/README.md) first. Its subject pages are below it.
 Four of the other five repositories give data to it or use it.
 
-## Doc-driven development
+## 📝 Doc-driven development
 
 Design something when you write its page. Build it. Correct the page where the
 build showed an error. It is the same page all three times. Nothing changes from
@@ -82,7 +82,7 @@ answers. Fix what the person could not find. This test found these errors:
 - thirteen struct fields where a page said fourteen
 - a bucket TTL that a page described in the opposite direction
 
-## The design docs
+## 🗂️ The design docs
 
 | Repository                                                    | Is                                           |
 | ------------------------------------------------------------- | -------------------------------------------- |
@@ -104,7 +104,7 @@ These four facts surprise people most often. Each one has a page:
 - [Ten minutes](components/osapi/exec.md) is a maximum, not a fallback. A job
   that needs twenty minutes does not get them.
 
-## Skills
+## 🤖 Skills
 
 The skills here answer questions about all of the repositories. They also have
 the operational knowledge for work in them.
@@ -132,13 +132,13 @@ The skills are in `.claude/skills/`. `.agents/skills` is a link to that
 directory, so each coding agent finds the same copy. `AGENTS.md` is the
 instructions file for all agents. `CLAUDE.md` points to it.
 
-## Contributing
+## 🤝 Contributing
 
 Refer to the [Contributing](CONTRIBUTING.md) guide for the prerequisites, the
 test that tells where a change goes, what a page looks like, and the PR
 workflow.
 
-## License
+## 📄 License
 
 The [MIT] License.
 
