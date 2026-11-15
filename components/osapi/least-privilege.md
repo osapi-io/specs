@@ -197,10 +197,11 @@ opt-in. Without it, no command runs as root, whatever a job asks. Docker exec
 needs no sudoers rule: access to the Docker socket is already root-equivalent,
 and its docs page says so.
 
-This waits for two platform changes that the "Not yet" list of the
-build-a-behavior skill names: action methods, because `exec` is not create,
-update or delete, and the `execute` permission. Until then,
-`agent.command.enabled` is the switch.
+This waits for two platform changes. The "Not yet" list of the build-a-behavior
+skill names both:
+
+- action methods, because `exec` is not create, update or delete
+- the `execute` permission Until then, `agent.command.enabled` is the switch.
 
 A missing typed operation becomes its own behavior. It is validated and safe to
 run twice, so it is a better answer than command exec.
