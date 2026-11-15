@@ -111,9 +111,23 @@ it. Without the setting, the route answers 503 and names the setting.
 
 The backend gets the spans a few seconds after the request. The controller
 answers 404 for a trace that it does not have yet, and the message says to try
-again. The CLI shows a span under its parent, with the host of the `job.process`
-above it, the job status on a `job.process`, and the error of a failed span or
-what the span acted on. The UI shows the same tree with a timing bar.
+again.
+
+The CLI shows a span under its parent, with the host of the `job.process` above
+it. STATUS is the job status on a `job.process`, `changed` or `unchanged` on a
+behavior write, and `ok` or `error` on the other spans. DETAIL is the error of a
+failed span, or what the span acted on: the inputs that a behavior records, a
+file or a subject.
+
+The NATS calls are the bookkeeping of the job queue, and they are most of the
+spans: 34 of the 42 of a package list on three hosts. The CLI leaves them out by
+default and counts them, and a span under one moves up to the span above it.
+Thus the tree shows the work: the request, each agent, each behavior, command
+and file change. `--all` shows the NATS calls, and DETAIL says what each key is
+for, from the shape of the key: `status: started`, `response`, `file record`,
+`registration`, `drain flag`. The raw key stays in `--json` and in the backend.
+The UI shows the same tree with a timing bar, and a check box for the NATS
+calls.
 
 `NewTraceHandler` wraps `slog`, so that a log line has its trace and span IDs.
 This connects a log to a trace without a separate correlation ID. For the same
