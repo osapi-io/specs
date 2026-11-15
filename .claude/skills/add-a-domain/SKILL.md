@@ -82,7 +82,8 @@ complete.
 ```
 provider    internal/provider/{category}/{domain}/    types.go, platform files, mocks/
 agent       internal/agent/processor_{domain}.go      dispatch to the provider
-            cmd/agent_setup.go                        construct and Register
+            internal/agent/providers.go               a hostEnv method
+            internal/agent/setup.go                   Register in buildRegistry
 api         internal/controller/api/node/{domain}/gen/  api.yaml, cfg.yaml, generate.go
             internal/controller/api/node/{domain}/    types.go, {domain}.go, handler.go,
                                                       one file per endpoint, tests

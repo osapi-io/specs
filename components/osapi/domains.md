@@ -184,9 +184,10 @@ does not change.** The startup wiring is one added line in `handlers` in
 `internal/controller/handlers.go`.
 
 On the agent side, two files connect a provider: a processor under
-`internal/agent/`, and the registration in `cmd/agent_setup.go`. These do
-**not** change: `agent/types.go`, `agent/agent.go` and the `JobClient`
-interface. The registry handles the dispatch and the facts.
+`internal/agent/`, and the registration in `buildRegistry` in
+`internal/agent/setup.go`. These do **not** change: `agent/types.go`,
+`agent/agent.go` and the `JobClient` interface. The registry handles the
+dispatch and the facts.
 
 ## Permissions
 

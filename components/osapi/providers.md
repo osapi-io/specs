@@ -120,7 +120,8 @@ checks availability when osapi makes it, not on the first use.
 
 A provider does not decide if it applies. `Detect` and `IsContainer` in
 `pkg/sdk/platform` select by OS family, and by whether the process is in a
-container. `cmd/agent_setup.go` connects the result.
+container. `agent.Setup` in `internal/agent/setup.go` reads them one time, and
+the methods of `hostEnv` in `internal/agent/providers.go` select the provider.
 
 **A family that a domain does not implement has a stub. It is not missing.**
 Thus the selection always finds something, and that thing returns the
