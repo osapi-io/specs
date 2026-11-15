@@ -19,19 +19,20 @@ It has no Go and ships nothing. Its content is:
    ┌──────────────────────────┐           ┌──────────────────────────────┐
    │ osapi nats server :4222  │◄──────────│ uv run ansible-playbook      │
    │ osapi controller  :8080  │ Tailscale │ osapi client, agent (macos)  │
-   │ jaeger (docker)   :4317  │           └──────────────────────────────┘
+   │ jaeger            :4317  │           └──────────────────────────────┘
    └────────────▲─────────────┘
                 │ vmnet, the subnet's .1
      ┌──────────┼───────────┐
  ubuntu-1    debian-1    fedora-1        Tart VMs, one agent each
 ```
 
-The hub runs the embedded NATS server of osapi and the controller as launchd
-agents. Each VM is also a launchd agent that runs `tart run`. Thus the fleet
-starts again when the hub reboots. Each VM runs `osapi-agent` under systemd.
-Agents connect out to NATS. Thus nothing needs a route into a VM. A VM gets to
-the hub at the `.1` address of its vmnet subnet. A remote machine gets to the
-hub by its tailnet name.
+The hub runs the embedded NATS server of osapi, the controller and Jaeger as
+launchd agents. Jaeger is the native darwin-arm64 binary from its release,
+pinned by checksum. Thus the hub needs no Docker. Each VM is also a launchd
+agent that runs `tart run`. Thus the fleet starts again when the hub reboots.
+Each VM runs `osapi-agent` under systemd. Agents connect out to NATS. Thus
+nothing needs a route into a VM. A VM gets to the hub at the `.1` address of its
+vmnet subnet. A remote machine gets to the hub by its tailnet name.
 
 Each process sends its traces to Jaeger on the hub, over OTLP gRPC on 4317:
 
@@ -102,7 +103,7 @@ same module gives `ansible-lint`, `ansible-fmt` and `ansible-test`, which
 
 - It stops each `io.osapi.lab.*` launchd agent and deletes its plist.
 - It deletes the `lab-*` VMs.
-- It removes the Jaeger container and the firewall entry for the osapi build.
+- It removes the firewall entries for the osapi build and for Jaeger.
 - It deletes the state directory of the hub.
 
 It keeps two things that are slow or impossible to make again:
