@@ -70,15 +70,18 @@ osapi does not calculate `url`. Only the operator knows the path from a person
 to the process: a tailnet name, a reverse proxy or an SSH tunnel. Thus `url`
 comes only from the config. When the key is empty, the response does not include
 `url`, and the output is the same as before. osapi checks that each `url` is an
-absolute `http` or `https` URL when it loads the config. It does not send a
-request to the URL.
+absolute `http` or `https` URL with a host when it loads the config, with the
+`http_url` rule of the validator. The port and the path are optional.
+`nats.server.url` is different: it must start with `nats://` or `tls://`,
+because a person reaches NATS with a client, not a browser. osapi does not send
+a request to a URL.
 
 | Sub-component        | `address` from                         | `url` from                |
 | -------------------- | -------------------------------------- | ------------------------- |
 | `controller.api`     | `controller.api.host` and `.port`      | `controller.api.url`      |
 | `controller.ui`      | `controller.api.host` and `.port`      | `controller.ui.url`       |
 | `controller.metrics` | `controller.metrics.host` and `.port`  | `controller.metrics.url`  |
-| `controller.tracing` | none                                   | `telemetry.tracing.url`   |
+| `controller.tracing` | `telemetry.tracing.otlp_endpoint`      | `telemetry.tracing.url`   |
 | `agent.metrics`      | `agent.metrics.host` and `.port`       | `agent.metrics.url`       |
 | `nats.server`        | `nats.server.host` and `.port`         | `nats.server.url`         |
 | `nats.metrics`       | `nats.server.metrics.host` and `.port` | `nats.server.metrics.url` |
@@ -90,30 +93,48 @@ empty `controller.api.host` keeps that behavior. The UI uses the listener of the
 API. Thus you cannot bind the UI to `127.0.0.1` and the API to all interfaces.
 Set the two together.
 
-`telemetry.tracing.url` is different from the other keys. It points to the trace
-viewer, for example Jaeger. osapi does not run that viewer. It only sends spans
-to `otlp_endpoint`. The URL lets a person go from the health output to the
-traces.
+Tracing is different from the other sub-components. It listens on nothing: it
+sends spans to `otlp_endpoint`. Thus its `address` is that destination, as
+`grpc://<otlp_endpoint>`, and only when the exporter is `otlp`. It is the one
+`address` that is not a bind address. `telemetry.tracing.url` points to the
+trace viewer, for example Jaeger. osapi does not run that viewer. The URL lets a
+person go from the health output to the traces.
 
-The controller puts its own sub-components in the response. An agent and the
-NATS server send theirs in the heartbeat, in `job.SubComponentInfo`. That struct
-gets `url` with `omitempty`. An agent of an older version sends no `url`, and
-the controller shows only its `address`.
+Each process sends its sub-components in its heartbeat, in
+`job.SubComponentInfo`: the controller from `internal/controller/heartbeat.go`,
+an agent and the NATS server from theirs. The health handler also gets the
+sub-components of the controller from `internal/controller/handlers.go`, as
+`health.SubComponentInfo`. An entry from the registry replaces an entry of the
+same name, thus the heartbeat is the copy that a person sees. Both structs get
+`url` with `omitempty`. An agent of an older version sends no `url`, and the
+controller shows only its `address`.
 
 `displayComponentTable` in `cmd/client_health_status.go` prints the
 sub-components for `osapi client health status`, and for the `status` command of
-`agent`, `controller` and `nats`. It prints `url` after `address`. The address
-is dim and the URL is not, because a person opens the URL:
+`agent`, `controller` and `nats`. Each row has the same shape. The status and
+the address are on the row. The URL is on a line of its own under it, so a long
+URL is never cut, and a row without a URL takes one line. Each part has its own
+style: the status word in its status color, the address dim because nothing
+connects through it, and the URL cyan because a person opens it. The table sizes
+and cuts cells by visible width, thus the escape sequences of the styles do not
+count:
 
 ```
-controller  hub  Ready
-  ├─ api      ok http://0.0.0.0:8080 http://hub.example.ts.net:8080
-  ├─ tracing  ok http://hub.example.ts.net:16686
-  └─ ui       ok http://0.0.0.0:8080 http://hub.example.ts.net:8080
+controller  hub           Ready
+            ├─ api        ok http://0.0.0.0:8080
+            │             ↳ http://hub.example.ts.net:8080/
+            ├─ heartbeat  ok
+            ├─ metrics    ok http://127.0.0.1:9090
+            ├─ tracing    ok grpc://127.0.0.1:4317
+            │             ↳ http://hub.example.ts.net:16686/
+            └─ ui         ok http://0.0.0.0:8080
+                          ↳ http://hub.example.ts.net:8080/
 ```
 
-The web UI does not show `url` yet. The field is in the API, thus a page of
-links is a change to the UI only.
+The dashboard has the same layout. `ComponentRow` in
+`ui/src/components/domain/component-row.tsx` puts the URL on a line under the
+row. An `http` or `https` URL is a link that opens in a new tab. A URL with a
+different scheme, such as `nats://`, is text, because a browser cannot open it.
 
 ## Behaviors measure their own work
 

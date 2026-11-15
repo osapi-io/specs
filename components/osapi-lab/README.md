@@ -49,12 +49,13 @@ tailnet and the LAN have one user. A remote agent does not change this, because
 it only sends spans.
 
 The hub writes these locations into the `url` keys of its config:
-`controller.api.url`, `controller.ui.url` and `telemetry.tracing.url`. Thus
-`osapi client health status` shows a location that you can open, next to the
-bind address. [Observability](../osapi/observability.md) has the `url` field.
-The tailnet name comes from `lab_hub_addr` in `inventory.yml`, which git
-ignores. Set `lab_controller_url` or `lab_tracing_view_url` in the inventory to
-show a different location.
+`controller.api.url`, `controller.ui.url`, `telemetry.tracing.url` and
+`nats.server.url`. Thus `osapi client health status` shows a location that you
+can open, next to the bind address. [Observability](../osapi/observability.md)
+has the `url` field. The tailnet name comes from `lab_hub_addr` in
+`inventory.yml`, which git ignores. Set `lab_controller_url`,
+`lab_tracing_view_url` or `lab_nats_url` in the inventory to show a different
+location. The metrics servers answer the hub only, thus they get no `url`.
 
 Ansible runs on your machine, not on the hub. It gets to the hub over SSH, and
 to each VM through the hub. Thus the hub needs no checkout of this repository.
