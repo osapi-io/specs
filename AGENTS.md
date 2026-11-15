@@ -49,6 +49,12 @@ has the rule. Agents most often make the change larger.
 A page that does not agree with the code is the same situation. Say so. Fix the
 page in its own change. Do not write around the error.
 
+Work that you agree to do later is also an issue, in the repository where the
+change goes. Open it when you agree to the work. Your task list, your memory and
+the text of the session are not records. They stop when the session stops, and
+nobody else can read them. Use a task list only for the steps of the change that
+you do now. [Tracking](CONSTITUTION.md#tracking) has the rule.
+
 ## Write a page
 
 **Run `unslop` on all text that you write.** It applies to prose here as

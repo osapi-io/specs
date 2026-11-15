@@ -153,6 +153,18 @@ find during a different task. If you make the change larger, the fix is hidden
 in a diff about a different subject. If you say nothing, the fix is lost.
 Neither result is tracking.
 
+Work that you agree to do later is an issue from the time that you agree to it.
+This includes a next step that you name at the end of a change, a candidate that
+you give with other candidates, and each step of a plan page that nobody has
+started. Before you open the issue, look for an issue that has the work. A plan
+page tells the order and the design. Thus the issue links to its section and
+does not copy it.
+
+The task list of an agent, its memory and the text of a session are not records.
+They stop when the session stops, and nobody else can read them. An agent can
+use a task list for the steps of the change that it does now. Each item that is
+not done when the change merges becomes an issue, or the agent deletes it.
+
 An issue has the evidence that found it, with the command that shows the problem
 again. The reason is the same as for a page.
 
