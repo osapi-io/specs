@@ -119,8 +119,10 @@ controller  hub  Ready
   └─ ui       ok http://0.0.0.0:8080 http://hub.example.ts.net:8080
 ```
 
-The web UI does not show `url` yet. The field is in the API, thus a page of
-links is a change to the UI only.
+The dashboard shows the same value. `ComponentRow` in
+`ui/src/components/domain/component-row.tsx` puts `url` after the address. An
+`http` or `https` URL is a link that opens in a new tab. A URL with a different
+scheme, such as `nats://`, is text, because a browser cannot open it.
 
 ## Behaviors measure their own work
 
