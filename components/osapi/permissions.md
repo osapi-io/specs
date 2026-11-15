@@ -7,7 +7,7 @@ needs.
 There are 37 permissions and three built-in roles.
 
 ```sh
-grep -cE '^\tPerm[A-Za-z]+ +Permission = ' pkg/sdk/client/permissions.go  # 37
+grep -cE '^[[:blank:]]Perm[A-Za-z]+ +Permission = ' pkg/sdk/client/permissions.go  # 37
 ```
 
 ## The shape is `resource:verb`
@@ -47,9 +47,9 @@ permission that it needs.
 | `read`  |          17 | reads only                             |
 
 ```sh
-awk '/client.RoleAdmin: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^\t\tPerm'  # 37
-awk '/client.RoleWrite: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^\t\tPerm'  # 30
-awk '/client.RoleRead: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^\t\tPerm'   # 17
+awk '/client.RoleAdmin: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'  # 37
+awk '/client.RoleWrite: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'  # 30
+awk '/client.RoleRead: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'   # 17
 ```
 
 `write` is not `admin` minus one thing. It does not have these seven:
