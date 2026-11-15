@@ -367,6 +367,44 @@ for r in */; do
 done
 ```
 
+### A Go package is one thing
+
+These rules apply to each Go repository:
+
+1. **A package holds one kind of thing.** Its name tells what it holds. Do not
+   make a package named `util`, `common`, `helpers` or `shared`. Such a name
+   tells nothing, and code that is not related collects in it.
+2. **The name of a package is the last part of its path.** An exported name does
+   not repeat the name of its package inside a longer name. A caller reads
+   `atomicfile.Write`, not `atomicfile.WriteFileAtomic`. The main type of a
+   package can have the name of the package, as `time.Time` and
+   `context.Context` do.
+3. **A caller does not need an alias.** If a file must import two packages that
+   have the same name, rename one of the packages. An alias is a different name
+   in each file that uses the package. Mock packages are the exception: each is
+   named `mocks`, beside the code that it mocks, so a test that uses two of them
+   gives one an alias. A clash with a package outside the module, or between two
+   names that are both correct, also takes an alias.
+4. **A directory can group packages that belong together.** The name of the
+   directory tells what the group is, for example `telemetry/` for `metrics` and
+   `tracing`.
+5. **Do not put many packages under one package.** A package is one thing. If
+   packages collect under it, find the group that they make, and give that group
+   its own directory.
+
+Rules 1 to 3 come from the Go documentation:
+[Effective Go](https://go.dev/doc/effective_go#package-names) and
+[Package names](https://go.dev/blog/package-names). A repository puts its own
+rules about the layout in its `CONTRIBUTING.md`, after these.
+
+This command counts the imports that use an alias of a package in the same
+module. A change to the layout makes the count smaller:
+
+```sh
+cd ~/git/osapi-io/osapi
+git grep -hP '^\t+[a-zA-Z][a-zA-Z0-9]* "github.com/osapi-io/osapi/' -- '*.go' ':!*.gen.go' | wc -l
+```
+
 ### Every CONTRIBUTING.md has one shape
 
 [templates/CONTRIBUTING.md](templates/CONTRIBUTING.md) has the sections that the

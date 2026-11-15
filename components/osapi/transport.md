@@ -164,5 +164,5 @@ and the auth mode come from.
 ______________________________________________________________________
 
 Written from `cmd/nats_server_setup.go`, `cmd/nats_setup.go`,
-`internal/cli/nats.go`, `internal/job/subjects.go`, `internal/job/config.go` and
+`internal/bus/bus.go`, `internal/job/subjects.go`, `internal/job/config.go` and
 `internal/job/types.go`.
