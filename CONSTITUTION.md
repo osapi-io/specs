@@ -379,7 +379,9 @@ These rules apply to each Go repository:
    `atomicfile.WriteFileAtomic`.
 3. **A caller does not need an alias.** If a file must import two packages that
    have the same name, rename one of the packages. An alias is a different name
-   in each file that uses the package.
+   in each file that uses the package. Mock packages are the exception: each is
+   named `mocks`, beside the code that it mocks, so a test that uses two of them
+   gives one an alias.
 4. **A directory can group packages that belong together.** The name of the
    directory tells what the group is, for example `telemetry/` for `metrics` and
    `tracing`.
