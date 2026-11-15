@@ -133,8 +133,10 @@ controller  hub           Ready
 
 The dashboard has the same layout. `ComponentRow` in
 `ui/src/components/domain/component-row.tsx` puts the URL on a line under the
-row. An `http` or `https` URL is a link that opens in a new tab. A URL with a
-different scheme, such as `nats://`, is text, because a browser cannot open it.
+row. An `http` or `https` URL is a link that opens in a new tab, in
+`--color-link`, the cyan of the `URLStyle` of the CLI. It is not green, because
+green means `ok`. A URL with a different scheme, such as `nats://`, is text,
+because a browser cannot open it.
 
 ## Behaviors measure their own work
 
