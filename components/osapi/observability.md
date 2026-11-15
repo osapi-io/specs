@@ -70,8 +70,11 @@ osapi does not calculate `url`. Only the operator knows the path from a person
 to the process: a tailnet name, a reverse proxy or an SSH tunnel. Thus `url`
 comes only from the config. When the key is empty, the response does not include
 `url`, and the output is the same as before. osapi checks that each `url` is an
-absolute `http` or `https` URL when it loads the config. It does not send a
-request to the URL.
+absolute `http` or `https` URL with a host when it loads the config, with the
+`http_url` rule of the validator. The port and the path are optional.
+`nats.server.url` is different: it must start with `nats://` or `tls://`,
+because a person reaches NATS with a client, not a browser. osapi does not send
+a request to a URL.
 
 | Sub-component        | `address` from                         | `url` from                |
 | -------------------- | -------------------------------------- | ------------------------- |
