@@ -67,36 +67,42 @@ file-state KV that the file provider already owns.
 
 ## 2. The registration
 
-`cmd/agent_setup.go` constructs the provider and registers it.
+`agent.Setup` in `internal/agent/setup.go` makes each provider, and
+`buildRegistry` in the same file registers it.
 
 ```go
-// A new category
-registry.Register("{domain}",
-    agent.New{Domain}Processor({domain}Prov, log),
-    {domain}Prov)
+// A new category, in buildRegistry
+r.Register("{domain}",
+    New{Domain}Processor({domain}Provider, e.log),
+    {domain}Provider)
 
 // An existing category: pass the provider into that category's
 // processor factory, and include it in the providers list so
 // WireProviderFacts reaches it. Read the current parameter list.
 ```
 
-Platform selection happens here, not in the provider. `Detect` and
-`IsContainer` come from `pkg/sdk/platform`:
+Platform selection happens in `internal/agent/providers.go`, not in the
+provider. `Setup` reads `Detect` and `IsContainer` from `pkg/sdk/platform` one
+time, and gives them to `hostEnv`. Add one method for the domain:
 
 ```go
-switch osFamily {
-case "debian":
-    if platform.IsContainer() {
-        prov = {domain}.NewDebianDockerProvider(...)
-    } else {
-        prov = {domain}.NewDebianProvider(execManager, ...)
+func (e hostEnv) {domain}() {domain}.Provider {
+    switch e.platform {
+    case "debian":
+        if e.container {
+            return {domain}.NewDebianDockerProvider(...)
+        }
+        return {domain}.NewDebianProvider(e.exec, ...)
+    case "darwin":
+        return {domain}.NewDarwinProvider(...)
+    default:
+        return {domain}.NewLinuxProvider()
     }
-case "darwin":
-    prov = {domain}.NewDarwinProvider(...)
-default:
-    prov = {domain}.NewLinuxProvider()
 }
 ```
+
+Add the domain to the table in `providers_public_test.go`, which checks the
+provider of each area on each platform.
 
 A provider that uses an SDK has no switch. Make it and check availability. When
 it is not available, leave it nil. Then the operation reports unsupported, and
@@ -136,5 +142,6 @@ somewhere else is not. What a provider does with facts is
   helper, with table rows for each sub-operation, an unknown operation and a
   provider error.
 - Mock the provider from `internal/provider/{category}/{domain}/mocks/`.
-- `.coverignore` removes `cmd/` from the coverage gate. Thus the integration
-  suite proves the wiring in `agent_setup.go`. A unit test does not.
+- The wiring is in `internal/agent`, so the coverage gate holds it.
+  `setup_public_test.go` runs `agent.Setup` against a real embedded NATS
+  server.
