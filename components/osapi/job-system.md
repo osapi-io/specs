@@ -149,9 +149,8 @@ not know is still a cause. Show it. Do not hide it.
 
 One setting, `nats.kv.ttl`, goes to `job-queue` and to `job-responses`. Thus the
 definition, the status events and the response of a job expire together. Only a
-setting for each bucket can make them different, and there is none.
-`BuildJobKVConfig` and `BuildResponseKVConfig` in `internal/cli/nats.go` read
-the same field.
+setting for each bucket can make them different, and there is none. `bus.JobKV`
+and `bus.ResponseKV` in `internal/bus/bus.go` read the same field.
 
 The shipped `osapi.yaml` sets it to one hour. `osapi.dev.yaml` does not set it,
 and osapi ignores the parse error. Thus a deployment from that file gets no

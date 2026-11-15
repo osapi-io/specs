@@ -188,9 +188,9 @@ A behavior runs through three generic parts. Each is written one time.
 - `api.go` has the route table: the HTTP method, path and permission of each
   route. Its `init` registers them.
 
-The runtime that they call, `internal/controller/api/behavior`, is written one
-time. It checks the token against the permission of the route, validates the
-target, queues the job, and makes the `{job_id, results[]}` envelope.
+The runtime that they call, `internal/behavior/server`, is written one time. It
+checks the token against the permission of the route, validates the target,
+queues the job, and makes the `{job_id, results[]}` envelope.
 
 An earlier version served each method through one handler that read the
 definition when osapi started. It worked. But you could not open, debug or test
@@ -216,7 +216,7 @@ builder returns `provider.ErrUnsupported`, its methods report `skipped`. The
 agent logs which providers it built. The built providers go into the registry of
 the agent, which gives them facts as it does for each other provider.
 
-**The CLI.** `internal/cli/behavior` has the one helper that each generated
+**The CLI.** `internal/behavior/command` has the one helper that each generated
 command calls, and the one table layout that each behavior renders in. It is
 under `internal/cli`, as the API runtime is under `internal/controller/api`.
 Generated code imports the two as `behaviorcli` and `behaviorapi`.
@@ -229,9 +229,10 @@ Behaviors are under `internal/`:
   group, as its routes are. Thus the directory of a behavior matches its URL.
 
 The test helper of each runtime is next to the runtime that it drives:
-`internal/controller/api/behavior/apitest` and `internal/cli/behavior/clitest`.
-`behavior validate` refuses a behavior or group with the name `all`, which is
-the registration index in `internal/behaviors/all`.
+`internal/behavior/server/servertest` and
+`internal/behavior/command/commandtest`. `behavior validate` refuses a behavior
+or group with the name `all`, which is the registration index in
+`internal/behaviors/all`.
 
 Nothing outside osapi imports a behavior. The SDK connects to the HTTP API, and
 the spec describes all that a client needs. Thus `pkg/` has only the SDK, and
@@ -542,7 +543,7 @@ check correctly, and the session stopped and said so.
 The generated HTTP tests split the cases of each method as the handler tests of
 the hand-written domains do: `Test<Method>` for the answers,
 `Test<Method>ValidationHTTP` for the 400s and `Test<Method>RBACHTTP` for the
-tokens. `internal/controller/api/behavior/apitest` runs the rows. Fix a failed
+tokens. `internal/behavior/server/servertest` runs the rows. Fix a failed
 generated test in the definition or the generator, never in `gen/`.
 
 The fake host is `internal/behavior/behaviortest`. It has:
