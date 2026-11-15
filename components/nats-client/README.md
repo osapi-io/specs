@@ -9,6 +9,7 @@ consumer gets these parts of NATS:
 - JetStream streams and consumers
 - key-value buckets
 - object stores
+- OpenTelemetry spans and metrics for each call to NATS
 
 ```go
 c := client.New(logger, &client.Options{
@@ -30,18 +31,29 @@ library. It adds these things:
 - Authentication has four declared modes.
 - Streams, consumers, key-value buckets and object stores get create-or-update
   helpers.
+- Each call to NATS is a method of `Client`. The method takes `ctx` first, and
+  then the name of the bucket or the stream. A consumer keeps no JetStream
+  handle. `Client` keeps one handle for each bucket and each stream, and asks
+  the server for it one time only.
+- Each of these methods can make a span and records a metric. Thus a consumer
+  that calls NATS only through `Client` gets all of its NATS calls in its traces
+  and its metrics.
 
 It does not add a new protocol, a new wire format or its own reconnection
 policy.
 
 ## It does not hide NATS
 
-Upstream types get to a consumer through the signatures of the wrapper. A
-message handler gets `jetstream.Msg`, and the connection gives `nats.Conn`. Thus
-this is a convenience layer over NATS. It is not an abstraction over NATS. A
-consumer is not isolated from the upstream library.
+Upstream types get to a consumer through the signatures of the wrapper. `KVGet`
+returns `jetstream.KeyValueEntry`, a message handler gets `jetstream.Msg`, and
+the connection gives `nats.Conn`. Thus this is a convenience layer over NATS. It
+is not an abstraction over NATS. A consumer is not isolated from the upstream
+library.
 
-Nothing in the repository says so. A consumer learns it from a signature.
+The package declares no interface for its own methods, and it returns concrete
+types. A consumer declares the interface that it needs, in the package that uses
+it, and makes its mocks from that interface. `docs/client/README.md` in the
+repository states this.
 
 ## Where it sits
 
@@ -63,25 +75,26 @@ from a release. No `go.mod` shows that connection.
 Each file has one type with one responsibility.
 
 ```
-types.go             Options, AuthOptions, AuthType
+types.go             Options, AuthOptions, AuthType, Client
+client.go            New
 connect.go           connecting and authenticating
 connect_wrapper.go   NATSConnWrapper, the only substitutable seam
 connection.go        connection state and lifecycle
-core.go              core publish and subscribe
-jetstream.go         streams
-consumer.go          consumers
-kv.go                key-value
-kv_stream.go         key-value with publish
-objectstore.go       object stores
+kv.go                key-value buckets and their keys
+objectstore.go       object stores and their objects
+stream.go            streams, durable consumers, and reads of a stream
+messaging.go         publish, subscribe and consume, with handlers that get ctx
+telemetry.go         spans, the metric, and MessageContext
 mocks/               generated
 ```
 
 `NATSConnector` is the only interface that the package declares. With it, a test
 can replace the connection. A test cannot replace other parts.
 
-The repository has five examples that you can run: one for each authentication
-mode and one for each JetStream pattern. They are the documentation in a form
-that runs. They are not a separate thing to keep current.
+The repository has six examples that you can run: one for each authentication
+mode, one for a key-value bucket, and one for a work queue. They are the
+documentation in a form that runs. They are not a separate thing to keep
+current.
 
 ## Authentication
 
@@ -104,6 +117,36 @@ each connect. Thus `Connect` first checks that the file exists. It reports a
 missing file as `failed to read creds file`, not as the authorization error of
 the server.
 
+## Telemetry
+
+`Options.Telemetry` turns on the spans and the metric. It is off by default.
+`Options.TracerProvider` and `Options.MeterProvider` select the providers. When
+they are nil, the client uses the global providers.
+
+A call makes a span only inside a trace that the caller started. A heartbeat or
+the setup of a stream at startup is not in a trace, so it makes no span. A root
+span for each of these calls would hide the traces of the requests. Each call
+records the histogram `nats.client.operation.duration`, also outside a trace.
+
+| What                 | On the span | On the metric |
+| -------------------- | ----------- | ------------- |
+| `db.system.name`     | yes         | yes           |
+| `db.operation.name`  | yes         | yes           |
+| `db.namespace`       | yes         | yes           |
+| `error.type`         | no          | on a failure  |
+| key, object, subject | yes         | no            |
+
+The metric never has a key, an object name or a subject. These values have no
+limit, and a subject can name a host.
+
+`Publish` and `PublishCore` put the trace context in the headers of the message.
+`Subscribe` and `Consume` give their handler a `ctx` with that trace. Thus the
+work of a handler is a child of the publish. The headers use the global text map
+propagator, and the consumer sets it.
+
+A key or an object that is not there is the answer of a read, not a failure. It
+does not mark the span as an error.
+
 ## What happens when the connection drops
 
 The default of the upstream library applies.
@@ -124,9 +167,16 @@ incorrect, but it continues to look correct.
 
 ## The contract
 
-The contract is the exported API of `pkg/client`: one constructor, 25 `Client`
-methods and 9 exported types. Everything under `pkg/client/mocks/` is generated
-and is not part of it.
+The contract is the exported API of `pkg/client`: the constructor `New`,
+`MessageContext`, 30 `Client` methods and 9 exported types.
+
+```sh
+cat pkg/client/*.go | grep -cE '^func \(c \*Client\) [A-Z]'   # 30
+```
+
+An empty bucket is an empty list from `KVKeys` and from `ObjectList`, not an
+error. The two methods agree, and a consumer needs no special case. Everything
+under `pkg/client/mocks/` is generated and is not part of it.
 
 The contract does not promise these things:
 
@@ -137,26 +187,20 @@ The contract does not promise these things:
 
 ## How big it is
 
-There are eleven files that are not tests in `pkg/client`, and 25 methods on
+There are ten files that are not tests in `pkg/client`, and 30 methods on
 `Client`.
 
 ```sh
-find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' | wc -l   # 11
+find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' | wc -l   # 10
 ```
-
-## Known limitations
-
-**The leak of upstream types has no documentation.** The design above is
-deliberate, but no page states it. A consumer who expects an abstraction learns
-the truth from a signature.
 
 ## Not covered here
 
 How NATS works. Streams, consumers, key-value and object stores are upstream
 concepts. This page tells what the wrapper does with them.
 
-What each of the 25 methods does. They are the contract. The eight documentation
-pages under `docs/` describe how they operate.
+What each of the 30 methods does. They are the contract. The seven documentation
+pages under `docs/client/` describe how they operate.
 
 The generated mocks.
 

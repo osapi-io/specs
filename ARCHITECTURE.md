@@ -74,6 +74,22 @@ Two facts about that pair are important, and neither wrapper states them alone:
 [The message bus](components/osapi/transport.md) has the two facts. A person who
 debugs the transport looks there.
 
+**osapi calls NATS only through the methods of `nats-client`.** It keeps no
+JetStream handle, and it does not call `nats.go` or `jetstream` itself. Each
+method takes `ctx` first and the name of the bucket or the stream. Thus each
+call to NATS is in the traces and the metrics of osapi, because `nats-client`
+makes the span and the metric in one place.
+
+When osapi needs a call that `nats-client` does not have, add the method to
+`nats-client`, with its span and its metric. Do not add a direct call in osapi.
+A direct call is not in a trace, and nothing tells the person who reads the
+trace that a call is not there.
+
+`nats-client` returns concrete types and declares no interface for its own
+methods. Each osapi package declares the interface of the methods that it uses,
+and makes its mocks from that interface. A bucket goes into a package as its
+name, not as a handle.
+
 ### The SDK surface
 
 `pkg/sdk/client` is the contract between osapi and its orchestrator. After a
