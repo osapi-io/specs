@@ -85,6 +85,58 @@ checks. [Permissions](permissions.md) describes them. The published site also
 tells what each role permits for an *operator*, because a person who configures
 a role looks there.
 
+## Color: one palette with the CLI
+
+The UI and the CLI use one palette. The palette is the six colors of the logo,
+`asset/logo-dark.svg`, and the status colors in `internal/cli/theme.go`.
+`ui/src/index.css` holds the colors as tokens, and each token names the CLI
+color that it copies. Thus a page and a terminal show the same color for the
+same thing.
+
+| Color               | Means                                    | Tokens                                      |
+| ------------------- | ---------------------------------------- | ------------------------------------------- |
+| green `#67ea94`     | ok: ready, completed, applied            | `primary`, `status-ready`, `status-applied` |
+| amber `#ffd787`     | needs attention: pending, retried        | `status-pending`                            |
+| red `#ef4444`       | wrong: failed, error                     | `status-error`                              |
+| gray `#8a8a8a`      | secondary text, and a count of zero      | `text-muted`                                |
+| the logo colors     | section headings                         | `heading-1` to `heading-5`                  |
+| dark blue `#2300fd` | the logo accent: heading bar, background | `accent`                                    |
+
+**Green, amber and red mean status, and nothing else.** The chrome is neutral:
+borders, the navigation, the stat numbers and URLs. A count of zero is gray,
+because `failed: 0` is not a failure. The `admin` role chip is gray, because a
+role is not a problem. A URL has the text color and is a link that underlines on
+hover.
+
+**Section headings take the logo colors in page order:** cyan, magenta, yellow,
+green, blue. That is the order of `nextHeadingColor` in the CLI. `PageLayout`
+sets `data-heading-color` on each `SectionLabel` when the page changes. Thus two
+headings next to each other never have the same color. Each heading has a short
+bar in the dark blue of the logo at its left.
+
+The logo has two colors that a heading cannot use as they are:
+
+- The dark blue `#2300fd` has a contrast of 2.3:1 on the page. That is too low
+  for text. Thus a heading uses `#6b5cff`, the `LogoBlueText` of the CLI, and
+  the dark blue is only a shape: the heading bar and the background network.
+- The logo green `#45ae17` is darker than the ok green `#67ea94`. Thus a green
+  heading does not look like a status.
+
+**The background network is part of the design.** `network-map-background.tsx`
+draws it in the dark blue. A flood that moves through it sparkles white. Do not
+remove it to make a page quieter.
+
+The loading spinner takes one heading color, which `spinner-color.ts` selects
+one time for each page load.
+
+Two things differ from the CLI. The UI shows `submitted` in gray, and the CLI
+shows it in amber (`WarnStyle`). `status-running`, blue `#3b82f6`, has no CLI
+color.
+
+`--font-mono` starts with the mono font of the system. JetBrains Mono is not in
+the bundle. When it was first in the list, a browser without it showed a serif
+Courier.
+
 ## Coverage says nothing about it
 
 `/ui/` is in `.coverignore`. Thus the coverage figure of osapi does not include
