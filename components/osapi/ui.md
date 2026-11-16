@@ -79,11 +79,17 @@ still checks each request after sign-in.
 A token in `localStorage` from an earlier session gets no check. If the server
 refuses it, each page shows an error until the person signs out.
 
-The permission model of the UI is the model of osapi. There is not a second
-model. The roles claim uses the same 37 permissions and three roles that the API
-checks. [Permissions](permissions.md) describes them. The published site also
-tells what each role permits for an *operator*, because a person who configures
-a role looks there.
+The permission model of the UI is the model of osapi. The roles claim uses the
+permissions and the three roles that the API checks.
+[Permissions](permissions.md) describes them. The UI does not keep its own list.
+`go generate ./internal/behaviors/all` writes `ui/src/lib/permissions.gen.ts`
+from `AllPermissions` and `RolePermissions` in `internal/authtoken`, with every
+behavior registered. A Go test fails when the file is stale, and TypeScript
+fails the build on a permission that Go does not have. A hand copy came before
+it, and it was out of date: it had `cron:*`, `hostname:*` and `group:*`, which
+no token has, and did not have `schedule:*` (osapi-io/osapi#749). The published
+site also tells what each role permits for an *operator*, because a person who
+configures a role looks there.
 
 ## Color: one palette with the CLI
 
