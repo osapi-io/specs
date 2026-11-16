@@ -394,8 +394,8 @@ old shape. It compares only the generated files, so other uncommitted work does
 not make it fail.
 
 `just behavior-cover-check`, also in `just test`, holds each behavior package to
-100% coverage alone. The 99.9% of the repository is a total, and one behavior
-with low coverage can still pass it.
+100% coverage alone. The target for the total of the repository is also 100%.
+This check names the behavior package that is below the target.
 
 ## Telemetry every method gets
 

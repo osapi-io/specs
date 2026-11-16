@@ -114,7 +114,7 @@ mise exec -- just ready                  # generate, format, lint, build
 mise exec -- just test                   # format checks, lint, unit, coverage gate
 ```
 
-The coverage gate is 99.9%. Thus a branch without tests fails the build, and
+The coverage gate is 100%. Thus a branch without tests fails the build, and
 does not merge. `just test` also runs `go-mod-check`, which fails when a nested
 module
 under `examples/` is untidy: a new SDK example adds one.
