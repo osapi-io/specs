@@ -29,10 +29,16 @@ for each agent:
 ```text
 osapi-controller  GET /api/...                        otelecho, the root
 ├─ job.publish                                        kind producer
-│  └─ osapi-agent  job.process                        one for each agent
-│     ├─ behavior.<name>.<method>                     a behavior only
-│     └─ exec <program>                               each command
+│  ├─ kv.put                                          the job
+│  └─ nats.publish                                    nats-client, producer
+│     └─ osapi-agent  nats.process                    nats-client, one for each agent
+│        └─ job.process
+│           ├─ kv.get, kv.put                         the job, the status, the answer
+│           ├─ behavior.<name>.<method>               a behavior only
+│           ├─ exec <program>                         each command
+│           └─ file.write                             each file that changes
 └─ job.collect                                        the wait for the answers
+   └─ kv.watch                                        nats-client
 ```
 
 The controller starts the trace, and gives it back in the `traceresponse` header
@@ -47,11 +53,12 @@ there. A CLI without an exporter sends no trace context. If it sent the context
 of a span that it never exports, each trace would show a parent that never
 arrives.
 
-`job.process` is a child of `job.publish`, not of the request. The context that
-goes with the job is the context of `job.publish`, because that span sent the
-job. `job.collect` is a sibling of `job.publish`. Thus the time of the request
-is the time to publish, then the time to collect, and the agents are under the
-publish.
+`job.process` is under `job.publish`, not under the request. The context that
+goes with the job is the context of `nats.publish`, a child of `job.publish`,
+because that span sent the message. nats-client continues it in `nats.process`
+on the agent, and gives the handler that context. `job.collect` is a sibling of
+`job.publish`. Thus the time of the request is the time to publish, then the
+time to collect, and the agents are under the publish.
 
 These choices are deliberate:
 
@@ -66,6 +73,13 @@ These choices are deliberate:
   request.
 - **A command span has no arguments.** An argument can hold a secret. The span
   has the program, `osapi.exec.sudo` and the exit code.
+- **Each call to NATS is a span, from nats-client.** osapi calls NATS only
+  through nats-client, which makes a span for each call inside a trace. A call
+  outside a trace, such as a heartbeat, makes no span.
+  [The transport](../../ARCHITECTURE.md#the-transport) has the rule.
+- **A file write has no content.** `file.write`, from `internal/atomicfile`, has
+  `file.path`, `file.mode` and `file.size`. A caller writes only a file whose
+  content differs, so the span is a change.
 - **The health endpoints and the files of the UI have no spans.** A probe and
   the UI call them each few seconds, and their traces hide the traces of the
   jobs.
@@ -75,8 +89,9 @@ These choices are deliberate:
 Two tests hold the tree at the one place where it crosses a process: the headers
 of the NATS message. The test in `internal/job/client` checks that `job.publish`
 and `job.collect` are under the request, and that the context that goes with the
-job is `job.publish`. The test in `internal/agent` gives a message with that
-context in its headers, and checks that `job.process` is a child of it, with the
+job is under `job.publish`, with the watch for the answers under `job.collect`.
+The test in `internal/agent` gives the handler the context that nats-client
+reads from the headers, and checks that `job.process` is a child of it, with the
 host and the status.
 
 `NewTraceHandler` wraps `slog`, so that a log line has its trace and span IDs.
@@ -102,6 +117,12 @@ There are three metrics. They are about liveness, not about work:
 ```sh
 grep -rhoE 'osapi_[a-z_]+_(up|seconds)' --include='*.go' internal/ | grep -v '^osapi_behavior_' | sort -u | wc -l   # 3
 ```
+
+Each component also records `osapi_nats_client_operation_duration_seconds`, from
+nats-client, for each call to NATS: by operation and by bucket or stream, with
+`error_type` on a failure. A key or a subject is never a label. Each connection
+gets the meter provider of its component, so each metrics server shows the calls
+of its own component.
 
 No metric counts jobs or measures the queue depth. If you need that now, read it
 from the job status events in `job-queue`. Know about this gap before you plan a
