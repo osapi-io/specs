@@ -118,6 +118,8 @@ the tags for authors. This page records why the design is as it is.
 | `behavior.Platform(p, f)`   | How the provider is built on platform `p`: a distribution, `darwin`, or `linux` for every Linux host without its own. On any other, the methods report `skipped` |
 | `behavior.Sudo("prog")`     | A program the provider runs with sudo, which the agent's preflight checks                                                                                        |
 | `behavior.Runs("prog")`     | A program the provider runs without sudo; the agent warns at startup when it is missing                                                                          |
+| `behavior.Writes("...")`    | The paths the provider writes, removes or changes the mode of, as `path.Match` patterns; `"*"` is any path                                                       |
+| `behavior.KeepsState`       | The provider keeps a record in the `file-state` bucket                                                                                                           |
 | `behavior.Validator(...)`   | A `validate` tag of the behavior's own: its check, its schema and its message                                                                                    |
 
 The permission prefix is the group when there is one, and the name of the
@@ -269,6 +271,18 @@ behavior. The fake host fails an example that runs a program without its
 declaration, and counts the programs that the required behaviors declare. The
 integration test fails when its image does not have a declared program.
 
+The paths and the records that a behavior changes are declared the same way. The
+fake host fails an example that writes, removes or changes the mode of a path
+that `Writes` does not cover, or uses the `file-state` bucket without
+`KeepsState`. A behavior's own `Writes` counts, and the `Writes` of the
+behaviors it requires does not. Thus each behavior declares the paths that it
+changes, also through `managedfile`. `managedfile` writes the path that its
+caller names, so it declares `"*"`, and sysctl declares
+`/etc/sysctl.d/osapi-*.conf`. `KeepsState` counts from a required behavior,
+because the record belongs to it. `behavior validate` fails a `Writes` pattern
+that is not `"*"` or an absolute path. The least-privilege plan uses the same
+paths for the write access of a privileged step.
+
 osapi serves a behavior under `/api` and `osapi client node`. Its jobs are in
 their own `behavior` category, with operations `behavior.<name>.<method>`. Its
 `gen/api.yaml` joins the main spec. Thus the SDK client, the UI client and the
@@ -397,6 +411,13 @@ They are made on the meter provider of the agent. Thus they export to the same
 location as the other metrics of the agent. The span of the API request records
 the behavior, method and target that it ran.
 
+The work inside a method is traced by the shared code that it goes through, not
+by the behavior: `exec <program>` from the executor, `file.write`, `file.remove`
+and `file.chmod` from `internal/atomicfile`, and `kv.get` and `kv.put` from
+nats-client. A new kind of work on a host gets its span in the shared code,
+once, never in each behavior. The declarations above tell which of these spans a
+behavior can make, and `behavior get` lists them as its child spans.
+
 ## Inspecting behaviors from the CLI
 
 These commands read the registry. They need no config file and no controller,
@@ -422,7 +443,8 @@ Each one takes `--json`. Values come as flags, as in all of the [CLI](cli.md).
 - the platforms that it has a provider for
 - the programs that it runs with sudo
 - its refusals
-- the span and metrics that its calls record
+- the span and metrics that its calls record, the spans under it, and the paths
+  that it writes
 
 `behavior new` writes `internal/behaviors/<name>/` as a working behavior that
 keeps a value in a file, with each standard file. It adds its import to
@@ -626,9 +648,14 @@ var Behavior = behavior.Register(behavior.Define(
 - **Building.** `host.Build` builds the provider of each required behavior
   first, for the same host. It puts the provider in the host that the requiring
   builder gets. The builder reads it with
-  `host.Require[P](h, managedfile.Behavior)`. The agent and the fake host in
-  `behaviortest` both build through it. Thus the examples of a behavior run
-  through its requirements exactly as they do on an agent.
+  `host.Require[P](h, managedfile.Behavior)`, and calls each method of it with
+  `behavior.Call(ctx, managedfile.Behavior, managedfile.Update, p, in)`. `Call`
+  runs the method inside its own span, with its metrics, so the trace shows
+  `behavior.managedfile.update` as a step under `behavior.sysctl.create`. A
+  direct call of `managedfile.Update` works but has no span. `behaviortest.Run`
+  reads the Go files of the behavior and fails such a call. The agent and the
+  fake host in `behaviortest` both build through it. Thus the examples of a
+  behavior run through its requirements exactly as they do on an agent.
 - **Unsupported spreads.** A required behavior can have no provider on a
   platform, or it can refuse the host. Then the requiring builder does not get
   it. The builder answers `provider.ErrUnsupported`, and its methods report
@@ -640,9 +667,11 @@ var Behavior = behavior.Register(behavior.Define(
   `CLI`. It still has examples, refusals, tests and a docs page, and
   `behavior list` marks it.
 - **Checks.** `behavior validate` fails a requirement that is not registered,
-  and a cycle, under the rule `requires`. `behavior get` lists what a behavior
-  uses and what uses it. The landing page of the Behaviors section has a table
-  of each behavior with the two lists, generated from the registry.
+  and a cycle, under the rule `requires`. It fails an internal behavior that no
+  behavior requires, under the rule `internal`, because nothing can call it.
+  `behavior get` lists what a behavior uses and what uses it. The landing page
+  of the Behaviors section has a table of each behavior with the two lists,
+  generated from the registry.
 
 `managedfile` is the first internal behavior. It writes files on a host, and
 keeps a record of them in `file-state`. A caller sets the mode, owner and group
@@ -661,6 +690,12 @@ hand-written sysctl domain builds its own `managedfile` provider. Thus the two
 write the same files with the same records. The code moved out of sysctl without
 changes. The hand-written sysctl provider tests confirm this. They did not
 change, except two marshal-failure cases that moved with the code.
+
+A behavior is internal when two things are true. An operator would never call it
+from the CLI or the API. It is a piece of work that other behaviors share, such
+as writing a file or reloading a service. `osapi behavior new` always writes a
+behavior that an operator calls, because a new internal behavior has nothing
+that requires it yet, and `behavior validate` would fail it.
 
 Shared work becomes an internal behavior at its second use. When one behavior
 does something, that is its own code. When a second behavior needs the same
