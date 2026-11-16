@@ -347,6 +347,22 @@ yet.
 subnet. Ansible jumps through the hub to reach them; nothing on your network can
 reach a VM directly.
 
+**A ping from a VM fails while the hub's firewall is in stealth mode.** The VMs
+reach the network through the NAT of the hub. In stealth mode, the macOS
+firewall drops the ICMP replies to the VMs, but not the replies to the hub's own
+pings. Thus each `osapi client node network ping` from a VM, and the `ping` of
+the VM, times out, while TCP and DNS from the VM work. Turn stealth mode off on
+the hub, or use bridged networking for the VMs. A capture on a VM shows the echo
+requests and no replies:
+
+```sh
+/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode   # on the hub
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode off
+```
+
+The hub's network can also lose a reply now and then. osapi then reports the
+loss, not a failed ping.
+
 **Stopping a VM by hand does not keep it stopped.** Its launchd agent restarts
 it. Unload the agent to stop a VM for good.
 
