@@ -238,6 +238,33 @@ It reads `--json` from the persistent flag of the root, not from the variable
 that the flag binds. Cobra prints help before it runs the initializers that set
 that variable.
 
+## Commands that teach, for agents
+
+An agent learns what to write from the binary, not from a skill or a page that
+can be out of date. Each command group for something that an agent writes has
+the same commands:
+
+| Command                   | Tells                                                                     |
+| ------------------------- | ------------------------------------------------------------------------- |
+| `<group> spec`            | each part of the DSL or format, what it makes osapi do and when to use it |
+| `<group> validate`        | the problems, each with its rule and its fix                              |
+| `<group> validate --help` | each rule, what it requires and its fix, before the agent breaks one      |
+| `<group> list`, `get`     | what exists already                                                       |
+
+Each one takes `--json`. The terms and the rules are tables in Go, of the types
+in `internal/guide`: `guide.Spec` and `guide.Checks`. The command, the help and
+each problem read the same table. A test fails on a part of the DSL or a rule
+without an entry. Thus what the command tells cannot be different from what the
+code does.
+
+Today the behavior group has the full set: `osapi behavior spec` and
+`osapi behavior validate`. `osapi config validate` gets the same rules and fixes
+in osapi-io/osapi#763. A workflow DSL in osapi-orchestrator gets the same
+commands, from `guide` in a public package, in osapi-io/osapi#764.
+
+A skill keeps only judgment: what to ask the person, and which way to select. It
+sends the agent to these commands for each fact.
+
 ## Output style
 
 The output of each command obeys these rules. Thus a reader who knows the output
@@ -406,9 +433,10 @@ Telemetry:
   uses the same gray branches as the components of health status.
 - **Telemetry.** What each call of the behavior records: the span, the three
   metrics and the attributes that each method gets. Then the input fields that
-  this behavior tags with `telemetry:"attr"`, and the methods that record each.
-  The names come from `internal/behaviors/telemetry.go`. Thus the block cannot
-  be different from what osapi records.
+  each method records, and the methods that record each. A method records the
+  field that `.Key` names, and each field with the tag `telemetry:"attr"`. The
+  names come from `internal/behaviors/telemetry.go`. Thus the block cannot be
+  different from what osapi records.
 - **Surfaces.** `API` and `CLI` show where osapi serves each one, or `none` when
   the behavior does not have that surface.
 
