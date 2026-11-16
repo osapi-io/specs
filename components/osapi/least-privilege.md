@@ -231,8 +231,8 @@ A ping needs no sudo rule and no capability, but the group of the agent must be
 in `net.ipv4.ping_group_range`. The agent sends it on an ICMP datagram socket,
 also as root. The default of the kernel, `1 0`, permits no group. systemd's
 `50-default.conf` permits each group on Debian, Ubuntu and Fedora, and the lab
-sets it again in `90-osapi-ping.conf`. The preflight checks do not check it yet
-(osapi-io/osapi#776).
+sets it again in `90-osapi-ping.conf`. The agent warns at each start when no
+group of the agent is in the range, also without privilege escalation.
 
 Some sudo grants they use are root whatever the arguments: `chown` of any path,
 `apt-get install`, `systemctl start` of any unit, `useradd -u` and `-G`,
