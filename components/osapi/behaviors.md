@@ -181,6 +181,20 @@ The platform, not the schema, reads two more tags:
   `key=vm.swappiness`. osapi records no other field. Thus by default, a password
   or the content of a file cannot get into a trace. A field with the tag
   `secret:"true"` is never recorded, also when it is the key.
+- `template:"vars"` marks a string input as a Go template. Its `.Vars` are in
+  the input field `vars`, a `map[string]string`, which the CLI takes as
+  `--vars key=value`. A template reads `.Facts`, `.Vars` and `.Hostname`, the
+  fields of `behavior.TemplateData`, and the provider renders it with
+  `behavior.Render`. Before osapi queues a job, `server.Valid` parses each
+  template and refuses one that reads a different field, or a var that the
+  request does not give. Thus an error in a template is a 400, not a failure on
+  each host. Facts are known only on each host, so the API does not check them.
+  `behavior spec` lists the fact keys from `job.FactsRegistration`. The
+  `template` rule of `validate` checks the types, and the generated API tests of
+  each such method send a template with a missing var and expect a 400. File
+  deploy uses it when it moves to a behavior. A check of the facts of each
+  target host before osapi sends the job needs a step on the controller, which
+  osapi does not have yet.
 
 ## Served beside the hand-written domains
 
