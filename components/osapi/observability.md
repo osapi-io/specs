@@ -37,8 +37,10 @@ osapi-controller  GET /api/...                        otelecho, the root
 │           ├─ behavior.<name>.<method>               a behavior only
 │           ├─ exec <program>                         each command
 │           └─ file.write                             each file that changes
-└─ job.collect                                        the wait for the answers
-   └─ kv.watch                                        nats-client
+├─ job.collect                                        the wait for the answers
+│  └─ kv.watch                                        nats-client
+├─ response.encode                                    the answer as JSON
+└─ response.write                                     the answer to the client
 ```
 
 The controller starts the trace, and gives it back in the `traceresponse` header
@@ -58,7 +60,35 @@ goes with the job is the context of `nats.publish`, a child of `job.publish`,
 because that span sent the message. nats-client continues it in `nats.process`
 on the agent, and gives the handler that context. `job.collect` is a sibling of
 `job.publish`. Thus the time of the request is the time to publish, then the
-time to collect, and the agents are under the publish.
+time to collect, then the time to encode, and the agents are under the publish.
+
+Two spans follow the handler. `response.encode` is the encode of the answer as
+JSON, from the moment the handler has its answer to the status line.
+`response.write` is the write of the body, from the status line to the last
+write, with `http.response.body.size`. For a broadcast to many hosts, the encode
+can be a large part of the request: in the lab, 37ms of 75ms for a 148 KB
+package list. The write waits on the network, so it is a separate span. The
+first version had one span to the last write, and a slow moment of the network
+showed as 4.7s of "encode".
+
+The code that oapi-codegen generates encodes after every middleware has
+returned, so no middleware can open a span around it.
+`internal/telemetry/respspan` times both from three marks instead:
+`ScopeMiddleware`, which each domain uses, marks when the handler returns;
+echo's `Response.Before` gives the status line, which goes out after the encode;
+and `Response.After` gives the last write. The spans are made after the fact,
+with those times. A behavior marks before its own `c.JSON`. The first mark wins:
+a behavior runs inside `ScopeMiddleware`, which would mark again after the
+behavior wrote its answer. A response that osapi writes without the mark, such
+as a 401, has no spans, and no span ends before it starts.
+
+`trace get` shows the size on `response.write`. The request span has the size
+too, from otelecho, but its DETAIL stays the status. On `job.publish`, DETAIL is
+the operation and the target that the caller gave, such as
+`behavior.sysctl.get to debian-1`. The NATS subject names one host by its
+machine ID, such as `osapi.jobs.query.host.d530664e…`, so that a renamed host
+still gets its jobs, and the subject stays in `messaging.destination.name`. A
+trace from before shows the subject.
 
 These choices are deliberate:
 
