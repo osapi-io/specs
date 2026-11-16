@@ -192,9 +192,10 @@ The platform, not the schema, reads two more tags:
   `behavior spec` lists the fact keys from `job.FactsRegistration`. The
   `template` rule of `validate` checks the types, and the generated API tests of
   each such method send a template with a missing var and expect a 400. File
-  deploy uses it when it moves to a behavior. A check of the facts of each
-  target host before osapi sends the job needs a step on the controller, which
-  osapi does not have yet.
+  deploy uses it when it moves to a behavior. A template that reads a fact that
+  a host does not have fails on that host, with the error in its result. osapi
+  does not check facts before it sends the job: that would change how it sends
+  jobs to hosts, for a small gain (osapi-io/osapi#768, not planned).
 
 ## Served beside the hand-written domains
 
