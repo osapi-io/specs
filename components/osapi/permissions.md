@@ -4,10 +4,10 @@ Each authenticated endpoint needs one named permission. A token has roles. The
 roles resolve to a set of permissions. The handler checks the permission that it
 needs.
 
-There are 37 permissions and three built-in roles.
+There are 38 permissions and three built-in roles.
 
 ```sh
-grep -cE '^[[:blank:]]Perm[A-Za-z]+ +Permission = ' pkg/sdk/client/permissions.go  # 37
+grep -cE '^[[:blank:]]Perm[A-Za-z]+ +Permission = ' pkg/sdk/client/permissions.go  # 38
 ```
 
 ## The shape is `resource:verb`
@@ -42,15 +42,20 @@ permission that it needs.
 
 | Role    | Permissions | Is                                     |
 | ------- | ----------: | -------------------------------------- |
-| `admin` |          37 | everything, including `audit:read`     |
-| `write` |          30 | read, write and execute, but not audit |
-| `read`  |          17 | reads only                             |
+| `admin` |          38 | everything, including `audit:read`     |
+| `write` |          31 | read, write and execute, but not audit |
+| `read`  |          18 | reads only                             |
 
 ```sh
-awk '/client.RoleAdmin: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'  # 37
-awk '/client.RoleWrite: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'  # 30
-awk '/client.RoleRead: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'   # 17
+awk '/client.RoleAdmin: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'  # 38
+awk '/client.RoleWrite: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'  # 31
+awk '/client.RoleRead: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'   # 18
 ```
+
+`trace:read` is in each role, `read` included. A trace shows the hosts,
+operations and errors of a request, the same as the job that the role can
+already read. It is a separate permission so that a custom role can read jobs
+without traces.
 
 `write` is not `admin` minus one thing. It does not have these seven:
 

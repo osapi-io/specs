@@ -94,6 +94,41 @@ The test in `internal/agent` gives the handler the context that nats-client
 reads from the headers, and checks that `job.process` is a child of it, with the
 host and the status.
 
+### Reading a trace through the controller
+
+`osapi client telemetry trace get --id <trace>` and the Traces page of the UI
+show the span tree of a trace. They ask the controller, at
+`GET /api/telemetry/trace/{id}`, with `trace:read`. The controller asks the
+tracing backend. Thus the machine of the CLI needs no access to the backend, as
+with the trace ID.
+
+OpenTelemetry has no standard API to read a trace. The controller reads the
+query API of Jaeger, `/api/v3/traces/{id}`, which answers OTLP JSON, at
+`telemetry.tracing.url`. For Jaeger, that is the same address where a person
+opens the UI, so one setting is enough. `internal/telemetry/traces` holds the
+reader, and a different backend, for example Tempo, is a second reader beside
+it. Without the setting, the route answers 503 and names the setting.
+
+The backend gets the spans a few seconds after the request. The controller
+answers 404 for a trace that it does not have yet, and the message says to try
+again.
+
+The CLI shows a span under its parent, with the host of the `job.process` above
+it. STATUS is the job status on a `job.process`, `changed` or `unchanged` on a
+behavior write, and `ok` or `error` on the other spans. DETAIL is the error of a
+failed span, or what the span acted on: the inputs that a behavior records, a
+file or a subject.
+
+The NATS calls are the bookkeeping of the job queue, and they are most of the
+spans: 34 of the 42 of a package list on three hosts. The CLI leaves them out by
+default and counts them, and a span under one moves up to the span above it.
+Thus the tree shows the work: the request, each agent, each behavior, command
+and file change. `--all` shows the NATS calls, and DETAIL says what each key is
+for, from the shape of the key: `status: started`, `response`, `file record`,
+`registration`, `drain flag`. The raw key stays in `--json` and in the backend.
+The UI shows the same tree with a timing bar, and a check box for the NATS
+calls.
+
 `NewTraceHandler` wraps `slog`, so that a log line has its trace and span IDs.
 This connects a log to a trace without a separate correlation ID. For the same
 reason, an audit entry has `trace_id`. Thus you can join three records of the
