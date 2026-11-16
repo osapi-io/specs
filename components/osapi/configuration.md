@@ -60,6 +60,18 @@ checks. They also work without a file. Thus they can show what is incorrect. The
 source of each value is `env`, `file`, `default` or `unset`. A field with the
 tag `mask:"password"` prints as `********`.
 
+`validate` runs the checks of `start`, which are the table `Checks` in
+`internal/config/checks.go`: `file`, `parse`, `value`, `setting` and `bucket`.
+`validate` lists each problem, not only the first, with its rule, its key and
+the fix of the rule, in text and in `--json`. That is the shape of
+`behavior validate`. `validate --help` lists each rule with its fix. A value
+that breaks its `validate` tag is named by its config key, such as
+`controller.api.security.signing_key`, not by its Go field. Thus the key goes
+straight to `config get --key`. `start` reads the same problems through `Load`,
+and refuses to start on any of them. A test fails on a `Rule` constant without a
+check. It follows
+[the commands that teach](cli.md#commands-that-teach-for-agents).
+
 The configuration page of the site points to these commands. It does not list
 the keys, because its old list was incorrect. Its sample YAML put NATS settings
 in a location that osapi never reads.
