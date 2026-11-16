@@ -68,9 +68,13 @@ generates encodes after every middleware has returned, so no middleware can open
 a span around it. `internal/telemetry/respspan` times it from two marks instead:
 `ScopeMiddleware`, which each domain uses, marks when the handler returns, and
 echo's `Response.After` gives the last write. The span is made after the fact,
-with those two times. A behavior marks before its own `c.JSON`. A response that
-osapi writes without the mark, such as a 401, has no span. `trace get` shows the
-size in the DETAIL column.
+with those two times. A behavior marks before its own `c.JSON`. The first mark
+wins: a behavior runs inside `ScopeMiddleware`, which would mark again after the
+behavior wrote its answer, and the span would end before it starts. A response
+that osapi writes without the mark, such as a 401, has no span, and no span ends
+before it starts. `trace get` shows the size in the DETAIL column of
+`response.encode`. The request span has the size too, from otelecho, but its
+DETAIL stays the status.
 
 These choices are deliberate:
 
