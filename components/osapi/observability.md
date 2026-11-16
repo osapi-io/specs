@@ -37,8 +37,9 @@ osapi-controller  GET /api/...                        otelecho, the root
 │           ├─ behavior.<name>.<method>               a behavior only
 │           ├─ exec <program>                         each command
 │           └─ file.write                             each file that changes
-└─ job.collect                                        the wait for the answers
-   └─ kv.watch                                        nats-client
+├─ job.collect                                        the wait for the answers
+│  └─ kv.watch                                        nats-client
+└─ response.encode                                    the JSON answer, written
 ```
 
 The controller starts the trace, and gives it back in the `traceresponse` header
@@ -58,7 +59,18 @@ goes with the job is the context of `nats.publish`, a child of `job.publish`,
 because that span sent the message. nats-client continues it in `nats.process`
 on the agent, and gives the handler that context. `job.collect` is a sibling of
 `job.publish`. Thus the time of the request is the time to publish, then the
-time to collect, and the agents are under the publish.
+time to collect, then the time to encode, and the agents are under the publish.
+
+`response.encode` is the time from the moment the handler has its answer to the
+last write of the body, with `http.response.body.size`. For a broadcast to many
+hosts, the encode can be a large part of the request. The code that oapi-codegen
+generates encodes after every middleware has returned, so no middleware can open
+a span around it. `internal/telemetry/respspan` times it from two marks instead:
+`ScopeMiddleware`, which each domain uses, marks when the handler returns, and
+echo's `Response.After` gives the last write. The span is made after the fact,
+with those two times. A behavior marks before its own `c.JSON`. A response that
+osapi writes without the mark, such as a 401, has no span. `trace get` shows the
+size in the DETAIL column.
 
 These choices are deliberate:
 
