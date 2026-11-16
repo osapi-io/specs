@@ -175,9 +175,12 @@ The platform, not the schema, reads two more tags:
 - `render` tells how an output field shows in a table (`-` hides it, `bytes`,
   `age`, `status`). Thus the output of each behavior renders through one layout,
   not through formatting for each command.
-- `telemetry:"attr"` records an input field on the span of the method. osapi
-  records no field without the tag. Thus by default, a password or the content
-  of a file cannot get into a trace.
+- `telemetry:"attr"` records an input field on the span of the method. The span
+  also records the field that the method names with `.Key`, without the tag.
+  Thus a trace shows the item that each call changed, such as
+  `key=vm.swappiness`. osapi records no other field. Thus by default, a password
+  or the content of a file cannot get into a trace. A field with the tag
+  `secret:"true"` is never recorded, also when it is the key.
 
 ## Served beside the hand-written domains
 
@@ -427,7 +430,8 @@ because they describe the binary, not a fleet:
 osapi behavior list                               # the behaviors and their methods
 osapi behavior get --name sysctl                  # surfaces, methods, types, settings, telemetry
 osapi behavior get --name sysctl --method update  # one method in full
-osapi behavior validate                           # every definition against the rules
+osapi behavior spec                               # each part of the DSL, and when to use it
+osapi behavior validate                           # every definition against the rules, each with its fix
 osapi behavior new --name motd --description "x"  # write a new behavior's layout
 osapi behavior new --group network --name neighbors --description "x"  # under a group
 ```
@@ -446,6 +450,14 @@ Each one takes `--json`. Values come as flags, as in all of the [CLI](cli.md).
 - the span and metrics that its calls record, the spans under it, and the paths
   that it writes
 
+`behavior spec` lists each option, method, refinement, part of an example, call
+in a provider and field tag, with what it does and when to use it. It also lists
+how to build on other behaviors, the building blocks in the binary, the
+generated paths, and what the platform cannot do yet. The table is `Spec` in
+`internal/behavior/spec.go`. The building blocks come from the registry. A test
+fails on an option, method, part of an example or field tag of the package
+without a term.
+
 `behavior new` writes `internal/behaviors/<name>/` as a working behavior that
 keeps a value in a file, with each standard file. It adds its import to
 `internal/behaviors/all`. Before you change anything, it builds, validates,
@@ -460,28 +472,20 @@ render through [the output style of the CLI](cli.md#output-style).
 
 ## The rules validate checks
 
-`behavior validate`, from `internal/behaviors/validate.go`, fails a definition
-that the platform cannot build from. Each problem names its rule:
+`behavior validate` fails a definition that the platform cannot build from, or
+that hides what it does. Each problem has its behavior, its method, its rule, a
+message and the fix of the rule. The rules are the table `Checks`, in
+`internal/behavior/checks.go`. `behavior validate --help` prints each rule with
+what it requires and its fix. Thus an agent reads the rules before it breaks
+one. A test fails on a `Rule` constant without a check.
 
-| Rule        | Fails when                                                                                                                                                        |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`      | a behavior, group or method name is not lowercase letters, digits and dashes                                                                                      |
-| `placement` | the behavior has no placement                                                                                                                                     |
-| `doc`       | the behavior or a method has no description                                                                                                                       |
-| `methods`   | the behavior has no methods                                                                                                                                       |
-| `duplicate` | two behaviors share a name, or a method is declared twice                                                                                                         |
-| `key`       | `.Key` names a field the input does not have                                                                                                                      |
-| `schema`    | an input or output type has no JSON Schema, such as an unregistered tag, or an input is not a struct                                                              |
-| `output`    | the output is not a struct or slice of structs, or declares `hostname`, `status` or `error`, which every per-host result already carries                          |
-| `changed`   | a write's output has no `changed` boolean                                                                                                                         |
-| `surface`   | the behavior has `CLI` without `API`, is `Internal` and served, or a CLI behavior's input has a field no flag can hold, such as a list                            |
-| `platform`  | the behavior declares no provider, declares a platform twice, or a platform's provider does not implement a method's provider type                                |
-| `example`   | an example or refusal is not the method's types or has no description, a refusal has no error text or declares effects, or a CLI behavior's method has no example |
-| `verb`      | a method is named with a synonym, such as `remove` or `add`, rather than the verb it stands for                                                                   |
-| `route`     | two methods would be served at the same route and HTTP method                                                                                                     |
-| `settings`  | settings declared with `Config` are not a struct, or a field has no `mapstructure` name or no `doc`                                                               |
-| `secret`    | an input field is tagged both `secret:"true"` and `telemetry:"attr"`, which would record a secret on a span                                                       |
-| `requires`  | a required behavior is not registered, or behaviors require each other in a cycle                                                                                 |
+The rules cover the names, the placement, the descriptions, the methods, the
+verbs, the routes, the keys, the schemas, the outputs, `changed`, the surfaces,
+the examples, the settings, the platforms, the requirements, internal behaviors,
+`Writes` and secrets. The `span` rule fails a write that records nothing on its
+span: no `.Key`, and no field tagged `telemetry:"attr"`. Thus a trace always
+tells what a write changed. A write whose input has no field that a span can
+record is exempt.
 
 It exits 1 when any rule fails. An agent runs this check after it writes a
 behavior, before the tests.
@@ -566,6 +570,15 @@ check correctly, and the session stopped and said so.
 | Wiring      | `internal/behaviors/all/all_public_test.go`        | every registered behavior validates, every route is mounted and every command attached                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Live server | `test/integration/behavior_test.go`                | every unkeyed read against a real agent; the write examples with `OSAPI_INTEGRATION_WRITE_BEHAVIORS=1`, each reporting the example's `changed` and then `false`; `just behavior-int-linux` runs them on Debian in a container, since the CI agent cannot write `/etc`                                                                                                                                                                                                                                                                |
 
+Each failure of `behaviortest.Run` ends with the fix of its check. The checks
+are the table `TestChecks`, in `internal/behavior/checks.go`, and
+`behavior validate --help` prints them after the rules. The `file-span` check
+fails a change to a file that does not go through `atomicfile`: a write, a
+removal or a mode change through `h.FS`. Such a change has no `file.write`,
+`file.remove` or `file.chmod` span, and is not atomic. The fake host finds it
+from the stack of the call. The fix sends a behavior that manages a file to
+managedfile, and a building block to `atomicfile.Write`, `Remove` or `Chmod`.
+
 The generated HTTP tests split the cases of each method as the handler tests of
 the hand-written domains do: `Test<Method>` for the answers,
 `Test<Method>ValidationHTTP` for the 400s and `Test<Method>RBACHTTP` for the
@@ -644,6 +657,14 @@ var Behavior = behavior.Register(behavior.Define(
     ...
 ))
 ```
+
+Generic work goes in a building block: an internal behavior that does one job,
+such as managedfile for a file that osapi manages. `behavior spec` tells when to
+use one and when to make one, and lists each building block in the binary. The
+wiring is written by hand today, in three places: `Requires`, `host.Require` in
+the builder, and `Call` in the provider. osapi-io/osapi#764 has the next steps:
+scaffolding the wiring, workflows across hosts, and behaviors that call outside
+APIs.
 
 - **Building.** `host.Build` builds the provider of each required behavior
   first, for the same host. It puts the provider in the host that the requiring
