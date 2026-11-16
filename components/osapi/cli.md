@@ -456,6 +456,9 @@ under it is incorrect. A heading with nothing under it is also incorrect.
 - Times are local, `2026-11-12 18:15:13`. With `--json`, they are RFC 3339.
 - Durations are rounded to a useful precision: `6ms`, `1.2s`, `3m 4s`.
 - Sizes have one decimal and their unit: `3.4 GB used of 7.7 GB`.
+- A percentage is a whole number with `%`, such as `67%` of packet loss or `45%`
+  of a disk. A CPU percentage has one decimal, `12.3%`, because it is often
+  below 1%.
 - The noun of a count agrees with it: `1 key`, `2 keys`.
 
 ### JSON
