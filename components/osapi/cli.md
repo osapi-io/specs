@@ -339,6 +339,11 @@ Each line has one pair: the label, a colon, then the value. The values align in
 the block. Labels are full words in sentence case: `Service manager`,
 `Primary interface`, `Updated`. Not `Service Mgr` or `Updated At`.
 
+The help has one style too. The one line of a command, and the help of each
+flag, start with a capital letter and have no period at the end, as the lines of
+cobra have none. The long help is sentences. A test of each command holds this,
+for the commands that a person writes and the ones that a definition makes.
+
 ### Tables
 
 - Headers are capitals with spaces, never underscores: `UTC OFFSET`.
