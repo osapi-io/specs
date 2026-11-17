@@ -279,9 +279,11 @@ same, byte for byte. The UI client has the same exports, with its fields in the
 order of kin-openapi. The prose of the agent group's API pages changed: the
 generated 400 and 500 have one description each, not one for each operation.
 
-`redocly join` takes the title of the joined spec from the first file that it
-reads. The endpoint groups' specs come first, so the title stays "Agent
-Management API". osapi#798 is to take it from the components spec.
+`redocly join` takes the title and the description of the joined spec from the
+first file that it reads. The join reads the components spec first, so the API
+has its own title, "osapi", and its tagline, whatever the order of the groups
+(osapi#798). Before, the API had the title of the first group, "Agent Management
+API".
 
 ## The order
 
