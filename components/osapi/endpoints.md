@@ -16,12 +16,12 @@ The issue is osapi#744.
 
 The controller has 25 operations, in seven groups. A person wrote each one four
 times: the spec, the handler, the service of the SDK and the CLI command. The
-eight of the agent group come from a definition now. Seventeen, in six groups,
-still have a hand-written spec and handler.
+eight of the agent group and the one of the telemetry group come from a
+definition now. Sixteen, in five groups, still have a hand-written spec and
+handler.
 
 A new operation of the controller had no generator. Behaviors cover the work on
-a host, and nothing covered the work on the controller. Behaviors cover the work
-on a host. Nothing covers the work on the controller.
+a host, and nothing covered the work on the controller.
 
 ## An endpoint and a behavior
 
@@ -289,8 +289,11 @@ actions, query parameters and 409. The DSL gets its shape there.
 Then each group moves in its own pull request, from the easiest:
 
 1. agent
-2. telemetry: one GET, a permission with a different name, and 503. Its spec is
-   defined and held to the hand-written spec; the switch is next
+2. telemetry: one GET, a permission with a different name, and 503. Moved. Its
+   command stays `osapi client telemetry trace get`: a method whose `Sub` is not
+   its name is under a command of that name. `--all` is a `.Flag` that only the
+   renderer reads, and a backend that fails is `endpoint.Internal`, so the
+   caller does not get the backend's error.
 3. audit: pagination and an export
 4. job: a filter, 204, and a JSON body with 201
 5. facts: a permission of a different group
