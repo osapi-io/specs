@@ -22,6 +22,12 @@ Before you start, ask which kind of work it is. A new behavior uses the
 does not use the steps below. This skill covers the hand-written domains: each
 domain that did not move yet.
 
+The operations of the controller itself (agent, audit, facts, file, health, job
+and telemetry) are not domains of a host. They move to the endpoint DSL
+([the design](../../../components/osapi/endpoints.md)). The `build-an-endpoint`
+skill in the osapi repository, `.claude/skills/build-an-endpoint/`, covers them.
+A new operation of the controller does not use the steps below.
+
 ## 1. Establish the reference domain
 
 Do this on each run, before you write anything. Select a domain that somebody
