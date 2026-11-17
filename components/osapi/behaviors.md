@@ -419,6 +419,13 @@ not make it fail.
 100% coverage alone. The target for the total of the repository is also 100%.
 This check names the behavior package that is below the target.
 
+`just behavior-scaffold-check`, also in `just test`, runs `osapi behavior new`
+in a copy of the checkout, generates the new behavior and runs its tests. Thus
+the scaffold cannot fall behind the checks that each behavior must pass. A new
+check in `behaviortest` that the scaffold does not obey fails CI. Before this
+check, the scaffold wrote a file through `h.FS`, and did not declare it with
+`behavior.Writes`. Thus a new behavior failed its own tests (osapi#781).
+
 ## Telemetry every method gets
 
 Each behavior method goes through `Method.Invoke` on the agent. Thus the
