@@ -119,7 +119,7 @@ incorrect after the next change, and nothing shows that change.
 | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | [document](.claude/skills/document/README.md)           | Where a design goes, what the page looks like, and if a page already covers it                                        |
 | [org-status](.claude/skills/org-status/README.md)       | Open pull requests, Dependabot updates, security alerts, CI status, and the merge queue across [osapi-io]             |
-| [add-a-domain](.claude/skills/add-a-domain/README.md)   | How to add an osapi domain: the provider and each layer that must have it, in the order that prevents rework          |
+| [add-a-domain](.claude/skills/add-a-domain/SKILL.md)    | How to add an osapi domain. A pointer: the osapi binary has the skill (`osapi skill get --name add-a-domain`)         |
 | [release](.claude/skills/release/README.md)             | If a repository needs a tag, which number it gets, and if the tag will publish                                        |
 | [work-an-issue](.claude/skills/work-an-issue/README.md) | How to take an issue to a merged pull request: if the problem still occurs, its size, the fix and its test            |
 | [ste-100](.claude/skills/ste-100/README.md)             | How to write and check pages in ASD-STE100 Simplified Technical English, the sentence rules that each page here obeys |
