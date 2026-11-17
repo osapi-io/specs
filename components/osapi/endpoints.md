@@ -16,9 +16,9 @@ The issue is osapi#744.
 
 The controller has 25 operations, in seven groups. A person wrote each one four
 times: the spec, the handler, the service of the SDK and the CLI command. The
-eight of the agent group and the one of the telemetry group come from a
-definition now. Sixteen, in five groups, still have a hand-written spec and
-handler.
+eight of the agent group, the one of the telemetry group and the three of the
+audit group come from a definition now. Thirteen, in four groups, still have a
+hand-written spec and handler.
 
 A new operation of the controller had no generator. Behaviors cover the work on
 a host, and nothing covered the work on the controller.
@@ -294,11 +294,13 @@ Then each group moves in its own pull request, from the easiest:
    its name is under a command of that name. `--all` is a `.Flag` that only the
    renderer reads, and a backend that fails is `endpoint.Internal`, so the
    caller does not get the backend's error.
-3. audit: pagination and an export. Its spec is defined and held to the
-   hand-written spec; the switch is next. It needed formats from `validate`
-   (`uuid`), `int64`, numeric `min` and `max`, and a `default` tag. Its
-   hand-written spec gained the 400 that `GET /api/audit/{id}` returned for an
-   ID that is not a UUID, so the two agree on each line
+3. audit: pagination and an export. It is served from its definition. Its CLI
+   paths stay `audit list`, `audit get` and `audit export`; `export`'s
+   `--output` and `--type` are `.StringFlag`s, and an input field's `default`
+   tag is its flag's value too. With no `nats.audit.stream`, each audit endpoint
+   answers 503, where the controller had no route before. The DSL gained
+   `Example[T]` for an example with a double quote, because the formatters drop
+   the backslash of a quote in a struct tag
 4. job: a filter, 204, and a JSON body with 201
 5. facts: a permission of a different group
 6. file: a multipart upload
