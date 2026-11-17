@@ -21,8 +21,7 @@ definition now. Sixteen, in five groups, still have a hand-written spec and
 handler.
 
 A new operation of the controller had no generator. Behaviors cover the work on
-a host, and nothing covered the work on the controller. Behaviors cover the work
-on a host. Nothing covers the work on the controller.
+a host, and nothing covered the work on the controller.
 
 ## An endpoint and a behavior
 
