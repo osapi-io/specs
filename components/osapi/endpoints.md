@@ -1,14 +1,14 @@
 # Endpoints
 
-A plan, partly built. The agent group is served from its definition: its spec,
-routes and decoders are generated, and its handlers are typed functions. The
-other groups still have hand-written specs, and the CLI commands are still
-written by hand. An endpoint is one HTTP operation of the controller itself,
-such as `GET /api/agent` or `POST /api/job/{id}/retry`. Its definition is Go.
-The route, the part of the OpenAPI spec, the CLI command, its page, the
-permission and the HTTP tests come from that definition, as they come from the
-definition of a [behavior](behaviors.md). Thus no part of the API uses a spec
-that a person writes.
+A plan, partly built. The agent group is served, and its CLI commands are made,
+from its definition: its spec, routes, decoders and commands are generated, and
+its handlers are typed functions. The other groups still have hand-written specs
+and commands. An endpoint is one HTTP operation of the controller itself, such
+as `GET /api/agent` or `POST /api/job/{id}/retry`. Its definition is Go. The
+route, the part of the OpenAPI spec, the CLI command, its page, the permission
+and the HTTP tests come from that definition, as they come from the definition
+of a [behavior](behaviors.md). Thus no part of the API uses a spec that a person
+writes.
 
 The issue is osapi#744.
 
@@ -158,33 +158,40 @@ var Group = endpoint.Register(endpoint.Define(
   field an example. The join fails when two specs define one schema in different
   words, so a group that shares a schema with another spec copies them.
 
-Not built yet: **a renderer**, the one part of the CLI that a group can write.
-The command is generated. The output of `trace get` is a tree, and the output of
-`agent get` is a detail view. A method that needs more than the shared table and
-key value renderers names a renderer.
+- **`.Command(short, long)`** and **`.Example("--flag value")`** give the CLI
+  command its own help, for a person at a shell, and its examples. Each input
+  field is a flag, named for its json name with `_` as `-`.
+
+- **A renderer**, `command.Render(Group, "method", fn)` in
+  `cmd/client_<group>_render.go`, is the one part of the CLI that a group
+  writes. fn gets the input that the command sent and the output that the API
+  answered, such as the table of `agent list` or the detail view of `agent get`.
+  A method without one prints its answer as JSON.
 
 ## What it generates
 
 `go generate ./internal/controller/endpoints/all` runs the generator,
 `internal/controller/endpoint/gen`. It is in Go, with jen, as the generator of
 behaviors is. For each group that Uses a type, it writes `gen/api.yaml` from
-kin-openapi, `gen/api.go` with the routes, and `gen/decode.go` with one decoder
-for each method. `internal/controller/endpoints/all/gen` registers the routes of
-each group, and the controller imports it. Each generated route calls `Serve` of
-`internal/controller/endpoint/server`: it decodes and validates the input, runs
-the handler, and writes the output, or the error with the status that `Errors`
-maps it to. Auth is the same `ScopeMiddleware` as each route has.
+kin-openapi, `gen/api.go` with the routes, `gen/decode.go` with one decoder for
+each method, and `gen/cli.go` with one cobra command for each method under
+`osapi client <group>`. `internal/controller/endpoints/all/gen` registers the
+routes and the commands of each group. The controller imports it. Each generated
+route calls `Serve` of `internal/controller/endpoint/server`: it decodes and
+validates the input, runs the handler, and writes the output, or the error with
+the status that `Errors` maps it to. Auth is the same `ScopeMiddleware` as each
+route has.
 
-Today it writes these. The table also has what comes with the CLI step:
+It writes these:
 
-| File                                                  | Has                                                         |
-| ----------------------------------------------------- | ----------------------------------------------------------- |
-| `internal/controller/endpoints/<group>/gen/api.yaml`  | the part of the spec for the group                          |
-| `internal/controller/endpoints/<group>/gen/api.go`    | the routes: verb, path, permission and handler              |
-| `internal/controller/endpoints/<group>/gen/decode.go` | a decoder for each method: path, query, body and validation |
-| `docs/docs/sidebar/usage/cli/client/<group>/`         | later: the CLI pages of the generated commands              |
-| `docs/docs/sidebar/usage/cli/client/<group>/`         | the CLI pages, from cobra                                   |
-| `ui/src/lib/permissions.gen.ts`                       | the permissions of the group                                |
+| File                                                  | Has                                                           |
+| ----------------------------------------------------- | ------------------------------------------------------------- |
+| `internal/controller/endpoints/<group>/gen/api.yaml`  | the part of the spec for the group                            |
+| `internal/controller/endpoints/<group>/gen/api.go`    | the routes: verb, path, permission and handler                |
+| `internal/controller/endpoints/<group>/gen/decode.go` | a decoder for each method: path, query, body and validation   |
+| `internal/controller/endpoints/<group>/gen/cli.go`    | a CLI command for each method, its flags, help and permission |
+| `docs/docs/sidebar/usage/cli/client/<group>/`         | the CLI pages, from cobra                                     |
+| `ui/src/lib/permissions.gen.ts`                       | the permissions of the group                                  |
 
 The joined spec then has the endpoints and the behaviors, and no hand-written
 part.
@@ -199,6 +206,7 @@ osapi controller endpoint get --name agent          # the routes, permissions an
 osapi controller endpoint get --name agent --openapi  # the group's part of the spec, as YAML
 osapi controller endpoint spec                      # each part of the DSL, and when to use it
 osapi controller endpoint validate                  # the rules of each definition, each with its fix
+osapi controller endpoint new --name x --description "..."  # a new group that passes its tests
 ```
 
 `spec` and `validate --help` come from the tables of the `internal/guide`
@@ -206,7 +214,15 @@ package, as the commands of behaviors do: `endpoint.Spec` and `endpoint.Checks`.
 A test fails on an exported option of the DSL that has no term in
 `endpoint.Spec`, and on a rule of `Validate` that has no check. Thus the help
 cannot fall behind the code. `spec` also lists what is not built yet, so an
-agent stops there. `osapi controller endpoint new` comes with the handlers.
+agent stops there.
+
+`new` writes a group with a list and a get, an empty `Deps`, its types and the
+tests of its methods, and registers it, as `osapi behavior new` does for a
+behavior. An empty `Deps` needs no wiring in the controller, so the group works
+once it is generated. Its first field makes the controller give it, in
+`internal/controller/handlers.go`. `just endpoint-scaffold-check` writes a group
+in a copy of the checkout, generates it, and runs its tests and the
+controller's.
 
 ## How we know that the output is correct
 
@@ -226,9 +242,12 @@ hand-written specs stay, and keep serving the API, until then.
 3. **The prose.** `osapi controller endpoint get --name agent --openapi` prints
    the generated spec, to read next to the hand-written spec. A person reads the
    descriptions and the examples. The test does not compare them.
-4. **The CLI.** The help of each generated command, as JSON (`--help --json`),
-   is compared with the help of the hand-written command: the same flags, the
-   same types, the same defaults.
+4. **The CLI.** Built for the agent group. The help of each generated command,
+   as JSON (`--help --json`), was compared with the help of the hand-written
+   command: the same flags, the same types and the same required flags. The flag
+   help has the words of the input field's `doc`. `agent list --pending` called
+   two methods; it is now `agent pending`. The CLI pages gained the permission
+   of each command.
 5. **Golden files.** The generated files of the first group have golden copies,
    as the files of `osapi behavior new` have. A change to the generator shows as
    a diff of what it writes.
@@ -237,7 +256,7 @@ hand-written specs stay, and keep serving the API, until then.
    on mocks of `Deps`, or into an HTTP test through the generated routes, for
    auth, 400 and each status. Then the controller serves the generated routes,
    and the hand-written spec and handler of the group are deleted. The commands
-   come in the CLI step.
+   come from the definition too.
 7. **The whole spec, at each step.** Built.
    `internal/apicontract/testdata/joined.golden` is the contract of the joined
    spec, and a test holds the joined spec to it. Each pull request that moves a
