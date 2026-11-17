@@ -128,8 +128,11 @@ var Group = endpoint.Register(endpoint.Define(
 - **The output type** is the response. A named struct is a schema in the
   components, with its name. A struct with no name, such as `Message`, is in
   place. A field is required when its json tag has no `omitempty`. `time.Time`
-  is a `date-time`. `validate:"oneof=..."` gives an enum. In the input, a field
-  is required when it is tagged `validate:"required"`.
+  is a `date-time`. A `float64` is a `number` of format `double`, and a
+  `float32` a `number` with no format, as oapi-codegen maps them back. A
+  `pattern:"..."` tag gives a string a regular expression, and the route answers
+  400 for a value that does not match. `validate:"oneof=..."` gives an enum. In
+  the input, a field is required when it is tagged `validate:"required"`.
 
 - **`ID`** keeps the operationId of the hand-written spec. The generated Go SDK
   and the UI client get their names from it. Thus the move does not change a
@@ -292,7 +295,8 @@ actions, query parameters and 409. The DSL gets its shape there.
 Then each group moves in its own pull request, from the easiest:
 
 1. agent
-2. telemetry: one GET, a permission with a different name, and 503
+2. telemetry: one GET, a permission with a different name, and 503. Its spec is
+   defined and held to the hand-written spec; the switch is next
 3. audit: pagination and an export
 4. job: a filter, 204, and a JSON body with 201
 5. facts: a permission of a different group
