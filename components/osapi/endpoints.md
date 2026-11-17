@@ -163,10 +163,10 @@ var Group = endpoint.Register(endpoint.Define(
   field is a flag, named for its json name with `_` as `-`.
 
 - **A renderer**, `command.Render(Group, "method", fn)` in
-  `cmd/client_<group>_render.go`, is the one part of the CLI that a group
-  writes. fn gets the input that the command sent and the output that the API
-  answered, such as the table of `agent list` or the detail view of `agent get`.
-  A method without one prints its answer as JSON.
+  `cmd/client_<group>.go`, the file of the group's command, is the one part of
+  the CLI that a group writes. fn gets the input that the command sent and the
+  output that the API answered, such as the table of `agent list` or the detail
+  view of `agent get`. A method without one prints its answer as JSON.
 
 ## What it generates
 
