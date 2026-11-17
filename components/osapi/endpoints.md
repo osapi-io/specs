@@ -215,10 +215,12 @@ hand-written specs stay, and keep serving the API, until then.
    file again in the same pull request (`-update`), so the diff shows it. When
    the last group moves, the file stays as the contract of the API.
 
-The agent group agrees with its hand-written spec on each line but two. Drain
-and undrain list no 500, because their handlers answer 409 when the controller
-fails (osapi#788). A generated method answers 500 for an error that it does not
-map. The parity row accepts these two lines, and names the issue.
+The agent group agrees with its hand-written spec on each line. The first run
+found two that did not: drain and undrain listed no 500, because their handlers
+answered 409 when the controller failed, and 409 says that the agent is already
+in that state. They answer 500 now (osapi#788). A row of the parity test can
+accept a line that differs on purpose, with its reason. The agent row accepts
+none.
 
 ## The order
 
