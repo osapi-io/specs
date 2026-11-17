@@ -17,11 +17,7 @@ The issue is osapi#744.
 The controller has 25 operations, in seven groups. A person wrote each one four
 times: the spec, the handler, the service of the SDK and the CLI command. The
 eight of the agent group come from a definition now. Seventeen, in six groups,
-still have a hand-written spec and handler:
-
-```sh
-ls internal/controller/api/*/gen/api.yaml | grep -v -e /node/ -e /next/ -e /components/ | xargs cat | grep -cE '^    (get|post|put|delete|patch):'   # 17
-```
+still have a hand-written spec and handler.
 
 A new operation of the controller had no generator. Behaviors cover the work on
 a host, and nothing covered the work on the controller. Behaviors cover the work
@@ -63,11 +59,7 @@ The definitions must express each row before the first group moves.
 | telemetry | trace get                                                  | a permission with a different name (`trace:read`); 503 when the backend is not set                                                                                                                                                 |
 
 The 94 operations under `/api/node/{hostname}` are host work. They become
-behaviors, not endpoints:
-
-```sh
-find internal/controller/api/node -path '*/gen/api.yaml' | xargs cat | grep -cE '^    (get|post|put|delete|patch):'   # 94
-```
+behaviors, not endpoints.
 
 One of them is not decided: `GET /api/node/{hostname}`, the status of a node. It
 runs on the agent, so it is host work. But its path is the root of the node, not

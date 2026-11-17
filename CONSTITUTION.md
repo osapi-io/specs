@@ -196,9 +196,6 @@ mechanism works before the reader learns the purpose of the repository. The
 osapi documentation was in that state after five changes: 1,840 lines, no
 statement of purpose, no dependency and no architecture.
 
-Write a count with the command that gives it. A number alone is a claim that was
-true when somebody wrote it. Nothing shows when it stops being true.
-
 A page explains a system to a person who must work on it. It is not a
 specification. It has no requirement identifiers, no "MUST", no user stories and
 no acceptance scenarios. A person who learns the system reads a page many times.
@@ -293,18 +290,6 @@ of `osapi-justfiles` listed six consumers. The command gives seven, because
 *components*, not from the result of the command. **It was incorrect when the
 writer made it. It did not become stale.** Age did not cause the error. The
 point of view of the writer caused it.
-
-### A count carries the command that produces it
-
-A number alone is a claim that was true when somebody wrote it. Nothing shows
-when it stops being true.
-
-Write a count with the command that gives it. Then a reader can run the command
-in the repository that the count describes. This rule fixed seven counts that
-nobody could check. Six of them said "the same, plus `-not -name '*_test.go'`".
-That was a short form for the writer of the table, and nothing can run it.
-
-Thus each command must be complete without the commands near it.
 
 ### A rule a document states is reachable from the repository it binds
 

@@ -179,10 +179,6 @@ There are three metrics. They are about liveness, not about work:
 | `osapi_subsystem_up`          | the same, one level down, per `SubsystemStatus` |
 | `osapi_heartbeat_age_seconds` | how long since an agent last checked in         |
 
-```sh
-grep -rhoE 'osapi_[a-z_]+_(up|seconds)' --include='*.go' internal/ | grep -v '^osapi_behavior_' | sort -u | wc -l   # 3
-```
-
 Each component also records `osapi_nats_client_operation_duration_seconds`, from
 nats-client, for each call to NATS: by operation and by bucket or stream, with
 `error_type` on a failure. A key or a subject is never a label. Each connection
@@ -307,10 +303,6 @@ The same wrapper makes three metrics, through the meter provider of the agent:
 | `osapi_behavior_calls_total`      | calls, by behavior, method and outcome               |
 | `osapi_behavior_duration_seconds` | how long each call took, by behavior and method      |
 | `osapi_behavior_changes_total`    | writes that changed the host, by behavior and method |
-
-```sh
-grep -rhoE 'osapi_behavior_[a-z_]+' --include='*.go' internal/behavior/ | sort -u | wc -l   # 3
-```
 
 `osapi behavior get --name <name>` prints the span and metric names of a
 behavior. It also prints which inputs osapi records.

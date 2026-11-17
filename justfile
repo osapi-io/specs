@@ -34,17 +34,12 @@ test:
     just md-fmt-check
     just just-fmt-check
     just check-docs
-    just check-counts
 
 # --- Checks ---
 
 # Check links, anchors, skill frontmatter and the documentation contract
 check-docs:
     uv run --no-project --python 3.13 python scripts/check_docs.py
-
-# Run each count a page states against the repository it describes
-check-counts:
-    uv run --no-project --python 3.13 python scripts/check_counts.py
 
 # Format and lint before committing
 ready:

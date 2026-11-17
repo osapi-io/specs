@@ -101,13 +101,6 @@ first tier that has a name for it.
 |    2 | OpenTelemetry resource semantic conventions |     91 |   10% |
 |    3 | gohai convention                            |    752 |   79% |
 
-```sh
-grep -cE '^\|[^|]*\|[^|]*\|[^|]*\| T1 +\|' schemas/field-mapping.md   # 107
-grep -cE '^\|[^|]*\|[^|]*\|[^|]*\| T2 +\|' schemas/field-mapping.md   # 91
-grep -cE '^\|[^|]*\|[^|]*\|[^|]*\| T3 +\|' schemas/field-mapping.md   # 752
-grep -cE '^\| [a-z]' schemas/field-mapping.md                          # 950
-```
-
 **Four fifths of the fields obey neither standard.** Know this number before you
 read the rules. The third tier is the usual case, and the first two are the
 exception. Thus a contributor who names a new field usually uses the convention

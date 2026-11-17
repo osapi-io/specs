@@ -80,10 +80,6 @@ The executor is an interface. Thus a provider gets an executor and does not
 import `os/exec`. You can then test a provider without a real command. You can
 also review how commands are built in one location, not in 212 provider files.
 
-```sh
-find internal/provider -name '*.go' -not -name '*_test.go' | wc -l  # 212
-```
-
 A provider that starts a process directly loses these things:
 
 - the timeout ceiling

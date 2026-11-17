@@ -160,10 +160,6 @@ It is the only documentation set in the organization where the two agree.
 
 There are 101 operation methods, and 140 documentation pages for 81 Go files.
 
-```sh
-grep -cE '^func \(o \*Orchestrator\) [A-Z]' pkg/orchestrator/ops.go   # 101
-```
-
 To count them, do not match on `) *Step {`. Most signatures wrap, and that
 pattern returns 2.
 

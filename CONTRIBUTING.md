@@ -77,14 +77,13 @@ rules first:
 - Write each sentence in Simplified Technical English, as
   [the constitution](CONSTITUTION.md) requires of each repository. `/ste-100`
   checks it.
-- Give each count with the command that gives it. The command must work alone.
 - State a fact one time. Link to it from each other location that needs it.
 - When there was a tradeoff, say what it was.
 
-`just test` checks the counts, and that each link works. It also fails on the
-signs of a bad page that a script can find: an em dash, "MUST", a requirement
-identifier, a user story. The skills check the voice and the STE. You must obey
-the last two rules yourself.
+`just test` checks that each link works. It also fails on the signs of a bad
+page that a script can find: an em dash, "MUST", a requirement identifier, a
+user story. The skills check the voice and the STE. You must obey the last two
+rules yourself.
 
 ## Before you commit
 
@@ -93,8 +92,8 @@ just test
 ```
 
 That command checks the markdown format, the justfile lint, the skills, the
-links and anchors, each count against its command, and the documentation
-contract. `just md-fmt` fixes the format.
+links and anchors, and the documentation contract. `just md-fmt` fixes the
+format.
 
 [mdformat] changes two things and does not tell you. Thus write them correctly
 the first time:

@@ -10,10 +10,6 @@ not have. Thus `admin` can see these records, and `write` cannot.
 An entry has thirteen fields. The table below has twelve rows, because `method`
 and `path` describe one thing.
 
-```sh
-awk '/^type Entry struct/,/^}/' internal/audit/types.go | grep -cE '^[[:blank:]][A-Z]'  # 13
-```
-
 | Field             | Is                                                     |
 | ----------------- | ------------------------------------------------------ |
 | `id`              | the entry's own identifier                             |
@@ -55,10 +51,6 @@ stdin       content         authorization
 ```
 
 There are eleven names.
-
-```sh
-awk '/^var sensitiveFields/,/^}/' internal/audit/summary.go | grep -cE '^[[:blank:]]"'  # 11
-```
 
 `stdin` and `content` connect to other parts. [Running commands](exec.md) uses
 `stdin` to keep a secret out of the arguments of a command. `content` is a file

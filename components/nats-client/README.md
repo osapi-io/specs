@@ -170,10 +170,6 @@ incorrect, but it continues to look correct.
 The contract is the exported API of `pkg/client`: the constructor `New`,
 `MessageContext`, 30 `Client` methods and 9 exported types.
 
-```sh
-cat pkg/client/*.go | grep -cE '^func \(c \*Client\) [A-Z]'   # 30
-```
-
 An empty bucket is an empty list from `KVKeys` and from `ObjectList`, not an
 error. The two methods agree, and a consumer needs no special case. Everything
 under `pkg/client/mocks/` is generated and is not part of it.
@@ -189,10 +185,6 @@ The contract does not promise these things:
 
 There are ten files that are not tests in `pkg/client`, and 30 methods on
 `Client`.
-
-```sh
-find pkg/client -maxdepth 1 -name '*.go' -not -name '*_test.go' | wc -l   # 10
-```
 
 ## Not covered here
 

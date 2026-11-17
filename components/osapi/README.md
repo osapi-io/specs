@@ -90,10 +90,6 @@ organization.
 There are 24 API domains in 6 provider categories, and 1,814 Go files that are
 not tests.
 
-```sh
-ls -d internal/provider/*/ | grep -v mocks | wc -l    # 6
-```
-
 ## Known limitations
 
 **`sdk/guidelines.md` still has some contributor knowledge on a site for

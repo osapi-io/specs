@@ -134,10 +134,6 @@ next to the field and has no reason to ask.
 There are four files that are not tests in `pkg/server`, and eight exported
 methods.
 
-```sh
-find pkg/server -maxdepth 1 -name '*.go' -not -name '*_test.go' | wc -l   # 4
-```
-
 ## Not covered here
 
 How NATS works: clustering, JetStream, accounts and authentication. Also the

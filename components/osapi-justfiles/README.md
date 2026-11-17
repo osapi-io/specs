@@ -190,11 +190,6 @@ expects the opposite from either half alone.
 
 There are six modules, 44 recipes and 22 override variables.
 
-```sh
-for m in ansible docusaurus go just md react; do just --justfile $m/$m.just --working-directory . --summary; done | wc -w   # 44
-grep -hcE '^[a-z_][a-z0-9_]* *:?= ' */*.just | paste -sd+ - | bc                                                    # 22
-```
-
 ## Known limitations
 
 **Nothing pins the modules.** Each consumer gets the modules from
