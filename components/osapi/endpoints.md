@@ -294,7 +294,11 @@ Then each group moves in its own pull request, from the easiest:
    its name is under a command of that name. `--all` is a `.Flag` that only the
    renderer reads, and a backend that fails is `endpoint.Internal`, so the
    caller does not get the backend's error.
-3. audit: pagination and an export
+3. audit: pagination and an export. Its spec is defined and held to the
+   hand-written spec; the switch is next. It needed formats from `validate`
+   (`uuid`), `int64`, numeric `min` and `max`, and a `default` tag. Its
+   hand-written spec gained the 400 that `GET /api/audit/{id}` returned for an
+   ID that is not a UUID, so the two agree on each line
 4. job: a filter, 204, and a JSON body with 201
 5. facts: a permission of a different group
 6. file: a multipart upload
