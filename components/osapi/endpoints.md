@@ -1,29 +1,31 @@
 # Endpoints
 
-A plan, with its first step built: the DSL, the spec of the agent group, the
-commands that read it, and the tests that compare it with the hand-written spec.
-The controller still serves the hand-written specs. An endpoint is one HTTP
-operation of the controller itself, such as `GET /api/agent` or
-`POST /api/job/{id}/retry`. Its definition is Go. The route, the part of the
-OpenAPI spec, the CLI command, its page, the permission and the HTTP tests come
-from that definition, as they come from the definition of a
-[behavior](behaviors.md). Thus no part of the API uses a spec that a person
-writes.
+A plan, partly built. The agent group is served from its definition: its spec,
+routes and decoders are generated, and its handlers are typed functions. The
+other groups still have hand-written specs, and the CLI commands are still
+written by hand. An endpoint is one HTTP operation of the controller itself,
+such as `GET /api/agent` or `POST /api/job/{id}/retry`. Its definition is Go.
+The route, the part of the OpenAPI spec, the CLI command, its page, the
+permission and the HTTP tests come from that definition, as they come from the
+definition of a [behavior](behaviors.md). Thus no part of the API uses a spec
+that a person writes.
 
 The issue is osapi#744.
 
 ## Why
 
-The controller has 25 operations, in seven groups, that a person writes four
-times each: the spec, the handler, the service of the SDK and the CLI command.
+The controller has 25 operations, in seven groups. A person wrote each one four
+times: the spec, the handler, the service of the SDK and the CLI command. The
+eight of the agent group come from a definition now. Seventeen, in six groups,
+still have a hand-written spec and handler:
 
 ```sh
-ls internal/controller/api/*/gen/api.yaml | grep -v -e /node/ -e /next/ -e /components/ | xargs cat | grep -cE '^    (get|post|put|delete|patch):'   # 25
+ls internal/controller/api/*/gen/api.yaml | grep -v -e /node/ -e /next/ -e /components/ | xargs cat | grep -cE '^    (get|post|put|delete|patch):'   # 17
 ```
 
-A new operation of the controller, such as `osapi client telemetry trace get`
-(osapi#741), has no generator. Behaviors cover the work on a host. Nothing
-covers the work on the controller.
+A new operation of the controller had no generator. Behaviors cover the work on
+a host, and nothing covered the work on the controller. Behaviors cover the work
+on a host. Nothing covers the work on the controller.
 
 ## An endpoint and a behavior
 
@@ -116,52 +118,73 @@ var Group = endpoint.Register(endpoint.Define(
   hand-written spec. The joined spec puts the title in front of each tag, and
   the UI's client files get their names from the result. Thus the move does not
   rename them.
+
 - **A method** is `Get`, `Post`, `Put` or `Delete`, with its input and output
   types. A field of the input tagged `in:"path"` is the key, and a field tagged
   `in:"query"` is a query parameter. The other fields are the JSON body, or one
   field tagged `in:"body"` is the whole body. The path is
   `/api/<group>[/<sub>][/{key}][/<action>]`.
+
 - **The output type** is the response. A named struct is a schema in the
   components, with its name. A struct with no name, such as `Message`, is in
   place. A field is required when its json tag has no `omitempty`. `time.Time`
   is a `date-time`. `validate:"oneof=..."` gives an enum. In the input, a field
   is required when it is tagged `validate:"required"`.
+
 - **`ID`** keeps the operationId of the hand-written spec. The generated Go SDK
   and the UI client get their names from it. Thus the move does not change a
   name that a program calls. When the SDK services are generated (osapi#732),
   the IDs can follow a rule. Without `ID`, the operationId is the verb, the
   group, the sub-path and the method name.
+
 - **`Errors`** maps the errors of a method to status codes. An error that is not
   in the list is a 500. Each method also gets 400 when it has an input, 401 and
   403 when it is not public, and 500.
+
 - **`Permission`** and **`Public`** change the default auth. `Public` is only
   for the health probes.
 
-Not built yet:
+- **`Uses[Deps]()`** names the struct of what the handlers use, such as the job
+  client and the enrollment store, as interfaces. The controller gives one at
+  startup, in `internal/controller/handlers.go`. A test gives fakes. It is the
+  place of the host in a behavior.
 
-- **`Uses[Deps]`** will name a struct of the things that the methods use, such
-  as the job client and the KV buckets. The controller fills it at startup. A
-  test gives fakes. This is the place of the host in a behavior. It comes with
-  the handlers.
-- **A renderer** is the one part of the CLI that a group can write. The command
-  is generated. The output of `trace get` is a tree, and the output of
-  `agent get` is a detail view. A method that needs more than the shared table
-  and key value renderers names a renderer.
+- **`.Handle(fn)`** sets the function of a method,
+  `func(ctx, Deps, In) (Out, error)`. `Validate` checks the signature. A handler
+  answers 404 or 409 with `endpoint.Errorf(sentinel, "...")`, so the message
+  names what it was called with. Any other error is a 500, and is logged.
+
+- **`Doc[T]("...")`** describes a named type, and **`example:"..."`** gives a
+  field an example. The join fails when two specs define one schema in different
+  words, so a group that shares a schema with another spec copies them.
+
+Not built yet: **a renderer**, the one part of the CLI that a group can write.
+The command is generated. The output of `trace get` is a tree, and the output of
+`agent get` is a detail view. A method that needs more than the shared table and
+key value renderers names a renderer.
 
 ## What it generates
 
-The first step makes the spec of a group in memory, with kin-openapi. It writes
-no file yet. The rest comes with the handlers. The generator is in Go, with jen,
-as the generator of behaviors is. Each file that it writes is under the `gen/`
-of the group, or in the generated pages:
+`go generate ./internal/controller/endpoints/all` runs the generator,
+`internal/controller/endpoint/gen`. It is in Go, with jen, as the generator of
+behaviors is. For each group that Uses a type, it writes `gen/api.yaml` from
+kin-openapi, `gen/api.go` with the routes, and `gen/decode.go` with one decoder
+for each method. `internal/controller/endpoints/all/gen` registers the routes of
+each group, and the controller imports it. Each generated route calls `Serve` of
+`internal/controller/endpoint/server`: it decodes and validates the input, runs
+the handler, and writes the output, or the error with the status that `Errors`
+maps it to. Auth is the same `ScopeMiddleware` as each route has.
 
-| File                                                  | Has                                                                |
-| ----------------------------------------------------- | ------------------------------------------------------------------ |
-| `internal/controller/endpoints/<group>/gen/api.yaml`  | the part of the spec for the group                                 |
-| `internal/controller/endpoints/<group>/gen/*.gen.go`  | the routes, the handlers, the request validation, the CLI commands |
-| `internal/controller/endpoints/<group>/gen/*_test.go` | the HTTP tests: each method, each error, each code, auth           |
-| `docs/docs/sidebar/usage/cli/client/<group>/`         | the CLI pages, from cobra                                          |
-| `ui/src/lib/permissions.gen.ts`                       | the permissions of the group                                       |
+Today it writes these. The table also has what comes with the CLI step:
+
+| File                                                  | Has                                                         |
+| ----------------------------------------------------- | ----------------------------------------------------------- |
+| `internal/controller/endpoints/<group>/gen/api.yaml`  | the part of the spec for the group                          |
+| `internal/controller/endpoints/<group>/gen/api.go`    | the routes: verb, path, permission and handler              |
+| `internal/controller/endpoints/<group>/gen/decode.go` | a decoder for each method: path, query, body and validation |
+| `docs/docs/sidebar/usage/cli/client/<group>/`         | later: the CLI pages of the generated commands              |
+| `docs/docs/sidebar/usage/cli/client/<group>/`         | the CLI pages, from cobra                                   |
+| `ui/src/lib/permissions.gen.ts`                       | the permissions of the group                                |
 
 The joined spec then has the endpoints and the behaviors, and no hand-written
 part.
@@ -209,10 +232,12 @@ hand-written specs stay, and keep serving the API, until then.
 5. **Golden files.** The generated files of the first group have golden copies,
    as the files of `osapi behavior new` have. A change to the generator shows as
    a diff of what it writes.
-6. **The handlers last.** The methods are written. Each case of the hand-written
-   handler tests moves into the generated HTTP tests, or into a test of the
-   method. Then the controller serves the generated routes, and the hand-written
-   spec, handler and command of the group are deleted.
+6. **The handlers last.** Built for the agent group. The methods are written.
+   Each case of the hand-written handler tests moved into a test of the method,
+   on mocks of `Deps`, or into an HTTP test through the generated routes, for
+   auth, 400 and each status. Then the controller serves the generated routes,
+   and the hand-written spec and handler of the group are deleted. The commands
+   come in the CLI step.
 7. **The whole spec, at each step.** Built.
    `internal/apicontract/testdata/joined.golden` is the contract of the joined
    spec, and a test holds the joined spec to it. Each pull request that moves a
@@ -227,14 +252,23 @@ found two that did not: drain and undrain listed no 500, because their handlers
 answered 409 when the controller failed, and 409 says that the agent is already
 in that state. They answer 500 now (osapi#788). A row of the parity test can
 accept a line that differs on purpose, with its reason. The agent row accepts
-none.
+none, and it went when the hand-written agent spec was deleted.
+
+When the agent group switched, `TestJoinedSpec` passed without `-update`: the
+contract of the API did not change. The Go SDK made from the joined spec is the
+same, byte for byte. The UI client has the same exports, with its fields in the
+order of kin-openapi. The prose of the agent group's API pages changed: the
+generated 400 and 500 have one description each, not one for each operation.
+
+`redocly join` takes the title of the joined spec from the first file that it
+reads. The endpoint groups' specs come first, so the title stays "Agent
+Management API". osapi#798 is to take it from the components spec.
 
 ## The order
 
-The first step, which is built, makes the package, the commands and the spec
-only, against the agent group. Agent comes first because its eight operations
-have most of the hard cases: a key, a fixed sub-path beside the key, actions,
-query parameters and 409. The DSL gets its shape there.
+The agent group is served from its definition. It was first because its eight
+operations have most of the hard cases: a key, a fixed sub-path beside the key,
+actions, query parameters and 409. The DSL gets its shape there.
 
 Then each group moves in its own pull request, from the easiest:
 
