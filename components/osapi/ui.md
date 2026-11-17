@@ -24,6 +24,13 @@ nobody writes TypeScript for it.
 A fetch mutator changes the generated client for the browser. It attaches the
 bearer token.
 
+`orval` reads the combined file where `just generate` writes it, in
+`internal/controller/api/gen/`. It empties `ui/src/sdk/gen/` before it writes.
+Thus the client of an endpoint or a tag that the spec no longer has is deleted,
+and a page that still imports it fails the type check. Before this, `orval` left
+the old files. The configure page imported three clients whose tags had changed
+names, and it used code from an older `orval` (osapi#784).
+
 ## The four kinds of component
 
 Two answers separate the kinds: **what each one knows, and if it renders**. The
