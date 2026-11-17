@@ -103,9 +103,10 @@ generates the spec, nothing else holds it to the server:
   oapi-codegen on the generated spec into a scratch package, and compiles the
   client.
 
-The controller-only endpoints (audit, jobs, agents and health) keep their
-hand-written specs and oapi-codegen. They are not behaviors. A move of them is a
-separate decision, after behaviors prove themselves.
+The controller-only endpoints (agent, audit, facts, file, health, job and
+telemetry) are not behaviors. They move to a DSL of their own, which
+[endpoints](endpoints.md) designs. No cutover of a behavior occurs before that
+DSL is settled.
 
 ## Discovery for agents
 
