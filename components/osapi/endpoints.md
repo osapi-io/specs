@@ -84,7 +84,8 @@ Some things are not API operations, and stay code:
 
 ## The definition
 
-The agent group, as `internal/endpoints/agent/agent.go` has it, cut short:
+The agent group, as `internal/controller/endpoints/agent/agent.go` has it, cut
+short:
 
 ```go
 var Group = endpoint.Register(endpoint.Define(
@@ -154,29 +155,35 @@ no file yet. The rest comes with the handlers. The generator is in Go, with jen,
 as the generator of behaviors is. Each file that it writes is under the `gen/`
 of the group, or in the generated pages:
 
-| File                                          | Has                                                                |
-| --------------------------------------------- | ------------------------------------------------------------------ |
-| `internal/endpoints/<group>/gen/api.yaml`     | the part of the spec for the group                                 |
-| `internal/endpoints/<group>/gen/*.gen.go`     | the routes, the handlers, the request validation, the CLI commands |
-| `internal/endpoints/<group>/gen/*_test.go`    | the HTTP tests: each method, each error, each code, auth           |
-| `docs/docs/sidebar/usage/cli/client/<group>/` | the CLI pages, from cobra                                          |
-| `ui/src/lib/permissions.gen.ts`               | the permissions of the group                                       |
+| File                                                  | Has                                                                |
+| ----------------------------------------------------- | ------------------------------------------------------------------ |
+| `internal/controller/endpoints/<group>/gen/api.yaml`  | the part of the spec for the group                                 |
+| `internal/controller/endpoints/<group>/gen/*.gen.go`  | the routes, the handlers, the request validation, the CLI commands |
+| `internal/controller/endpoints/<group>/gen/*_test.go` | the HTTP tests: each method, each error, each code, auth           |
+| `docs/docs/sidebar/usage/cli/client/<group>/`         | the CLI pages, from cobra                                          |
+| `ui/src/lib/permissions.gen.ts`                       | the permissions of the group                                       |
 
 The joined spec then has the endpoints and the behaviors, and no hand-written
 part.
 
 ## The commands
 
+The commands are under the process that the endpoints belong to:
+
 ```sh
-osapi endpoint list                      # the groups and their methods
-osapi endpoint get --name agent          # the routes, permissions and operationIds
-osapi endpoint get --name agent --openapi  # the group's part of the spec, as YAML
-osapi endpoint validate                  # the rules of each definition, each with its fix
+osapi controller endpoint list                      # the groups and their methods
+osapi controller endpoint get --name agent          # the routes, permissions and operationIds
+osapi controller endpoint get --name agent --openapi  # the group's part of the spec, as YAML
+osapi controller endpoint spec                      # each part of the DSL, and when to use it
+osapi controller endpoint validate                  # the rules of each definition, each with its fix
 ```
 
-`osapi endpoint spec` and `osapi endpoint new` come later, as `osapi behavior`
-has them. `spec` and `validate --help` will come from the tables of the
-`internal/guide` package.
+`spec` and `validate --help` come from the tables of the `internal/guide`
+package, as the commands of behaviors do: `endpoint.Spec` and `endpoint.Checks`.
+A test fails on an exported option of the DSL that has no term in
+`endpoint.Spec`, and on a rule of `Validate` that has no check. Thus the help
+cannot fall behind the code. `spec` also lists what is not built yet, so an
+agent stops there. `osapi controller endpoint new` comes with the handlers.
 
 ## How we know that the output is correct
 
@@ -187,14 +194,14 @@ hand-written specs stay, and keep serving the API, until then.
    has its types and IDs, and no methods that run. The controller does not serve
    its spec.
 2. **A parity test for the contract.** Built. `TestEndpointParity`, in
-   `internal/endpoints/all`, has one row for each group that moves. It reduces
-   the two specs to their contract with `internal/apicontract`, and compares
-   them. The contract has one line for each tag, each operation and each schema
-   property: the path, the verb, the operationId, the tags, the auth, each
-   parameter, the request body and each response with its schema. A difference
-   fails the test, unless the row accepts it with its reason.
-3. **The prose.** `osapi endpoint get --name agent --openapi` prints the
-   generated spec, to read next to the hand-written spec. A person reads the
+   `internal/controller/endpoints/all`, has one row for each group that moves.
+   It reduces the two specs to their contract with `internal/apicontract`, and
+   compares them. The contract has one line for each tag, each operation and
+   each schema property: the path, the verb, the operationId, the tags, the
+   auth, each parameter, the request body and each response with its schema. A
+   difference fails the test, unless the row accepts it with its reason.
+3. **The prose.** `osapi controller endpoint get --name agent --openapi` prints
+   the generated spec, to read next to the hand-written spec. A person reads the
    descriptions and the examples. The test does not compare them.
 4. **The CLI.** The help of each generated command, as JSON (`--help --json`),
    is compared with the help of the hand-written command: the same flags, the
