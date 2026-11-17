@@ -46,26 +46,27 @@ operating system.
 
 ## Read about it
 
-| Subject                                              | What it answers                                                                                                                           |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| [The message bus](transport.md)                      | What NATS carries, its namespaces, and the three things that osapi cannot control                                                         |
-| [The job system](job-system.md)                      | How work gets to a host, what is guaranteed, the three limits, the four statuses, and one request from start to end                       |
-| [Providers](providers.md)                            | How the work occurs on the machine, the idempotency rule, the four patterns                                                               |
-| [Behaviors](behaviors.md)                            | A typed definition that the routes, permissions, CLI commands and schemas come from, and the rules that `behavior validate` checks        |
-| [Agent skills](agent-skills.md)                      | The skill in the binary, what it tells an agent, and how `osapi init` installs and updates it                                             |
-| [Agent identity](agent-identity.md)                  | Enrollment, signatures, rotation, and why targeting needs verification                                                                    |
-| [Building a domain](domains.md)                      | What a new endpoint changes, in what order, and what the tools force                                                                      |
-| [The embedded UI](ui.md)                             | The dashboard in the binary, and what it does not verify                                                                                  |
-| [The Go SDK](sdk.md)                                 | What a service must do, the five naming rules, and the seven methods that break them                                                      |
-| [The CLI](cli.md)                                    | A thin shell over the SDK: one command per endpoint, two inherited flags, command and flag names, shared renderers, and the output style  |
-| [Running commands](exec.md)                          | The five ways to run a command, why ten minutes is a maximum, and where a secret goes                                                     |
-| [Permissions](permissions.md)                        | The 37 permissions, the three roles, and why a direct permission replaces them                                                            |
-| [The audit trail](audit.md)                          | What osapi records, why redaction is a denylist, and what a read does not record                                                          |
-| [Configuration](configuration.md)                    | Where a value comes from, and how secrets stay out of the log                                                                             |
-| [Observability](observability.md)                    | Tracing across the queue, metrics on their own port, conditions                                                                           |
-| [Moving domains to behaviors](behavior-migration.md) | Which domains are behaviors now, what is built, and the steps that remain: the cutover, chains, the skill, the other domains              |
-| [Least privilege](least-privilege.md)                | A plan: the agent as a user that is not root, privileged steps that a behavior declares, and the sudoers and systemd files made from them |
-| [Workflows](workflows.md)                            | A proposal: named, ordered behavior calls in a file, checked against the registry, and run again with the same result                     |
+| Subject                                              | What it answers                                                                                                                                                     |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [The message bus](transport.md)                      | What NATS carries, its namespaces, and the three things that osapi cannot control                                                                                   |
+| [The job system](job-system.md)                      | How work gets to a host, what is guaranteed, the three limits, the four statuses, and one request from start to end                                                 |
+| [Providers](providers.md)                            | How the work occurs on the machine, the idempotency rule, the four patterns                                                                                         |
+| [Behaviors](behaviors.md)                            | A typed definition that the routes, permissions, CLI commands and schemas come from, and the rules that `behavior validate` checks                                  |
+| [Agent skills](agent-skills.md)                      | The skill in the binary, what it tells an agent, and how `osapi init` installs and updates it                                                                       |
+| [Agent identity](agent-identity.md)                  | Enrollment, signatures, rotation, and why targeting needs verification                                                                                              |
+| [Building a domain](domains.md)                      | What a new endpoint changes, in what order, and what the tools force                                                                                                |
+| [The embedded UI](ui.md)                             | The dashboard in the binary, and what it does not verify                                                                                                            |
+| [The Go SDK](sdk.md)                                 | What a service must do, the five naming rules, and the seven methods that break them                                                                                |
+| [The CLI](cli.md)                                    | A thin shell over the SDK: one command per endpoint, two inherited flags, command and flag names, shared renderers, and the output style                            |
+| [Running commands](exec.md)                          | The five ways to run a command, why ten minutes is a maximum, and where a secret goes                                                                               |
+| [Permissions](permissions.md)                        | The 37 permissions, the three roles, and why a direct permission replaces them                                                                                      |
+| [The audit trail](audit.md)                          | What osapi records, why redaction is a denylist, and what a read does not record                                                                                    |
+| [Configuration](configuration.md)                    | Where a value comes from, and how secrets stay out of the log                                                                                                       |
+| [Observability](observability.md)                    | Tracing across the queue, metrics on their own port, conditions                                                                                                     |
+| [Moving domains to behaviors](behavior-migration.md) | Which domains are behaviors now, what is built, and the steps that remain: the cutover, chains, the skill, the other domains                                        |
+| [Endpoints](endpoints.md)                            | The controller's own operations defined in Go, the spec and CLI generated from them, and the tests that hold them to the hand-written spec; the first step is built |
+| [Least privilege](least-privilege.md)                | A plan: the agent as a user that is not root, privileged steps that a behavior declares, and the sudoers and systemd files made from them                           |
+| [Workflows](workflows.md)                            | A proposal: named, ordered behavior calls in a file, checked against the registry, and run again with the same result                                               |
 
 ## Where it sits
 
