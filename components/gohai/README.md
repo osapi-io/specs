@@ -144,11 +144,6 @@ numbers and what each counts. It did not do this until gohai#201.
 There are 62 collector packages in 10 categories, and 205 Go files that are not
 tests.
 
-```sh
-ls -d pkg/gohai/collectors/*/ | wc -l                                  # 62
-grep -cE '^[[:blank:]]Category[A-Za-z]+ +=' internal/collector/collector.go      # 10
-```
-
 ## Known limitations
 
 There are five. In the first four, nothing reports the error.

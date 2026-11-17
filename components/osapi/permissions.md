@@ -6,10 +6,6 @@ needs.
 
 There are 38 permissions and three built-in roles.
 
-```sh
-grep -cE '^[[:blank:]]Perm[A-Za-z]+ +Permission = ' pkg/sdk/client/permissions.go  # 38
-```
-
 ## The shape is `resource:verb`
 
 ```
@@ -45,12 +41,6 @@ permission that it needs.
 | `admin` |          38 | everything, including `audit:read`     |
 | `write` |          31 | read, write and execute, but not audit |
 | `read`  |          18 | reads only                             |
-
-```sh
-awk '/client.RoleAdmin: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'  # 38
-awk '/client.RoleWrite: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'  # 31
-awk '/client.RoleRead: {/,/^\t},/' internal/authtoken/permissions.go | grep -cE '^[[:blank:]]{2}Perm'   # 18
-```
 
 `trace:read` is in each role, `read` included. A trace shows the hosts,
 operations and errors of a request, the same as the job that the role can

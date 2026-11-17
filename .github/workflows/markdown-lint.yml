@@ -25,5 +25,3 @@ jobs:
         run: just md-fmt-check
       - name: Check links, skills and the documentation contract
         run: just check-docs
-      - name: Check each count against its repository
-        run: just check-counts

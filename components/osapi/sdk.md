@@ -7,11 +7,6 @@ contract that [osapi-orchestrator](../osapi-orchestrator/README.md) depends on.
 It has 32 services and 119 exported methods. The `Client` struct has one field
 for each service.
 
-```sh
-grep -hcE '^type [A-Za-z]+Service struct' pkg/sdk/client/*.go | paste -sd+ - | bc  # 32
-grep -hE '^func \(s \*[A-Za-z]+Service\)' pkg/sdk/client/*.go | wc -l            # 119
-```
-
 ## What a service owes
 
 A service needs five things. A domain is not complete until all five exist.

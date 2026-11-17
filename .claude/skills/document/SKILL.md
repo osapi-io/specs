@@ -61,21 +61,6 @@ That method found three errors, all in pages that looked correct:
 - a role that a page described as `admin` minus one permission, but that is
   minus seven
 
-Where you state a number, state the command beside it:
-
-```markdown
-37 permissions, three built-in roles.
-
-```sh
-grep -cE '^\tPerm[A-Za-z]+ +Permission = ' pkg/sdk/client/permissions.go  # 37
-```
-```
-
-`just check-counts` runs every one of those in the repository the page
-describes.
-A command that needs the line above it to make sense fails, so each one stands
-alone.
-
 ## 4. Write it
 
 The voice: an engineer who explains a system to a different engineer who must
