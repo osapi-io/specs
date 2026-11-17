@@ -386,9 +386,13 @@ library that oapi-codegen uses to read specs. It does not use ordered maps. A
 test loads the written spec back and validates it. The keys are in the order of
 kin-openapi, which is alphabetical, not the order that a person uses.
 
-`osapi behavior new` still writes its first files from templates. Those files
-are not generated code. A person edits them from the first minute. Thus they are
-kept as the Go source that they make, where a reader can see the result.
+`osapi behavior new` also writes its first files with jen, in
+`internal/behavior/scaffold_files.go`. Those files are not generated code. A
+person edits them from the first minute, so they do not go in `gen/`. But the
+rule is the same for each Go file that osapi writes: jen builds it, not a
+template. The move from templates did not change the output. For a behavior with
+no group and for a behavior under a group, each file was the same, byte for
+byte.
 
 The generator joins the spec of each behavior itself, not through
 `redocly join`. This is the start of the removal of that tool. The docs site
