@@ -157,8 +157,8 @@ behavior.Validator("motd_text", noEscapes, rule.Pattern(`^[^\x1b]*$`),
 ```
 
 `internal/validation` registers each one with the validator of the server,
-through `behavior.OnRule`, in either order of package initialization. The tags
-of the hand-written domains, for example `sysctl_key`, stay in
+through `rule.OnDeclare`, in either order of package initialization. The tags of
+the hand-written domains, for example `sysctl_key`, stay in
 `internal/validation`, with `rule.Register` next to each, because those domains
 also use them. `sysctl_key` moves to the behavior at its cutover.
 
@@ -662,6 +662,15 @@ same host options: bad input, or state that it cannot act on, for example a
 parameter that osapi stopped managing. The provider test checks that each one
 fails with that text. The API test checks that a refusal whose input breaks a
 `validate` tag gets a 400, and that no job is queued. The docs page lists them.
+
+Each rule of each input field needs a refusal that breaks it, such as a key with
+a slash for `sysctl_key`. `behavior validate` names a rule that has none. The
+validator reports the field and the rule that an input breaks, so the check is
+exact. `required` needs none, because the API test leaves the field out. A `min`
+of 1 on a string that is required, optional or in the path needs none, because
+its only bad value is empty. The author writes each bad value. A generator
+cannot make one for a custom rule. The endpoint DSL has the same check, with
+`.Fails(doc, input)`.
 
 On the fake host, each filesystem, command and store call fails in turn. Each
 store read also returns a damaged record in turn: not JSON, empty JSON, and a
