@@ -176,6 +176,12 @@ cancelled request stops it. Before osapi-io/osapi#868 the lookup used
 `context.Background()`, and no trace showed it. A caller with no request, such
 as the generator or a config check, passes `context.Background()`.
 
+A refresh of the target checks' cache of agents opens `validate.target`, or
+`target.resolve` when a hostname is resolved to a machine ID, with the target as
+its DETAIL. The `agent.list` of the refresh is under it, so a trace tells it
+from the `agent.list` of `job.publish`. A read from the cache calls nothing and
+opens no span.
+
 Each input field has a validate tag. A field with no limit has
 `validate:"omitempty"`. `behavior validate` and `controller endpoint validate`
 refuse an input field with no tag, with the same words. The spec carries the
