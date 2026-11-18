@@ -720,11 +720,17 @@ APIs.
   `behavior.managedfile.update` as a step under `behavior.sysctl.create`. `Call`
   also checks the input against its validate tags before the method runs, as the
   API does for a served method. An internal behavior is not served, so without
-  this check its tags would only describe its rules. A direct call of
-  `managedfile.Update` works but has no span and no check. `behaviortest.Run`
-  reads the Go files of the behavior and fails such a call. The agent and the
-  fake host in `behaviortest` both build through it. Thus the examples of a
-  behavior run through its requirements exactly as they do on an agent.
+  this check its tags would only describe its rules. The agent checks a job's
+  input in the same way, with `Method.Check`, before it runs the method: a job
+  can reach NATS without the API. Thus the API, the agent and `Call` hold each
+  method to its tags, and the author writes no check. `behaviortest` fails a
+  `.Fails` input that breaks a rule when `Method.Check` passes it, so an
+  internal behavior proves its rules hold, as a served one does with its HTTP
+  tests. A direct call of `managedfile.Update` works but has no span and no
+  check. `behaviortest.Run` reads the Go files of the behavior and fails such a
+  call. The agent and the fake host in `behaviortest` both build through it.
+  Thus the examples of a behavior run through its requirements exactly as they
+  do on an agent.
 - **Unsupported spreads.** A required behavior can have no provider on a
   platform, or it can refuse the host. Then the requiring builder does not get
   it. The builder answers `provider.ErrUnsupported`, and its methods report
