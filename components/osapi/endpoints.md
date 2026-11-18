@@ -130,7 +130,8 @@ var Group = endpoint.Register(endpoint.Define(
   and the UI client get their names from it. Thus the move does not change a
   name that a program calls. When the SDK services are generated (osapi#732),
   the IDs can follow a rule. Without `ID`, the operationId is the verb, the
-  group, the sub-path and the method name.
+  group, the sub-path and the method name, in Pascal case, as
+  [the API conventions](api.md) require.
 
 - **`Errors`** maps the errors of a method to status codes. An error that is not
   in the list is a 500. Each method also gets 400 when it has an input, 401 and
