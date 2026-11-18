@@ -313,10 +313,13 @@ Then each group moves in its own pull request, from the easiest:
 6. file: a multipart upload
 7. health: no auth, and the probes depend on it. It went before file, because
    file needs a multipart body, which the DSL does not have yet. It is served
-   from its definition. The probes answer 503 with their own body, which
+   from its definition. The readiness probe answers 503 with its own body, which
    `.Answers(code, doc)` declares and `endpoint.Answer(code)` sends; the CLI
-   prints that body, as the SDK's `APIError` keeps it. The checker, the metrics
-   and the status builder are the controller's, in `internal/controller/health`
+   prints that body, as the SDK's `APIError` keeps it. `health status` answers
+   200 with the overall status `degraded`: it is a report, not a probe, so a
+   non-2xx answer means only a failed request, as at each other endpoint. The
+   checker, the metrics and the status builder are the controller's, in
+   `internal/controller/health`
 
 No cutover of a behavior (osapi#731) occurs before the DSL is settled.
 
