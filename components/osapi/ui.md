@@ -54,9 +54,23 @@ The shared components that each page uses for the same thing:
 | a page without its perm | `components/layout/permission-denied.tsx`                         |
 | an empty page           | `components/ui/empty-state.tsx`                                   |
 | an error                | `components/ui/error-banner.tsx`                                  |
+| key-value pairs         | `components/ui/kv-list.tsx`: the values line up, as `PrintKV`     |
+| a count                 | `components/ui/count.tsx`, with `COUNT_TONES`                     |
+| a result's summary line | `components/domain/result-summary.tsx`                            |
+| a time, age or duration | `lib/format.ts`                                                   |
 
 A table header is in capitals, in the tint of its section, as the CLI prints it.
 A panel inside a card has the `surface` token, not a hex value.
+
+**A value has the format that the CLI gives it.** `lib/format.ts` has the
+formatters of `internal/cli/ui.go` in TypeScript: `formatTime` prints
+`2006-01-02 15:04:05` in local time, `formatAge` prints `3d 4h`,
+`formatDurationMs` rounds as `FormatDuration` does and prints `3m4s`, and
+`formatBytes` prints `5.2 KB`. A page does not call `toLocaleString` or write a
+formatter of its own. A field has the name that the CLI gives it, such as
+`Machine ID`, and a page lists the fields in the order of the CLI command for
+the same resource. A result's summary line is `2 hosts: 1 ok, 1 skipped`, then
+the whole job ID in gray, as the CLI prints it. A job ID is never cut.
 
 Thus:
 
@@ -180,6 +194,11 @@ uses them. A page does not map a status to a color of its own. A word that the
 CLI does not color, such as `processing`, is gray. Thus `skipped`, `submitted`,
 `draining` and a condition are amber on each page and in the terminal.
 
+A count has a tone too. `CountTones` in the same file gives the tone of a count
+above zero by what it counts: `failed` and `dlq` are red, `unprocessed` and
+`skipped` are amber, `completed` is green. A zero is gray. Go generate writes
+`CountTones` to the same file as `COUNT_TONES`, and `Count` reads it.
+
 An HTTP method, an HTTP code, a role and a target group are not statuses, so
 they never take green, amber or red. The audit log shows a method in bold, as
 the CLI does, and a code in the text color. A permission that writes is in bold.
@@ -196,12 +215,13 @@ The dashboard shows a card for each agent. The registry of agents gives the
 agents in no fixed order. Thus `use-agents.ts` sorts them by hostname. Without
 the sort, two cards changed places on each poll (osapi-io/osapi#823).
 
-The metrics row of a card always has three columns: the load, the memory and the
-uptime. A value that the agent does not report is `-`. Thus the cards align when
-a host, such as Fedora, does not report the load or the memory. The API gives
-the uptime as `2 days, 23 hours, 50 minutes`. `format-uptime.ts` shows the two
-largest units, `2d 23h`, as `FormatAge` of the CLI does. The full text is in the
-tooltip.
+A card lists its fields in the order of `osapi client agent list`: the machine
+ID, the conditions, the labels, the age, the load, the OS and the version. The
+metrics row always has two columns, the age and the load. A value that the agent
+does not report is `-`. Thus the cards align when a host, such as Fedora, does
+not report the load. The age is from `started_at`, as `FormatAge` of the CLI
+prints it, and the uptime of the API is in the tooltip. The memory line is
+`7.7 GB total, 3.4 GB used, 4.3 GB free`, as `osapi client agent get` prints it.
 
 ## Coverage says nothing about it
 
