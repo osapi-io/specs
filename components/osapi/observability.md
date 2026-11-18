@@ -110,10 +110,13 @@ because it scans the registry. `trace get` and the Traces page take DETAIL from
 two tables, `opCounts` and `opDetail` in `internal/cli/trace.go`, which
 `trace-tree.ts` copies.
 
-`trace get` and the Traces page show where each span ran, in the `ON` column:
-the agent of the `job.process` above it, or else the role of the service that
-made it, `controller`, `agent` or `cli`. A blank cell had stood for the
-controller, and a reader had to know that.
+`trace get` and the Traces page show what ran each span in the `ON` column, the
+role of the service that made it: `controller`, `agent` or `cli`. A blank cell
+had stood for the controller, and a reader had to know that. DETAIL names each
+value as `key=value`, so a value says what it is: `host=debian-1` on a
+`job.process`, `target=_all`, `agents=3`, `op=` and `target=` of a job. A failed
+span leads with `error=`, and a value with a space is quoted, as in logfmt.
+`--json` gives each span's whole `attributes` map instead.
 
 `trace get` shows the size on `response.write`. The request span has the size
 too, from otelecho, but its DETAIL stays the status. On `job.publish`, DETAIL is
