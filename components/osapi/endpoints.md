@@ -131,7 +131,10 @@ var Group = endpoint.Register(endpoint.Define(
   each input field has a `.Fails(doc, input)` that breaks it, as a behavior's
   refusals do, and `controller endpoint validate` names a rule that has none.
   `TestRefusals`, in `internal/controller/endpoints/all`, sends each one through
-  the routes and expects 400 with `{"error": "..."}`.
+  the routes and expects 400 with `{"error": "..."}`. The route is the only
+  place a handler runs, so the route's check holds for every call.
+  `TestHandlersRunFromRoutes`, in the same package, fails a call of a handler
+  from other code, as `behaviortest` fails a direct call of a behavior's method.
 
 - **`ID`** keeps the operationId of the hand-written spec. The generated Go SDK
   and the UI client get their names from it. Thus the move does not change a
