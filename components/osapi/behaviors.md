@@ -339,11 +339,10 @@ For the cutover, remove the mark and fix what fails:
 - `behavior-gen-check` fails until `just generate` has joined the spec and made
   the clients from it again.
 
-A test holds that comparison for each domain in migration. `TestOpenAPIParity`
-in `internal/behavior/openapi/openapi_public_test.go`, next to the code that
-makes the spec, has one row for each behavior that replaces a hand-written
-domain. The row names the spec of that domain. For each row, the test generates
-the spec of the behavior and compares it with the hand-written spec. It
+A test holds that comparison for each domain in migration. `TestParity` in
+`internal/behaviors/all/spec_public_test.go` has one row for each behavior that
+replaces a hand-written domain. The row names the generated spec of the behavior
+and the spec of that domain. For each row, the test compares the two. It
 compares:
 
 - for each operation: the path without `/next`, the verb, the operationId, the
@@ -390,10 +389,18 @@ The other candidate was the code-generator of Kubernetes. It was not used. It
 reads comment markers on type declarations, and the examples and refusals of a
 behavior are values that no marker can hold.
 
-The generator makes the spec with the `openapi3` types of kin-openapi, the
-library that oapi-codegen uses to read specs. It does not use ordered maps. A
-test loads the written spec back and validates it. The keys are in the order of
-kin-openapi, which is alphabetical, not the order that a person uses.
+The spec of a behavior comes from the endpoint layer. The generator writes
+`gen/group.go`: the behavior as an endpoint group, with a request type and a
+response type for each method. Then `internal/behavior/gen/spec`, the second
+`go:generate` step, builds the spec of each group with the endpoint layer's
+builder. Thus the wording, the error responses and the validate tags of a
+behavior's spec are the same as an endpoint's, from the same code
+([endpoints](endpoints.md#behaviors-on-endpoints)). The builder uses the
+`openapi3` types of kin-openapi, the library that oapi-codegen uses to read
+specs. A test loads each written spec back and validates it. The keys are in the
+order of kin-openapi, which is alphabetical, not the order that a person uses.
+`TestNextSpec`, in `internal/apicontract`, holds the API contract of the
+behaviors under `/api/next` to a golden file.
 
 `osapi behavior new` also writes its first files with jen, in
 `internal/behavior/scaffold_files.go`. Those files are not generated code. A
