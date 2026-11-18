@@ -114,6 +114,7 @@ terminal. A change to a color changes both.
 | red `#ef4444`       | wrong: failed, error                     | `status-error`                              |
 | gray `#8a8a8a`      | secondary text, and a count of zero      | `text-muted`                                |
 | the logo colors     | section headings                         | `heading-1` to `heading-5`                  |
+| a dark tint of each | the labels and icons under that heading  | `tint-1` to `tint-5`                        |
 | dark blue `#2300fd` | the logo accent: heading bar, background | `accent`                                    |
 
 **Green, amber and red mean status, and nothing else.** The chrome is neutral:
@@ -128,6 +129,15 @@ order for each run; the UI keeps one order, so a page looks the same on each
 load. `PageLayout` sets `data-heading-color` on each `SectionLabel` when the
 page changes. Thus two headings next to each other never have the same color.
 Each heading has a short bar in the dark blue of the logo at its left.
+
+**A label takes the tint of its section heading.** This is the tint tier of the
+CLI, and the tints are the `tints` of `internal/cli/theme.go`. A label is a
+`CopyField` label, such as `ID:`, an icon of a `MetricValue`, or the icon of a
+card. A value has the text color. An ID, a unit and a missing value are gray.
+`index.css` gives each element after a heading the `--section-tint` of that
+heading, with the selector `[data-heading-color="N"] ~ *`. The `text-tint`
+utility reads it. Thus a label must be in the same parent element as the
+heading, below it. A label outside a section is gray.
 
 The logo has two colors that a heading cannot use as they are:
 
@@ -151,6 +161,19 @@ color.
 `--font-mono` starts with the mono font of the system. JetBrains Mono is not in
 the bundle. When it was first in the list, a browser without it showed a serif
 Courier.
+
+## The agent cards
+
+The dashboard shows a card for each agent. The registry of agents gives the
+agents in no fixed order. Thus `use-agents.ts` sorts them by hostname. Without
+the sort, two cards changed places on each poll (osapi-io/osapi#823).
+
+The metrics row of a card always has three columns: the load, the memory and the
+uptime. A value that the agent does not report is `-`. Thus the cards align when
+a host, such as Fedora, does not report the load or the memory. The API gives
+the uptime as `2 days, 23 hours, 50 minutes`. `format-uptime.ts` shows the two
+largest units, `2d 23h`, as `FormatAge` of the CLI does. The full text is in the
+tooltip.
 
 ## Coverage says nothing about it
 
