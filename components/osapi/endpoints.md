@@ -309,7 +309,12 @@ Then each group moves in its own pull request, from the easiest:
 5. facts: a permission of a different group. Its spec is defined and held to the
    hand-written spec with no accepted line; the switch is next
 6. file: a multipart upload
-7. health, last: no auth, and the probes depend on it
+7. health: no auth, and the probes depend on it. It went before file, because
+   file needs a multipart body, which the DSL does not have yet. Its spec is
+   defined and held to the hand-written spec with no accepted line; the switch
+   is next. The probes answer 503 with their own body, which
+   `.Answers(code, doc)` declares and `endpoint.Answer(code)` sends. The
+   hand-written spec gained the 500 that each of its operations can answer
 
 No cutover of a behavior (osapi#731) occurs before the DSL is settled.
 
