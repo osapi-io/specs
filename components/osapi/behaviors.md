@@ -152,19 +152,28 @@ its own tags in its definition, with the check, the schema and the message
 together:
 
 ```go
-behavior.Validator("motd_text", noEscapes, behavior.Pattern(`^[^\x1b]*$`),
+behavior.Validator("motd_text", noEscapes, rule.Pattern(`^[^\x1b]*$`),
     "is not a valid message: it has an escape sequence")
 ```
 
 `internal/validation` registers each one with the validator of the server,
 through `behavior.OnRule`, in either order of package initialization. The tags
 of the hand-written domains, for example `sysctl_key`, stay in
-`internal/validation`, with `behavior.ValidatorSchema` next to each, because
-those domains also use them. `sysctl_key` moves to the behavior at its cutover.
+`internal/validation`, with `rule.Register` next to each, because those domains
+also use them. `sysctl_key` moves to the behavior at its cutover.
 
-`SchemaFor` fails on a tag that is not standard and not registered. A spec that
-loses a constraint without a signal validates less than the server does, and
-nothing reports it.
+The behavior DSL and the endpoint DSL read a validate tag through the same
+package, `internal/validation/rule`. Thus they give the same constraints, and
+each fails on a tag that is not standard and not registered. A spec that loses a
+constraint without a signal validates less than the server does, and nothing
+reports it. A rule that the spec cannot show, such as `valid_target`, registers
+`rule.None`.
+
+Each input field has a validate tag. A field with no limit has
+`validate:"omitempty"`. `behavior validate` and `controller endpoint validate`
+refuse an input field with no tag, with the same words. The spec carries the
+whole tag in `x-oapi-codegen-extra-tags`, on a parameter and on each property of
+a body, so a Go client made from the spec validates as the server does.
 
 An output can be a struct or a slice of structs. A slice becomes one result row
 for each element, and each row has the name of the host. sysctl `list` answers

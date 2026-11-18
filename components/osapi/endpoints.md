@@ -124,7 +124,10 @@ var Group = endpoint.Register(endpoint.Define(
   `float32` a `number` with no format, as oapi-codegen maps them back. A
   `pattern:"..."` tag gives a string a regular expression, and the route answers
   400 for a value that does not match. `validate:"oneof=..."` gives an enum. In
-  the input, a field is required when it is tagged `validate:"required"`.
+  the input, a field is required when it is tagged `validate:"required"`. Each
+  input field has a validate tag, and the spec carries the whole tag in
+  `x-oapi-codegen-extra-tags`. The rules are the behavior DSL's, from
+  `internal/validation/rule`; [behaviors](behaviors.md) has them.
 
 - **`ID`** keeps the operationId of the hand-written spec. The generated Go SDK
   and the UI client get their names from it. Thus the move does not change a
