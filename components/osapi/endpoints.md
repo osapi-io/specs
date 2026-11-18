@@ -241,8 +241,9 @@ hand-written specs stay, and keep serving the API, until then.
    as JSON (`--help --json`), was compared with the help of the hand-written
    command: the same flags, the same types and the same required flags. The flag
    help has the words of the input field's `doc`. `agent list --pending` called
-   two methods; it is now `agent pending`. The CLI pages gained the permission
-   of each command.
+   two methods; it is now `agent pending list`, a resource and a verb, which
+   `.Use("list")` names apart from the group's own `list`. The CLI pages gained
+   the permission of each command.
 5. **Golden files.** The generated files of the first group have golden copies,
    as the files of `osapi behavior new` have. A change to the generator shows as
    a diff of what it writes.
