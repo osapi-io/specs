@@ -15,11 +15,10 @@ The issue is osapi#744.
 ## Why
 
 The controller has 25 operations, in seven groups. A person wrote each one four
-times: the spec, the handler, the service of the SDK and the CLI command. The
-eight of the agent group, the one of the telemetry group, the three of the audit
-group, the four of the job group and the one of the facts group come from a
-definition now. Eight, in two groups, still have a hand-written spec and
-handler.
+times: the spec, the handler, the service of the SDK and the CLI command. Twenty
+come from a definition now: agent (8), telemetry (1), audit (3), job (4), facts
+(1) and health (3). The five of the file group still have a hand-written spec
+and handler.
 
 A new operation of the controller had no generator. Behaviors cover the work on
 a host, and nothing covered the work on the controller.
@@ -313,11 +312,11 @@ Then each group moves in its own pull request, from the easiest:
    as `telemetry trace get` is, so the command is a resource and a verb
 6. file: a multipart upload
 7. health: no auth, and the probes depend on it. It went before file, because
-   file needs a multipart body, which the DSL does not have yet. Its spec is
-   defined and held to the hand-written spec with no accepted line; the switch
-   is next. The probes answer 503 with their own body, which
-   `.Answers(code, doc)` declares and `endpoint.Answer(code)` sends. The
-   hand-written spec gained the 500 that each of its operations can answer
+   file needs a multipart body, which the DSL does not have yet. It is served
+   from its definition. The probes answer 503 with their own body, which
+   `.Answers(code, doc)` declares and `endpoint.Answer(code)` sends; the CLI
+   prints that body, as the SDK's `APIError` keeps it. The checker, the metrics
+   and the status builder are the controller's, in `internal/controller/health`
 
 No cutover of a behavior (osapi#731) occurs before the DSL is settled.
 
