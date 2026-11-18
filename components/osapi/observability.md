@@ -83,8 +83,12 @@ behavior wrote its answer. A response that osapi writes without the mark, such
 as a 401, has no spans, and no span ends before it starts.
 
 A store or a client operation that makes more than one call has its own span,
-from `internal/telemetry/opspan`, and its calls are its children. A request that
-sends no job has one of these spans instead of `job.publish`:
+from `internal/telemetry/opspan`, and its calls are its children. Outside a
+trace, such as a metrics refresh or a health probe, `opspan` opens no span, as
+nats-client does for a call. The first version opened one, and each refresh of
+the health metrics started a trace of its own: on the lab, a `job.summary` or an
+`agent.list` root every few seconds. A request that sends no job has one of
+these spans instead of `job.publish`:
 
 | Span                                               | From                             | DETAIL                  |
 | -------------------------------------------------- | -------------------------------- | ----------------------- |
