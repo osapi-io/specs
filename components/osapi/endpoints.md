@@ -436,7 +436,11 @@ Each step is one pull request, with its own specs change.
    shared helpers in `gen/genutil`. The behavior generator writes each group's
    `gen/cli.go` with it. The endpoint DSL gained an example's doc,
    `CommandNotes` and the command path of a prefix. The endpoint command runtime
-   gives a renderer the trace ID of its call.
+   gives a renderer the trace ID of its call. The two generators also share
+   their file writer, `gen/genfile`, which cleans, writes, groups imports,
+   formats and writes the registry of blank imports, and their spec writer,
+   `gen/specgen`, with one encoding and one reference to the shared
+   `ErrorResponse`.
 
 After step 3, a node domain that moves to a behavior (osapi#731, osapi#838) is
 an endpoint group too.
