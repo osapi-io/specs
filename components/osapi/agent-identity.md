@@ -30,7 +30,7 @@ Only two events destroy a key:
 The two take effect immediately. There is no time when the signature of a
 removed agent still verifies.
 
-The removal is `DELETE /api/agent/{hostname}`, or `osapi client agent remove`.
+The removal is `DELETE /api/agent/{hostname}`, or `osapi client agent delete`.
 It deletes the accepted record and removes the cached key. A hostname is not an
 identity. Thus when two accepted agents have the same hostname, the call answers
 409 with the two machine IDs, and `machine_id` selects one. The call does not
