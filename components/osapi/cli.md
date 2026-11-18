@@ -487,7 +487,7 @@ under it is incorrect. A heading with nothing under it is also incorrect.
   `time.Time`. A command does not call `Format` on a time of its own: the audit
   list did, and printed the zone that the controller stored, not the local zone
   (osapi-io/osapi#864).
-- Durations are rounded to a useful precision: `6ms`, `1.2s`, `3m 4s`.
+- Durations are rounded to a useful precision: `6ms`, `1.2s`, `3m4s`.
 - Sizes have one decimal and their unit: `3.4 GB used of 7.7 GB`.
 - A percentage is a whole number with `%`, such as `67%` of packet loss or `45%`
   of a disk. A CPU percentage has one decimal, `12.3%`, because it is often
