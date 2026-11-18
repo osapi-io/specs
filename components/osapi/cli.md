@@ -70,11 +70,11 @@ and `validate`. A paired action keeps its pair. `undeploy` is not `delete`,
 because the file stays.
 
 A command is `<resource> <verb>`. A noun that is used as a command becomes a
-filter on `list`, or a resource with its own verbs under it:
-`file list --stale`, `package list --updates`, `log source list`,
-`user password update`, `agent pending list`, `facts keys list`. Do not use
-synonyms. Use `delete`, never `remove` or `rm`. Use `create`, never `add` or
-`new`. Use `get`, never `describe` or `show`.
+filter on `list`, or a resource with its own verbs under it: `file stale list`,
+`package list --updates`, `log source list`, `user password update`,
+`agent pending list`, `facts keys list`. Do not use synonyms. Use `delete`,
+never `remove` or `rm`. Use `create`, never `add` or `new`. Use `get`, never
+`describe` or `show`.
 
 The verbs cost one natural name. `user ssh-key add` became `create`, which is
 less natural than "add a key". The change was made anyway, because one verb set
@@ -110,7 +110,7 @@ old names yet:
 | `client node container docker image-remove` | `client node container docker image delete` |
 | `client node user ssh-key add`              | `client node user ssh-key create`           |
 | `client node user password`                 | `client node user set-password`             |
-| `client file stale`                         | `client file list --stale`                  |
+| `client file stale`                         | `client file stale list`                    |
 | `client node package updates`               | `client node package list --updates`        |
 | `client node log unit --name`               | `client node log query --unit`              |
 | `client node log source`                    | `client node log list-sources`              |

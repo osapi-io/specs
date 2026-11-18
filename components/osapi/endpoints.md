@@ -1,13 +1,14 @@
 # Endpoints
 
-A plan, partly built. The agent group is served, and its CLI commands are made,
-from its definition: its spec, routes, decoders and commands are generated, and
-its handlers are typed functions. The other groups still have hand-written specs
-and commands. An endpoint is one HTTP operation of the controller itself, such
-as `GET /api/agent` or `POST /api/job/{id}/retry`. Its definition is Go. The
-route, the part of the OpenAPI spec, the CLI command, its page, the permission
-and the HTTP tests come from that definition, as they come from the definition
-of a [behavior](behaviors.md). Thus no part of the API uses a spec that a person
+A plan, partly built. Each group of the controller is served, and its CLI
+commands are made, from its definition: its spec, routes, decoders and commands
+are generated, and its handlers are typed functions. The part that is not built
+is [behaviors on endpoints](#behaviors-on-endpoints). An endpoint is one HTTP
+operation of the controller itself, such as `GET /api/agent` or
+`POST /api/job/{id}/retry`. Its definition is Go. The route, the part of the
+OpenAPI spec, the CLI command, its page, the permission and the HTTP tests come
+from that definition, as they come from the definition of a
+[behavior](behaviors.md). Thus no part of the API uses a spec that a person
 writes.
 
 The issue is osapi#744.
@@ -15,10 +16,9 @@ The issue is osapi#744.
 ## Why
 
 The controller has 25 operations, in seven groups. A person wrote each one four
-times: the spec, the handler, the service of the SDK and the CLI command. Twenty
-come from a definition now: agent (8), telemetry (1), audit (3), job (4), facts
-(1) and health (3). The five of the file group still have a hand-written spec
-and handler.
+times: the spec, the handler, the service of the SDK and the CLI command. Each
+one comes from a definition now: agent (8), telemetry (1), audit (3), job (4),
+facts (1), health (3) and file (6).
 
 A new operation of the controller had no generator. Behaviors cover the work on
 a host, and nothing covered the work on the controller.
@@ -53,7 +53,7 @@ The definitions must express each row before the first group moves.
 | agent     | list, pending, get, remove, accept, reject, drain, undrain | a key in the path (`{hostname}`); a fixed sub-path beside the key (`/agent/pending`), so the order of the routes is important; actions on the key (`/agent/{hostname}/drain`); query parameters (`machine_id`, `fingerprint`); 409 |
 | audit     | list, get, export                                          | pagination (`limit`, `offset`) and a total; an export of each entry                                                                                                                                                                |
 | facts     | keys                                                       | a permission of a different group (`agent:read`)                                                                                                                                                                                   |
-| file      | list, stale, get, upload, delete                           | a multipart upload; a query option (`force`); 201 and 409                                                                                                                                                                          |
+| file      | list, stale, get, upload, update, delete                   | a multipart upload; 201 with `Location`; 200 for a file that exists; 409; 503 when no Object Store is set                                                                                                                          |
 | health    | liveness, ready, status                                    | no auth for liveness and ready, which probes call; 503; the permission `health:read`                                                                                                                                               |
 | job       | list, get, delete, retry                                   | a filter (`status`); 204 with no body; a JSON body; 201                                                                                                                                                                            |
 | telemetry | trace get                                                  | a permission with a different name (`trace:read`); 503 when the backend is not set                                                                                                                                                 |
@@ -311,12 +311,15 @@ Then each group moves in its own pull request, from the easiest:
 5. facts: a permission of a different group. It is served from its definition,
    and gains `osapi client facts keys list`: the method is `list` under `keys`,
    as `telemetry trace get` is, so the command is a resource and a verb
-6. file: a multipart upload. Its spec is defined and held to the hand-written
-   spec with no accepted line; the switch is next. A field tagged `in:"form"`
-   makes the body `multipart/form-data`, and a `[]byte` field is the file.
-   `endpoint.Forbidden` maps a write to an osapi file to 403
+6. file: a multipart upload. It is served from its definition. A field tagged
+   `in:"form"` makes the body `multipart/form-data`, and a `[]byte` field is the
+   file. In the CLI, the flag of a `[]byte` field is the path of a local file,
+   and the command sends a multipart body. `endpoint.Forbidden` maps a write to
+   an osapi file to 403. With no Object Store, each file endpoint answers 503,
+   and `file stale list` answers 503 with no state bucket. `file list --stale`
+   is now `file stale list`, one command for each operation
 7. health: no auth, and the probes depend on it. It went before file, because
-   file needs a multipart body, which the DSL does not have yet. It is served
+   file needed a multipart body, which the DSL did not have then. It is served
    from its definition. The readiness probe answers 503 with its own body, which
    `.Answers(code, doc)` declares and `endpoint.Answer(code)` sends; the CLI
    prints that body, as the SDK's `APIError` keeps it. `health status` answers
