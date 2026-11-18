@@ -251,10 +251,15 @@ builder returns `provider.ErrUnsupported`, its methods report `skipped`. The
 agent logs which providers it built. The built providers go into the registry of
 the agent, which gives them facts as it does for each other provider.
 
-**The CLI.** `internal/behavior/command` has the one helper that each generated
-command calls, and the one table layout that each behavior renders in. It is
-under `internal/cli`, as the API runtime is under `internal/controller/api`.
-Generated code imports the two as `behaviorcli` and `behaviorapi`.
+**The CLI.** The commands of a behavior come from its endpoint group, as the
+commands of an endpoint do. `internal/controller/endpoint/gen/commandgen`, the
+endpoint layer's command writer, writes `gen/cli.go`. The endpoint command
+runtime runs each command: it reads the flags into the request, sends it, and
+prints `--json` as the API sent it. `--target` is the flag of the request's
+`hostname` field, with the default `_all`. The commands attach under the fixed
+segments of the group's prefix, such as `next node`. `internal/behavior/command`
+keeps the one table layout that each behavior renders in, as the renderer of
+each method, and the pages of each behavior.
 
 Behaviors are under `internal/`:
 
@@ -372,7 +377,7 @@ writes:
 | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
 | `internal/behaviors/<name>/gen/api.go`           | the route table, registered from `init`                                                                   |
 | `internal/behaviors/<name>/gen/api_<method>.go`  | the method's handler and the decoder for its typed input                                                  |
-| `internal/behaviors/<name>/gen/cli.go`           | the behavior's commands, flags bound to input fields                                                      |
+| `internal/behaviors/<name>/gen/cli.go`           | the behavior's commands, from its group, by the endpoint layer's command writer                           |
 | `internal/behaviors/<name>/gen/*_public_test.go` | a test for each of those files, described under the tests below                                           |
 | `internal/behaviors/<name>/gen/api.yaml`         | the behavior's spec, which `just generate` joins into the main one; `api.next.yaml` for a `Next` behavior |
 | `internal/behaviors/all/gen/gen.go`              | the import of every behavior's generated code: its routes and commands                                    |
@@ -422,7 +427,8 @@ builds an "API (next)" reference from it, next to the current reference.
 
 `gen/cli.go` puts the docs of each method on its cobra command, as a person puts
 them on a hand-written command. `.Describe` is the `Short`, `.Explain` is the
-`Long`, and the `Example`s are the command lines of the `Example`. The
+`Long`, and the `Example`s are the command lines of the `Example`, each under
+its doc as a `#` line: the group's `.Example(flags, doc)`. The
 `reference.Permission` annotation has the permission of the method, and the
 `reference.Result` annotation has what each example does on the host and the
 refusals. Thus `just cli-docs-generate` writes the CLI page of a behavior

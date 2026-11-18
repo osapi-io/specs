@@ -411,7 +411,8 @@ that the change removes.
 
 The generated HTTP tests of sysctl must pass with no change, against the
 endpoint routes. `osapi client next node sysctl ... --help` and the pages of the
-commands must not change.
+commands must not change, but for one line: `--target` is a flag of each
+command, not a global flag of `next node`.
 
 ### The order
 
@@ -430,7 +431,12 @@ Each step is one pull request, with its own specs change.
    is not JSON.
 3. The commands. The endpoint command runtime makes the behavior commands, with
    the result table as a renderer, and the rest of `internal/behavior/command`
-   goes.
+   goes. Built: the endpoint generator's command writer is
+   `internal/controller/endpoint/gen/commandgen`, beside `routegen`, with their
+   shared helpers in `gen/genutil`. The behavior generator writes each group's
+   `gen/cli.go` with it. The endpoint DSL gained an example's doc,
+   `CommandNotes` and the command path of a prefix. The endpoint command runtime
+   gives a renderer the trace ID of its call.
 
 After step 3, a node domain that moves to a behavior (osapi#731, osapi#838) is
 an endpoint group too.
