@@ -192,6 +192,13 @@ It writes these:
 The joined spec then has the endpoints and the behaviors, and no hand-written
 part.
 
+`just generate` runs this generator and the generator of behaviors first. Then
+it joins the spec. Then it runs the rest of `go generate`. The SDK client is
+generated from the joined spec, in the same `go generate` pass as the specs of
+the groups. If the join came first, it would read the old specs of the groups.
+Then one run would leave the joined spec and the SDK stale, and a second run
+would be necessary (osapi#829).
+
 ## The commands
 
 The commands are under the process that the endpoints belong to:
