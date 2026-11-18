@@ -127,7 +127,11 @@ var Group = endpoint.Register(endpoint.Define(
   the input, a field is required when it is tagged `validate:"required"`. Each
   input field has a validate tag, and the spec carries the whole tag in
   `x-oapi-codegen-extra-tags`. The rules are the behavior DSL's, from
-  `internal/validation/rule`; [behaviors](behaviors.md) has them.
+  `internal/validation/rule`; [behaviors](behaviors.md) has them. Each rule of
+  each input field has a `.Fails(doc, input)` that breaks it, as a behavior's
+  refusals do, and `controller endpoint validate` names a rule that has none.
+  `TestRefusals`, in `internal/controller/endpoints/all`, sends each one through
+  the routes and expects 400 with `{"error": "..."}`.
 
 - **`ID`** keeps the operationId of the hand-written spec. The generated Go SDK
   and the UI client get their names from it. Thus the move does not change a
