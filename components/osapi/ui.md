@@ -43,6 +43,21 @@ name does not separate them. Put a new file where those two answers put it.
 | layout           | none; it holds page chrome      | `ui/src/components/layout/` |
 | hook             | a resource, and renders nothing | `ui/src/hooks/`             |
 
+The shared components that each page uses for the same thing:
+
+| Thing                   | Component                                                         |
+| ----------------------- | ----------------------------------------------------------------- |
+| a card                  | `components/ui/card.tsx`                                          |
+| a table                 | `components/ui/data-table.tsx`: CLI headers, and "None." if empty |
+| a status                | `Badge`, `HealthDot` and `Text`, with `lib/status.ts`             |
+| a page that loads       | `components/ui/spinner.tsx`                                       |
+| a page without its perm | `components/layout/permission-denied.tsx`                         |
+| an empty page           | `components/ui/empty-state.tsx`                                   |
+| an error                | `components/ui/error-banner.tsx`                                  |
+
+A table header is in capitals, in the tint of its section, as the CLI prints it.
+A panel inside a card has the `surface` token, not a hex value.
+
 Thus:
 
 - Markup with one resource is a domain component.
@@ -154,9 +169,22 @@ remove it to make a page quieter.
 The loading spinner takes one heading color, which `spinner-color.ts` selects
 one time for each page load.
 
-Two things differ from the CLI. The UI shows `submitted` in gray, and the CLI
-shows it in amber (`WarnStyle`). `status-running`, blue `#3b82f6`, has no CLI
-color.
+**A status word has the color that the CLI gives it.** `StatusTones` in
+`internal/cli/theme.go` gives each status word a tone: ok, warn or err. Go
+generate writes the map to `ui/src/lib/status.gen.ts`, and a test in
+`internal/behaviors/all` fails when that file is stale. `statusVariant()` in
+`ui/src/lib/status.ts` reads the first word of a status, lowercased, as the CLI
+does. It gives the `Badge` variant. `statusDot()` and `statusText()` give the
+`HealthDot` and `Text` colors of the same word. Each badge, dot and status text
+uses them. A page does not map a status to a color of its own. A word that the
+CLI does not color, such as `processing`, is gray. Thus `skipped`, `submitted`,
+`draining` and a condition are amber on each page and in the terminal.
+
+An HTTP method, an HTTP code, a role and a target group are not statuses, so
+they never take green, amber or red. The audit log shows a method in bold, as
+the CLI does, and a code in the text color. A permission that writes is in bold.
+Blue `#3b82f6`, `status-running`, is not a status color: it is the color of
+command output in a code block.
 
 `--font-mono` starts with the mono font of the system. JetBrains Mono is not in
 the bundle. When it was first in the list, a browser without it showed a serif
