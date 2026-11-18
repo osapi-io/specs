@@ -82,14 +82,29 @@ a behavior runs inside `ScopeMiddleware`, which would mark again after the
 behavior wrote its answer. A response that osapi writes without the mark, such
 as a 401, has no spans, and no span ends before it starts.
 
-A request that reads or changes the job bucket, and sends no job, has a span for
-the call of the job client instead of `job.publish`: `job.list`, `job.get`,
-`job.summary`, `job.retry` or `job.delete`. The NATS calls of the call are its
-children. Without the span, `trace get` showed `GET /api/job` with only the two
-response spans, because it leaves out the NATS calls, and the trace did not tell
-what the time of the request was for (osapi-io/osapi#866). On `job.list`, DETAIL
-is the number of jobs on the page, such as `2 jobs`. On the other four, DETAIL
-is the job ID.
+A store or a client operation that makes more than one call has its own span,
+from `internal/telemetry/opspan`, and its calls are its children. A request that
+sends no job has one of these spans instead of `job.publish`:
+
+| Span                                               | From                             | DETAIL                  |
+| -------------------------------------------------- | -------------------------------- | ----------------------- |
+| `job.list`                                         | the job client                   | the count, `2 jobs`     |
+| `job.get`, `job.retry`, `job.delete`               | the job client                   | the job ID              |
+| `job.summary`                                      | the job client                   |                         |
+| `agent.list`, `agent.get`, `agent.timeline`        | the job client                   | the count, or the agent |
+| `enrollment.list`, `.accept`, `.reject`, `.remove` | `internal/controller/enrollment` | the count, or the agent |
+| `audit.list`, `audit.get`, `audit.export`          | `internal/audit`                 | the count, or the entry |
+| `traces.read`                                      | `internal/telemetry/traces`      | the trace ID            |
+
+Without them, `trace get` showed `GET /api/job` with only the two response
+spans, because it leaves out the NATS calls, and the trace did not tell what the
+time of the request was for (osapi-io/osapi#866). `traces.read` is the HTTP call
+to Jaeger, which no other span showed. An operation of one call, such as a file
+`info`, has no span of its own: the span of its NATS call is enough. An
+`agent.get` for a hostname, not a machine ID, has an `agent.list` under it,
+because it scans the registry. `trace get` and the Traces page take DETAIL from
+two tables, `opCounts` and `opDetail` in `internal/cli/trace.go`, which
+`trace-tree.ts` copies.
 
 `trace get` shows the size on `response.write`. The request span has the size
 too, from otelecho, but its DETAIL stays the status. On `job.publish`, DETAIL is
