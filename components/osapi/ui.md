@@ -57,6 +57,7 @@ The shared components that each page uses for the same thing:
 | key-value pairs         | `components/ui/kv-list.tsx`: the values line up, as `PrintKV`     |
 | a count                 | `components/ui/count.tsx`, with `COUNT_TONES`                     |
 | a result's summary line | `components/domain/result-summary.tsx`                            |
+| a job                   | `JobView` in `components/domain/job-detail.tsx`, as `job get`     |
 | a time, age or duration | `lib/format.ts`                                                   |
 
 A table header is in capitals, in the tint of its section, as the CLI prints it.
