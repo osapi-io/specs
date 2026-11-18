@@ -306,7 +306,8 @@ Then each group moves in its own pull request, from the easiest:
    command does. A field of an `in:"body"` struct is a flag, and the `flag` and
    `short` tags keep retry's `-T/--target`. `endpoint.Invalid` maps an error to
    400, for a retry of a job with no operation data
-5. facts: a permission of a different group
+5. facts: a permission of a different group. Its spec is defined and held to the
+   hand-written spec with no accepted line; the switch is next
 6. file: a multipart upload
 7. health, last: no auth, and the probes depend on it
 
