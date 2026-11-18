@@ -212,14 +212,20 @@ A behavior runs through three generic parts. Each is written one time.
 
 **The API.** Each behavior with `API` gets generated code in its `gen/`:
 
-- `api_<method>.go` has the handler of the method, and the decoder that makes
-  its typed input from the path, query and body and checks its tags.
+- `group.go` has the behavior as an endpoint group, and a handler for each
+  method.
 - `api.go` has the route table: the HTTP method, path and permission of each
-  route. Its `init` registers them.
+  route. Its `init` registers them with the endpoint server. `decode.go` has the
+  decoder of each method, which makes its typed request from the path, query and
+  body and checks its tags. Both come from the group, with the endpoint layer's
+  route writer, `internal/controller/endpoint/gen/routegen`. Thus a behavior's
+  route is the same code as an endpoint's.
 
-The runtime that they call, `internal/behavior/server`, is written one time. It
-checks the token against the permission of the route, validates the target,
-queues the job, and makes the `{job_id, results[]}` envelope.
+The endpoint server checks the token against the permission of the route. The
+target is a field of the request, so the route checks it with the other tags.
+The handler of each method calls `internal/behavior/dispatch`, which is written
+one time. It queues the job, on one host or each host of the target, and makes
+the `{job_id, results[]}` envelope.
 
 An earlier version served each method through one handler that read the
 definition when osapi started. It worked. But you could not open, debug or test
@@ -258,7 +264,7 @@ Behaviors are under `internal/`:
   group, as its routes are. Thus the directory of a behavior matches its URL.
 
 The test helper of each runtime is next to the runtime that it drives:
-`internal/behavior/server/servertest` and
+`internal/behavior/dispatch/servertest` and
 `internal/behavior/command/commandtest`. `behavior validate` refuses a behavior
 or group with the name `all`, which is the registration index in
 `internal/behaviors/all`.
@@ -624,7 +630,7 @@ managedfile, and a building block to `atomicfile.Write`, `Remove` or `Chmod`.
 The generated HTTP tests split the cases of each method as the handler tests of
 the hand-written domains do: `Test<Method>` for the answers,
 `Test<Method>ValidationHTTP` for the 400s and `Test<Method>RBACHTTP` for the
-tokens. `internal/behavior/server/servertest` runs the rows. Fix a failed
+tokens. `internal/behavior/dispatch/servertest` runs the rows. Fix a failed
 generated test in the definition or the generator, never in `gen/`.
 
 The fake host is `internal/behavior/behaviortest`. It has:
