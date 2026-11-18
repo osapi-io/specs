@@ -65,15 +65,16 @@ There is one verb for each meaning:
 An action that is not one of those keeps the verb that tells what it does:
 `start` and `stop`, `enable` and `disable`, `deploy` and `undeploy`, `drain` and
 `undrain`, `exec`, `shell`, `ping`, `reboot`, `shutdown`, `signal`, `pull`,
-`install` and `uninstall`, `retry`, `export`, `upload`, `query`, `inspect` and
-`validate`. A paired action keeps its pair. `undeploy` is not `delete`, because
-the file stays.
+`install` and `uninstall`, `retry`, `export`, `upload`, `accept` and `reject`,
+and `validate`. A paired action keeps its pair. `undeploy` is not `delete`,
+because the file stays.
 
-A command is a verb. A noun that is used as a command (`stale`, `updates`,
-`source`, `password`) becomes a verb, or a filter on `list`:
-`file list --stale`, `package list --updates`, `log list-sources`,
-`user set-password`. Do not use synonyms. Use `delete`, never `remove` or `rm`.
-Use `create`, never `add` or `new`. Use `get`, never `describe` or `show`.
+A command is `<resource> <verb>`. A noun that is used as a command becomes a
+filter on `list`, or a resource with its own verbs under it:
+`file list --stale`, `package list --updates`, `log source list`,
+`user password update`, `agent pending list`, `facts keys list`. Do not use
+synonyms. Use `delete`, never `remove` or `rm`. Use `create`, never `add` or
+`new`. Use `get`, never `describe` or `show`.
 
 The verbs cost one natural name. `user ssh-key add` became `create`, which is
 less natural than "add a key". The change was made anyway, because one verb set
@@ -116,6 +117,28 @@ old names yet:
 | `--job-id`, `--audit-id`                    | `--id`                                      |
 | `--interface-name`                          | `--interface`                               |
 | `client job retry --target-hostname`        | `client job retry -T, --target`             |
+
+### Renamed on 17 November 2026
+
+The endpoint groups moved to `<resource> <verb>`, and these commands moved with
+them. `TestCommandShape`, in `cmd/help_style_test.go`, fails on a command under
+`osapi client` whose last word is not a CRUD verb or a listed action:
+
+| Was                                    | Now                                       |
+| -------------------------------------- | ----------------------------------------- |
+| `client agent pending`                 | `client agent pending list`               |
+| `client agent remove`                  | `client agent delete`                     |
+| `client node log query`                | `client node log list`                    |
+| `client node log list-sources`         | `client node log source list`             |
+| `client node container docker inspect` | `client node container docker get`        |
+| `client node container docker pull`    | `client node container docker image pull` |
+| `client node user set-password`        | `client node user password update`        |
+
+### Required flags
+
+`MarkFlagRequired` marks a required flag. `--help` and the CLI page show
+"(required)" from it, so a flag's help does not say it. The same test fails on a
+flag whose help says it.
 
 ### Behaviors follow them by construction
 

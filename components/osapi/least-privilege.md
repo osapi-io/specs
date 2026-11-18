@@ -265,7 +265,7 @@ harder to render. polkit, as above.
    `execute` permission exist.
 
 Two problems found during this work are fixed. The agent no longer replaces a
-key that it cannot read (osapi #695). `osapi client agent remove` removes the
+key that it cannot read (osapi #695). `osapi client agent delete` removes the
 key of an enrolled agent (osapi #696).
 
 ## Where this connects
