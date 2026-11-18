@@ -110,6 +110,11 @@ because it scans the registry. `trace get` and the Traces page take DETAIL from
 two tables, `opCounts` and `opDetail` in `internal/cli/trace.go`, which
 `trace-tree.ts` copies.
 
+`trace get` and the Traces page show where each span ran, in the `ON` column:
+the agent of the `job.process` above it, or else the role of the service that
+made it, `controller`, `agent` or `cli`. A blank cell had stood for the
+controller, and a reader had to know that.
+
 `trace get` shows the size on `response.write`. The request span has the size
 too, from otelecho, but its DETAIL stays the status. On `job.publish`, DETAIL is
 the operation and the target that the caller gave, such as
