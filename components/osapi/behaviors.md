@@ -666,10 +666,11 @@ fails with that text. The API test checks that a refusal whose input breaks a
 Each rule of each input field needs a refusal that breaks it, such as a key with
 a slash for `sysctl_key`. `behavior validate` names a rule that has none. The
 validator reports the field and the rule that an input breaks, so the check is
-exact. `required` needs none, because the API test leaves the field out. A `min`
-of 1 on a string that is required, optional or in the path needs none, because
-its only bad value is empty. The author writes each bad value. A generator
-cannot make one for a custom rule. The endpoint DSL has the same check, with
+exact. A behavior's `required` needs none, because the API test leaves the field
+out. An endpoint's needs one, because endpoints have no such test. A `min` of 1
+on a string that is required, optional or in the path needs none, because its
+only bad value is empty. The author writes each bad value. A generator cannot
+make one for a custom rule. The endpoint DSL has the same check, with
 `.Fails(doc, input)`.
 
 On the fake host, each filesystem, command and store call fails in turn. Each
