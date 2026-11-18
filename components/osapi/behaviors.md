@@ -717,8 +717,11 @@ APIs.
   `host.Require[P](h, managedfile.Behavior)`, and calls each method of it with
   `behavior.Call(ctx, managedfile.Behavior, managedfile.Update, p, in)`. `Call`
   runs the method inside its own span, with its metrics, so the trace shows
-  `behavior.managedfile.update` as a step under `behavior.sysctl.create`. A
-  direct call of `managedfile.Update` works but has no span. `behaviortest.Run`
+  `behavior.managedfile.update` as a step under `behavior.sysctl.create`. `Call`
+  also checks the input against its validate tags before the method runs, as the
+  API does for a served method. An internal behavior is not served, so without
+  this check its tags would only describe its rules. A direct call of
+  `managedfile.Update` works but has no span and no check. `behaviortest.Run`
   reads the Go files of the behavior and fails such a call. The agent and the
   fake host in `behaviortest` both build through it. Thus the examples of a
   behavior run through its requirements exactly as they do on an agent.
