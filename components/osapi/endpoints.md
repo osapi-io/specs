@@ -301,7 +301,10 @@ Then each group moves in its own pull request, from the easiest:
    answers 503, where the controller had no route before. The DSL gained
    `Example[T]` for an example with a double quote, because the formatters drop
    the backslash of a quote in a struct tag
-4. job: a filter, 204, and a JSON body with 201
+4. job: a filter, 204, and a JSON body with 201. Its spec is defined and held to
+   the hand-written spec with no accepted line; the switch is next. A body from
+   a field tagged `in:"body"` is optional unless the field is
+   `validate:"required"`, because a retry with no body goes to `_any`
 5. facts: a permission of a different group
 6. file: a multipart upload
 7. health, last: no auth, and the probes depend on it
