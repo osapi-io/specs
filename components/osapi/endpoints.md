@@ -421,8 +421,13 @@ Each step is one pull request, with its own specs change.
    `internal/behavior/openapi` goes. The endpoint DSL gains the prefix and the
    shared parameter.
 2. The routes. The endpoint server serves each behavior, and
-   `internal/behavior/server` goes. The generic handler of a behavior replaces
-   it.
+   `internal/behavior/server` goes. The generic handler of a behavior,
+   `internal/behavior/dispatch`, replaces it. Built: the route and decoder
+   writer of the endpoint generator moved to
+   `internal/controller/endpoint/gen/routegen`, which the behavior generator
+   uses too. A write with only a key, such as a delete, has no body in its spec,
+   and its route reads none, so its generated tests have no case for a body that
+   is not JSON.
 3. The commands. The endpoint command runtime makes the behavior commands, with
    the result table as a renderer, and the rest of `internal/behavior/command`
    goes.
