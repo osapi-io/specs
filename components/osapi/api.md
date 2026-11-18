@@ -57,9 +57,16 @@ audit log, changes one resource:
 | A delete                                            | 204                  |
 | An action with only a confirmation, such as `drain` | 204                  |
 
-A file upload shows the difference between 201 and 200. An upload of a new name
-answers 201. An upload of a name that exists answers 200, when the content is
-the same and when `force` replaces it.
+A create is a POST, and a replace is a PUT. The files show both:
+
+- `POST /api/file` creates a file. A new name answers 201. A name that exists
+  with the same content answers 200, `changed: false`. A name that exists with
+  other content is a 409.
+- `PUT /api/file/{name}` replaces a file. It answers 200, and `changed` tells
+  whether the content changed. A new name answers 201.
+
+A flag never turns a create into a replace. Thus the CLI has `file upload` for
+the POST and `file update` for the PUT, one command for each operation.
 
 ## Each error is `{"error": "..."}`
 
@@ -130,15 +137,16 @@ Its first run, on `main` before these changes, found 30 failures.
 The audit made these changes, and kept no old forms, because nothing outside
 osapi used them:
 
-| Was                                                                    | Now                                   |
-| ---------------------------------------------------------------------- | ------------------------------------- |
-| `getAgents`, `removeAgent`, and 7 more camel-case IDs                  | `GetAgents`, `DeleteAgent`, and so on |
-| `agents` and `total`, `files` and `total`, `stale` and `total`, `keys` | `items` and `total_items`             |
-| 202 on 13 node writes                                                  | 200                                   |
-| 201 without `Location`                                                 | 201 with `Location`                   |
-| A file upload of an existing name: 201                                 | 200                                   |
-| `DELETE /api/file/{name}`: 200, `{"deleted": true}`                    | 204                                   |
-| Agent delete, accept, reject, drain, undrain: 200, a message           | 204                                   |
-| `POST /api/node/{hostname}/file/status` with a body                    | `GET ...?path=`                       |
-| A parameter that does not bind: `{"message": "..."}`                   | `{"error": "..."}`                    |
-| `GET /api/health/status` degraded: 503                                 | 200, `degraded`                       |
+| Was                                                                    | Now                                       |
+| ---------------------------------------------------------------------- | ----------------------------------------- |
+| `getAgents`, `removeAgent`, and 7 more camel-case IDs                  | `GetAgents`, `DeleteAgent`, and so on     |
+| `agents` and `total`, `files` and `total`, `stale` and `total`, `keys` | `items` and `total_items`                 |
+| 202 on 13 node writes                                                  | 200                                       |
+| 201 without `Location`                                                 | 201 with `Location`                       |
+| A file upload of an existing name: 201                                 | 200                                       |
+| `POST /api/file?force=true`, and `file upload --force`                 | `PUT /api/file/{name}`, and `file update` |
+| `DELETE /api/file/{name}`: 200, `{"deleted": true}`                    | 204                                       |
+| Agent delete, accept, reject, drain, undrain: 200, a message           | 204                                       |
+| `POST /api/node/{hostname}/file/status` with a body                    | `GET ...?path=`                           |
+| A parameter that does not bind: `{"message": "..."}`                   | `{"error": "..."}`                        |
+| `GET /api/health/status` degraded: 503                                 | 200, `degraded`                           |
