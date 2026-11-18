@@ -483,6 +483,10 @@ under it is incorrect. A heading with nothing under it is also incorrect.
 ### Values
 
 - Times are local, `2026-11-12 18:15:13`. With `--json`, they are RFC 3339.
+  `cli.FormatTime` prints a time that comes as text, and `cli.LocalTime` a
+  `time.Time`. A command does not call `Format` on a time of its own: the audit
+  list did, and printed the zone that the controller stored, not the local zone
+  (osapi-io/osapi#864).
 - Durations are rounded to a useful precision: `6ms`, `1.2s`, `3m 4s`.
 - Sizes have one decimal and their unit: `3.4 GB used of 7.7 GB`.
 - A percentage is a whole number with `%`, such as `67%` of packet loss or `45%`
