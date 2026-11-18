@@ -311,7 +311,10 @@ Then each group moves in its own pull request, from the easiest:
 5. facts: a permission of a different group. It is served from its definition,
    and gains `osapi client facts keys list`: the method is `list` under `keys`,
    as `telemetry trace get` is, so the command is a resource and a verb
-6. file: a multipart upload
+6. file: a multipart upload. Its spec is defined and held to the hand-written
+   spec with no accepted line; the switch is next. A field tagged `in:"form"`
+   makes the body `multipart/form-data`, and a `[]byte` field is the file.
+   `endpoint.Forbidden` maps a write to an osapi file to 403
 7. health: no auth, and the probes depend on it. It went before file, because
    file needs a multipart body, which the DSL does not have yet. It is served
    from its definition. The readiness probe answers 503 with its own body, which
