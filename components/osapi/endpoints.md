@@ -17,8 +17,9 @@ The issue is osapi#744.
 The controller has 25 operations, in seven groups. A person wrote each one four
 times: the spec, the handler, the service of the SDK and the CLI command. The
 eight of the agent group, the one of the telemetry group, the three of the audit
-group and the four of the job group come from a definition now. Nine, in three
-groups, still have a hand-written spec and handler.
+group, the four of the job group and the one of the facts group come from a
+definition now. Eight, in two groups, still have a hand-written spec and
+handler.
 
 A new operation of the controller had no generator. Behaviors cover the work on
 a host, and nothing covered the work on the controller.
@@ -306,8 +307,9 @@ Then each group moves in its own pull request, from the easiest:
    command does. A field of an `in:"body"` struct is a flag, and the `flag` and
    `short` tags keep retry's `-T/--target`. `endpoint.Invalid` maps an error to
    400, for a retry of a job with no operation data
-5. facts: a permission of a different group. Its spec is defined and held to the
-   hand-written spec with no accepted line; the switch is next
+5. facts: a permission of a different group. It is served from its definition,
+   and gains `osapi client facts keys list`: the method is `list` under `keys`,
+   as `telemetry trace get` is, so the command is a resource and a verb
 6. file: a multipart upload
 7. health, last: no auth, and the probes depend on it
 
