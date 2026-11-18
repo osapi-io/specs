@@ -82,6 +82,15 @@ a behavior runs inside `ScopeMiddleware`, which would mark again after the
 behavior wrote its answer. A response that osapi writes without the mark, such
 as a 401, has no spans, and no span ends before it starts.
 
+A request that reads or changes the job bucket, and sends no job, has a span for
+the call of the job client instead of `job.publish`: `job.list`, `job.get`,
+`job.summary`, `job.retry` or `job.delete`. The NATS calls of the call are its
+children. Without the span, `trace get` showed `GET /api/job` with only the two
+response spans, because it leaves out the NATS calls, and the trace did not tell
+what the time of the request was for (osapi-io/osapi#866). On `job.list`, DETAIL
+is the number of jobs on the page, such as `2 jobs`. On the other four, DETAIL
+is the job ID.
+
 `trace get` shows the size on `response.write`. The request span has the size
 too, from otelecho, but its DETAIL stays the status. On `job.publish`, DETAIL is
 the operation and the target that the caller gave, such as
@@ -120,9 +129,11 @@ Two tests hold the tree at the one place where it crosses a process: the headers
 of the NATS message. The test in `internal/job/client` checks that `job.publish`
 and `job.collect` are under the request, and that the context that goes with the
 job is under `job.publish`, with the watch for the answers under `job.collect`.
-The test in `internal/agent` gives the handler the context that nats-client
-reads from the headers, and checks that `job.process` is a child of it, with the
-host and the status.
+It also checks that each read span is under the request, with its NATS calls
+under it, and has the error status when the call fails. The test in
+`internal/agent` gives the handler the context that nats-client reads from the
+headers, and checks that `job.process` is a child of it, with the host and the
+status.
 
 ### Reading a trace through the controller
 
