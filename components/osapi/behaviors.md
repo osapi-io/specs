@@ -169,6 +169,13 @@ constraint without a signal validates less than the server does, and nothing
 reports it. A rule that the spec cannot show, such as `valid_target`, registers
 `rule.None`.
 
+`validation.Struct` and `validation.Var` take the request's context, and
+`server.Valid` gives it from the echo context. `valid_target` reads the agent
+registry through NATS, so its lookup is in the trace of the request, and a
+cancelled request stops it. Before osapi-io/osapi#868 the lookup used
+`context.Background()`, and no trace showed it. A caller with no request, such
+as the generator or a config check, passes `context.Background()`.
+
 Each input field has a validate tag. A field with no limit has
 `validate:"omitempty"`. `behavior validate` and `controller endpoint validate`
 refuse an input field with no tag, with the same words. The spec carries the
