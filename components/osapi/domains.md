@@ -80,8 +80,12 @@ unexported, and each domain has its own. Thus a handler writes its own check, or
 calls `internal/validation` where a registered validator fits.
 
 A custom validation rule goes in `internal/validation`, with a hint in
-`customHints`. Thus a 400 tells the caller what shape was expected, and does not
-only name a tag. `sysctl_key` and `cron_schedule` are the pattern.
+`customHints`, and its schema registered beside it with `rule.Register`. The
+hint makes a 400 tell the caller what shape was expected, and not only name a
+tag. The schema puts the rule in the spec: the endpoint and behavior DSLs refuse
+a tag with none, so a spec never checks less than the server does. A rule that a
+pattern cannot say registers `rule.None`. `sysctl_key` and `package_name` are
+the pattern.
 
 ## Verbs
 
