@@ -3,8 +3,8 @@
 A plan, partly built. Each group of the controller is served, and its CLI
 commands are made, from its definition: its spec, routes, decoders and commands
 are generated, and its handlers are typed functions. The part that is not built
-is [behaviors on endpoints](#behaviors-on-endpoints). An endpoint is one HTTP
-operation of the controller itself, such as `GET /api/agent` or
+is [behaviors on endpoints](#behaviors-on-endpoints), osapi#826. An endpoint is
+one HTTP operation of the controller itself, such as `GET /api/agent` or
 `POST /api/job/{id}/retry`. Its definition is Go. The route, the part of the
 OpenAPI spec, the CLI command, its page, the permission and the HTTP tests come
 from that definition, as they come from the definition of a
@@ -349,14 +349,86 @@ No cutover of a behavior (osapi#731) occurs before the DSL is settled.
 
 ## Behaviors on endpoints
 
-When the endpoints are built, each method of a behavior makes an endpoint. The
-endpoint layer writes the route, the spec, the CLI command and the permission.
-The behavior adds only what host work needs: the job, the targets, the result
-for each host, the providers and the examples on a fake host.
+The issue is osapi#826. Each method of a behavior becomes a method of an
+endpoint group, and the endpoint layer serves it. The endpoint layer writes the
+spec, the route, the decoder, the validation and the CLI command. The behavior
+layer adds only the host work: the job, the result for each host, the providers,
+and the examples on a fake host. Thus each rule of the API, such as the error
+body or `TestConventions`, holds for a behavior with no second copy. The
+validation rules showed the cost of two copies: osapi#827, #828 and #837 built
+each one twice.
 
-The test of that change is the output of sysctl. Each file that the generator
-writes for it must be the same, byte for byte. Then nothing that a user sees
-changes.
+### What a behavior method becomes
+
+| Part of the endpoint method | What the behavior generator writes                                                                                                                                                                    |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The group                   | one group for each behavior, under the prefix `next/node/{hostname}`, then `node/{hostname}` at the cutover (osapi#731)                                                                               |
+| The input type              | a request type in `gen/`: a `hostname` path field, tagged `validate:"required,min=1,valid_target"` and `flag:"target" short:"T"`, then the method's input fields                                      |
+| The key                     | the method's key field, as an `in:"path"` field of the request type                                                                                                                                   |
+| The body                    | for a write, the other input fields as an `in:"body"` struct with the name `<Behavior><Method>Request`; for a read, `in:"query"` fields                                                               |
+| The output type             | `<Behavior>CollectionResponse` for a list and `<Behavior><Method>Response` for each other method: `job_id`, and `results` with one row for each host, such as `SysctlEntry` or `SysctlMutationResult` |
+| The handler                 | one generic handler of the behavior package. It sends the job to one host or to each host of the target, and makes the result rows                                                                    |
+| The permission              | `<behavior>:read` or `<behavior>:write`, with `.Permission`                                                                                                                                           |
+| The errors                  | 404 for a keyed method when the host does not have the item, from a sentinel of the behavior package                                                                                                  |
+| The refusals                | each `.Fails` of the method whose input breaks a validate rule                                                                                                                                        |
+
+The handler keeps the behavior's own checks: the agent checks the input again
+with `Method.Check`, and `behavior.Call` checks the input of a call between
+behaviors. The endpoint route is the check at the API.
+
+### What the endpoint DSL gains
+
+Only general parts. The endpoint DSL does not learn about hosts, targets or
+jobs.
+
+- A group prefix with path fields, such as `Prefix("next/node/{hostname}")`. The
+  rule of one path field becomes one key, besides the fields of the prefix.
+- A shared path parameter: a path field tagged `param:"Hostname"` is a reference
+  to that parameter in the components of the spec, not a parameter in place.
+
+A behavior that needs more than these, or a part of the endpoint DSL that knows
+about a host, is a sign that the design is wrong. Stop and decide it again.
+
+### What the behavior layer loses
+
+The spec writer (`internal/behavior/openapi`), the server runtime
+(`internal/behavior/server`) and most of the command runtime
+(`internal/behavior/command`). The behavior generator stays, and writes the
+definition of the endpoint group, the generated HTTP tests on the fake job
+client, and the pages of each behavior. The renderer of the result table for
+each host stays, and the command runtime of the endpoint layer calls it through
+`command.Render`.
+
+### How we know that the output is correct
+
+The API that sysctl serves must not change: its paths, operationIds, parameters,
+schemas, status codes and permissions. A golden file of these, in the form of
+`TestJoinedSpec`, holds them. The wording of the spec moves to the wording of
+the endpoint layer. For example, a 400 of a behavior says "The request is not
+valid." and not "Bad request - validation error.". Thus a byte for byte copy of
+the old spec is not the test. It would make the endpoint layer copy the wording
+that the change removes.
+
+The generated HTTP tests of sysctl must pass with no change, against the
+endpoint routes. `osapi client next node sysctl ... --help` and the pages of the
+commands must not change.
+
+### The order
+
+Each step is one pull request, with its own specs change.
+
+1. The spec. The endpoint builder makes the spec of each behavior, and
+   `internal/behavior/openapi` goes. The endpoint DSL gains the prefix and the
+   shared parameter.
+2. The routes. The endpoint server serves each behavior, and
+   `internal/behavior/server` goes. The generic handler of a behavior replaces
+   it.
+3. The commands. The endpoint command runtime makes the behavior commands, with
+   the result table as a renderer, and the rest of `internal/behavior/command`
+   goes.
+
+After step 3, a node domain that moves to a behavior (osapi#731, osapi#838) is
+an endpoint group too.
 
 ## Not decided
 
