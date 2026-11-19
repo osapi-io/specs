@@ -45,23 +45,36 @@ name does not separate them. Put a new file where those two answers put it.
 
 The shared components that each page uses for the same thing:
 
-| Thing                   | Component                                                         |
-| ----------------------- | ----------------------------------------------------------------- |
-| a card                  | `components/ui/card.tsx`                                          |
-| a table                 | `components/ui/data-table.tsx`: CLI headers, and "None." if empty |
-| a status                | `Badge`, `HealthDot` and `Text`, with `lib/status.ts`             |
-| a page that loads       | `components/ui/spinner.tsx`                                       |
-| a page without its perm | `components/layout/permission-denied.tsx`                         |
-| an empty page           | `components/ui/empty-state.tsx`                                   |
-| an error                | `components/ui/error-banner.tsx`                                  |
-| key-value pairs         | `components/ui/kv-list.tsx`: the values line up, as `PrintKV`     |
-| a count                 | `components/ui/count.tsx`, with `COUNT_TONES`                     |
-| a result's summary line | `components/domain/result-summary.tsx`                            |
-| a job                   | `JobView` in `components/domain/job-detail.tsx`, as `job get`     |
-| a time, age or duration | `lib/format.ts`                                                   |
+| Thing                   | Component                                                            |
+| ----------------------- | -------------------------------------------------------------------- |
+| a card                  | `components/ui/card.tsx`                                             |
+| a table                 | `components/ui/data-table.tsx`: CLI headers, and "None." if empty    |
+| a status                | `Badge`, `HealthDot` and `Text`, with `lib/status.ts`                |
+| a page that loads       | `components/ui/spinner.tsx`                                          |
+| a page without its perm | `components/layout/permission-denied.tsx`                            |
+| an empty page           | `components/ui/empty-state.tsx`                                      |
+| an error                | `components/ui/error-banner.tsx`                                     |
+| key-value pairs         | `components/ui/kv-list.tsx`: the values line up, as `PrintKV`        |
+| a count                 | `components/ui/count.tsx`, with `COUNT_TONES`                        |
+| a result's summary line | `components/domain/result-summary.tsx`                               |
+| a job                   | `JobView` in `components/domain/job-detail.tsx`, as `job get`        |
+| a time, age or duration | `lib/format.ts`                                                      |
+| a pick from a list      | `Picker` in `components/ui/popover.tsx`, with a hook for the list    |
+| a choice in a row       | `components/ui/chip.tsx`                                             |
+| a text field            | `Input`, with an `icon`, and `Textarea` in `components/ui/input.tsx` |
+| a checkbox              | `components/ui/checkbox.tsx`                                         |
+| a load for a form       | `hooks/use-load.ts`, under each resource hook such as `useObjects`   |
 
 A table header is in capitals, in the tint of its section, as the CLI prints it.
-A panel inside a card has the `surface` token, not a hex value.
+A page uses these, not a raw `<button>`, `<input>` or `<textarea>`. A picker of
+a resource gives `Picker` only its options; the trigger, the keyboard, the
+loading state and the empty list, `None.`, are the same in each. A hook that
+loads choices for a form builds on `useLoad`, which keeps the value as it was
+when the load fails, so a picker stays empty and the form still works. A page
+that must show a failure, such as Enrollment, keeps its own error state. A
+result card counts its summary line from its per-host `results`, so a card never
+shows a status that it did not count. A panel inside a card has the `surface`
+token, not a hex value.
 
 **A value has the format that the CLI gives it.** `lib/format.ts` has the
 formatters of `internal/cli/ui.go` in TypeScript: `formatTime` prints
