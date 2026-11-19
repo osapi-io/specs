@@ -27,11 +27,15 @@ nothing on the wire must be trusted or kept in sync.
 The definition holds the job's ID, its created time, its NATS subject, the
 target that the request gave (`_all`, a hostname or a label) and its operation.
 The job list and `osapi client job get` show the target from it, not the one
-host that answered. With PKI on, the controller writes the definition inside a
-signed envelope. Each reader of the definition, the list, the detail and a retry
-included, takes the envelope's payload and checks its signature with the
-controller's key first. A reader that parsed the envelope as the definition
-would find no created time and no operation.
+host that answered. A job stored before targets were kept has none, and the API
+gives the host that answered. The answer of `GET /api/job/{id}` has the
+responses and the agent states as lists sorted by hostname, each with its
+hostname, and the operation as its `type` and its `data`. With PKI on, the
+controller writes the definition inside a signed envelope. Each reader of the
+definition, the list, the detail and a retry included, takes the envelope's
+payload and checks its signature with the controller's key first. A reader that
+parsed the envelope as the definition would find no created time and no
+operation.
 
 osapi records the status as **events that it only adds**. It does not change a
 field. Thus the history of a job stays after the job. Later, a reader can see
