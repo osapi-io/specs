@@ -46,6 +46,12 @@ Thus each node operation answers 200, for each verb:
   has `changed`.
 - A delete is not 204. Each result tells whether the host changed.
 
+A request to one host for an item that the host does not have answers 404, such
+as `user get` for a user that does not exist. The error names the item. A
+request to many hosts answers 200, and the result of each host that does not
+have the item says so. [Providers](providers.md#the-not-found-rule) tells how a
+provider reports an absent item.
+
 An operation of the controller itself, such as an agent, a job, a file or the
 audit log, changes one resource:
 
