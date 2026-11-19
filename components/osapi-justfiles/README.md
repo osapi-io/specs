@@ -232,10 +232,23 @@ apply, because each consumer ignores `.just/` in git and does not commit it.
 **A merge gets to consumers up to five minutes late.** `fetch` gets each module
 from `raw.githubusercontent.com`, which keeps a copy for five minutes
 (`cache-control: max-age=300`). A query string does not get a new copy. Thus a
-CI run in the five minutes after a merge gets the old module. On 19 November
-2026, a gohai run two minutes after a merge did not find a new recipe, and its
-plan job failed. If a pull request needs a new recipe, merge the module, wait
-five minutes, and then run its CI again.
+CI run in the five minutes after a merge gets the old module, and nothing tells
+you. On 19 November 2026 this occurred two times in gohai:
+
+- A run two minutes after a merge did not find a new recipe, and its plan job
+  failed. That failure is the clear case.
+- A run that started before a merge used the old `go-unit-shard`. Its shards
+  passed with no coverage check, and sent profiles that `.coverignore` did not
+  filter. Codecov joins each upload of a commit, so the report of that commit
+  stayed at 94.62% after a correct run. A new commit was necessary to get a
+  clean report. That failure is the silent case.
+
+Until the fix, merge the module, wait five minutes, and then run the CI of a
+pull request that needs it. The fix is
+[osapi-justfiles#108](https://github.com/osapi-io/osapi-justfiles/issues/108):
+`fetch` gets the commit of `main` with `git ls-remote`, which has no cache, and
+fetches each module at that commit. It also writes the commit to
+`.just/remote/VERSION`, so that a build records the version that it used.
 
 **The asymmetric self-use** above. This repository cannot test a change to
 `md.just` before the change is on `main`.
