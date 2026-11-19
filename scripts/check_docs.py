@@ -12,6 +12,7 @@ templates/ holds files for other repositories, so their links are not checked.
 
 import pathlib
 import re
+import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -29,7 +30,19 @@ EXEMPT = {"CODE_OF_CONDUCT.md", "AI_POLICY.md", "LICENSE"}
 
 
 def pages():
-    for p in sorted(ROOT.rglob("*.md")):
+    # The pages are what git has or would add: tracked files and new ones,
+    # without what .gitignore leaves out. A walk of the tree also read the
+    # pages of a local worktree in .worktrees/, on another branch.
+    listed = subprocess.run(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "*.md"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.split()
+    for p in sorted(ROOT / f for f in listed):
+        if not p.exists():
+            continue
         rel = p.relative_to(ROOT)
         if any(part in SKIP for part in rel.parts) or rel.name in EXEMPT:
             continue
