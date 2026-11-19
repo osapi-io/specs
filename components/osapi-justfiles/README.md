@@ -50,17 +50,35 @@ a component.
 
 ```
 fetch:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    sha=$(git ls-remote https://github.com/osapi-io/osapi-justfiles refs/heads/main | cut -f1)
+    base="https://raw.githubusercontent.com/osapi-io/osapi-justfiles/$sha"
     mkdir -p .just/remote
-    curl -sSfL https://raw.githubusercontent.com/osapi-io/osapi-justfiles/refs/heads/main/go/go.just -o .just/remote/go.just
+    for module in go md just; do
+        curl -sSfL "$base/$module/$module.just" -o ".just/remote/$module.just"
+    done
+    echo "$sha" > .just/remote/VERSION
+    echo "osapi-justfiles $sha"
 ```
+
+`fetch` asks `git ls-remote` for the commit that `main` is at, and gets each
+module at that commit. It does not get `refs/heads/main` from
+`raw.githubusercontent.com`. That URL is cached for five minutes, so a run just
+after a merge got the old module, and nothing said so. On 19 November 2026 that
+failed a plan job in gohai, and ran gohai's unit shards with no coverage check.
+`git ls-remote` asks the server and has no cache, and the URL of a commit never
+changes. The fix is
+[osapi-justfiles#108](https://github.com/osapi-io/osapi-justfiles/issues/108).
 
 ```
 import? '.just/remote/go.just'
 ```
 
 The consumer gets the module at build time. It does not keep a copy in git. Each
-consumer ignores `.just/` in git. Thus nothing in a consumer records which
-version of a module it used. The import is optional. Thus the justfile of a
+consumer ignores `.just/` in git. `.just/remote/VERSION` has the commit that the
+last `fetch` got, and `fetch` prints it, so the log of a CI run shows which
+version of the modules it used. The import is optional. Thus the justfile of a
 consumer parses before `just fetch` ran, and a missing module shows as an
 unknown recipe, not as a parse error.
 
@@ -223,32 +241,11 @@ There are six modules, 48 recipes and 25 override variables.
 
 ## Known limitations
 
-**Nothing pins the modules.** Each consumer gets the modules from
-`refs/heads/main`. Thus nothing records which version a build used. The rule is
-that the two provisioning paths use the same version. Here there is no mechanism
-at all, not two different mechanisms. The rule about committed output does not
+**Nothing pins the modules to a version that you choose.** Each `fetch` gets the
+commit that `main` is at when it runs. `.just/remote/VERSION` records that
+commit, but no consumer asks for a different one. Thus a merge to `main` gets to
+each consumer at its next `fetch`. The rule about committed output does not
 apply, because each consumer ignores `.just/` in git and does not commit it.
-
-**A merge gets to consumers up to five minutes late.** `fetch` gets each module
-from `raw.githubusercontent.com`, which keeps a copy for five minutes
-(`cache-control: max-age=300`). A query string does not get a new copy. Thus a
-CI run in the five minutes after a merge gets the old module, and nothing tells
-you. On 19 November 2026 this occurred two times in gohai:
-
-- A run two minutes after a merge did not find a new recipe, and its plan job
-  failed. That failure is the clear case.
-- A run that started before a merge used the old `go-unit-shard`. Its shards
-  passed with no coverage check, and sent profiles that `.coverignore` did not
-  filter. Codecov joins each upload of a commit, so the report of that commit
-  stayed at 94.62% after a correct run. A new commit was necessary to get a
-  clean report. That failure is the silent case.
-
-Until the fix, merge the module, wait five minutes, and then run the CI of a
-pull request that needs it. The fix is
-[osapi-justfiles#108](https://github.com/osapi-io/osapi-justfiles/issues/108):
-`fetch` gets the commit of `main` with `git ls-remote`, which has no cache, and
-fetches each module at that commit. It also writes the commit to
-`.just/remote/VERSION`, so that a build records the version that it used.
 
 **The asymmetric self-use** above. This repository cannot test a change to
 `md.just` before the change is on `main`.

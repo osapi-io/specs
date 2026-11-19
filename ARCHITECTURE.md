@@ -109,9 +109,11 @@ interface that can isolate it.
 
 ### The build
 
-Each repository gets `osapi-justfiles` through a justfile recipe, from
-`refs/heads/main`. Nothing is pinned. Nothing records the version that a build
-used. Each repository ignores `.just/` in git.
+Each repository gets `osapi-justfiles` through a justfile recipe, at the commit
+that `main` is at when the recipe runs. The recipe writes that commit to
+`.just/remote/VERSION`, and prints it. No repository asks for a different
+commit, so a merge gets to each repository at its next `fetch`. Each repository
+ignores `.just/` in git.
 
 `md` goes to all eight consumers, `just` to seven, `go` to five, and `react`,
 `docusaurus` and `ansible` to one each. Thus **a change to `md.just` has the
@@ -157,9 +159,10 @@ osapi-justfiles has their recipes:
 - A coverage job. `go-cover-merge` joins the profiles of the shards, and fails
   below the target. Each shard also checks its own profile against the target
   (`go-unit-shard`). With a target of 100 that gives the same answer, because
-  the total is 100% only when each package is. gohai tries CI with no coverage
-  job: each shard sends its own profile to Codecov, which joins them
-  ([gohai#288](https://github.com/osapi-io/gohai/pull/288)).
+  the total is 100% only when each package is. gohai has no coverage job: each
+  shard sends its own profile to Codecov, which joins them
+  ([gohai#288](https://github.com/osapi-io/gohai/pull/288)). The other four
+  repositories still have the coverage job.
 
 `.github/actions/setup` in each repository has its own setup. In osapi it also
 installs Node.js and Bun, and builds the UI, which the Go code embeds.
