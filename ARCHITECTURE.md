@@ -155,7 +155,11 @@ osapi-justfiles has their recipes:
   `go-unit-shard` runs it with the race detector. Thus a new package goes into a
   shard with no change to the workflow.
 - A coverage job. `go-cover-merge` joins the profiles of the shards, and fails
-  below the target.
+  below the target. Each shard also checks its own profile against the target
+  (`go-unit-shard`). With a target of 100 that gives the same answer, because
+  the total is 100% only when each package is. gohai tries CI with no coverage
+  job: each shard sends its own profile to Codecov, which joins them
+  ([gohai#288](https://github.com/osapi-io/gohai/pull/288)).
 
 `.github/actions/setup` in each repository has its own setup. In osapi it also
 installs Node.js and Bun, and builds the UI, which the Go code embeds.
