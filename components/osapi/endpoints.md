@@ -74,6 +74,8 @@ Some things are not API operations, and stay code:
 - the commands that run on the local machine: `agent start`, `controller start`,
   `nats server`, `start`, `config`, `token`, `behavior`, `skill`, `init`,
   `version`. Their pages are already generated from cobra.
+  [Commands](commands.md) plans a definition for each of them, in the layer that
+  the endpoint DSL embeds.
 - the files of the UI
 
 ## The definition

@@ -67,6 +67,7 @@ operating system.
 | [Observability](observability.md)                    | Tracing across the queue, metrics on their own port, conditions                                                                                                     |
 | [Moving domains to behaviors](behavior-migration.md) | Which domains are behaviors now, what is built, and the steps that remain: the cutover, chains, the skill, the other domains                                        |
 | [Endpoints](endpoints.md)                            | The controller's own operations defined in Go, the spec and CLI generated from them, and the tests that hold them to the hand-written spec; the first step is built |
+| [Commands](commands.md)                              | A plan: each command of the binary from a definition, in the layer that endpoints and behaviors embed, with its own spec and validate                               |
 | [Least privilege](least-privilege.md)                | A plan: the agent as a user that is not root, privileged steps that a behavior declares, and the sudoers and systemd files made from them                           |
 | [Workflows](workflows.md)                            | A proposal: named, ordered behavior calls in a file, checked against the registry, and run again with the same result                                               |
 
