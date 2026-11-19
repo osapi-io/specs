@@ -229,6 +229,14 @@ that the two provisioning paths use the same version. Here there is no mechanism
 at all, not two different mechanisms. The rule about committed output does not
 apply, because each consumer ignores `.just/` in git and does not commit it.
 
+**A merge gets to consumers up to five minutes late.** `fetch` gets each module
+from `raw.githubusercontent.com`, which keeps a copy for five minutes
+(`cache-control: max-age=300`). A query string does not get a new copy. Thus a
+CI run in the five minutes after a merge gets the old module. On 19 November
+2026, a gohai run two minutes after a merge did not find a new recipe, and its
+plan job failed. If a pull request needs a new recipe, merge the module, wait
+five minutes, and then run its CI again.
+
 **The asymmetric self-use** above. This repository cannot test a change to
 `md.just` before the change is on `main`.
 
