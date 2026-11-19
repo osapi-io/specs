@@ -118,6 +118,54 @@ used. Each repository ignores `.just/` in git.
 widest effect in the organization.** The specs repository uses it. Its
 `just test` checks each change to these documents.
 
+### Continuous integration of the Go repositories
+
+The five Go repositories are gohai, nats-client, nats-server, osapi and
+osapi-orchestrator. Each has `.github/workflows/go.yml`, and each workflow runs
+the checks that `just test` runs on a laptop. Thus a check that passes on a
+laptop passes in CI.
+
+Each workflow keeps the cache of golangci-lint between runs. An `actions/cache`
+step restores `~/.cache/golangci-lint` before the lint:
+
+```yaml
+key: golangci-${{ hashFiles('go.sum', '.golangci.yml') }}-${{ github.sha }}
+restore-keys: golangci-${{ hashFiles('go.sum', '.golangci.yml') }}-
+```
+
+A run restores the newest cache with the same `go.sum` and `.golangci.yml`, and
+saves its own cache at the end. Thus golangci-lint examines only the packages
+that changed. On osapi, a run with no cache takes 60 to 110 seconds, and a run
+with the cache takes about 2 seconds. A change to `go.sum` or `.golangci.yml`
+starts with no cache. A pull request reads the caches of `main` and of its own
+branch, not those of a different pull request.
+
+gohai, nats-client, nats-server and osapi-orchestrator run `just test` in one
+job. osapi runs the same checks in parallel jobs:
+
+- Each slow check is a job. The quick checks share one job.
+- `just go-unit-plan` divides the packages into shards, up to ten. It weighs
+  each package by its lines of test code, and gives each package to the lightest
+  shard, the heaviest package first. A plan job runs it, and each shard is a
+  job. Thus a new package goes into a shard with no change to the workflow.
+- `just go-unit-shard` runs one shard with the race detector, and
+  `just go-cover-merge` joins the profiles of the shards and fails below the
+  target.
+
+osapi's `CONTRIBUTING.md` has the recipes.
+
+Split a repository into jobs only when its run is much longer than the setup of
+one job. Each job starts a runner, checks out the code and restores the caches
+before it does work, about 30 to 45 seconds. A run of 1 or 2 minutes gets almost
+nothing from parallel jobs. A repository with two packages gets nothing from
+shards. GitHub runs about 20 jobs at a time for a public repository. A workflow
+with more jobs than that waits for a runner. Thus osapi puts its quick checks in
+one job, so that its shards have runners.
+
+The smallest part of a shard is one package. Thus the package with the most
+tests sets the minimum time of the slowest shard. In osapi that is
+`pkg/sdk/client`.
+
 ## Facts that span repositories
 
 There are four. Each is true of a pair, or of the full set. Thus the page of one
