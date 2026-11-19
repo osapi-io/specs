@@ -304,6 +304,14 @@ in amber, and an agent with no state is `Ready`. The entry had the literal
 showed it as cordoned (osapi-io/osapi#879). The controller and the NATS server
 have no scheduling state, and their `Ready` means that they are registered.
 
+`agent list` and the health status take an agent's state by one rule,
+`job.EffectiveState`, from the state the agent reported and its drain flag. A
+drain that the agent has not applied yet is `Draining`, and it is `Cordoned`
+only once the agent reports that its consumers stopped. `agent list` had said
+`Cordoned` as soon as the flag was set, while the agent could still be running
+jobs (osapi-io/osapi#884). The UI's card waits for `Cordoned` before it clears
+the feedback of a drain.
+
 The `agents` count of the health status, the dashboard's Agents tile, follows
 the same state: `ready` counts the agents whose state is `Ready`, and `total`
 counts each registered agent. A drained agent is in `total` and not in `ready`.
