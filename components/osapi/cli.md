@@ -241,7 +241,8 @@ These rules have no options:
 - The columns and the keys have the order of the fields. To change the order,
   change the order of the fields.
 - A field with `omitempty` and no value is not shown.
-- A `bool` is `yes` or `no`. A `[]string` is its values, joined with `, `.
+- A `bool` is `yes` or `no`. A `[]string` is its values, joined with `, `. A
+  `float32` or `float64` has two decimals, such as `0.00`, so a column lines up.
 - A label is the json name in sentence case: `last_seen` is `Last seen`. A
   column header is the json name in capitals: `LAST SEEN`.
 - A table leaves out a column that has no value in any row, except a column with
@@ -251,6 +252,13 @@ These rules have no options:
   `Ubuntu 24.04`. A list of objects is the first field of each, with commas,
   such as `HighLoad, DiskPressure`.
 - The heading is the name of the group in sentence case, plural for a list.
+- In a table cell, an object leaves out its `table:"-"` fields. The `operation`
+  of a job is its type.
+- A list's fields other than its items and its count print after the table, such
+  as the count of each status of `job list`.
+- A field of `any`, or of a map of `any`, prints as a section of its keys, each
+  with its value. A value with more in it is a count, and `--json` has all of
+  it. The `result` of a job prints so.
 
 A field changes its own output with tags:
 
@@ -284,16 +292,14 @@ now prints the entries, and `--json > audit.json` keeps them.
 
 **A command that this cannot print has a renderer, with its reason.**
 `command.Render(Group, "method", fn).Because("...")`.
-`osapi cli command validate` fails a renderer with no reason. Four endpoint
+`osapi cli command validate` fails a renderer with no reason. Two endpoint
 commands have one. Their responses do not have the shape that the CLI shows, and
 osapi-io/osapi#904 changes them:
 
-| Command               | Reason                                                                    |
-| --------------------- | ------------------------------------------------------------------------- |
-| `health status`       | the components are a tree, and storage puts several counts in one value   |
-| `job list`            | the heading and the paging hint come from the input, and a line of counts |
-| `job get`             | the job report, which the commands that wait for a job also print         |
-| `telemetry trace get` | the spans are a tree                                                      |
+| Command               | Reason                                                                  |
+| --------------------- | ----------------------------------------------------------------------- |
+| `health status`       | the components are a tree, and storage puts several counts in one value |
+| `telemetry trace get` | the spans are a tree                                                    |
 
 `osapi cli command spec` teaches the tags, and `get` tells which commands have a
 renderer and why. With `--json`, a command prints its output, and nothing
