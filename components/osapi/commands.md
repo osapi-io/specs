@@ -233,7 +233,14 @@ Each check has its rule and its fix, as for endpoints.
    the agent to `spec` and `validate` for each fact.
 4. **The other groups**, one in each pull request: `config`, `version`, `nats`,
    `skill`, `init`, `start`, `agent` and `controller`.
-5. **The renderers.** Each `cmd/client_<group>.go` moves to the group's
+5. **Output from the output type**, as
+   [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
+   layer's `Columns` and its formats move to the command layer, so a behavior's
+   table and an endpoint's table are made in one place. 15 renderers go, 9 go
+   after tags or a change of field order, and 7 stay with their reason. Golden
+   tests hold the output of each shape, and each command's output is compared
+   before and after.
+6. **The renderers.** Each `cmd/client_<group>.go` moves to the group's
    `render.go`. The `build-an-endpoint` skill and `CONTRIBUTING.md` of osapi
    then name the new place.
 

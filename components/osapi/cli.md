@@ -218,6 +218,72 @@ with `Empty` set, not a note.
 answer from one host and an answer from forty hosts render through the same
 path. A domain that formats its own table looks different from the others.
 
+## Output comes from the output type
+
+A command does not write its own output. The command layer prints the output of
+a method from its Go type, by the [output style](#output-style) below. Thus two
+commands with the same shape of answer look the same, and a new command looks
+right with no code. This is not built yet (osapi-io/osapi#900).
+
+| The output                                      | Prints as                                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------------------------- |
+| a list: `Items []T` with `TotalItems`, or `[]T` | a heading with the count, then a table with one column for each field of `T` |
+| a list with fewer items than `TotalItems`       | the count as `(3 of 120)`                                                    |
+| an empty list                                   | the heading with `(0)`, then `None.` and the hint of the list, if it has one |
+| one object                                      | a heading, then an aligned key-value block                                   |
+| an object in an object                          | a section under the key-value block                                          |
+| a list in an object                             | a table under the key-value block, with its count                            |
+| an object with one field                        | the value of that field: the envelope is not shown                           |
+| no body (204)                                   | one line: the key of the input and what occurred, such as `m-1 admitted`     |
+
+These rules have no options:
+
+- The columns and the keys have the order of the fields. To change the order,
+  change the order of the fields.
+- A field with `omitempty` and no value is not shown.
+- A `bool` is `yes` or `no`. A `[]string` is its values, joined with `, `.
+- A label is the json name in sentence case: `last_seen` is `Last seen`. A
+  column header is the json name in capitals: `LAST SEEN`.
+- The heading is the name of the group in sentence case, plural for a list.
+
+A field changes its own output with tags:
+
+| Tag                 | Effect                                                            |
+| ------------------- | ----------------------------------------------------------------- |
+| `render:"-"`        | the field is not shown                                            |
+| `render:"bytes"`    | a size, such as `3.4 GB`                                          |
+| `render:"age"`      | the time since a `time.Time` or a number of seconds, such as `3s` |
+| `render:"time"`     | a time in the one time format of the CLI                          |
+| `render:"duration"` | a duration; `render:"duration=ms"` for an integer of milliseconds |
+| `render:"status"`   | a status word, in its color                                       |
+| `render:"short=N"`  | the first N characters, with `...`                                |
+| `label:"..."`       | a different label and header                                      |
+| `none:"..."`        | the text for a field with no value, such as `never` for a time    |
+| `empty:"..."`       | on a list: the hint after `None.`                                 |
+| `prefix:"..."`      | text in front of each value, such as `@fact.`                     |
+| `title:"..."`       | on the output type: a different heading                           |
+
+A 204 says the past tense of the method, such as `admitted` for `admit`. A
+method whose result is a state, not a past tense, names it: `.Says("draining")`.
+
+**A command that this cannot print has a renderer, with its reason.**
+`command.Render(Group, "method", fn).Because("...")`.
+`osapi cli command validate` fails a renderer with no reason. These have one:
+
+| Command               | Reason                                                                    |
+| --------------------- | ------------------------------------------------------------------------- |
+| `health status`       | the components are a tree, and storage puts several counts in one value   |
+| `agent list`          | five of its nine columns are made from other fields                       |
+| `job list`            | the heading and the paging hint come from the input, and a line of counts |
+| `job get`             | the job report, which the commands that wait for a job also print         |
+| `telemetry trace get` | the spans are a tree                                                      |
+| `audit export`        | it writes a file                                                          |
+| `token roles list`    | a matrix: one row for each permission, one column for each role           |
+
+`osapi cli command spec` teaches the tags, and `get` tells which commands have a
+renderer and why. With `--json`, a command prints its output, and nothing
+renders it.
+
 ## Errors go through one handler
 
 `cli.HandleError` unwraps an `APIError`, prints the status code and message as
