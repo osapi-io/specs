@@ -47,10 +47,11 @@ CLI pages are generated from it.
 | `POST /api/admission/{machine_id}/admit`  | `osapi client admission admit`  | `admission:write` |
 | `POST /api/admission/{machine_id}/reject` | `osapi client admission reject` | `admission:write` |
 | `POST /api/admission/{machine_id}/revoke` | `osapi client admission revoke` | `admission:write` |
+| `DELETE /api/admission/{machine_id}`      | `osapi client admission delete` | `admission:write` |
 
-The three decisions answer 204. A machine ID with no record, or with no record
-in the state that the decision needs, answers 404. When PKI is off
-(`controller.pki.enabled`), each route answers 503, and the error names the
+The three decisions and the delete answer 204. A machine ID with no record, or
+with no record in the state that the decision needs, answers 404. When PKI is
+off (`controller.pki.enabled`), each route answers 503, and the error names the
 setting.
 
 `admin` has the two permissions. `write` and `read` have only `admission:read`.
@@ -82,7 +83,7 @@ key. It does not use the fingerprint that the request states.
 A pending agent writes the same instruction to its log, with its machine ID and
 fingerprint, when it starts.
 
-## Reject and revoke
+## Reject, revoke and delete
 
 `reject` takes an optional reason, up to 1024 characters. The controller sends
 the rejection to the agent, deletes the request, and keeps a `rejected.` record
@@ -92,6 +93,35 @@ with the reason and the time.
 signs verifies, and it gets no work. The controller keeps a `revoked.` record.
 It does not tell the agent. [Agent identity](agent-identity.md) tells how to
 make the machine ask again.
+
+`delete` removes the stored key and each record of the machine, in each state,
+and keeps none. A machine that asks again after a delete is new: its request
+shows no `previous`.
+
+Revoke and delete both stop the machine at once. They differ in what remains.
+Revoke is for a machine that is not trusted: the record stays, so the machine is
+flagged if it asks again. Delete is for a machine that goes away on purpose,
+such as a VM that is rebuilt or removed. Nothing about it was wrong, so nothing
+about it remains. Automation that rebuilds a machine deletes it first.
+
+## Machines that stop reporting
+
+A machine that goes away without a delete keeps its key, and a stored key is
+trust that nobody uses. `controller.pki.delete_after` deletes an admitted
+machine that has not reported for that long, such as `720h`. It is empty by
+default, and empty is never.
+
+The controller looks once a minute (`RunStaleCleanup` in
+`internal/controller/admission/delete.go`). A machine is stale when it is not in
+the registry, and its last report is older than `delete_after`. A machine that
+never reported uses the time of its admission. Only admitted machines are
+deleted. A pending, rejected or revoked record stays.
+
+When the registry or the last reports do not read, the controller deletes
+nothing. A machine that the controller cannot see is not a machine that is gone,
+and an outage of the bus must not delete the fleet. A machine that was offline
+for less than `delete_after` keeps its key, because its last report stays in the
+state bucket while the registry entry expires.
 
 ## Online and last seen
 
@@ -113,18 +143,20 @@ makes new VMs at each push. The setting was `auto_accept` before 18 November
 ## Traces
 
 Each store operation is a span: `admission.list`, `admission.get`,
-`admission.admit`, `admission.reject` and `admission.revoke`, with the attribute
-`osapi.agent.machine_id`. `admission.list` has `osapi.admission.count`. The
-trace table of the CLI and the UI show the machine ID as `machine=<id>`.
-[Observability](observability.md) has the others.
+`admission.admit`, `admission.reject`, `admission.revoke` and
+`admission.delete`, with the attribute `osapi.agent.machine_id`.
+`admission.list` has `osapi.admission.count`. The trace table of the CLI and the
+UI show the machine ID as `machine=<id>`. [Observability](observability.md) has
+the others.
 
 ## The UI
 
 Admin › Admission shows the records in four sections, in the order of the states
 above. A pending card has Admit and Reject. Admit opens a field for the
 fingerprint, and the button stays off until it has a value. An admitted card has
-Revoke, which needs a second click. A token without `admission:write` sees the
-cards without the buttons.
+Revoke, which needs a second click. Each card has Delete, which also needs a
+second click. A token without `admission:write` sees the cards without the
+buttons.
 
 ## What this page does not cover
 
