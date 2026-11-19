@@ -39,6 +39,37 @@ The difference is deliberate. Create and delete describe a necessary end state,
 and the end state is already true. Update describes a change to something, and
 there is nothing to change.
 
+## The not-found rule
+
+A get, an update or an action on an item that is not on the host returns
+`ErrNotFound`, wrapped with `%w`. Examples are a package that is not installed,
+a user, a unit, a container and a PID. A delete of an item that is not there
+returns no change and no error, as the idempotency rule says.
+
+**A command that says "not found" gave an answer. It did not fail.** Many
+commands tell that an item is absent with an exit code or with output that does
+not look like an error. Read that answer, and return `ErrNotFound`. Do not
+return the exit status:
+
+| Command              | For an absent item                               |
+| -------------------- | ------------------------------------------------ |
+| `dpkg-query -W`      | exits 1, and prints `no packages found matching` |
+| `systemctl show`     | exits 0, with `LoadState=not-found`              |
+| `systemctl start`    | exits 5                                          |
+| `userdel`, `usermod` | exit 6                                           |
+| Docker API           | a not-found error, that the SDK's helper detects |
+
+A raw exit status tells the user only that something failed. On 19 November
+2026, `package get` on a host without nginx answered `exit status 1`, and
+`systemctl show` made an `inactive` service from a unit that did not exist.
+
+**The sentinel is how the API knows.** The agent names the cause of a failure as
+a code (`classifyProviderError`): `not_found`, `not_managed`, `not_installed` or
+`unsupported`. The code goes in the stored response, and the job client makes it
+`job.ErrNotFound` again. Then a handler answers 404 (`apierr.IsMissing`). An
+error that does not wrap a sentinel becomes a 500. Until 19 November 2026 the
+stored response did not keep the code, so each missing item answered 500.
+
 ## osapi owns the state, so drift gets overwritten
 
 A change to a managed resource outside osapi is drift. The next operation writes
