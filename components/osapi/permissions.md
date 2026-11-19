@@ -4,8 +4,6 @@ Each authenticated endpoint needs one named permission. A token has roles. The
 roles resolve to a set of permissions. The handler checks the permission that it
 needs.
 
-There are 38 permissions and three built-in roles.
-
 ## The shape is `resource:verb`
 
 ```
@@ -36,35 +34,34 @@ permission that it needs.
 
 ## The three built-in roles
 
-| Role    | Permissions | Is                                     |
-| ------- | ----------: | -------------------------------------- |
-| `admin` |          38 | everything, including `audit:read`     |
-| `write` |          31 | read, write and execute, but not audit |
-| `read`  |          18 | reads only                             |
+| Role    | Is                                     |
+| ------- | -------------------------------------- |
+| `admin` | everything, including `audit:read`     |
+| `write` | read, write and execute, but not audit |
+| `read`  | reads only                             |
 
 `trace:read` is in each role, `read` included. A trace shows the hosts,
 operations and errors of a request, the same as the job that the role can
 already read. It is a separate permission so that a custom role can read jobs
 without traces.
 
-`write` is not `admin` minus one thing. It does not have these seven:
+`write` is not `admin` minus one thing. It does not have these:
 
 ```
 agent:write       audit:read        power:execute     process:execute
 command:execute   command:shell     docker:execute
 ```
 
-Seven is 37 minus 30. The commands above give the two numbers. The names come
-from a comparison of the two blocks in `internal/authtoken/permissions.go`.
+The names come from a comparison of the two blocks in
+`internal/authtoken/permissions.go`.
 
 The list is the fastest way to understand the role. `write` can change the
 configuration, but it cannot make anything *occur*. It restarts nothing, runs no
-command, reboots nothing, and cannot read who did. Each of the seven runs
-something, or shows who ran something.
+command, reboots nothing, and cannot read who did. Each permission in the list
+runs something, or shows who ran something.
 
-`read` has 17 of 37. Thus it does not have the 20 writes and the seven above. A
-domain usually has one read and one write. Thus the two sides are almost the
-same size.
+`read` has the reads of each domain. It does not have the writes, or the
+permissions in the list above.
 
 ## How a token resolves to a permission set
 
