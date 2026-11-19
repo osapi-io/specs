@@ -299,10 +299,12 @@ had a literal `0.1.0` (osapi-io/osapi#878).
 
 An agent's row in the registry takes the agent's scheduling state from its
 registration, as `agent list` does: a drained agent is `Draining` or `Cordoned`,
-in amber, and an agent with no state is `Ready`. The entry had the literal
-`Ready`, so `health status` showed a drained agent as ready while `agent list`
-showed it as cordoned (osapi-io/osapi#879). The controller and the NATS server
-have no scheduling state, and their `Ready` means that they are registered.
+in amber, and an agent with no state is `Ready`. The API always gives `state`.
+The agent had a `status` field too, which was always `Ready`. It is removed. The
+entry had the literal `Ready`, so `health status` showed a drained agent as
+ready while `agent list` showed it as cordoned (osapi-io/osapi#879). The
+controller and the NATS server have no scheduling state, and their `Ready` means
+that they are registered.
 
 `agent list` and the health status take an agent's state by one rule,
 `job.EffectiveState`, from the state the agent reported and its drain flag. A
@@ -419,6 +421,14 @@ you:
 Each condition has the numbers that made it true, for example
 `"load 9.12, threshold 8.00 for 4 CPUs"`. Thus an operator does not have to find
 the numbers to decide if the condition is important.
+
+**The API gives only the conditions that are true.** `agent list` and
+`agent get` leave out a condition that is false, and a condition in the answer
+has no `status` field. The health status gives the same set, as a list of names.
+The agent's registration keeps all three, with the time of each change. The
+notifier reads them from there, and thus it sees when a condition becomes false.
+The UI, the CLI and the health registry each removed the false conditions by
+themselves (osapi-io/osapi#904).
 
 ## Where this connects
 
