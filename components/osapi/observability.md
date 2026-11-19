@@ -287,6 +287,16 @@ same name, thus the heartbeat is the copy that a person sees. Both structs get
 `url` with `omitempty`. An agent of an older version sends no `url`, and the
 controller shows only its `address`.
 
+Each registration has the build version of the component's binary, such as
+`v0.2.1-0.20261119003517-f6bc5af55ceb`, which ends with the commit. `cmd` has it
+from `appVersion()` and gives it to the agent (`SetVersion`), to the controller
+(`controller.WithVersion`) and to the NATS server (`StartHeartbeat`). The health
+status has it on each registry entry as `version`, `health status` prints a
+VERSION column, and the dashboard shows it on each component row. The top-level
+`version` of the health status is the controller's, which is also the UI's: the
+controller serves the UI from its own binary. The controller and the NATS server
+had a literal `0.1.0` (osapi-io/osapi#878).
+
 `displayComponentTable` in `cmd/client_health_status.go` prints the
 sub-components for `osapi client health status`, and for the `status` command of
 `agent`, `controller` and `nats`. Each row has the same shape. The status and
