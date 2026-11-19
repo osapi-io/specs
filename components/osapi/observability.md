@@ -297,6 +297,13 @@ VERSION column, and the dashboard shows it on each component row. The top-level
 controller serves the UI from its own binary. The controller and the NATS server
 had a literal `0.1.0` (osapi-io/osapi#878).
 
+An agent's row in the registry takes the agent's scheduling state from its
+registration, as `agent list` does: a drained agent is `Draining` or `Cordoned`,
+in amber, and an agent with no state is `Ready`. The entry had the literal
+`Ready`, so `health status` showed a drained agent as ready while `agent list`
+showed it as cordoned (osapi-io/osapi#879). The controller and the NATS server
+have no scheduling state, and their `Ready` means that they are registered.
+
 `displayComponentTable` in `cmd/client_health_status.go` prints the
 sub-components for `osapi client health status`, and for the `status` command of
 `agent`, `controller` and `nats`. Each row has the same shape. The status and
