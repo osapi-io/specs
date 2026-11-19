@@ -140,27 +140,33 @@ with the cache takes about 2 seconds. A change to `go.sum` or `.golangci.yml`
 starts with no cache. A pull request reads the caches of `main` and of its own
 branch, not those of a different pull request.
 
-gohai, nats-client, nats-server and osapi-orchestrator run `just test` in one
-job. osapi runs the same checks in parallel jobs:
+Each workflow has the same four jobs, and the shared `go` module of
+osapi-justfiles has their recipes:
 
-- Each slow check is a job. The quick checks share one job.
-- `just go-unit-plan` divides the packages into shards, up to ten. It weighs
-  each package by its lines of test code, and gives each package to the lightest
-  shard, the heaviest package first. A plan job runs it, and each shard is a
-  job. Thus a new package goes into a shard with no change to the workflow.
-- `just go-unit-shard` runs one shard with the race detector, and
-  `just go-cover-merge` joins the profiles of the shards and fails below the
-  target.
+- A plan job runs `just go-ci-checks` and `just go-unit-plan`. Their output is
+  the matrix of the other jobs.
+- Check jobs. `go-test` runs the checks of two lists, `go_quick_checks` and
+  `go_slow_checks`, and `go-ci-checks` prints the same lists. The quick checks
+  share one job, and each slow check is a job. A repository adds its own checks
+  to the lists. Thus a check that is added to a list runs on a laptop and in CI.
+- Unit jobs. `go-unit-plan` weighs each package by its lines of test code, and
+  gives each package to the lightest shard, the heaviest package first. It makes
+  one shard for each 20,000 lines, up to ten. Each shard is a job, and
+  `go-unit-shard` runs it with the race detector. Thus a new package goes into a
+  shard with no change to the workflow.
+- A coverage job. `go-cover-merge` joins the profiles of the shards, and fails
+  below the target.
 
-osapi's `CONTRIBUTING.md` has the recipes.
+`.github/actions/setup` in each repository has its own setup. In osapi it also
+installs Node.js and Bun, and builds the UI, which the Go code embeds.
 
-Split a repository into jobs only when its run is much longer than the setup of
-one job. Each job starts a runner, checks out the code and restores the caches
-before it does work, about 30 to 45 seconds. A run of 1 or 2 minutes gets almost
-nothing from parallel jobs. A repository with two packages gets nothing from
-shards. GitHub runs about 20 jobs at a time for a public repository. A workflow
-with more jobs than that waits for a runner. Thus osapi puts its quick checks in
-one job, so that its shards have runners.
+The five repositories have the same jobs so that they stay the same, not for
+speed. Each job starts a runner, checks out the code and restores the caches
+before it does work, about 30 to 45 seconds. A repository with a run of 1 or 2
+minutes gets almost nothing from parallel jobs, and a repository with two
+packages gets one shard. GitHub runs about 20 jobs at a time for a public
+repository. A workflow with more jobs than that waits for a runner. Thus a quick
+check goes in `go_quick_checks`, so that the shards have runners.
 
 The smallest part of a shard is one package. Thus the package with the most
 tests sets the minimum time of the slowest shard. In osapi that is
