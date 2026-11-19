@@ -405,9 +405,13 @@ all of a behavior is in its directory, and `gen/` has nothing written by hand.
 The generator makes Go with jen (`github.com/dave/jennifer`), not with text
 templates. Templates join strings. A template can render code that does not
 parse, or forget an import, and that fails only when the output compiles. jen
-makes the code as statements and manages the imports. Then the output goes
-through goimports, gofumpt and golines. Thus it reads like the rest of the
-repository, and passes the format check.
+makes the code as statements and manages the imports. goimports puts the imports
+in their groups, and the output gets no other format. Each generated file starts
+with a `Code generated` line, so golangci-lint skips it in the format check and
+in the lint. golangci-lint keys on that line, not on the directory: the
+generators themselves are in directories named `gen` (`internal/behavior/gen`,
+`internal/controller/endpoint/gen`), and a person writes them, so they get the
+format check and the lint.
 
 The other candidate was the code-generator of Kubernetes. It was not used. It
 reads comment markers on type declarations, and the examples and refusals of a

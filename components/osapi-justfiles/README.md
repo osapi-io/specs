@@ -5,7 +5,7 @@ and no service. It runs only recipes and the shell that they call. It exists so
 that a convention for more than one repository is written one time, not eight
 times.
 
-It has six modules, 44 recipes and 22 override variables.
+It has six modules, 48 recipes and 25 override variables.
 
 | Module       | What it is for                                                          |
 | ------------ | ----------------------------------------------------------------------- |
@@ -95,14 +95,14 @@ block for each tool. The prefix is the name of the module, except for
 `docusaurus`, whose recipes are `docs-*`. The group tells what the recipes are
 for, not which tool runs them.
 
-| Module       | Group     | Recipes |                                                                                                                                                                                                                                 |
-| ------------ | --------- | ------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ansible`    | `ansible` |       6 | `ansible-deps`, `ansible-fmt`, `ansible-fmt-check`, `ansible-lint`, `ansible-run`, `ansible-test`                                                                                                                               |
-| `docusaurus` | `docs`    |      10 | `docs-build`, `-bump`, `-clean`, `-deploy`, `-deps`, `-fmt`, `-fmt-check`, `-generate`, `-serve`, `-start`                                                                                                                      |
-| `go`         | `go`      |      16 | `go-deps`, `go-fmt`, `go-fmt-check`, `go-generate`, `go-mod`, `go-mod-bump`, `go-mod-check`, `go-run`, `go-test`, `go-unit`, `go-unit-cov`, `go-unit-cov-check`, `go-unit-cov-gaps`, `go-unit-cov-map`, `go-unit-int`, `go-vet` |
-| `just`       | `just`    |       2 | `just-fmt`, `just-fmt-check`                                                                                                                                                                                                    |
-| `md`         | `md`      |       2 | `md-fmt`, `md-fmt-check`                                                                                                                                                                                                        |
-| `react`      | `react`   |       8 | `react-build`, `react-deps`, `react-dev`, `react-fmt`, `react-fmt-check`, `react-generate`, `react-lint`, `react-test`                                                                                                          |
+| Module       | Group     | Recipes |                                                                                                                                                                                                                                                                                                    |
+| ------------ | --------- | ------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ansible`    | `ansible` |       6 | `ansible-deps`, `ansible-fmt`, `ansible-fmt-check`, `ansible-lint`, `ansible-run`, `ansible-test`                                                                                                                                                                                                  |
+| `docusaurus` | `docs`    |      10 | `docs-build`, `-bump`, `-clean`, `-deploy`, `-deps`, `-fmt`, `-fmt-check`, `-generate`, `-serve`, `-start`                                                                                                                                                                                         |
+| `go`         | `go`      |      20 | `go-ci-checks`, `go-cover-merge`, `go-deps`, `go-fmt`, `go-fmt-check`, `go-generate`, `go-mod`, `go-mod-bump`, `go-mod-check`, `go-run`, `go-test`, `go-unit`, `go-unit-cov`, `go-unit-cov-check`, `go-unit-cov-gaps`, `go-unit-cov-map`, `go-unit-int`, `go-unit-plan`, `go-unit-shard`, `go-vet` |
+| `just`       | `just`    |       2 | `just-fmt`, `just-fmt-check`                                                                                                                                                                                                                                                                       |
+| `md`         | `md`      |       2 | `md-fmt`, `md-fmt-check`                                                                                                                                                                                                                                                                           |
+| `react`      | `react`   |       8 | `react-build`, `react-deps`, `react-dev`, `react-fmt`, `react-fmt-check`, `react-generate`, `react-lint`, `react-test`                                                                                                                                                                             |
 
 Three recipes take arguments, and the name does not tell you. `docs-bump` needs
 a `version`. `go-run` takes any number of arguments and gives them to `go run`.
@@ -115,7 +115,7 @@ psion have, does not conflict with `go` now.
 
 ## The variables
 
-There are twenty-two, and all have defaults. A consumer sets
+There are twenty-five, and all have defaults. A consumer sets
 `allow-duplicate-variables` and sets the variables that it wants to change in
 its own justfile. The value of the consumer applies, before or after the import.
 A module reads no environment variable. A variable in the justfile is the only
@@ -149,7 +149,10 @@ just -f b.just show; just -f a.just show
 | `go`         | `go_main_package`    | `main.go`                                                 |
 | `go`         | `go_coverage_dir`    | `.coverage`                                               |
 | `go`         | `go_coverage_target` | `100`                                                     |
-| `go`         | `go_fmt_excludes`    | empty, a consumer adds `! -path` clauses                  |
+| `go`         | `go_quick_checks`    | `go-mod-check`                                            |
+| `go`         | `go_slow_checks`     | `go-fmt-check go-vet`                                     |
+| `go`         | `go_shard_weight`    | `20000`                                                   |
+| `go`         | `go_shard_max`       | `10`                                                      |
 | `go`         | `go_os_tags`         | computed, `-tags=ubuntu` on Ubuntu and empty elsewhere    |
 | `go`         | `go_packages`        | computed, `go list ./...` less `node_modules`             |
 | `md`         | `md_version`         | `1.0.0`                                                   |
@@ -166,14 +169,14 @@ just -f b.just show; just -f a.just show
 An empty default and a missing default look the same in a table that prints
 neither. But they are opposite facts. The first means that a consumer need not
 act. The second means that the consumer must act. The header block of each
-module declares twenty-one variables. `go_packages` is declared at
+module declares twenty-four variables. `go_packages` is declared at
 `go/go.just:147`, next to the recipe that uses it.
 
 `just` takes no configuration.
 
 ## What a consumer may depend on
 
-Consumers depend on 44 recipe names and 22 variable names, and nothing in the
+Consumers depend on 48 recipe names and 25 variable names, and nothing in the
 repository declares them.
 
 **The contract is the content of `main`.** There is no release, no tag, no
@@ -186,9 +189,37 @@ mdformat 1.0.0, mdformat-gfm 1.0.0 and Python 3.13. `go` pins a coverage target
 of 100. The inner versions are fixed, and the outer version is not. A reader
 expects the opposite from either half alone.
 
+## Go formats through golangci-lint
+
+`go-fmt` runs `golangci-lint fmt`, and `go-fmt-check` runs
+`golangci-lint fmt --diff`. Each uses the `.golangci.yml` of the consumer. Thus
+the consumer decides the formatters, and the module decides only that
+golangci-lint runs them. `go-vet` runs `golangci-lint run`, which reports the
+same formatters.
+
+Thus one tool and one version of each formatter decide the format, in each of
+the three recipes. Before 19 November 2026, golines and gofumpt ran as tools of
+their own. golangci-lint has a fork of golines, `github.com/golangci/golines`,
+and the fork breaks some long lines that `github.com/segmentio/golines` does not
+break. In osapi, 48 files had a different format. Two versions of one formatter
+make a file that one check accepts and the other check refuses.
+
+A consumer of `go` does these things:
+
+- It enables `gofumpt`, `goimports` and `golines` under `formatters:` in
+  `.golangci.yml`. `gofumpt` includes the rules of `gofmt`.
+- It records golangci-lint in the `tool (...)` block of `go.mod`. It does not
+  record golines or gofumpt there. A separate tool gives a second version.
+- It adds a path that the formatters skip to `formatters.exclusions.paths`.
+  golangci-lint skips generated files and hidden directories, such as
+  `.worktrees`, without configuration. osapi skips `node_modules`.
+
+A consumer that does not enable a formatter gets no check of that formatter, and
+no error. The check passes.
+
 ## How big it is
 
-There are six modules, 44 recipes and 22 override variables.
+There are six modules, 48 recipes and 25 override variables.
 
 ## Known limitations
 
@@ -197,6 +228,14 @@ There are six modules, 44 recipes and 22 override variables.
 that the two provisioning paths use the same version. Here there is no mechanism
 at all, not two different mechanisms. The rule about committed output does not
 apply, because each consumer ignores `.just/` in git and does not commit it.
+
+**A merge gets to consumers up to five minutes late.** `fetch` gets each module
+from `raw.githubusercontent.com`, which keeps a copy for five minutes
+(`cache-control: max-age=300`). A query string does not get a new copy. Thus a
+CI run in the five minutes after a merge gets the old module. On 19 November
+2026, a gohai run two minutes after a merge did not find a new recipe, and its
+plan job failed. If a pull request needs a new recipe, merge the module, wait
+five minutes, and then run its CI again.
 
 **The asymmetric self-use** above. This repository cannot test a change to
 `md.just` before the change is on `main`.
