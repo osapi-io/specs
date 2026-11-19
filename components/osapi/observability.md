@@ -229,9 +229,19 @@ dashboard.
 
 ## A sub-component has an address and a URL
 
-The health response lists the sub-components of each component, for example
-`controller.api`, `agent.metrics` and `nats.server`. Each sub-component can have
-two endpoints:
+The health response lists the sub-components of each component under its
+registry entry, as `components`, sorted by name. The heartbeat names them
+`controller.api`, `agent.metrics` and `nats.server`. Under its component, a
+sub-component is `api`, `metrics` or `server`. `osapi client health status`
+prints each component with its sub-components under it, as a tree. The answer
+had them in one map of the whole fleet, keyed `controller.api`, and the CLI and
+the UI each matched the prefix to find the component (osapi-io/osapi#904).
+
+The controller also checks its connection to NATS and to KV for each answer.
+These are in `checks`, each with its name, its status and, when it failed, its
+error.
+
+Each sub-component can have two endpoints:
 
 | Field     | Is                                       | Comes from                |
 | --------- | ---------------------------------------- | ------------------------- |
