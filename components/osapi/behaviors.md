@@ -536,9 +536,9 @@ lints and passes each test with 100% coverage. Thus the layout is stated one
 time, in code. An agent starts from a correct skeleton, not from a description
 of one.
 
-`osapi token roles` lists each permission, and which roles give it, with the
-permissions of behaviors, as the binary has them. `--json` gives the input and
-output as JSON Schema. An agent reads that before it makes a request. Tables
+`osapi token roles list` lists each permission, and which roles give it, with
+the permissions of behaviors, as the binary has them. `--json` gives the input
+and output as JSON Schema. An agent reads that before it makes a request. Tables
 render through [the output style of the CLI](cli.md#output-style).
 
 ## The rules validate checks

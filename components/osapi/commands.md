@@ -1,10 +1,12 @@
 # Commands
 
-A plan, not built. Each command of the `osapi` binary comes from a definition in
-Go, as each endpoint and each behavior does. The definition gives the cobra
-command, its flags, its help, its page, its checks and its tests. Endpoints and
-behaviors get their commands from this layer. Thus one DSL makes every command,
-and `cmd/` has only the root and the wiring.
+Partly built: the command layer, the DSL, `token`, and the commands that teach
+the DSL (osapi-io/osapi#901 and #902). The other local groups and the renderers
+are not built. Each command of the `osapi` binary comes from a definition in Go,
+as each endpoint and each behavior does. The definition gives the cobra command,
+its flags, its help, its page, its checks and its tests. Endpoints and behaviors
+get their commands from this layer. Thus one DSL makes every command, and `cmd/`
+has only the root and the wiring.
 
 The issue is osapi-io/osapi#900.
 
@@ -95,6 +97,7 @@ internal/cli/
     ...
 cmd/
   root.go                  the root command, the persistent flags, Execute
+  commands.go              Provide for each group, and AttachLocal
 ```
 
 Each group of local commands has its own directory, as each endpoint group has.
@@ -111,46 +114,54 @@ the group owns it.
 
 ## The definition
 
-The token group, as it would be:
+The token group, as `internal/cli/commands/token/token.go` has it, cut short:
 
 ```go
 var Group = command.Register(command.Define(
-	"token", "Signed tokens for the API",
+	"token", "Generate and validate API tokens",
 	command.Uses[Deps](),
 	command.Method[GenerateInput, GenerateOutput]("generate").
-		Short("Make a signed token").
-		Long("The signing key comes from controller.api.security.signing_key.").
-		Example("--roles admin --subject ops@example.com").
-		Fails("an unknown role", GenerateInput{Roles: []string{"root"}}).
+		Short("Generate a new token").
+		Example("--subject user123 --roles=read").
+		Fails("no roles", GenerateInput{Subject: "ops"}).
+		Fails("an unknown role", GenerateInput{Roles: []string{"root"}, Subject: "ops"}).
 		Handle(Generate),
+	command.Method[RolesInput, RolesOutput]("list").
+		Sub("roles").
+		Short("List the roles and the permissions each grants").
+		Handle(Roles),
 	command.Method[ValidateInput, Claims]("validate").
-		Short("Check a token, and show its claims").
+		Short("Validate a token for authenticity and claims").
+		Example("--token eyJhbGciOiJIUzI1NiIs...").
 		Fails("no token", ValidateInput{}).
 		Handle(Validate),
 ))
 ```
 
-- **A group** is the first word of each command, such as `token`. A group can go
-  under a different command, such as `controller endpoint` under `controller`.
-- **A method** is one command, with its input and output types. Each input field
-  is a flag, named for its json name with `_` as `-`. A field has a validate
-  tag, a `doc` for its help, and an optional `short` for a one-letter flag. A
-  field tagged `validate:"required"` is a required flag. The rules are the rules
-  of `internal/validation/rule`, which endpoints and behaviors use.
+- **A group** is the first word of each command, such as `token`. `Under(...)`
+  puts a group under a different command.
+- **A method** is one command, with its input and output types. `.Sub("roles")`
+  puts it under a word of its own, so `list` above is `token roles list`. Each
+  input field is a flag, named for its json name with `_` as `-`. A field has a
+  validate tag, a `doc` for its help, and an optional `short` for a one-letter
+  flag. A field tagged `validate:"required"` is a required flag. The rules are
+  the rules of `internal/validation/rule`, which endpoints and behaviors use. A
+  value that breaks a rule is a usage error, exit code 2, before the handler
+  runs.
 - **`.Fails(doc, input)`** gives an input that breaks a rule of the input. Each
-  rule of each field needs one, as for an endpoint and a behavior.
-  `TestRefusals` runs each one, and expects the usage error, exit code 2.
+  rule of each field needs one, as for an endpoint and a behavior. A test runs
+  each one, and expects the usage error.
 - **`.Handle(fn)`** sets the function, `func(ctx, Deps, In) (Out, error)`.
-- **`Uses[Deps]()`** names what the methods use, as interfaces: the file system,
-  the config, the clock. A test gives fakes. Thus a local command is tested
-  without a shell, as a handler is.
+- **`Uses[Deps]()`** names what the methods use, as interfaces. The CLI gives
+  them with `command.Provide(token.Group, func() token.Deps {...})` in
+  `cmd/commands.go`, which then calls `command.AttachLocal`. A group whose Deps
+  has fields and no Provide fails when it runs. An empty Deps needs no wiring.
 - **A renderer**, `command.Render(Group, "method", fn)` in `render.go`, prints
   the output without `--json`. A method without one prints its output as JSON.
   With `--json`, a command prints its output, and the renderer does not run.
 
-An endpoint method gets all of these from the command layer, and adds its route.
-Thus `.Command(short, long)` and `.Example` on an endpoint are the command
-layer's `Short`, `Long` and `Example`.
+In the code, a command of any layer is the interface `command.Command`, and a
+group is `command.Group`. The endpoint types implement both.
 
 ## What it generates
 
@@ -159,6 +170,7 @@ layer's `Short`, `Long` and `Example`.
 | File                                       | Has                                                      |
 | ------------------------------------------ | -------------------------------------------------------- |
 | `internal/cli/commands/<group>/gen/cli.go` | a cobra command for each method, its flags, help and run |
+| `internal/cli/command/testdata/scaffold/`  | the golden files of `osapi cli command new`              |
 | `internal/cli/commands/all/gen/gen.go`     | the registration of each group                           |
 | `docs/docs/sidebar/usage/cli/<group>/`     | the CLI pages, from cobra                                |
 
@@ -203,18 +215,22 @@ Each check has its rule and its fix, as for endpoints.
 
 ## The order
 
-1. **Move the runtime.** `internal/controller/endpoint/command` and `commandgen`
-   go to `internal/cli/command`. The endpoint DSL embeds them. The commands that
-   it makes do not change: `TestCommandShape`, the help as JSON and the CLI
-   pages show no difference.
-2. **One local group.** `token` moves to a definition. Its three commands keep
-   their names, flags and output. Their help as JSON is compared with the
-   hand-written commands, as the agent group's was.
-3. **The commands of the DSL, and its skill.** `osapi cli command list`, `get`,
-   `spec`, `validate` and `new`, with the tables in `internal/guide`. A dev
-   skill, `build-a-command`, goes beside `build-a-behavior` and
-   `build-an-endpoint`. It keeps only judgment, and sends the agent to `spec`
-   and `validate` for each fact.
+1. **Turn the runtime over.** Built (osapi-io/osapi#901). The runtime and its
+   generator worked on `*endpoint.Group` and `*endpoint.Method`, so they could
+   not only move: the command layer would import the layer that embeds it. The
+   command layer has its own interfaces, `command.Group` and `command.Command`,
+   and the endpoint types implement them. The registry, `Attach`, the renderers,
+   the output and the generator are in `internal/cli/command`. The request to
+   the API (`Run`, `Build`, `Use`) stays in the endpoint layer, which hands its
+   answer to the command layer's output. No command changed.
+2. **One local group.** Built (osapi-io/osapi#902). `token` moves to a
+   definition. Its three commands keep their names, flags and output. Their help
+   as JSON is compared with the hand-written commands, as the agent group's was.
+3. **The commands of the DSL, and its skill.** Built (osapi-io/osapi#902).
+   `osapi cli command list`, `get`, `spec`, `validate` and `new`, with the
+   tables in `internal/guide`. A dev skill, `build-a-command`, goes beside
+   `build-a-behavior` and `build-an-endpoint`. It keeps only judgment, and sends
+   the agent to `spec` and `validate` for each fact.
 4. **The other groups**, one in each pull request: `config`, `version`, `nats`,
    `skill`, `init`, `start`, `agent` and `controller`.
 5. **The renderers.** Each `cmd/client_<group>.go` moves to the group's
