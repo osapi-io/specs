@@ -90,15 +90,15 @@ the health metrics started a trace of its own: on the lab, a `job.summary` or an
 `agent.list` root every few seconds. A request that sends no job has one of
 these spans instead of `job.publish`:
 
-| Span                                               | From                             | DETAIL                  |
-| -------------------------------------------------- | -------------------------------- | ----------------------- |
-| `job.list`                                         | the job client                   | the count, `2 jobs`     |
-| `job.get`, `job.retry`, `job.delete`               | the job client                   | the job ID              |
-| `job.summary`                                      | the job client                   |                         |
-| `agent.list`, `agent.get`, `agent.timeline`        | the job client                   | the count, or the agent |
-| `enrollment.list`, `.accept`, `.reject`, `.remove` | `internal/controller/enrollment` | the count, or the agent |
-| `audit.list`, `audit.get`, `audit.export`          | `internal/audit`                 | the count, or the entry |
-| `traces.read`                                      | `internal/telemetry/traces`      | the trace ID            |
+| Span                                                     | From                            | DETAIL                    |
+| -------------------------------------------------------- | ------------------------------- | ------------------------- |
+| `job.list`                                               | the job client                  | the count, `2 jobs`       |
+| `job.get`, `job.retry`, `job.delete`                     | the job client                  | the job ID                |
+| `job.summary`                                            | the job client                  |                           |
+| `agent.list`, `agent.get`, `agent.timeline`              | the job client                  | the count, or the agent   |
+| `admission.list`, `.get`, `.admit`, `.reject`, `.revoke` | `internal/controller/admission` | the count, or the machine |
+| `audit.list`, `audit.get`, `audit.export`                | `internal/audit`                | the count, or the entry   |
+| `traces.read`                                            | `internal/telemetry/traces`     | the trace ID              |
 
 Without them, `trace get` showed `GET /api/job` with only the two response
 spans, because it leaves out the NATS calls, and the trace did not tell what the

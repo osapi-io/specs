@@ -126,7 +126,7 @@ The permission prefix is the group when there is one, and the name of the
 behavior when there is no group. Thus `dns` under `network` needs
 `network:read`, as it does now.
 
-The things that the controller answers itself (audit, jobs, agent enrollment and
+The things that the controller answers itself (audit, jobs, admission and
 health) are not behaviors, and have no placement. They never go to a host.
 
 `API` and `CLI` are separate, because not each behavior is called from outside.
@@ -705,9 +705,11 @@ validator reports the field and the rule that an input breaks, so the check is
 exact. A behavior's `required` needs none, because the API test leaves the field
 out. An endpoint's needs one, because endpoints have no such test. A `min` of 1
 on a string that is required, optional or in the path needs none, because its
-only bad value is empty. The author writes each bad value. A generator cannot
-make one for a custom rule. The endpoint DSL has the same check, with
-`.Fails(doc, input)`.
+only bad value is empty. A `required` on a struct value, such as an `in:"body"`
+struct, needs none. The validator does not examine it, and the rules of the
+fields of the struct refuse an empty body. The author writes each bad value. A
+generator cannot make one for a custom rule. The endpoint DSL has the same
+check, with `.Fails(doc, input)`.
 
 On the fake host, each filesystem, command and store call fails in turn. Each
 store read also returns a damaged record in turn: not JSON, empty JSON, and a

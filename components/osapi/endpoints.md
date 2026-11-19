@@ -151,7 +151,7 @@ var Group = endpoint.Register(endpoint.Define(
   for the health probes.
 
 - **`Uses[Deps]()`** names the struct of what the handlers use, such as the job
-  client and the enrollment store, as interfaces. The controller gives one at
+  client and the admission store, as interfaces. The controller gives one at
   startup, in `internal/controller/handlers.go`. A test gives fakes. It is the
   place of the host in a behavior.
 

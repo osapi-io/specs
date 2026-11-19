@@ -48,8 +48,8 @@ without traces.
 `write` is not `admin` minus one thing. It does not have these:
 
 ```
-agent:write       audit:read        power:execute     process:execute
-command:execute   command:shell     docker:execute
+admission:write   agent:write       audit:read        power:execute
+process:execute   command:execute   command:shell     docker:execute
 ```
 
 The names come from a comparison of the two blocks in
@@ -57,8 +57,9 @@ The names come from a comparison of the two blocks in
 
 The list is the fastest way to understand the role. `write` can change the
 configuration, but it cannot make anything *occur*. It restarts nothing, runs no
-command, reboots nothing, and cannot read who did. Each permission in the list
-runs something, or shows who ran something.
+command, reboots nothing, admits no machine, and cannot read who did. Each
+permission in the list runs something, decides what can run, or shows who ran
+something.
 
 `read` has the reads of each domain. It does not have the writes, or the
 permissions in the list above.

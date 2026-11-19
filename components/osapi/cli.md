@@ -72,9 +72,8 @@ because the file stays.
 A command is `<resource> <verb>`. A noun that is used as a command becomes a
 filter on `list`, or a resource with its own verbs under it: `file stale list`,
 `package list --updates`, `log source list`, `user password update`,
-`agent pending list`, `facts keys list`. Do not use synonyms. Use `delete`,
-never `remove` or `rm`. Use `create`, never `add` or `new`. Use `get`, never
-`describe` or `show`.
+`facts keys list`. Do not use synonyms. Use `delete`, never `remove` or `rm`.
+Use `create`, never `add` or `new`. Use `get`, never `describe` or `show`.
 
 The verbs cost one natural name. `user ssh-key add` became `create`, which is
 less natural than "add a key". The change was made anyway, because one verb set
@@ -133,6 +132,19 @@ them. `TestCommandShape`, in `cmd/help_style_test.go`, fails on a command under
 | `client node container docker inspect` | `client node container docker get`        |
 | `client node container docker pull`    | `client node container docker image pull` |
 | `client node user set-password`        | `client node user password update`        |
+
+### Moved to admission on 18 November 2026
+
+Admission of a machine became its own group, keyed by the machine ID
+([admission](admission.md)):
+
+| Was                              | Now                                     |
+| -------------------------------- | --------------------------------------- |
+| `client agent pending list`      | `client admission list --state pending` |
+| `client agent accept --hostname` | `client admission admit --machine-id`   |
+| `client agent reject --hostname` | `client admission reject --machine-id`  |
+| `client agent delete --hostname` | `client admission revoke --machine-id`  |
+| `client agent key fingerprint`   | `agent admission`, on the machine       |
 
 ### Required flags
 

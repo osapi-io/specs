@@ -71,10 +71,10 @@ a resource gives `Picker` only its options; the trigger, the keyboard, the
 loading state and the empty list, `None.`, are the same in each. A hook that
 loads choices for a form builds on `useLoad`, which keeps the value as it was
 when the load fails, so a picker stays empty and the form still works. A page
-that must show a failure, such as Enrollment, keeps its own error state. A
-result card counts its summary line from its per-host `results`, so a card never
-shows a status that it did not count. A panel inside a card has the `surface`
-token, not a hex value.
+that must show a failure, such as Admission, keeps its own error state. A result
+card counts its summary line from its per-host `results`, so a card never shows
+a status that it did not count. A panel inside a card has the `surface` token,
+not a hex value.
 
 **A value has the format that the CLI gives it.** `lib/format.ts` has the
 formatters of `internal/cli/ui.go` in TypeScript: `formatTime` prints
