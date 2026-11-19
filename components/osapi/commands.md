@@ -1,12 +1,12 @@
 # Commands
 
-Partly built: the command layer, the DSL, `token`, and the commands that teach
-the DSL (osapi-io/osapi#901 and #902). The other local groups and the renderers
-are not built. Each command of the `osapi` binary comes from a definition in Go,
-as each endpoint and each behavior does. The definition gives the cobra command,
-its flags, its help, its page, its checks and its tests. Endpoints and behaviors
-get their commands from this layer. Thus one DSL makes every command, and `cmd/`
-has only the root and the wiring.
+Partly built: the command layer, the DSL, `token`, the commands that teach the
+DSL, and the output from the output type (osapi-io/osapi#901, #902 and #903).
+The other local groups are not built. Each command of the `osapi` binary comes
+from a definition in Go, as each endpoint and each behavior does. The definition
+gives the cobra command, its flags, its help, its page, its checks and its
+tests. Endpoints and behaviors get their commands from this layer. Thus one DSL
+makes every command, and `cmd/` has only the root and the wiring.
 
 The issue is osapi-io/osapi#900.
 
@@ -89,7 +89,6 @@ internal/cli/
       deps.go              what the methods use, as interfaces
       methods.go           the functions of the methods
       methods_public_test.go
-      render.go            how each output prints without --json
       token.go             the definition
       types.go             the inputs and outputs
     config/
@@ -107,10 +106,11 @@ shared code, not commands: `guide.go`, `metrics_server.go` and `shutdown.go`.
 They go to `internal/cli`. `behavior` and `controller endpoint` are commands
 about the DSLs. They stay beside the DSLs that they read, as now.
 
-The renderer of an endpoint group goes in the group's directory, as
-`internal/controller/endpoints/<group>/render.go`. It is in
-`cmd/client_<group>.go` today. The renderer prints what the group answers, so
-the group owns it.
+A group has no code for its output. Each command prints from the output type of
+its method ([the CLI](cli.md#output-comes-from-the-output-type)). Five endpoint
+commands still have a renderer in `cmd/client_<group>.go`, because their
+responses do not have the shape that the CLI shows. osapi-io/osapi#904 changes
+the responses and deletes the renderers.
 
 ## The definition
 
@@ -156,9 +156,10 @@ var Group = command.Register(command.Define(
   them with `command.Provide(token.Group, func() token.Deps {...})` in
   `cmd/commands.go`, which then calls `command.AttachLocal`. A group whose Deps
   has fields and no Provide fails when it runs. An empty Deps needs no wiring.
-- **A renderer**, `command.Render(Group, "method", fn)` in `render.go`, prints
-  the output without `--json`. A method without one prints its output as JSON.
-  With `--json`, a command prints its output, and the renderer does not run.
+- **The output** prints from the output type of the method, with the tags of its
+  fields. A renderer, `command.Render(Group, "method", fn).Because("...")`, is
+  only for a shape that no output type gives. With `--json`, a command prints
+  its output, and a renderer does not run.
 
 In the code, a command of any layer is the interface `command.Command`, and a
 group is `command.Group`. The endpoint types implement both.
@@ -233,9 +234,17 @@ Each check has its rule and its fix, as for endpoints.
    the agent to `spec` and `validate` for each fact.
 4. **The other groups**, one in each pull request: `config`, `version`, `nats`,
    `skill`, `init`, `start`, `agent` and `controller`.
-5. **The renderers.** Each `cmd/client_<group>.go` moves to the group's
-   `render.go`. The `build-an-endpoint` skill and `CONTRIBUTING.md` of osapi
-   then name the new place.
+5. **Output from the output type.** Built (osapi-io/osapi#903), as
+   [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
+   layer's `Columns` and its formats moved to the command layer, so a behavior's
+   table and an endpoint's table are made in one place. A behavior registers no
+   renderer: the behavior runtime adds one group printer for the result table.
+   The hand-written renderers went, and five stay with their reason. Golden
+   tests hold the output of each shape. The output of each command was compared
+   before and after, from fixed data.
+6. **The last renderers.** osapi-io/osapi#904 changes the responses of
+   `agent list`, `job list`, `job get`, `health status` and
+   `telemetry trace get`, so that their commands print from the type.
 
 ## Not decided
 
