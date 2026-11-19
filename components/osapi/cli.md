@@ -8,6 +8,9 @@ That is the purpose. A command that decides something is a second location for
 the decision. The SDK is the location that consumers other than the CLI already
 use.
 
+[Commands](commands.md) plans a DSL that makes each command of the binary from a
+definition. This page has the rules that each command obeys, whatever makes it.
+
 ## One command per endpoint
 
 A domain gets a parent command and one subcommand for each endpoint. The file
