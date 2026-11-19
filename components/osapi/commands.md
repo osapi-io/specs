@@ -210,12 +210,16 @@ Each check has its rule and its fix, as for endpoints.
 2. **One local group.** `token` moves to a definition. Its three commands keep
    their names, flags and output. Their help as JSON is compared with the
    hand-written commands, as the agent group's was.
-3. **The commands of the DSL.** `osapi cli command list`, `get`, `spec`,
-   `validate` and `new`, with the tables in `internal/guide`.
+3. **The commands of the DSL, and its skill.** `osapi cli command list`, `get`,
+   `spec`, `validate` and `new`, with the tables in `internal/guide`. A dev
+   skill, `build-a-command`, goes beside `build-a-behavior` and
+   `build-an-endpoint`. It keeps only judgment, and sends the agent to `spec`
+   and `validate` for each fact.
 4. **The other groups**, one in each pull request: `config`, `version`, `nats`,
    `skill`, `init`, `start`, `agent` and `controller`.
 5. **The renderers.** Each `cmd/client_<group>.go` moves to the group's
-   `render.go`.
+   `render.go`. The `build-an-endpoint` skill and `CONTRIBUTING.md` of osapi
+   then name the new place.
 
 ## Not decided
 
