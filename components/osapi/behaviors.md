@@ -406,8 +406,12 @@ The generator makes Go with jen (`github.com/dave/jennifer`), not with text
 templates. Templates join strings. A template can render code that does not
 parse, or forget an import, and that fails only when the output compiles. jen
 makes the code as statements and manages the imports. Then the output goes
-through goimports, gofumpt and golines. Thus it reads like the rest of the
-repository, and passes the format check.
+through `golangci-lint fmt`, with goimports, gofumpt and golines, the formatters
+of the rest of the repository. Thus it reads like the rest of the repository,
+and passes the format check. golangci-lint skips a file that says it is
+generated, so the generator gives it a configuration that does not skip it.
+Without that configuration, the generated files get no format, and no error
+tells you.
 
 The other candidate was the code-generator of Kubernetes. It was not used. It
 reads comment markers on type declarations, and the examples and refusals of a
