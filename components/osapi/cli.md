@@ -149,6 +149,15 @@ Admission of a machine became its own group, keyed by the machine ID
 | `client agent delete --hostname` | `client admission revoke --machine-id`  |
 | `client agent key fingerprint`   | `agent admission`, on the machine       |
 
+### Renamed on 19 November 2026
+
+`token` moved to the [command DSL](commands.md), and its verb rule applies to
+local groups too:
+
+| Was           | Now                |
+| ------------- | ------------------ |
+| `token roles` | `token roles list` |
+
 ### Required flags
 
 `MarkFlagRequired` marks a required flag. `--help` and the CLI page show

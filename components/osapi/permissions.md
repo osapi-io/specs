@@ -121,7 +121,7 @@ gets the read.
 
 They make the result on each call, not one time. The reason: a behavior
 registers in the `init` of its own package, and that `init` can run after the
-`init` of `authtoken`. `osapi token roles` prints the result, with the
+`init` of `authtoken`. `osapi token roles list` prints the result, with the
 behaviors.
 
 The permission of a hand-written domain still goes in four places. If you forget
@@ -140,8 +140,8 @@ have it. Thus nobody can use the endpoint, and nothing reports it.
 
 An operator who configures a custom role looks for the list of permissions. The
 authentication page of the published site had that list as a table that people
-updated by hand. It now points to `osapi token roles`. That command prints the
-list from the binary, so it cannot be out of date.
+updated by hand. It now points to `osapi token roles list`. That command prints
+the list from the binary, so it cannot be out of date.
 
 **Select by the possible damage, not by the endpoint group.** If two operations
 can do different amounts of damage, they need two permissions, also if their
