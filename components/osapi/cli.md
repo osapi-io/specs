@@ -244,7 +244,9 @@ These rules have no options:
 - A `bool` is `yes` or `no`. A `[]string` is its values, joined with `, `.
 - A label is the json name in sentence case: `last_seen` is `Last seen`. A
   column header is the json name in capitals: `LAST SEEN`.
-- A table leaves out a column that has no value in any row.
+- A table leaves out a column that has no value in any row, except a column with
+  a `none` tag. `agent list` always has CONDITIONS, with `-` when no condition
+  is true.
 - In a table cell, an object is its values, with a space between them, such as
   `Ubuntu 24.04`. A list of objects is the first field of each, with commas,
   such as `HighLoad, DiskPressure`.
