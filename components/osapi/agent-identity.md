@@ -24,17 +24,16 @@ agent tells why.
 
 Only two events destroy a key:
 
-- an operator rejects a pending enrollment
-- an operator removes an enrolled agent
+- an operator rejects a pending request
+- an operator revokes an admitted machine
 
 The two take effect immediately. There is no time when the signature of a
 removed agent still verifies.
 
-The removal is `DELETE /api/agent/{hostname}`, or `osapi client agent delete`.
-It deletes the accepted record and removes the cached key. A hostname is not an
-identity. Thus when two accepted agents have the same hostname, the call answers
-409 with the two machine IDs, and `machine_id` selects one. The call does not
-guess.
+The revocation is `POST /api/admission/{machine_id}/revoke`, or
+`osapi client admission revoke`. It deletes the admitted record and removes the
+cached key. The machine ID selects the machine, because a hostname is not an
+identity. [Admission](admission.md) has the decisions and who can make them.
 
 osapi does not tell the removed agent. The agent keeps the key of the controller
 from its acceptance. Thus it thinks that it is enrolled, and does not ask again.
