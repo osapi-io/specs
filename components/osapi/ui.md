@@ -236,6 +236,14 @@ does not report is `-`. Thus the cards align when a host, such as Fedora, does
 not report the load. The age is from `started_at`, as `FormatAge` of the CLI
 prints it, and the uptime of the API is in the tooltip. The memory line is
 `7.7 GB total, 3.4 GB used, 4.3 GB free`, as `osapi client agent get` prints it.
+A drain or an undrain applies at the agent's next heartbeat, up to 20s after the
+controller accepts it. The card shows the request at once: the badge reads
+`Draining` or `Undraining` in amber, the button has a spinner, and a line says
+that the request was accepted and when it applies. The card then polls the
+agents every 2s, not each 10s, until the state the agent reports matches. After
+60s it says that the agent has not acted on it yet. A request that fails shows
+its error on the card. Before, the card showed nothing until the next heartbeat
+and poll, and a failure was silent.
 
 ## Coverage says nothing about it
 
