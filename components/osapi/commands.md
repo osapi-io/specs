@@ -53,6 +53,24 @@ method sends a request to the API. A behavior method sends a job through the
 API. The command layer does not know which: it decodes the flags into the input
 type, calls the method, and renders the output.
 
+## Where a DSL lives
+
+A DSL lives under the process that runs it:
+
+| DSL       | Runs in                                            | Lives at                        |
+| --------- | -------------------------------------------------- | ------------------------------- |
+| Commands  | the CLI                                            | `internal/cli/command/`         |
+| Endpoints | the controller                                     | `internal/controller/endpoint/` |
+| Behaviors | the controller (the route) and the agent (the job) | `internal/behavior/`            |
+
+A behavior is top-level because it is in two processes. Its definition makes a
+route of the controller, a command of the CLI and the dispatch of the agent.
+Under `internal/agent/` or `internal/controller/`, it would be in one process,
+and the other process would import it from there. `internal/job/` is top-level
+for the same reason. Its groups follow the same rule: the endpoint groups are in
+`internal/controller/endpoints/`, the behaviors in `internal/behaviors/`, and
+the command groups in `internal/cli/commands/`.
+
 ## The layout
 
 The layout is the layout of the endpoints:
