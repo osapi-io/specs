@@ -245,6 +245,9 @@ These rules have no options:
 - A label is the json name in sentence case: `last_seen` is `Last seen`. A
   column header is the json name in capitals: `LAST SEEN`.
 - A table leaves out a column that has no value in any row.
+- In a table cell, an object is its values, with a space between them, such as
+  `Ubuntu 24.04`. A list of objects is the first field of each, with commas,
+  such as `HighLoad, DiskPressure`.
 - The heading is the name of the group in sentence case, plural for a list.
 
 A field changes its own output with tags:
@@ -279,14 +282,13 @@ now prints the entries, and `--json > audit.json` keeps them.
 
 **A command that this cannot print has a renderer, with its reason.**
 `command.Render(Group, "method", fn).Because("...")`.
-`osapi cli command validate` fails a renderer with no reason. Five endpoint
+`osapi cli command validate` fails a renderer with no reason. Four endpoint
 commands have one. Their responses do not have the shape that the CLI shows, and
 osapi-io/osapi#904 changes them:
 
 | Command               | Reason                                                                    |
 | --------------------- | ------------------------------------------------------------------------- |
 | `health status`       | the components are a tree, and storage puts several counts in one value   |
-| `agent list`          | five of its nine columns are made from other fields                       |
 | `job list`            | the heading and the paging hint come from the input, and a line of counts |
 | `job get`             | the job report, which the commands that wait for a job also print         |
 | `telemetry trace get` | the spans are a tree                                                      |

@@ -107,7 +107,7 @@ They go to `internal/cli`. `behavior` and `controller endpoint` are commands
 about the DSLs. They stay beside the DSLs that they read, as now.
 
 A group has no code for its output. Each command prints from the output type of
-its method ([the CLI](cli.md#output-comes-from-the-output-type)). Five endpoint
+its method ([the CLI](cli.md#output-comes-from-the-output-type)). Four endpoint
 commands still have a renderer in `cmd/client_<group>.go`, because their
 responses do not have the shape that the CLI shows. osapi-io/osapi#904 changes
 the responses and deletes the renderers.
@@ -243,8 +243,10 @@ Each check has its rule and its fix, as for endpoints.
    tests hold the output of each shape. The output of each command was compared
    before and after, from fixed data.
 6. **The last renderers.** osapi-io/osapi#904 changes the responses of
-   `agent list`, `job list`, `job get`, `health status` and
-   `telemetry trace get`, so that their commands print from the type.
+   `job list`, `job get`, `health status` and `telemetry trace get`, so that
+   their commands print from the type. `agent list` is done: the API always
+   gives `state` and only the true conditions, and a table cell prints an object
+   or a list of objects.
 
 ## Not decided
 
