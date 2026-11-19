@@ -310,6 +310,16 @@ counts each registered agent. A drained agent is in `total` and not in `ready`.
 The count had `ready` equal to `total`, so the tile said `3/3 ready` with an
 agent cordoned.
 
+The agent takes jobs only when it is `Ready`, with one set of consumers.
+`startConsumers` at startup starts them only in `Ready`, because the heartbeat
+starts first and can find the drain flag and cordon the agent before startup
+reaches the consumers. Starting consumers while a set runs does nothing, and
+stopping them clears the set, so a drain always stops every consumer it waits
+for. Before osapi-io/osapi#876, an agent that started with its drain flag set
+took jobs while cordoned, the undrain started a second set over the first, and
+the next drain waited for the first set forever, inside the heartbeat: the agent
+stopped heartbeating and dropped out of the registry, though the process ran.
+
 `displayComponentTable` in `cmd/client_health_status.go` prints the
 sub-components for `osapi client health status`, and for the `status` command of
 `agent`, `controller` and `nats`. Each row has the same shape. The status and
