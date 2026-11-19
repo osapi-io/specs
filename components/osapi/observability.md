@@ -304,6 +304,12 @@ in amber, and an agent with no state is `Ready`. The entry had the literal
 showed it as cordoned (osapi-io/osapi#879). The controller and the NATS server
 have no scheduling state, and their `Ready` means that they are registered.
 
+The `agents` count of the health status, the dashboard's Agents tile, follows
+the same state: `ready` counts the agents whose state is `Ready`, and `total`
+counts each registered agent. A drained agent is in `total` and not in `ready`.
+The count had `ready` equal to `total`, so the tile said `3/3 ready` with an
+agent cordoned.
+
 `displayComponentTable` in `cmd/client_health_status.go` prints the
 sub-components for `osapi client health status`, and for the `status` command of
 `agent`, `controller` and `nats`. Each row has the same shape. The status and
