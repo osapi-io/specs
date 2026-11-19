@@ -320,6 +320,14 @@ took jobs while cordoned, the undrain started a second set over the first, and
 the next drain waited for the first set forever, inside the heartbeat: the agent
 stopped heartbeating and dropped out of the registry, though the process ran.
 
+A drain never holds the heartbeat. It cancels the consumers, moves the agent to
+`Draining` and returns, and a goroutine waits for the cancelled set and moves
+the agent to `Cordoned`. Each set has its own wait group, so a drain waits only
+for the set it cancelled. When the consumers have not stopped after a minute,
+the agent logs a warning and reports the `DrainStuck` condition, amber in the
+CLI and the UI, and goes on heartbeating. An undrain that comes while the agent
+is still `Draining` applies once the drain has finished.
+
 `displayComponentTable` in `cmd/client_health_status.go` prints the
 sub-components for `osapi client health status`, and for the `status` command of
 `agent`, `controller` and `nats`. Each row has the same shape. The status and
