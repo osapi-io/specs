@@ -274,8 +274,9 @@ Each check has its rule and its fix, as for endpoints.
    its own, `controller endpoint openapi get`. The `behavior` commands are
    built, and the commands that teach the DSLs are done (osapi-io/osapi#934).
    `get --method` printed one method in full where `get` prints the behavior, so
-   it is a command of its own, `behavior method get`. `cmd/` keeps only the
-   root, the parents that hold hand-written commands, and `cli-docs`.
+   it is a command of its own, `behavior method get`. Of the local commands,
+   only `cli-docs` is still written by hand. The `client node` commands go with
+   [the behavior migration](behavior-migration.md).
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's
