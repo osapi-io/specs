@@ -358,27 +358,24 @@ the agent logs a warning and reports the `DrainStuck` condition, amber in the
 CLI and the UI, and goes on heartbeating. An undrain that comes while the agent
 is still `Draining` applies once the drain has finished.
 
-`displayComponentTable` in `cmd/client_health_status.go` prints the
-sub-components for `osapi client health status`, and for the `status` command of
-`agent`, `controller` and `nats`. Each row has the same shape. The status and
-the address are on the row. The URL is on a line of its own under it, so a long
-URL is never cut, and a row without a URL takes one line. Each part has its own
-style: the status word in its status color, the address dim because nothing
-connects through it, and the URL cyan because a person opens it. The table sizes
-and cuts cells by visible width, thus the escape sequences of the styles do not
-count:
+`osapi client health status`, and the `status` command of `agent`, `controller`
+and `nats`, print the components from their type, as each command does
+([the CLI](cli.md#output-comes-from-the-output-type)). Each sub-component is a
+row under its component, as a tree. The address and the URL are columns, so a
+long URL is not cut, and a column with no value in any row is left out:
 
 ```
-controller  hub           Ready
-            ├─ api        ok http://0.0.0.0:8080
-            │             ↳ http://hub.example.ts.net:8080/
-            ├─ heartbeat  ok
-            ├─ metrics    ok http://127.0.0.1:9090
-            ├─ tracing    ok grpc://127.0.0.1:4317
-            │             ↳ http://hub.example.ts.net:16686/
-            └─ ui         ok http://0.0.0.0:8080
-                          ↳ http://hub.example.ts.net:8080/
+Components (1):
+  TYPE          HOSTNAME  STATUS  CONDITIONS  ADDRESS                URL
+  controller    hub       Ready   -
+  ├─ api                  ok      -           http://0.0.0.0:8080    http://hub.example.ts.net:8080/
+  ├─ heartbeat            ok      -
+  ├─ metrics              ok      -           http://127.0.0.1:9090
+  └─ tracing              ok      -           grpc://127.0.0.1:4317  http://hub.example.ts.net:16686/
 ```
+
+This replaced `displayComponentTable` in `cmd/`, which put the URL on a line of
+its own under each row (osapi-io/osapi#904).
 
 The dashboard has the same layout. `ComponentRow` in
 `ui/src/components/domain/component-row.tsx` puts the URL on a line under the

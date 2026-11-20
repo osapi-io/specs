@@ -118,6 +118,7 @@ The token group, as `internal/cli/commands/token/token.go` has it, cut short:
 var Group = command.Register(command.Define(
 	"token", "Generate and validate API tokens",
 	command.Uses[Deps](),
+	command.SubDoc("roles", "Read the roles and what each grants"),
 	command.Method[GenerateInput, GenerateOutput]("generate").
 		Short("Generate a new token").
 		Example("--subject user123 --roles=read").
@@ -139,7 +140,8 @@ var Group = command.Register(command.Define(
 - **A group** is the first word of each command, such as `token`. `Under(...)`
   puts a group under a different command.
 - **A method** is one command, with its input and output types. `.Sub("roles")`
-  puts it under a word of its own, so `list` above is `token roles list`. Each
+  puts it under a word of its own, so `list` above is `token roles list`.
+  `SubDoc("roles", "...")` is the one line of help of the `roles` command. Each
   input field is a flag, named for its json name with `_` as `-`. A field has a
   validate tag, a `doc` for its help, and an optional `short` for a one-letter
   flag. A field tagged `validate:"required"` is a required flag. The rules are
@@ -209,6 +211,8 @@ the endpoints and the behaviors, and which layer made each one.
   `TestCommandShape` checks today
 - a flag name is not the json name of its field
 - the handler does not have the signature of the method
+- a `.Sub` segment that makes a command of its own has no `SubDoc`, so its help
+  would say `Roles commands`
 
 Each check has its rule and its fix, as for endpoints.
 
