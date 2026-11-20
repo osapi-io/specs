@@ -150,9 +150,11 @@ checks availability when osapi makes it, not on the first use.
 ## Platform selection happens outside the provider
 
 A provider does not decide if it applies. gohai's `family.Detect` selects by OS
-family, and `IsContainer` in `pkg/sdk/platform` by whether the process is in a
-container. `agent.Setup` in `internal/agent/setup.go` reads them one time, and
-the methods of `hostEnv` in `internal/agent/providers.go` select the provider.
+family, and the `InContainer` of gohai's virtualization collector by whether the
+process is in a container: docker, podman, lxc, nspawn and the others of Ohai's
+cascade, not only `/.dockerenv`. `agent.Setup` in `internal/agent/setup.go`
+reads them one time, and the methods of `hostEnv` in
+`internal/agent/providers.go` select the provider.
 
 **A family that a domain does not implement has a stub. It is not missing.**
 Thus the selection always finds something, and that thing returns the
