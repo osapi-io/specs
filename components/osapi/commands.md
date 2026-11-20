@@ -255,7 +255,8 @@ Each check has its rule and its fix, as for endpoints.
    the root, and its path is `--path`, since each value is a flag. `skill get`
    prints a skill's file as it is: its `content` field is tagged
    `render:"body"`, which makes a field the whole output. `guide.go` holds the
-   helpers of the commands that teach the DSLs, and moves with them.
+   helpers of the commands that teach the DSLs, and moves with them. The long
+   running commands are [processes](#processes).
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's
@@ -274,11 +275,42 @@ Each check has its rule and its fix, as for endpoints.
    `client agent status` are generated from a `status` method in their endpoint
    groups. No command has a renderer.
 
+## Processes
+
+A process is a command that runs until a signal, such as
+`osapi nats server start`. It has no input and prints no output. The DSL
+declares it with `command.Process("start").Setup(fn)`, and the generated command
+calls `command.Serve`, in `internal/cli/command/process.go`.
+
+One context goes through each command. `cmd.Execute` makes it, cancels it on the
+first `SIGINT` or `SIGTERM`, and gives it to cobra. A command reads it as
+`cmd.Context()`. A process uses it in three steps:
+
+1. **Setup.** `fn` gets the context and the deps, and returns `command.Running`:
+   the components, each with `Start()` and `Stop(ctx)`, and a `Cleanup`. `fn`
+   makes the components and starts none of them. A signal during setup cancels
+   the context, so a setup that waits, such as for NATS, stops. An error from
+   `fn` is the error of the command, and it exits 1.
+2. **Run.** `Serve` starts each component, then waits until the context ends.
+3. **Stop.** The context is cancelled, so the stop cannot use it. `Serve` makes
+   `context.WithoutCancel(ctx)` with `command.ShutdownTimeout`, 10 seconds. That
+   context keeps the values of the first, such as the trace, but not its cancel.
+   `Serve` stops the components together with it, then runs `Cleanup` with it.
+
+A process never makes a context of its own. A second signal does nothing: the
+timeout of the stop limits the shutdown.
+
+A component that keeps the setup context for its goroutines stops them on the
+signal, before its `Stop` runs. A component whose goroutines must run until
+`Stop` makes their context itself, and cancels it in `Stop`.
+
+`nats server start` is built (osapi-io/osapi#917). `agent start`,
+`controller start` and `start` come next. Their flags set config keys, such as
+`--agent-max-jobs` for `agent.max_jobs`. The DSL will make each one from its
+config key, with the type, the default and the description of the key.
+
 ## Not decided
 
-- Some local commands run for a long time: `agent start`, `controller start`,
-  `nats server start`. They have no output, and they stop on a signal. The DSL
-  can have a method kind for a process, or these stay code in their groups.
 - `cli-docs` and `help` read the whole tree. They can be methods that get the
   root as a dep, or stay in `cmd/`.
 
