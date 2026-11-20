@@ -203,13 +203,13 @@ gohai table, and does not call `gopsutil` itself. When osapi needs a read that
 gohai does not have, or an API of gohai does not fit, the change goes into gohai
 first, and osapi then uses it.
 
-Today the move is at its start. gohai exports the family of a host
-(`pkg/gohai/family`), as Ohai names it, and osapi's agent and behaviors use it:
-osapi no longer detects the family itself. Its providers still call `gopsutil`.
-For a behavior of osapi, a read must also run on the fake host of its tests.
-Thus the collectors of gohai must take their sources (a filesystem, a command
-runner, a clock) from the caller, before the behaviors of osapi can call them
-(osapi-io/gohai#292).
+gohai exports the family of a host (`pkg/gohai/family`), as Ohai names it, and
+osapi's agent and behaviors use it: osapi no longer detects the family itself.
+The collectors of gohai take their sources (a filesystem, a command runner, a
+clock and the family) from the caller, and gohai does not use `gopsutil`
+(osapi-io/gohai#292). Thus a behavior of osapi can call a collector with the
+sources of `host.Host`, and its example runs on the fake host. osapi's providers
+still call `gopsutil`, until they read through gohai (osapi-io/osapi#960).
 
 ## What is not here
 

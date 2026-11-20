@@ -1,9 +1,10 @@
 # How a collector gathers facts
 
-gohai collects facts from other sources. It does not implement them again. A
-collector wraps a well-maintained source and changes its output into a typed
-struct. The source is a Go library, a provider SDK, or a small file or command
-parser.
+A collector reads files and commands of a host, as Ohai reads them, and changes
+the result into a typed struct. It reads only through the sources that the
+caller gives it: a filesystem, a command runner, a clock and the platform
+family. Thus a caller can give it a fake host, and the collector reads the fake
+host as it reads a real one.
 
 The 62 collectors share one contract, which [the entry point](README.md) states.
 They also share the content of this page:
@@ -12,56 +13,54 @@ They also share the content of this page:
 - what the collector can add to it
 - the names of the fields that result
 
-## Choosing what to wrap
+## The sources
 
-There are seven positions, in order. The order is the rule. A collector uses the
-first position that covers what it needs.
+`pkg/gohai/source` has the type `Sources`:
 
-1. **ghw**, for physical hardware topology: CPU and NUMA layout, memory DIMMs
-   and page sizes, block devices with UUID, label and unmounted state, network
-   drivers and speed, DMI, GPU and PCI. Use it for the static shape of the
-   hardware.
-2. **gopsutil**, for runtime state that changes: free and available memory, disk
-   and network I/O counters, the process list, sessions, virtualization
-   detection and host information. Use it for data that changes between
-   collections.
-3. **go-sysinfo**, where gopsutil is weaker on host, platform or kernel. Decide
-   for each case. Never use it together with gopsutil for the same fact.
-4. **procfs**, to parse raw `/proc` and `/sys` when no source above covers a
-   field. Use it in place of a scanner that you write yourself.
-5. **Official provider SDKs** for cloud collectors. If the SDK is too large, use
-   plain `net/http` against the instance metadata endpoint.
-6. **A gohai extension**, last. Use it only for the fields that the libraries
-   above do not give.
-7. **Ohai's plugins, as a reference for the method. Never import them.** Read
-   them to learn which special cases exist. Then check the libraries above. Only
-   the gap that remains becomes code here.
+| Field    | Type                       | A zero value is               |
+| -------- | -------------------------- | ----------------------------- |
+| `FS`     | `avfs.VFS`                 | the filesystem of the host    |
+| `Exec`   | `source.Runner`            | the commands of the host      |
+| `Now`    | `func() time.Time`         | `time.Now`                    |
+| `Family` | string, `pkg/gohai/family` | `family.Detect()` of the host |
 
-The order is more important than any one position. If you replace a library
-because it does not have one field, you lose years of bug fixes and
-cross-platform work. If a library really does not match what the collector
-reports, replace it. The Data Sources page of the collector then tells why.
+Each collector has `NewWith(src)`. `NewWith` selects the variant from the family
+of `src`, and gives the variant the `FS`, `Exec` and `Now` of `src`. `New()` is
+`NewWith(source.Sources{})`, the real host. `gohai.New(gohai.WithSources(src))`
+gives the same sources to each collector. The cloud collectors have only
+`New()`, because the metadata service is not a source.
 
-## What an extension may do
+osapi gives the sources of `host.Host`. Thus a behavior of osapi calls a
+collector, and the example of the behavior runs on the fake host.
 
-An extension adds to the output of the library. It does not replace it.
+## Choosing what to read
 
-```go
-info, err := upstream.Get(ctx)
-if err != nil {
-    return nil, err
-}
-if shouldAddOurBit(info) {
-    info.OurField = readOurSource()
-}
-```
+There are four positions, in order. A collector uses the first position that
+covers what it needs.
 
-**An extension reads through `avfs.VFS` and runs commands through
-`executor.Executor`. A `Collect` method never uses `os.ReadFile` or
-`exec.Command`.** With these two seams, a test runs and does not touch the host.
-If a collector uses the standard library directly, its tests need the machine
-that they describe. A new collector breaks this rule most often. A reviewer must
-look for it first.
+1. **A file**, through `FS`: `/proc`, `/sys` and `/etc` on Linux.
+2. **A command**, through `Exec`: `sysctl`, `ioreg`, `ps` and `df` on macOS,
+   `ip`, `lscpu` and `ethtool` on Linux.
+3. **A library**, only when it reads through the sources, or reads nothing from
+   the host. Official provider SDKs, or plain `net/http`, are for the cloud
+   collectors.
+4. **Ohai's plugins, as a reference for the method. Never import them.** They
+   tell which files and commands to read, and which special cases exist.
+
+A library that reads the host itself cannot read a fake host. For this reason,
+gohai stopped using gopsutil (osapi-io/gohai#292). That change kept the
+arithmetic of each value that gopsutil gave, for example `cached` with
+`SReclaimable` in it, so the facts did not change. The cost is that gohai keeps
+these parsers, and gets no bug fixes from a library.
+
+dmi, gpu and pci still read the host through ghw, and four other collectors use
+a syscall or an OS lookup (osapi-io/gohai#295). The DNS lookups of the hostname
+collector are not a source, and stay outside on purpose.
+
+**A `Collect` method never uses `os.ReadFile`, `exec.Command` or `time.Now`.**
+It uses `FS`, `Exec` and `Now`. A test gives the files and the command output
+through `internal/sourcetest`, and does not touch the host. A new collector
+breaks this rule most often. A reviewer must look for it first.
 
 ## Compiling everywhere
 
@@ -78,10 +77,9 @@ The shape that follows:
 
 ```
 pkg/gohai/collectors/<name>/
-  <name>.go                 Info, the Collector implementation, New()
-  linux.go / darwin.go      per-OS structs
+  <name>.go                 Info, the Collector interface, New(), NewWith(src)
+  linux.go / darwin.go      per-OS structs, with FS, Exec and Now fields
   debian.go / rhel.go       only where a distro diverges
-  export_test.go            seams onto the upstream library
   <name>_public_test.go     one table-driven TestCollect keyed by variant
 ```
 
@@ -106,10 +104,10 @@ read the rules. The third tier is the usual case, and the first two are the
 exception. Thus a contributor who names a new field usually uses the convention
 of gohai, and does not look in OCSF.
 
-Tier three starts from the field name of the backing library in `snake_case`.
-For data from `/proc` or `/sys`, it uses the name of the kernel. It adds a unit
-suffix where the unit is not clear. Use only the universal abbreviations: `ip`,
-`mac`, `pid`, `uid`, `gid`, `mtu`, `fqdn`, `uuid`, `cidr`, `arn`, `id`.
+Tier three starts from the name of the source in `snake_case`. For data from
+`/proc` or `/sys`, it uses the name of the kernel. It adds a unit suffix where
+the unit is not clear. Use only the universal abbreviations: `ip`, `mac`, `pid`,
+`uid`, `gid`, `mtu`, `fqdn`, `uuid`, `cidr`, `arn`, `id`.
 
 ### The redundant-prefix rule
 
@@ -159,9 +157,10 @@ as `rhel` to `redhat` and `amzn` to `amazon`. `family.Of` is Ohai's
 platform name. `rhel` is strict: only rebuilds that track the versions of RHEL.
 Fedora, and other RPM distributions, are `fedora`. Amazon Linux is `amazon`.
 
-`family.Detect` is the family of the host. The collectors select their variant
-with it, through `internal/platform.Detect`, and the platform collector reports
-it. osapi names the platforms of its behaviors with the same values.
+`family.Detect` is the family of the host. A collector selects its variant with
+the family of its sources, and with `family.Detect` when the sources have none.
+The platform collector reports it. osapi names the platforms of its behaviors
+with the same values.
 
 One difference from Ohai is on purpose. On macOS the platform and the family are
 `darwin`, the name of Go and of the kernel, not Ohai's `mac_os_x`.
