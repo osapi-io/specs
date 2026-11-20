@@ -7,7 +7,7 @@ needs.
 ## The shape is `resource:verb`
 
 ```
-agent:read     node:write      command:execute
+agent:read     sysctl:write    command:execute
 job:read       network:write   command:shell
 health:read    file:write      docker:execute
 audit:read     docker:write    ...
@@ -27,6 +27,15 @@ permission of each method from the definition:
 
 The `get` of sysctl needs `sysctl:read`. dns under `network` needs
 `network:read`, the same as now. `osapi behavior get --name <name>` lists them.
+
+Thus a domain that moves to a behavior can change its permission. The node reads
+were all `node:read`. As behaviors, each has its own: `uptime:read`, `os:read`,
+`disk:read`, `memory:read`, `load:read`, and `hostname:read` with
+`hostname:write`. `node:read` now covers only the status summary, and
+`node:write` is gone, because hostname update was its only endpoint. The
+built-in roles get each behavior permission, so a token with a built-in role
+keeps its access. A custom role that named `node:read` or `node:write` for these
+domains must name the new permissions.
 
 `client.Permission` in the SDK is the type. Thus the permission set is part of
 the public API of osapi, not an internal detail. A consumer can name the
