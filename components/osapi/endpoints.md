@@ -170,11 +170,18 @@ var Group = endpoint.Register(endpoint.Define(
   command its own help, for a person at a shell, and its examples. Each input
   field is a flag, named for its json name with `_` as `-`.
 
-- **A renderer**, `command.Render(Group, "method", fn)` in
-  `cmd/client_<group>.go`, the file of the group's command, is the one part of
-  the CLI that a group writes. fn gets the input that the command sent and the
-  output that the API answered, such as the table of `agent list` or the detail
-  view of `agent get`. A method without one prints its answer as JSON.
+- **The output** of each command comes from the output type of its method, with
+  the tags of its fields ([the CLI](cli.md#output-comes-from-the-output-type)).
+  No command has a renderer.
+
+- **The help of the group's commands** comes from the definition, so a group has
+  no file in `cmd/`. The group's one line is the help of its command, and
+  `CommandLong("...")` adds more. `SubDoc("segment", "...")` is the one line of
+  the command that a `.Sub` segment makes, such as `trace` in
+  `osapi client telemetry trace get`. The page of each names the permission that
+  covers each command under it. A parent that has flags or hooks, such as
+  `client` and `client node`, stays in `cmd/`. So does `client controller`,
+  while its `key` command is hand-written.
 
 ## What it generates
 
