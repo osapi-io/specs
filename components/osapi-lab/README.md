@@ -180,6 +180,14 @@ what its examples say. It cannot show what an operator sees:
 
 The lab shows those.
 
+**The same suite, pointed at the lab.** osapi's integration suite runs against
+the lab from an osapi checkout. `OSAPI_INTEGRATION_OSAPIFILE` names the lab's
+`.lab/config/client.yaml`, and `OSAPI_INTEGRATION_TARGET` names one VM. The
+suite then starts nothing and tests the hub's controller and that VM's agent.
+With `OSAPI_INTEGRATION_WRITE_BEHAVIORS=1`, the write examples run on the VM,
+and the VM gets its state back after each one. The lab has no recipe of its own
+for this: `just go-unit-int` in osapi is the one entry point.
+
 **Ansible, not a justfile of shell.** The first version was bash in the
 justfile. It had a render script for templates, an scp loop for the VMs and a
 sudo check written by hand. It also needed a copy of the repository on the hub,
