@@ -320,9 +320,9 @@ Then each group moves in its own pull request, from the easiest:
 1. agent
 2. telemetry: one GET, a permission with a different name, and 503. Moved. Its
    command stays `osapi client telemetry trace get`: a method whose `Sub` is not
-   its name is under a command of that name. `--all` is a `.Flag` that only the
-   renderer reads, and a backend that fails is `endpoint.Internal`, so the
-   caller does not get the backend's error.
+   its name is under a command of that name. `--all` is the query parameter
+   `all`, and a backend that fails is `endpoint.Internal`, so the caller does
+   not get the backend's error.
 3. audit: pagination and an export. It is served from its definition. Its CLI
    paths stay `audit list`, `audit get` and `audit export`; `export`'s
    `--output` and `--type` are `.StringFlag`s, and an input field's `default`
@@ -405,9 +405,9 @@ The spec writer (`internal/behavior/openapi`), the server runtime
 (`internal/behavior/server`) and most of the command runtime
 (`internal/behavior/command`). The behavior generator stays, and writes the
 definition of the endpoint group, the generated HTTP tests on the fake job
-client, and the pages of each behavior. The renderer of the result table for
-each host stays, and the command runtime of the endpoint layer calls it through
-`command.Render`.
+client, and the pages of each behavior. The result table for each host stays:
+the behavior runtime prints it through `command.PrintsGroups`, the one printer
+that a kind of group adds.
 
 ### How we know that the output is correct
 

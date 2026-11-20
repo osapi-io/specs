@@ -287,17 +287,17 @@ With `--json`, a 204 prints the key and the result, such as
 `{"machine_id":"m-1","result":"admitted"}`. A behavior prints its table of
 results for each host, which the behavior runtime gives.
 
-**Change the output type before you write a renderer.** A command that prints a
-different shape from its data changes its data. `token roles list` was a matrix
-of each permission against each role. It is now a table of the roles, and
+**No command writes its own output.** A command that prints a different shape
+from its data changes its data. `token roles list` was a matrix of each
+permission against each role. It is now a table of the roles, and
 `token roles get` shows what one role grants. `audit export` wrote a file. It
 now prints the entries, and `--json > audit.json` keeps them.
 
-**A command that this cannot print has a renderer, with its reason.**
-`command.Render(Group, "method", fn).Because("...")`.
-`osapi cli command validate` fails a renderer with no reason. No command has one
-now: the last, `telemetry trace get`, went when the controller began to answer
-the span tree (osapi-io/osapi#904).
+The DSL had a renderer, `command.Render(...).Because("...")`, for a shape that
+no output type gave. Each response that needed one changed instead, the last
+when the controller began to answer the span tree of a trace
+(osapi-io/osapi#904). The renderer had no user, and it is removed
+(osapi-io/osapi#913). A tree is a list of the row's own type.
 
 `osapi cli command spec` teaches the tags. With `--json`, a command prints its
 output, and nothing renders it.
