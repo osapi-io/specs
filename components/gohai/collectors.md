@@ -33,6 +33,19 @@ gives the same sources to each collector. The cloud collectors have only
 osapi gives the sources of `host.Host`. Thus a behavior of osapi calls a
 collector, and the example of the behavior runs on the fake host.
 
+## What gohai reads
+
+gohai has facts about the host: what is installed, what the hardware is, and how
+the host is configured. The resolver configuration, the accounts and their
+authorized keys, and the installed packages are facts.
+
+The live state of a service that osapi manages is not a fact. Examples are the
+sync status of chrony, and the package updates that the repository index has.
+That state stays in the osapi domain that manages the service, next to the
+writes that change it. It still runs on each family, because the family selects
+only writes. Ohai is the test when it is not clear: a read that Ohai has no
+plugin for, and that a daemon or a remote index answers, is not gohai's.
+
 ## Choosing what to read
 
 There are four positions, in order. A collector uses the first position that

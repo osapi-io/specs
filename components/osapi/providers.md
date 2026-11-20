@@ -161,8 +161,11 @@ and on macOS, so an operation that only reads, such as disk usage, memory, load
 or the process list, comes from gohai on each of them. Fedora, RHEL and Arch get
 the same reads as Debian. The family selects only an operation that changes the
 host, such as a package or a service. When gohai does not have a read that an
-operation needs, the read goes into gohai first: the process list's CPU and
-memory shares did (osapi-io/osapi#960).
+operation needs, and the read is a fact about the host, it goes into gohai
+first: the process list's CPU and memory shares did (osapi-io/osapi#960). The
+live state of a service that a domain manages, such as NTP sync or package
+updates, stays in that domain's provider, next to its writes, and also runs on
+each family (osapi-io/osapi#964).
 
 **A family that a domain does not implement has a stub. It is not missing.**
 Thus the selection always finds something, and that thing returns the
