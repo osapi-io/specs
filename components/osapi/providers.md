@@ -163,7 +163,15 @@ nil.
 
 ## Facts
 
-A provider gets host attributes in three steps:
+**gohai collects the facts, not the providers.** `writeFacts` in
+`internal/agent/facts.go` makes one gohai call with the kernel, hostname, cpu,
+init, package_mgr, network and virtualization collectors. It changes the result
+into `job.FactsRegistration` and writes it to the facts bucket. A new fact is a
+new gohai collector, or a new field of one. It is never a method of a provider
+(osapi-io/osapi#962). When gohai does not have a read, the change goes into
+gohai first, as the macOS routes did (osapi-io/gohai#301).
+
+A provider gets these host attributes in three steps:
 
 1. It embeds the shared facts holder.
 2. It asserts the setter contract at compile time.
