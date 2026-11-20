@@ -237,6 +237,11 @@ prints each component with its sub-components under it, as a tree. The answer
 had them in one map of the whole fleet, keyed `controller.api`, and the CLI and
 the UI each matched the prefix to find the component (osapi-io/osapi#904).
 
+`GET /api/controller/status`, `/api/nats/status` and `/api/agent/status` answer
+the components of one type, with their sub-components, as a list with its count.
+They filter the health status, so the data is the same.
+`osapi client nats status` and the others print the same tree for one type.
+
 The controller also checks its connection to NATS and to KV for each answer.
 These are in `checks`, each with its name, its status and, when it failed, its
 error.

@@ -248,9 +248,12 @@ Each check has its rule and its fix, as for endpoints.
    commands are done: the operation of a job is `{type, data}`, its target is
    always set, and its responses and agent states are lists sorted by hostname.
    `health status` is done: each registry entry has its sub-components, and the
-   controller's checks of NATS and KV are `checks`. `client agent status`,
-   `client controller status` and `client nats status` printed parts of the same
-   answer, and they are removed.
+   controller's checks of NATS and KV are `checks`. `client controller status`,
+   `client nats status` and `client agent status` were hand-written. They are
+   generated now, from a `status` method in the controller, nats and agent
+   endpoint groups: `GET /api/<group>/status`. Each answers the components of
+   its type, with their sub-components, filtered from the health status. Thus
+   each thing has its status command, and none is hand-written.
 
 ## Not decided
 
