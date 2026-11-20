@@ -150,6 +150,27 @@ Where a specific choice needs attribution, the page of the collector gives it in
 the text. The Data Sources pages describe how gohai operates. They are not a
 diff against Ohai.
 
+## The platform and its family
+
+`pkg/gohai/family` names a host as Ohai does. `family.Platform` is Ohai's
+`platform_id_remap`: the ID of `/etc/os-release`, with a few IDs changed, such
+as `rhel` to `redhat` and `amzn` to `amazon`. `family.Of` is Ohai's
+`platform_family_from_platform`: the first family whose match is part of the
+platform name. `rhel` is strict: only rebuilds that track the versions of RHEL.
+Fedora, and other RPM distributions, are `fedora`. Amazon Linux is `amazon`.
+
+`family.Detect` is the family of the host. The collectors select their variant
+with it, through `internal/platform.Detect`, and the platform collector reports
+it. osapi names the platforms of its behaviors with the same values.
+
+One difference from Ohai is on purpose. On macOS the platform and the family are
+`darwin`, the name of Go and of the kernel, not Ohai's `mac_os_x`.
+
+Before this, gohai had two lists that did not agree. Its `Detect` put Fedora and
+Amazon in `rhel`, and did not know most of the Debian family. The table of the
+platform collector put Amazon in `rhel`, and on macOS the family was the value
+of `gopsutil`, not a family.
+
 ## Where this connects
 
 [The entry point](README.md) has the collector contract, the registry, and what

@@ -255,9 +255,11 @@ behavior with it.
 
 A platform matches exactly first. If no platform matches, a host that is not
 macOS gets the provider declared for `linux`, because the agent runs only on
-Linux and macOS. `platform.Detect` names the Debian family `debian`, and names
-other distributions by their own names. Without the fallback, a behavior that
-works the same on each distribution needs a line for each distribution.
+Linux and macOS. gohai's `family.Detect` names the platform: a family as Ohai
+names it, such as `debian`, `rhel`, `fedora` or `amazon`, `darwin` on macOS, or
+the distribution's own name when it has no family. Without the fallback, a
+behavior that works the same on each distribution needs a line for each
+distribution.
 
 One method can run on fewer platforms than its behavior. `hostname` declares
 `linux` and `darwin`, and its `get` reads the name on both. Its `update` has

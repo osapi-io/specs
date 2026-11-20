@@ -149,8 +149,8 @@ checks availability when osapi makes it, not on the first use.
 
 ## Platform selection happens outside the provider
 
-A provider does not decide if it applies. `Detect` and `IsContainer` in
-`pkg/sdk/platform` select by OS family, and by whether the process is in a
+A provider does not decide if it applies. gohai's `family.Detect` selects by OS
+family, and `IsContainer` in `pkg/sdk/platform` by whether the process is in a
 container. `agent.Setup` in `internal/agent/setup.go` reads them one time, and
 the methods of `hostEnv` in `internal/agent/providers.go` select the provider.
 

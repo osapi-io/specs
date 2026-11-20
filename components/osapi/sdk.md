@@ -82,7 +82,7 @@ pkg/sdk/client/
   errors.go       the typed error hierarchy
   <domain>.go     one per service: its methods
   <domain>_types.go   its result types, and the conversions from gen
-pkg/sdk/platform/   platform detection, not a service
+pkg/sdk/platform/   container detection, not a service
 ```
 
 The split between `<domain>.go` and `<domain>_types.go` keeps the conversion

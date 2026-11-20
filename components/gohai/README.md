@@ -12,22 +12,15 @@ them are not tests.
 
 ## Where it sits
 
-No Go dependency goes in either direction. Nothing in the organization imports
-gohai. The `go.mod` of gohai names one `osapi-io` path: its own module line. For
-this reason, the repository map of the system uses it as the example. You can
-read this document without a second repository to remember.
+gohai is the read layer of osapi: what osapi detects or reads on a host comes
+from gohai, and a read that osapi needs and gohai lacks goes into gohai.
+[How they fit together](../../ARCHITECTURE.md) has the decision and where the
+move is now. osapi imports gohai for the family of a host, and its other reads
+follow.
 
-One connection exists, and no `go.mod` records it. The build of gohai gets the
-`go`, `just` and `md` modules from `osapi-justfiles` with `curl`, from `main`,
-not from a release. Thus a change there gets to the next CI run of gohai, and
-nothing records which version built it.
-
-Isolation does not mean a different job. gohai and `osapi` read system facts
-from the same upstream library, at the same pinned version, independently. That
-fact is between repositories, so it is in
-[how they fit together](../../ARCHITECTURE.md). For a person who works here, the
-important part is this: osapi is not a consumer of gohai, and does not break if
-a collector changes.
+One more connection exists, and no `go.mod` records it. The build of gohai gets
+the `go`, `just` and `md` modules from `osapi-justfiles` with `curl`. Thus a
+change there gets to the next CI run of gohai.
 
 ## Read about it
 
