@@ -65,6 +65,14 @@ It uses `FS`, `Exec` and `Now`. A test gives the files and the command output
 through `internal/sourcetest`, and does not touch the host. A new collector
 breaks this rule most often. A reviewer must look for it first.
 
+Two facts changed on purpose, to follow Ohai. On Linux, `machine_id` reads
+`/etc/machine-id` first, then `/var/lib/dbus/machine-id`, then DMI
+`product_uuid`. gopsutil read `product_uuid` first, so on a VM the ID is now the
+machine ID, not the DMI UUID. The `opts` of a mount have each option of
+`/proc/mounts`, as Ohai's `mount` reports them, not only the options of the
+mount point. The other Linux facts are the same as v1.2.0 on an Ubuntu host
+(osapi-io/gohai#300).
+
 ## Compiling everywhere
 
 Collector code compiles on each target platform, and no file has a `//go:build`
