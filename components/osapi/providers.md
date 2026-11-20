@@ -156,6 +156,14 @@ cascade, not only `/.dockerenv`. `agent.Setup` in `internal/agent/setup.go`
 reads them one time, and the methods of `hostEnv` in
 `internal/agent/providers.go` select the provider.
 
+**A read is not selected by family.** gohai reads the host on every Linux family
+and on macOS, so an operation that only reads, such as disk usage, memory, load
+or the process list, comes from gohai on each of them. Fedora, RHEL and Arch get
+the same reads as Debian. The family selects only an operation that changes the
+host, such as a package or a service. When gohai does not have a read that an
+operation needs, the read goes into gohai first: the process list's CPU and
+memory shares did (osapi-io/osapi#960).
+
 **A family that a domain does not implement has a stub. It is not missing.**
 Thus the selection always finds something, and that thing returns the
 unsupported outcome. A missing platform is a compile-time gap, not a runtime
