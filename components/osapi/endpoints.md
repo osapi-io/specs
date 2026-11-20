@@ -178,10 +178,11 @@ var Group = endpoint.Register(endpoint.Define(
   no file in `cmd/`. The group's one line is the help of its command, and
   `CommandLong("...")` adds more. `SubDoc("segment", "...")` is the one line of
   the command that a `.Sub` segment makes, such as `trace` in
-  `osapi client telemetry trace get`. The page of each names the permission that
-  covers each command under it. A parent that has flags or hooks, such as
-  `client` and `client node`, stays in `cmd/`. So does `client controller`,
-  while its `key` command is hand-written.
+  `osapi client telemetry trace get`. `validate` fails a `.Sub` segment that
+  makes a command of its own and has no `SubDoc`. The page of each names the
+  permission that covers each command under it. A parent that has flags or
+  hooks, such as `client` and `client node`, stays in `cmd/`. So does
+  `client controller`, while its `key` command is hand-written.
 
 ## What it generates
 
