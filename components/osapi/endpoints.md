@@ -420,9 +420,9 @@ the old spec is not the test. It would make the endpoint layer copy the wording
 that the change removes.
 
 The generated HTTP tests of sysctl must pass with no change, against the
-endpoint routes. `osapi client next node sysctl ... --help` and the pages of the
-commands must not change, but for one line: `--target` is a flag of each
-command, not a global flag of `next node`.
+endpoint routes. `osapi client next node sysctl ... --help`, as sysctl was
+before its cutover, and the pages of the commands must not change, but for one
+line: `--target` is a flag of each command, not a global flag of `next node`.
 
 ### The order
 

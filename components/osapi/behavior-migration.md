@@ -53,31 +53,28 @@ contributor now.
 - generated commands
 - the generated spec and docs pages
 
-osapi serves all of these next to the hand-written domain, under `/api/next` and
-`osapi client next`. While the two exist, the domain has a row in the
-[parity test](behaviors.md#served-beside-the-hand-written-domains). The row
-holds the generated spec to the hand-written spec. The cutover of a domain (step
-4 below for sysctl) deletes that row, and makes the behavior the only path.
+A domain moves in one change: the behavior goes to `/api` and `osapi client`,
+and the hand-written domain is deleted. The two never run side by side. Before
+sysctl's cutover, osapi served it under `/api/next` and `osapi client next`
+beside the hand-written domain. Its cutover (osapi-io/osapi#731) removed
+`behavior.Next`, the `/api/next` routes, `osapi client next`, the next spec and
+its docs section.
 
-The row of sysctl went before its cutover. A test of the branch on real hosts
-showed that its reads were incorrect. `list` and `get` reported only the
-parameters that osapi wrote. Thus a new host listed nothing, and `get` answered
-404 for a key that the kernel has. Ansible, Salt and Puppet all read the host as
-it is. Thus:
+A test of the branch on real hosts showed that the reads of sysctl were
+incorrect. `list` and `get` reported only the parameters that osapi wrote. Thus
+a new host listed nothing, and `get` answered 404 for a key that the kernel has.
+Ansible, Salt and Puppet all read the host as it is. Thus:
 
 - `list` now reads each parameter under `/proc/sys`, with an optional `prefix`.
 - `get` reads any key.
 - Each entry tells if osapi manages it.
 - `update` sets and manages a parameter, if osapi managed it before or not.
 
-Thus the API is now different from the hand-written API on purpose, and a parity
-row that held it to the old API had to go. The cutover changes these parts:
+The cutover changed these parts:
 
-- **API.** Its routes move from `/api/next` to `/api`. Its hand-written handler
-  under `internal/controller/api/node/` and its oapi-codegen server code are
-  deleted.
-- **CLI.** Its generated commands move from `client next` to `client`. Its
-  hand-written `cmd/client_node_*` files are deleted.
+- **API.** Its hand-written handler under `internal/controller/api/node/` and
+  its oapi-codegen server code are deleted.
+- **CLI.** Its hand-written `cmd/client_node_*` files are deleted.
 - **Agent.** Its hand-written processor is deleted. Its provider is already in
   the directory of the behavior, as `<platform>.go`, with its tests moved
   without changes. sysctl showed that this move is safest before the cutover.
@@ -86,22 +83,28 @@ row that held it to the old API had to go. The cutover changes these parts:
 - **SDK.** The routes and operationIds are the hand-written ones. Thus the
   client that oapi-codegen generates from the joined spec keeps its methods, and
   `client.Sysctl` continues to work over it. Its entries get `managed`, and its
-  list takes a `prefix`. To generate those typed services from the spec is a
-  later step.
+  list takes a `prefix` (`SysctlListOpts`). The old job operations,
+  `node.sysctl.*`, are deleted: a behavior's job is `behavior.sysctl.<method>`.
+  To generate those typed services from the spec is a later step.
 - **Spec.** Its part of the generated spec joins the main spec, and its
   hand-written YAML is deleted. What reads the spec continues to work: the
   TypeScript client of the UI, the API pages of the docs site, and outside
   clients that people generate from it.
 
-The first cutover brings two checks that the spec does not have now. After osapi
-generates the spec, nothing else holds it to the server:
+The first cutover brought two checks. After osapi generates the spec, nothing
+else holds it to the server:
 
 - **The spec still describes what the server does.** The integration tests send
-  each request and response through a validator that comes from the generated
-  spec: `openapi3filter` of `kin-openapi`, which is already in the module graph.
-- **The spec still works for the generator of a different person.** CI runs
-  oapi-codegen on the generated spec into a scratch package, and compiles the
-  client.
+  each request and response through a proxy that validates it against the joined
+  spec, with `openapi3filter` of `kin-openapi`
+  (`test/integration/spec_test.go`). A request or a response that breaks the
+  spec fails the run. A request that no operation describes fails only when the
+  server serves it. Its first runs found an object `example` written as a
+  string, and DNS answering `null` where its spec says a list.
+- **The spec still works for the generator of a different person.**
+  `just spec-client-check`, one of the slow checks of `just test`, runs
+  oapi-codegen with its default options on the joined spec into a scratch
+  package, and compiles the client.
 
 The controller-only endpoints (agent, audit, facts, file, health, job and
 telemetry) are not behaviors. They move to a DSL of their own, which
@@ -148,12 +151,9 @@ behavior in its group. `--group` now does this.
 
 ## Next
 
-4. The cutover, after the behavior work merges. Remove `behavior.Next` from
-   sysctl and follow the checks that fail. Its routes and commands move to
-   `/api` and `client`. Its spec joins the main spec. Its hand-written handler,
-   processor and command files are deleted. Its provider is already in
-   `internal/behaviors/sysctl`, and its parity row is already gone. Pass
-   criteria 2 to 4 above.
+4. The cutover of sysctl: built (osapi-io/osapi#731). It removed
+   `behavior.Next`, so each later domain moves in one change. It corrected
+   `references/migrating.md` of the build-a-behavior skill, which it followed.
 5. `Requires` and `Internal`: built.
 6. Evals for the build-a-behavior skill: built.
 7. The test of the full idea. In a new session, ask an agent to build a new
@@ -170,9 +170,8 @@ behavior in its group. `--group` now does this.
 
 The README got its shape from the README of swamp when sysctl was built from its
 definition: a claim, why it is better, a start with `osapi init`, the requests
-to try, and the core concepts. Behaviors are a core concept there. The README
-says that osapi serves them under `next` until the cutover. Each line describes
-something that osapi does, and nothing else.
+to try, and the core concepts. Behaviors are a core concept there. Each line
+describes something that osapi does, and nothing else.
 
 ## What blocks the other domains
 

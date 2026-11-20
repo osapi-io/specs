@@ -560,7 +560,7 @@ Behavior:
 
 Methods (5):
   NAME    VERB   HTTP  ROUTE                                   PERMISSION    DESCRIPTION
-  list    read   GET   /api/next/node/{hostname}/sysctl        sysctl:read   List the kernel's parameters ...
+  list    read   GET   /api/node/{hostname}/sysctl             sysctl:read   List the kernel's parameters ...
 
 Types (5):
   NAME    INPUT                         OUTPUT

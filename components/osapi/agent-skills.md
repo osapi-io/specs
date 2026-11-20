@@ -81,7 +81,7 @@ It adds these things:
 - the decisions to make with the user before any code
 - the order of the work
 - the rule that examples are tests
-- the parity row for the migration of a domain
+- the cutover of a domain, in one change
 - what each test failure means
 - what the platform cannot express yet
 
