@@ -78,6 +78,13 @@ filter on `list`, or a resource with its own verbs under it: `file stale list`,
 `facts keys list`. Do not use synonyms. Use `delete`, never `remove` or `rm`.
 Use `create`, never `add` or `new`. Use `get`, never `describe` or `show`.
 
+A command directly under `osapi` that does one thing for the tool itself, such
+as `osapi version` or `osapi init`, is not a resource and a verb. Each command
+line tool has these, as `kubectl version` and `git init` are. Its word is one of
+`command.Roots`, a short list that a person adds to as a decision, because the
+root is the first thing a person reads. `TestCommandShape` holds each command of
+the root to that list.
+
 The verbs cost one natural name. `user ssh-key add` became `create`, which is
 less natural than "add a key". The change was made anyway, because one verb set
 lets the generator enforce it.
