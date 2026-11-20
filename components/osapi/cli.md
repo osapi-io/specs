@@ -248,6 +248,9 @@ These rules have no options:
 - A table leaves out a column that has no value in any row, except a column with
   a `none` tag. `agent list` always has CONDITIONS, with `-` when no condition
   is true.
+- A row whose type has a list of its own type has a tree: the items print as
+  rows under it, with `├─` and `└─`. Each component of `health status` has its
+  sub-components under it.
 - In a table cell, an object is its values, with a space between them, such as
   `Ubuntu 24.04`. A list of objects is the first field of each, with commas,
   such as `HighLoad, DiskPressure`.
@@ -292,14 +295,13 @@ now prints the entries, and `--json > audit.json` keeps them.
 
 **A command that this cannot print has a renderer, with its reason.**
 `command.Render(Group, "method", fn).Because("...")`.
-`osapi cli command validate` fails a renderer with no reason. Two endpoint
-commands have one. Their responses do not have the shape that the CLI shows, and
-osapi-io/osapi#904 changes them:
+`osapi cli command validate` fails a renderer with no reason. One endpoint
+command has one. Its response does not have the shape that the CLI shows, and
+osapi-io/osapi#904 changes it:
 
-| Command               | Reason                                                                  |
-| --------------------- | ----------------------------------------------------------------------- |
-| `health status`       | the components are a tree, and storage puts several counts in one value |
-| `telemetry trace get` | the spans are a tree                                                    |
+| Command               | Reason               |
+| --------------------- | -------------------- |
+| `telemetry trace get` | the spans are a tree |
 
 `osapi cli command spec` teaches the tags, and `get` tells which commands have a
 renderer and why. With `--json`, a command prints its output, and nothing

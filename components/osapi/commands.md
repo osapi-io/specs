@@ -107,10 +107,10 @@ They go to `internal/cli`. `behavior` and `controller endpoint` are commands
 about the DSLs. They stay beside the DSLs that they read, as now.
 
 A group has no code for its output. Each command prints from the output type of
-its method ([the CLI](cli.md#output-comes-from-the-output-type)). Two endpoint
-commands still have a renderer in `cmd/client_<group>.go`, because their
-responses do not have the shape that the CLI shows. osapi-io/osapi#904 changes
-the responses and deletes the renderers.
+its method ([the CLI](cli.md#output-comes-from-the-output-type)). One endpoint
+command still has a renderer in `cmd/client_<group>.go`: `telemetry trace get`,
+because its response does not have the shape that the CLI shows.
+osapi-io/osapi#904 changes the response and deletes the renderer.
 
 ## The definition
 
@@ -242,12 +242,18 @@ Each check has its rule and its fix, as for endpoints.
    The hand-written renderers went, and five stay with their reason. Golden
    tests hold the output of each shape. The output of each command was compared
    before and after, from fixed data.
-6. **The last renderers.** osapi-io/osapi#904 changes the responses of
-   `health status` and `telemetry trace get`, so that their commands print from
-   the type. `agent list` is done: the API always gives `state` and only the
-   true conditions. The job commands are done: the operation of a job is
-   `{type, data}`, its target is always set, and its responses and agent states
-   are lists sorted by hostname.
+6. **The last renderers.** osapi-io/osapi#904 changes the response of
+   `telemetry trace get`, so that its command prints from the type. `agent list`
+   is done: the API always gives `state` and only the true conditions. The job
+   commands are done: the operation of a job is `{type, data}`, its target is
+   always set, and its responses and agent states are lists sorted by hostname.
+   `health status` is done: each registry entry has its sub-components, and the
+   controller's checks of NATS and KV are `checks`. `client controller status`,
+   `client nats status` and `client agent status` were hand-written. They are
+   generated now, from a `status` method in the controller, nats and agent
+   endpoint groups: `GET /api/<group>/status`. Each answers the components of
+   its type, with their sub-components, filtered from the health status. Thus
+   each thing has its status command, and none is hand-written.
 
 ## Not decided
 
