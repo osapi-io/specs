@@ -251,6 +251,11 @@ Each check has its rule and its fix, as for endpoints.
    (osapi-io/osapi#915). Its `validate` returns its report with
    `command.Fail()`: the report prints, then the command exits 1. `command.Long`
    is the help of a group's command, as `CommandLong` is for an endpoint group.
+   `skill` and `init` are built (osapi-io/osapi#916). `init` is a flat group at
+   the root, and its path is `--path`, since each value is a flag. `skill get`
+   prints a skill's file as it is: its `content` field is tagged
+   `render:"body"`, which makes a field the whole output. `guide.go` holds the
+   helpers of the commands that teach the DSLs, and moves with them.
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's
