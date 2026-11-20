@@ -27,11 +27,18 @@ Viper reads four sources. A later source replaces an earlier source:
    values of the settings that each behavior declares
 2. the config file, in YAML, at the path that the `--osapi-file` flag gives
 3. the environment
-4. a flag that is bound to the key, for example `controller --port`
+4. a flag that is bound to the key, for example
+   `controller start --controller-api-port`
 
 The name of an environment variable is the config path with `OSAPI_` at the
 start. Underscores replace the dots. Thus `controller.api.port` is
 `OSAPI_CONTROLLER_API_PORT`. `config.Read` binds each key to its variable.
+
+The name of a flag is the config path with dashes for its dots and underscores,
+such as `--controller-api-port`. A process names its keys with `.Flag` in the
+[command DSL](commands.md#processes), and `config.BindFlags` makes each flag
+from the type, the default and the doc of its key. Thus the default of a key is
+in `config.Defaults` only, and `config get` shows the default that the flag has.
 
 Before that change, `AutomaticEnv` read only the keys that viper already knew
 from a default or from the file. Thus viper ignored a variable for each other
