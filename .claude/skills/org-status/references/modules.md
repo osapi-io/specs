@@ -2,9 +2,10 @@
 
 Resolve the repository set first, per [SKILL.md](../SKILL.md).
 
-Every `examples/` directory in this organization holds its own `go.mod`, 19 of
-them across five repositories. Dependabot watches the directory its config
-names, which is the root, so the nested ones drift untouched.
+The `examples/` directories of four repositories hold their own `go.mod`, 13 of
+them: osapi, nats-client, nats-server and osapi-orchestrator. gohai's examples
+are packages of its root module, so gohai has none. Dependabot watches the
+directory its config names, so a nested module can drift untouched.
 
 The justfile knows how to do all of this. Do not hand-roll a `find` loop.
 
@@ -72,9 +73,9 @@ fails when a directory has more than one `main` package, and some of these do.
 `just test` is the check. If you need more, `go vet` compiles and writes
 nothing.
 
-## The durable fix, which is not this
+## The durable fix
 
-Dependabot v2 takes `directories` with globs. With this, the drift stops:
+A `directories` glob in the Dependabot config is not enough:
 
 ```yaml
 - package-ecosystem: "gomod"
@@ -83,7 +84,13 @@ Dependabot v2 takes `directories` with globs. With this, the drift stops:
     - "/examples/*"
 ```
 
-Also, `go-mod-check` in the `test` recipe of a repository fails the build, so
-that nobody needs to find the drift. Both changes add noise, and both remove a
-thing to remember. Both change how a repository operates. Thus propose them. Do
-not make them.
+Dependabot bumps a dependency only in a module whose `go.mod` names it. A
+nested example that gets a dependency through a `replace` of the root has it
+only in its `go.sum`. Then Dependabot bumps the root alone, and `go-mod-check`
+fails on each example (osapi-io/gohai#286).
+
+The fix is to make the examples packages of the root module, with no `go.mod`
+of their own, as gohai did (osapi-io/gohai#286). Each example stays its own
+`package main` directory, and one `go.mod` moves with each bump. It changes how
+a repository operates, so propose it for each of the other four. Do not make it
+during a sweep.
