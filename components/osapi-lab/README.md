@@ -169,9 +169,9 @@ image does not have, until the next push.
 
 ## Why it is built this way
 
-**A real host, not a container.** `just behavior-int-linux` in osapi runs the
-examples of a behavior against an agent in one Debian container. That shows that
-a provider does what its examples say. It cannot show what an operator sees:
+**Many real hosts, not one runner.** CI in osapi runs the write examples of each
+behavior against one agent on its Ubuntu runner. That shows that a provider does
+what its examples say. It cannot show what an operator sees:
 
 - many agents that answer one broadcast
 - a distribution that osapi does not support
