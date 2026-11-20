@@ -22,10 +22,8 @@ repositories, not seven.
 
 ```
       nats-client ─┐
-                   ├─→ osapi ──→ osapi-orchestrator
-      nats-server ─┘
-
-      gohai                    (standalone)
+      nats-server ─┼─→ osapi ──→ osapi-orchestrator
+      gohai ───────┘           (osapi's read layer: moving to it)
 
       osapi-lab                (runs a checkout of osapi on real hosts)
 
@@ -44,15 +42,10 @@ repositories, not seven.
 
 ## Where to start
 
-**Start with osapi.** Five of the other six repositories give data to it, use it
-or run it. Thus its document makes the others clear. gohai is the sixth
-repository and the exception, below. Read the
+**Start with osapi.** Each of the other six repositories gives data to it, uses
+it or runs it. Thus its document makes the others clear. Read the
 [job system](components/osapi/job-system.md) of osapi next, because the full
 product uses the queue.
-
-**gohai is the exception.** It has no connection in either direction. Thus you
-can read it alone. Start there if you want to see the shape of the documentation
-without a second repository to remember.
 
 ## What crosses a boundary
 
@@ -186,9 +179,8 @@ repository is not the correct location.
 
 **The dependency graph has one center and one end.** osapi is the only
 repository with connections in the two directions. osapi-orchestrator has an
-incoming Go connection and no outgoing connection. gohai has no Go connection in
-either direction. But its build gets justfile modules, like each other
-repository.
+incoming Go connection and no outgoing connection. gohai will have one outgoing
+connection, to osapi, as the next paragraph tells.
 
 **The effect of a change does not follow the size of the repository.**
 `osapi-justfiles` has no Go code, and it goes to eight repositories.
@@ -204,20 +196,20 @@ Before, only this page had those facts. That was a correct finding in the
 incorrect repository. A new contributor needed them and did not find them where
 a contributor looks.
 
-**Two repositories read system facts from `gopsutil` independently.** The two
-pin the same version, `v4.26.8`. gohai uses it in 14 of its 62 collector
-directories. osapi uses it in 21 files that are not tests, most of them under
-`internal/provider/node/`. Neither imports the other.
+**gohai is the read layer of osapi.** gohai was written for osapi. What osapi
+detects or reads on a host comes from gohai: the platform and its family first,
+then memory, CPU, load, disk and the facts. osapi does not keep a copy of a
+gohai table, and does not call `gopsutil` itself. When osapi needs a read that
+gohai does not have, or an API of gohai does not fit, the change goes into gohai
+first, and osapi then uses it.
 
-This is a duplication only if the two need the same thing, and the two jobs are
-different. gohai makes a catalog of facts in OCSF. osapi needs some host
-attributes for targets. It is useful to know about the overlap. Without it, a
-contributor in either repository can think that the other repository is a
-consumer or a supplier. Neither is.
-
-```sh
-grep -h gopsutil gohai/go.mod osapi/go.mod   # the same version twice
-```
+Today the move is at its start. gohai exports the family of a host
+(`pkg/gohai/family`), as Ohai names it. osapi still has its own
+`pkg/sdk/platform.Detect`, and its providers still call `gopsutil`
+(osapi-io/osapi#947). For a behavior of osapi, a read must also run on the fake
+host of its tests. Thus the collectors of gohai must take their sources (a
+filesystem, a command runner, a clock) from the caller, before the behaviors of
+osapi can call them.
 
 ## What is not here
 
