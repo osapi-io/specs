@@ -269,7 +269,9 @@ Each check has its rule and its fix, as for endpoints.
    `spec` is a noun, so its command is `spec get`, as `node hostname get` is.
    `new` wrote a new group, which `create` says, so it is `create`; an action is
    only for what a CRUD verb does not say. `controller endpoint` and `behavior`
-   have the same names, and move next.
+   have the same names. The `controller endpoint` commands are built:
+   `get --openapi` printed a different thing from `get`, so it is a command of
+   its own, `controller endpoint openapi get`. `behavior` moves next.
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's

@@ -226,7 +226,7 @@ The commands are under the process that the endpoints belong to:
 ```sh
 osapi controller endpoint list                                 # the groups and their methods
 osapi controller endpoint get --name agent                     # the routes, permissions and operationIds
-osapi controller endpoint get --name agent --openapi           # the group's part of the spec, as YAML
+osapi controller endpoint openapi get --name agent             # the group's part of the spec, as YAML
 osapi controller endpoint spec get                             # each part of the DSL, and when to use it
 osapi controller endpoint validate                             # the rules of each definition, each with its fix
 osapi controller endpoint create --name x --description "..."  # a new group that passes its tests
@@ -262,7 +262,7 @@ hand-written specs stay, and keep serving the API, until then.
    each schema property: the path, the verb, the operationId, the tags, the
    auth, each parameter, the request body and each response with its schema. A
    difference fails the test, unless the row accepts it with its reason.
-3. **The prose.** `osapi controller endpoint get --name agent --openapi` prints
+3. **The prose.** `osapi controller endpoint openapi get --name agent` prints
    the generated spec, to read next to the hand-written spec. A person reads the
    descriptions and the examples. The test does not compare them.
 4. **The CLI.** Built for the agent group. The help of each generated command,
