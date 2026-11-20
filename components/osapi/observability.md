@@ -106,9 +106,10 @@ time of the request was for (osapi-io/osapi#866). `traces.read` is the HTTP call
 to Jaeger, which no other span showed. An operation of one call, such as a file
 `info`, has no span of its own: the span of its NATS call is enough. An
 `agent.get` for a hostname, not a machine ID, has an `agent.list` under it,
-because it scans the registry. `trace get` and the Traces page take DETAIL from
-two tables, `opCounts` and `opDetail` in `internal/cli/trace.go`, which
-`trace-tree.ts` copies.
+because it scans the registry. The controller takes DETAIL from two tables,
+`opCounts` and `opDetail` in `internal/controller/endpoints/telemetry/tree.go`.
+`trace get` and the Traces page show what it answers. Each had a copy of the
+rules, `internal/cli/trace.go` and `trace-tree.ts`, until osapi-io/osapi#904.
 
 `trace get` and the Traces page show what ran each span in the `ON` column, the
 role of the service that made it: `controller`, `agent` or `cli`. A blank cell
@@ -166,9 +167,13 @@ status.
 
 `osapi client telemetry trace get --id <trace>` and the Traces page of the UI
 show the span tree of a trace. They ask the controller, at
-`GET /api/telemetry/trace/{id}`, with `trace:read`. The controller asks the
-tracing backend. Thus the machine of the CLI needs no access to the backend, as
-with the trace ID.
+`GET /api/telemetry/trace/{id}`, with `trace:read`. The controller answers the
+summary of the trace and its spans as a tree: each span with ON, STATUS, DETAIL,
+the span as the backend has it, and its children. Without the query parameter
+`all`, it leaves out the NATS calls, moves the spans under them up, and counts
+them. `--all` and the check box of the Traces page send it. The controller asks
+the tracing backend. Thus the machine of the CLI needs no access to the backend,
+as with the trace ID.
 
 OpenTelemetry has no standard API to read a trace. The controller reads the
 query API of Jaeger, `/api/v3/traces/{id}`, which answers OTLP JSON, at
