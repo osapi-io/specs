@@ -184,7 +184,7 @@ pull request.
 ```sh
 osapi init                              # claude, in the current directory
 osapi init --tool claude --tool codex   # both tools
-osapi init ./ops-repo --json
+osapi init --path ./ops-repo --json
 ```
 
 For each tool, it writes the skills to the directory that the tool reads. It
