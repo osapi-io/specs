@@ -15,8 +15,8 @@ them are not tests.
 gohai is the read layer of osapi: what osapi detects or reads on a host comes
 from gohai, and a read that osapi needs and gohai lacks goes into gohai.
 [How they fit together](../../ARCHITECTURE.md) has the decision and where the
-move is now. Today no `go.mod` records the connection yet: osapi starts to
-import gohai with the family of a host.
+move is now. osapi imports gohai for the family of a host, and its other reads
+follow.
 
 One more connection exists, and no `go.mod` records it. The build of gohai gets
 the `go`, `just` and `md` modules from `osapi-justfiles` with `curl`. Thus a
