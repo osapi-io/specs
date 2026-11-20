@@ -274,8 +274,11 @@ Each check has its rule and its fix, as for endpoints.
    its own, `controller endpoint openapi get`. The `behavior` commands are
    built, and the commands that teach the DSLs are done (osapi-io/osapi#934).
    `get --method` printed one method in full where `get` prints the behavior, so
-   it is a command of its own, `behavior method get`. Of the local commands,
-   only `cli-docs` is still written by hand. The `client node` commands go with
+   it is a command of its own, `behavior method get`. The last local command,
+   `cli-docs`, is `osapi cli docs generate`: a group under `cli` that gets the
+   root command as a dep and writes the CLI reference pages. Thus each local
+   command comes from a definition. `cmd/` keeps the root, the wiring and the
+   parents of hand-written commands. The `client node` commands go with
    [the behavior migration](behavior-migration.md).
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
@@ -335,11 +338,6 @@ Each start has a `Components` function, which makes its parts and starts none.
 `osapi start` calls the three of them, with one tracer and the job namespace of
 the controller, and adds the stop of the tracer with `command.Then`. Each debug
 log of the config is still written in its setup.
-
-## Not decided
-
-- `cli-docs` and `help` read the whole tree. They can be methods that get the
-  root as a dep, or stay in `cmd/`.
 
 ## What this page does not cover
 
