@@ -260,7 +260,9 @@ Each check has its rule and its fix, as for endpoints.
    built (osapi-io/osapi#918). It was `osapi client controller key fingerprint`,
    but it reads the key pair on the disk of the host and calls no API.
    `osapi client` is the commands that call the API, so the command is a local
-   group under `osapi controller`.
+   group under `osapi controller`. `nats setup` and `agent admission get` are
+   built. `setup` is an action in `command.Actions`. `admission` is a noun, so
+   its command is `agent admission get`, as each noun has a verb under it.
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's
