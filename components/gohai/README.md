@@ -24,9 +24,9 @@ change there gets to the next CI run of gohai.
 
 ## Read about it
 
-| Subject                                        | What it answers                                                             |
-| ---------------------------------------------- | --------------------------------------------------------------------------- |
-| [How a collector gathers facts](collectors.md) | Which library to wrap, what an extension may do, and what a field is called |
+| Subject                                        | What it answers                                                                  |
+| ---------------------------------------------- | -------------------------------------------------------------------------------- |
+| [How a collector gathers facts](collectors.md) | The sources a collector reads through, what it reads, and what a field is called |
 
 ## The collector contract (`internal/collector/collector.go`)
 
