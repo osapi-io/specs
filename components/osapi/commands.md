@@ -304,10 +304,17 @@ A component that keeps the setup context for its goroutines stops them on the
 signal, before its `Stop` runs. A component whose goroutines must run until
 `Stop` makes their context itself, and cancels it in `Stop`.
 
-`nats server start` is built (osapi-io/osapi#917). `agent start`,
-`controller start` and `start` come next. Their flags set config keys, such as
-`--agent-max-jobs` for `agent.max_jobs`. The DSL will make each one from its
-config key, with the type, the default and the description of the key.
+Each process is built (osapi-io/osapi#917): `nats server start`, `agent start`,
+`controller start` and `start`. A process's flags are config keys:
+`.Flag("agent.max_jobs")` makes `--agent-max-jobs`, with the type, the default
+and the doc of the key, and binds it to the key. The DSL package cannot read the
+config, because the config imports the CLI through the behaviors. Thus the
+generated command calls `config.BindFlags`.
+
+Each start has a `Components` function, which makes its parts and starts none.
+`osapi start` calls the three of them, with one tracer and the job namespace of
+the controller, and adds the stop of the tracer with `command.Then`. Each debug
+log of the config is still written in its setup.
 
 ## Not decided
 
