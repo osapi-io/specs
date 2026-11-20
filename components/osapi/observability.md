@@ -317,6 +317,15 @@ VERSION column, and the dashboard shows it on each component row. The top-level
 controller serves the UI from its own binary. The controller and the NATS server
 had a literal `0.1.0` (osapi-io/osapi#878).
 
+Each registration also has the process metrics of the component itself, as
+`process`: its CPU share, its RSS and its goroutine count. The process
+conditions, such as memory pressure, come from them. gohai reads the process:
+`Read` of its process collector, with the component's own PID, reads that one
+process and not the others (osapi-io/gohai#305). The CPU share is the difference
+of gohai's `cpu_seconds` between two heartbeats, over the time between them, so
+a spike shows in the next heartbeat and an average since start does not hide it.
+The goroutine count comes from the Go runtime (osapi-io/osapi#960).
+
 An agent's row in the registry takes the agent's scheduling state from its
 registration, as `agent list` does: a drained agent is `Draining` or `Cordoned`,
 in amber, and an agent with no state is `Ready`. The API always gives `state`.
