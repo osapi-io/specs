@@ -48,14 +48,17 @@ covers what it needs.
    tell which files and commands to read, and which special cases exist.
 
 A library that reads the host itself cannot read a fake host. For this reason,
-gohai stopped using gopsutil (osapi-io/gohai#292). That change kept the
-arithmetic of each value that gopsutil gave, for example `cached` with
-`SReclaimable` in it, so the facts did not change. The cost is that gohai keeps
-these parsers, and gets no bug fixes from a library.
+gohai stopped using gopsutil (osapi-io/gohai#292), then ghw, pcidb and
+go-sysconf (osapi-io/gohai#295). These changes kept the value of each fact that
+the library gave, for example `cached` with `SReclaimable` in it, and
+`"unknown"` for a DMI string that cannot be read. The cost is that gohai keeps
+these parsers, including one for `pci.ids`, and gets no bug fixes from a
+library.
 
-dmi, gpu and pci still read the host through ghw, and four other collectors use
-a syscall or an OS lookup (osapi-io/gohai#295). The DNS lookups of the hostname
-collector are not a source, and stay outside on purpose.
+Every host collector now reads through its sources. A user lookup reads
+`/etc/passwd`, the current user is `id -u`, and a program on the `PATH` is
+`sh -c 'command -v <name>'`. The DNS lookups of the hostname collector are not a
+source, and stay outside on purpose.
 
 **A `Collect` method never uses `os.ReadFile`, `exec.Command` or `time.Now`.**
 It uses `FS`, `Exec` and `Now`. A test gives the files and the command output
