@@ -499,12 +499,12 @@ These commands read the registry. They need no config file and no controller,
 because they describe the binary, not a fleet:
 
 ```sh
-osapi behavior list                                  # the behaviors and their methods
-osapi behavior get --name sysctl                     # surfaces, methods, types, settings, telemetry
-osapi behavior get --name sysctl --method update     # one method in full
-osapi behavior spec get                              # each part of the DSL, and when to use it
-osapi behavior validate                              # every definition against the rules, each with its fix
-osapi behavior create --name motd --description "x"  # write a new behavior's layout
+osapi behavior list                                      # the behaviors and their methods
+osapi behavior get --name sysctl                         # surfaces, methods, types, settings, telemetry
+osapi behavior method get --name sysctl --method update  # one method in full
+osapi behavior spec get                                  # each part of the DSL, and when to use it
+osapi behavior validate                                  # every definition against the rules, each with its fix
+osapi behavior create --name motd --description "x"      # write a new behavior's layout
 osapi behavior create --group network --name neighbors --description "x"  # under a group
 ```
 

@@ -152,8 +152,8 @@ only for the part that it uses.
 `SKILL.md` has four rules:
 
 1. Run `osapi help <command> --json` before a command, and
-   `osapi behavior get --name <behavior> --method <method> --json` before a
-   request. Do not use memory.
+   `osapi behavior method get --name <behavior> --method <method> --json` before
+   a request. Do not use memory.
 2. Give `--json` to each command, and match a failure on its `code`. Exit 2
    means that the call was incorrect, and a second try does not help.
 3. Read the target with `get` or `list` before an update or a delete.
