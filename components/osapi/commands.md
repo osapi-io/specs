@@ -256,7 +256,11 @@ Each check has its rule and its fix, as for endpoints.
    prints a skill's file as it is: its `content` field is tagged
    `render:"body"`, which makes a field the whole output. `guide.go` holds the
    helpers of the commands that teach the DSLs, and moves with them. The long
-   running commands are [processes](#processes).
+   running commands are [processes](#processes). `controller key fingerprint` is
+   built (osapi-io/osapi#918). It was `osapi client controller key fingerprint`,
+   but it reads the key pair on the disk of the host and calls no API.
+   `osapi client` is the commands that call the API, so the command is a local
+   group under `osapi controller`.
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's
