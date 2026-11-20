@@ -543,63 +543,63 @@ learns it in production.
 ### Showing a behavior
 
 `osapi behavior get --name <behavior>` is the one location where a reader sees
-the full contract of a behavior. Thus its layout is fixed:
+the full contract of a behavior. It prints from its output type, as each command
+does:
 
 ```text
 Behavior:
-  Name:        sysctl
-  Placement:   node
-  API:         /api/next
-  CLI:         osapi client next
-
-Uses:
-  sysctl
-  └─ file.write        writes /etc/sysctl.d/osapi-<key>.conf
-     └─ file.read
-
-Used by:
-  None.
+  Name:         sysctl
+  Placement:    node
+  Internal:     no
+  API:          yes
+  CLI:          yes
+  Platforms:    debian
+  Sudo:         sysctl
+  Uses:         managedfile
+  Used by:      none
 
 Methods (5):
-  NAME    VERB   ROUTE                                   PERMISSION
-  list    read   GET /api/next/node/{hostname}/sysctl    sysctl:read
-  create  write  POST /api/next/node/{hostname}/sysctl   sysctl:write
+  NAME    VERB   HTTP  ROUTE                                   PERMISSION    DESCRIPTION
+  list    read   GET   /api/next/node/{hostname}/sysctl        sysctl:read   List the kernel's parameters ...
 
 Types (5):
   NAME    INPUT                         OUTPUT
-  list    ListInput                     []Entry { key, value }
+  list    ListInput { prefix }          []Entry { key, value, managed }
   create  CreateInput { key*, value* }  MutationResult { key, changed }
+
+Settings (1):
+  KEY                   AGENT FLAG    TYPE    DEFAULT
+  behaviors.sysctl.dir  --sysctl-dir  string  /etc/sysctl.d
 
 Telemetry:
   Span:             behavior.sysctl.<method>
-  Metrics:          osapi_behavior_calls_total, osapi_behavior_duration_seconds, osapi_behavior_changes_total
-  Attributes:       osapi.behavior.name, osapi.behavior.method, osapi.behavior.verb, ...
+  Child spans:      behavior.managedfile.<method>, exec sysctl, file.write, ...
   Recorded inputs:  key (get, create, update, delete)
 ```
 
 - **Types.** Each method shows its input and output by their Go type names, with
   the fields in braces. A required input field has a `*`. A list output is `[]`
-  and its element. The type name is gray and the fields are data. Thus the shape
-  is clear before the names. `--method` shows all the fields of one method, with
-  the type, constraints and description of each field. It also shows the
-  examples of the method as input and output pairs.
-- **Chains.** `Uses:` is the tree of behaviors that this one requires, through
-  `Requires`, each with the method that it calls and why. `Used by:` is the
-  behaviors that require this one. A behavior that uses none says `None.`. The
-  heading stays, so that a reader can tell "none" from "not shown". The tree
-  uses the same gray branches as the components of health status.
-- **Telemetry.** What each call of the behavior records: the span, the three
-  metrics and the attributes that each method gets. Then the input fields that
-  each method records, and the methods that record each. A method records the
-  field that `.Key` names, and each field with the tag `telemetry:"attr"`. The
-  names come from `internal/behaviors/telemetry.go`. Thus the block cannot be
-  different from what osapi records.
-- **Surfaces.** `API` and `CLI` show where osapi serves each one, or `none` when
-  the behavior does not have that surface.
+  and its element.
+- **Chains.** `Uses` is the behaviors that this one requires, through
+  `Requires`. `Used by` is the behaviors that require this one. A behavior that
+  uses none says `none`.
+- **Telemetry.** What each call of the behavior records: the span, the spans
+  under it, the three metrics and the attributes that each method gets. Then the
+  input fields that each method records, and the methods that record each. A
+  method records the field that `.Key` names, and each field with the tag
+  `telemetry:"attr"`. The names come from `internal/behavior`. Thus the block
+  cannot be different from what osapi records.
 
-`--json` has the same content: `uses` and `used_by` as nested lists,
-`telemetry`, and the input and output of each method as JSON Schema, with the Go
-type name next to it.
+`osapi behavior method get --name <behavior> --method <method>` shows one method
+in full: its route, permission and command, each input field with its type,
+constraints and description, the fields of its output, and its examples as input
+and output pairs. It is a command of its own because it prints a different thing
+from `get`.
+
+`--json` of `get` has the same content, with `uses` and `used_by` as lists of
+names, and the command, route and permission of each method. `--json` of
+`method get` adds the input and the output of the method as JSON Schema, with
+the Go type name of each, and its examples and refusals.
 
 ### Empty lists
 
