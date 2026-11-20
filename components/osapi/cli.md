@@ -255,6 +255,8 @@ These rules have no options:
 - A table leaves out a column that has no value in any row, except a column with
   a `none` tag. `agent list` always has CONDITIONS, with `-` when no condition
   is true.
+- A field tagged `render:"body"` is the whole output, as it is, such as the text
+  of a skill that `skill get` prints. The other fields are only in `--json`.
 - A row whose type has a list of its own type has a tree: the items print as
   rows under it, with `├─` and `└─`. Each component of `health status` has its
   sub-components under it.
