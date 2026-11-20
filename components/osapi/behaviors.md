@@ -103,24 +103,26 @@ the tags for authors. This page records why the design is as it is.
 
 ## What the definition decides
 
-| Declared                    | Decides                                                                                                                                                          |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `behavior.Node`             | The work runs on a host, through the job system. It is the only placement                                                                                        |
-| `behavior.Under("network")` | Nests the behavior: `/api/node/{hostname}/network/dns`, `osapi client node network dns`                                                                          |
-| `Read`                      | `GET`, the `<group>:read` permission, no `changed` in the result                                                                                                 |
-| `Write`                     | `POST`, or `PUT` for `update` and `DELETE` for `delete`, and the `<group>:write` permission                                                                      |
-| `.Key("key")`               | The input field addressed in the path, `/{key}`                                                                                                                  |
-| `behavior.API`              | Routes, its part of the OpenAPI spec, and the API reference pages                                                                                                |
-| `behavior.CLI`              | Generated commands, with their pages in the CLI reference. It needs `API`, because the commands call the API                                                     |
-| `.Describe`, `.Explain`     | The one-line description, and the longer text that the help and the CLI page of a command, and the spec, carry                                                   |
-| `.Example`                  | Sample calls. They are the examples of a command, and the tests                                                                                                  |
-| `behavior.Config(v)`        | Settings under `behaviors.<name>`, with `v` as their defaults                                                                                                    |
-| `behavior.Platform(p, f)`   | How the provider is built on platform `p`: a distribution, `darwin`, or `linux` for every Linux host without its own. On any other, the methods report `skipped` |
-| `behavior.Sudo("prog")`     | A program the provider runs with sudo, which the agent's preflight checks                                                                                        |
-| `behavior.Runs("prog")`     | A program the provider runs without sudo; the agent warns at startup when it is missing                                                                          |
-| `behavior.Writes("...")`    | The paths the provider writes, removes or changes the mode of, as `path.Match` patterns; `"*"` is any path                                                       |
-| `behavior.KeepsState`       | The provider keeps a record in the `file-state` bucket                                                                                                           |
-| `behavior.Validator(...)`   | A `validate` tag of the behavior's own: its check, its schema and its message                                                                                    |
+| Declared                     | Decides                                                                                                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `behavior.Node`              | The work runs on a host, through the job system. It is the only placement                                                                                        |
+| `behavior.Under("network")`  | Nests the behavior: `/api/node/{hostname}/network/dns`, `osapi client node network dns`                                                                          |
+| `Read`                       | `GET`, the `<group>:read` permission, no `changed` in the result                                                                                                 |
+| `Write`                      | `POST`, or `PUT` for `update` and `DELETE` for `delete`, and the `<group>:write` permission                                                                      |
+| `.Key("key")`                | The input field addressed in the path, `/{key}`                                                                                                                  |
+| `behavior.API`               | Routes, its part of the OpenAPI spec, and the API reference pages                                                                                                |
+| `behavior.CLI`               | Generated commands, with their pages in the CLI reference. It needs `API`, because the commands call the API                                                     |
+| `.Describe`, `.Explain`      | The one-line description, and the longer text that the help and the CLI page of a command, and the spec, carry                                                   |
+| `.Example`                   | Sample calls. They are the examples of a command, and the tests                                                                                                  |
+| `behavior.Config(v)`         | Settings under `behaviors.<name>`, with `v` as their defaults                                                                                                    |
+| `behavior.Platform(p, f)`    | How the provider is built on platform `p`: a distribution, `darwin`, or `linux` for every Linux host without its own. On any other, the methods report `skipped` |
+| `behavior.Sudo("prog")`      | A program the provider runs with sudo, which the agent's preflight checks                                                                                        |
+| `behavior.Runs("prog")`      | A program the provider runs without sudo; the agent warns at startup when it is missing                                                                          |
+| `.On(p...)`                  | Limits one method to some of the platforms. On any other platform, that method reports `skipped`, and its examples do not run there                              |
+| `.Sudo`, `.Runs` on a method | A program that only this method runs. A host needs it only where the method runs                                                                                 |
+| `behavior.Writes("...")`     | The paths the provider writes, removes or changes the mode of, as `path.Match` patterns; `"*"` is any path                                                       |
+| `behavior.KeepsState`        | The provider keeps a record in the `file-state` bucket                                                                                                           |
+| `behavior.Validator(...)`    | A `validate` tag of the behavior's own: its check, its schema and its message                                                                                    |
 
 The permission prefix is the group when there is one, and the name of the
 behavior when there is no group. Thus `dns` under `network` needs
@@ -257,12 +259,25 @@ Linux and macOS. `platform.Detect` names the Debian family `debian`, and names
 other distributions by their own names. Without the fallback, a behavior that
 works the same on each distribution needs a line for each distribution.
 
+One method can run on fewer platforms than its behavior. `hostname` declares
+`linux` and `darwin`, and its `get` reads the name on both. Its `update` has
+`.On(behavior.PlatformDebian)`, so it runs only on the Debian family. The agent
+does not call the provider for `update` on any other host, and reports
+`skipped`. `.On` takes the names that `behavior.Platform` takes, and `linux` in
+`.On` is each host that is not macOS. A name that resolves to no provider of the
+behavior fails `behavior validate`. The macOS provider still implements
+`SetHostname`, because the provider interface has each method, but it only
+returns `ErrUnsupported`.
+
 The builder gets a `host.Host` from `internal/behavior/host`: the platform, the
-filesystem, the command runner, the file state store, the hostname and the
-settings of the behavior. If a behavior has no provider on the platform, or its
-builder returns `provider.ErrUnsupported`, its methods report `skipped`. The
-agent logs which providers it built. The built providers go into the registry of
-the agent, which gives them facts as it does for each other provider.
+filesystem, the command runner, the file state store, the hostname, the clock
+and the settings of the behavior. A provider gets the time from `h.Time()`, not
+from `time.Now`. Thus the fake host can give an example a fixed time, and an
+output that the time changes, such as uptime on macOS, is the same each run. If
+a behavior has no provider on the platform, or its builder returns
+`provider.ErrUnsupported`, its methods report `skipped`. The agent logs which
+providers it built. The built providers go into the registry of the agent, which
+gives them facts as it does for each other provider.
 
 **The CLI.** The commands of a behavior come from its endpoint group, as the
 commands of an endpoint do. `internal/controller/endpoint/gen/commandgen`, the
@@ -316,11 +331,14 @@ read and write of a behavior. `read` gets its read.
 
 The preflight of the agent checks each program that a behavior declares with
 `Sudo`, together with its own list. At startup, the agent warns about each
-program declared with `Runs` that is not installed. A missing program fails only
-that behavior, so it does not stop the agent. Nobody edits either list for a
-behavior. The fake host fails an example that runs a program without its
-declaration, and counts the programs that the required behaviors declare. The
-integration test fails when its image does not have a declared program.
+program declared with `Runs` that is not installed. A program declared on a
+method counts only on a platform where the method runs. `hostname` declares
+`hostnamectl` on `update`, so an agent on macOS does not ask for it. A missing
+program fails only that behavior, so it does not stop the agent. Nobody edits
+either list for a behavior. The fake host fails an example that runs a program
+without its declaration, and counts the programs that the required behaviors
+declare. The integration test fails when its image does not have a declared
+program.
 
 The paths and the records that a behavior changes are declared the same way. The
 fake host fails an example that writes, removes or changes the mode of a path
@@ -612,7 +630,7 @@ check correctly, and the session stopped and said so.
 
 | Layer       | Where                                              | Checks                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ----------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Provider    | `behaviortest.Run`, from `behavior_public_test.go` | each example on a fake host per platform gives its output and effects; a write declares effects and reports `changed: false` run twice; each command and store call failing in turn never panics                                                                                                                                                                                                                                                                                                                                     |
+| Provider    | `behaviortest.Run`, from `behavior_public_test.go` | each example on a fake host per platform that serves its method gives its output and effects; a write declares effects and reports `changed: false` run twice; each command and store call failing in turn never panics                                                                                                                                                                                                                                                                                                              |
 | API         | `gen/api_<method>_public_test.go`, generated       | a table of literal requests through the real handler and middleware with the job client mocked, every response validated against the generated spec with kin-openapi: each example on one host and broadcast, with its body; the host skipping, failing or timing out; the job client failing (500); a missing item (404); a bad target, each missing required field, a body that is not JSON, a field of the wrong type and each refusal the API can see (400, no job queued); a missing token (401) and a missing permission (403) |
 | Routes      | `gen/api_public_test.go`, generated                | every method's HTTP method, path and permission                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | CLI         | `gen/cli_public_test.go`, generated                | each example's flags, given to the generated command, send the example's input                                                                                                                                                                                                                                                                                                                                                                                                                                                       |

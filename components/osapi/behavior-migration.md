@@ -160,7 +160,11 @@ behavior in its group. `--group` now does this.
    behavior with only that skill and the CLI. Where it stops, fix the skill or
    the CLI, not the output of the agent. Run it again until it builds one
    without help.
-8. The other domains, one for each pull request.
+8. The other domains. A pull request can move more than one domain when they
+   have the same shape. The node reads moved together: uptime, OS, memory, load
+   and disk, each over `host.Host` and not gopsutil, so that the fake host can
+   run their examples. Hostname moved with them, and needed `.On` for an update
+   that runs only on the Debian family.
    - Generate the typed services of the SDK from the joined spec, after the part
      of each behavior joins it. Then the SDK comes fully from the spec, and
      never imports a behavior.
@@ -188,11 +192,11 @@ builds it. Each one unblocks a set of domains:
 | The object store on `host.Host`                               | cron and file deploys of uploaded content                                                                                                                 | schedule, file                                    |
 
 `GET /api/node/{hostname}`, the status summary of the node, has no behavior
-shape. It stays hand-written. The others fit now: hostname, timezone, NTP, disk,
-load, memory, OS, uptime, log, package, certificate, DNS, interface, route and
-ping. The "Not yet" list of the build-a-behavior skill is this table. Thus an
-agent that gets a request for one of these says so, and does not add code around
-the platform.
+shape. It stays hand-written until osapi-io/osapi#945. Hostname, disk, load,
+memory, OS and uptime are behaviors now. The others fit now: timezone, NTP, log,
+package, certificate, DNS, interface, route and ping. The "Not yet" list of the
+build-a-behavior skill is this table. Thus an agent that gets a request for one
+of these says so, and does not add code around the platform.
 
 The cutover of a domain deletes its hand-written handler tests. Thus each case
 in them must go somewhere first:
