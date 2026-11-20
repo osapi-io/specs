@@ -295,17 +295,12 @@ now prints the entries, and `--json > audit.json` keeps them.
 
 **A command that this cannot print has a renderer, with its reason.**
 `command.Render(Group, "method", fn).Because("...")`.
-`osapi cli command validate` fails a renderer with no reason. One endpoint
-command has one. Its response does not have the shape that the CLI shows, and
-osapi-io/osapi#904 changes it:
+`osapi cli command validate` fails a renderer with no reason. No command has one
+now: the last, `telemetry trace get`, went when the controller began to answer
+the span tree (osapi-io/osapi#904).
 
-| Command               | Reason               |
-| --------------------- | -------------------- |
-| `telemetry trace get` | the spans are a tree |
-
-`osapi cli command spec` teaches the tags, and `get` tells which commands have a
-renderer and why. With `--json`, a command prints its output, and nothing
-renders it.
+`osapi cli command spec` teaches the tags. With `--json`, a command prints its
+output, and nothing renders it.
 
 ## Errors go through one handler
 
