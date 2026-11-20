@@ -224,12 +224,12 @@ would be necessary (osapi#829).
 The commands are under the process that the endpoints belong to:
 
 ```sh
-osapi controller endpoint list                      # the groups and their methods
-osapi controller endpoint get --name agent          # the routes, permissions and operationIds
-osapi controller endpoint get --name agent --openapi  # the group's part of the spec, as YAML
-osapi controller endpoint spec                      # each part of the DSL, and when to use it
-osapi controller endpoint validate                  # the rules of each definition, each with its fix
-osapi controller endpoint new --name x --description "..."  # a new group that passes its tests
+osapi controller endpoint list                                 # the groups and their methods
+osapi controller endpoint get --name agent                     # the routes, permissions and operationIds
+osapi controller endpoint get --name agent --openapi           # the group's part of the spec, as YAML
+osapi controller endpoint spec get                             # each part of the DSL, and when to use it
+osapi controller endpoint validate                             # the rules of each definition, each with its fix
+osapi controller endpoint create --name x --description "..."  # a new group that passes its tests
 ```
 
 `spec` and `validate --help` come from the tables of the `internal/guide`
@@ -240,7 +240,7 @@ cannot fall behind the code. `spec` also lists what is not built yet, so an
 agent stops there.
 
 `new` writes a group with a list and a get, an empty `Deps`, its types and the
-tests of its methods, and registers it, as `osapi behavior new` does for a
+tests of its methods, and registers it, as `osapi behavior create` does for a
 behavior. An empty `Deps` needs no wiring in the controller, so the group works
 once it is generated. Its first field makes the controller give it, in
 `internal/controller/handlers.go`. `just endpoint-scaffold-check` writes a group
@@ -273,8 +273,8 @@ hand-written specs stay, and keep serving the API, until then.
    `.Use("list")` names apart from the group's own `list`. The CLI pages gained
    the permission of each command.
 5. **Golden files.** The generated files of the first group have golden copies,
-   as the files of `osapi behavior new` have. A change to the generator shows as
-   a diff of what it writes.
+   as the files of `osapi behavior create` have. A change to the generator shows
+   as a diff of what it writes.
 6. **The handlers last.** Built for the agent group. The methods are written.
    Each case of the hand-written handler tests moved into a test of the method,
    on mocks of `Deps`, or into an HTTP test through the generated routes, for

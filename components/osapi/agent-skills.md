@@ -72,7 +72,7 @@ It sends the agent to the sources that cannot become incorrect. It does not copy
 them:
 
 - `go doc ./internal/behavior` for the options of the definition
-- `osapi behavior new` for the layout
+- `osapi behavior create` for the layout
 - `behavior get` and `validate` for what registered
 - `internal/behaviors/sysctl` as the reference
 

@@ -211,7 +211,7 @@ The platform, not the schema, reads two more tags:
   template and refuses one that reads a different field, or a var that the
   request does not give. Thus an error in a template is a 400, not a failure on
   each host. Facts are known only on each host, so the API does not check them.
-  `behavior spec` lists the fact keys from `job.FactsRegistration`. The
+  `behavior spec get` lists the fact keys from `job.FactsRegistration`. The
   `template` rule of `validate` checks the types, and the generated API tests of
   each such method send a template with a missing var and expect a 400. File
   deploy uses it when it moves to a behavior. A template that reads a fact that
@@ -430,7 +430,7 @@ order of kin-openapi, which is alphabetical, not the order that a person uses.
 `TestNextSpec`, in `internal/apicontract`, holds the API contract of the
 behaviors under `/api/next` to a golden file.
 
-`osapi behavior new` also writes its first files with jen, in
+`osapi behavior create` also writes its first files with jen, in
 `internal/behavior/scaffold_files.go`. Those files are not generated code. A
 person edits them from the first minute, so they do not go in `gen/`. But the
 rule is the same for each Go file that osapi writes: jen builds it, not a
@@ -464,12 +464,13 @@ not make it fail.
 100% coverage alone. The target for the total of the repository is also 100%.
 This check names the behavior package that is below the target.
 
-`just behavior-scaffold-check`, also in `just test`, runs `osapi behavior new`
-in a copy of the checkout, generates the new behavior and runs its tests. Thus
-the scaffold cannot fall behind the checks that each behavior must pass. A new
-check in `behaviortest` that the scaffold does not obey fails CI. Before this
-check, the scaffold wrote a file through `h.FS`, and did not declare it with
-`behavior.Writes`. Thus a new behavior failed its own tests (osapi#781).
+`just behavior-scaffold-check`, also in `just test`, runs
+`osapi behavior create` in a copy of the checkout, generates the new behavior
+and runs its tests. Thus the scaffold cannot fall behind the checks that each
+behavior must pass. A new check in `behaviortest` that the scaffold does not
+obey fails CI. Before this check, the scaffold wrote a file through `h.FS`, and
+did not declare it with `behavior.Writes`. Thus a new behavior failed its own
+tests (osapi#781).
 
 ## Telemetry every method gets
 
@@ -498,13 +499,13 @@ These commands read the registry. They need no config file and no controller,
 because they describe the binary, not a fleet:
 
 ```sh
-osapi behavior list                               # the behaviors and their methods
-osapi behavior get --name sysctl                  # surfaces, methods, types, settings, telemetry
-osapi behavior get --name sysctl --method update  # one method in full
-osapi behavior spec                               # each part of the DSL, and when to use it
-osapi behavior validate                           # every definition against the rules, each with its fix
-osapi behavior new --name motd --description "x"  # write a new behavior's layout
-osapi behavior new --group network --name neighbors --description "x"  # under a group
+osapi behavior list                                  # the behaviors and their methods
+osapi behavior get --name sysctl                     # surfaces, methods, types, settings, telemetry
+osapi behavior get --name sysctl --method update     # one method in full
+osapi behavior spec get                              # each part of the DSL, and when to use it
+osapi behavior validate                              # every definition against the rules, each with its fix
+osapi behavior create --name motd --description "x"  # write a new behavior's layout
+osapi behavior create --group network --name neighbors --description "x"  # under a group
 ```
 
 Each one takes `--json`. Values come as flags, as in all of the [CLI](cli.md).
@@ -521,15 +522,15 @@ Each one takes `--json`. Values come as flags, as in all of the [CLI](cli.md).
 - the span and metrics that its calls record, the spans under it, and the paths
   that it writes
 
-`behavior spec` lists each option, method, refinement, part of an example, call
-in a provider and field tag, with what it does and when to use it. It also lists
-how to build on other behaviors, the building blocks in the binary, the
+`behavior spec get` lists each option, method, refinement, part of an example,
+call in a provider and field tag, with what it does and when to use it. It also
+lists how to build on other behaviors, the building blocks in the binary, the
 generated paths, and what the platform cannot do yet. The table is `Spec` in
 `internal/behavior/spec.go`. The building blocks come from the registry. A test
 fails on an option, method, part of an example or field tag of the package
 without a term.
 
-`behavior new` writes `internal/behaviors/<name>/` as a working behavior that
+`behavior create` writes `internal/behaviors/<name>/` as a working behavior that
 keeps a value in a file, with each standard file. It adds its import to
 `internal/behaviors/all`. Before you change anything, it builds, validates,
 lints and passes each test with 100% coverage. Thus the layout is stated one
@@ -666,9 +667,9 @@ The command runner and the store are the generated mocks of the repository, and
 the harness configures them. If they have no answer for a call, they report it.
 They do not make a false answer. Coverage is measured for each package. Thus the
 harness runs from the test of the behavior, which is one line that
-`behavior new` writes. The methods and the provider of each platform also have
-their own tests. Thus each file with code has one, as the rule of the repository
-requires.
+`behavior create` writes. The methods and the provider of each platform also
+have their own tests. Thus each file with code has one, as the rule of the
+repository requires.
 
 The harness also probes each string input field of each example, one at a time,
 with three values:
@@ -742,12 +743,12 @@ var Behavior = behavior.Register(behavior.Define(
 ```
 
 Generic work goes in a building block: an internal behavior that does one job,
-such as managedfile for a file that osapi manages. `behavior spec` tells when to
-use one and when to make one, and lists each building block in the binary. The
-wiring is written by hand today, in three places: `Requires`, `host.Require` in
-the builder, and `Call` in the provider. osapi-io/osapi#764 has the next steps:
-scaffolding the wiring, workflows across hosts, and behaviors that call outside
-APIs.
+such as managedfile for a file that osapi manages. `behavior spec get` tells
+when to use one and when to make one, and lists each building block in the
+binary. The wiring is written by hand today, in three places: `Requires`,
+`host.Require` in the builder, and `Call` in the provider. osapi-io/osapi#764
+has the next steps: scaffolding the wiring, workflows across hosts, and
+behaviors that call outside APIs.
 
 - **Building.** `host.Build` builds the provider of each required behavior
   first, for the same host. It puts the provider in the host that the requiring
@@ -806,8 +807,8 @@ change, except two marshal-failure cases that moved with the code.
 
 A behavior is internal when two things are true. An operator would never call it
 from the CLI or the API. It is a piece of work that other behaviors share, such
-as writing a file or reloading a service. `osapi behavior new` always writes a
-behavior that an operator calls, because a new internal behavior has nothing
+as writing a file or reloading a service. `osapi behavior create` always writes
+a behavior that an operator calls, because a new internal behavior has nothing
 that requires it yet, and `behavior validate` would fail it.
 
 Shared work becomes an internal behavior at its second use. When one behavior

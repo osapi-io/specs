@@ -257,6 +257,16 @@ These rules have no options:
   is true.
 - A field tagged `render:"body"` is the whole output, as it is, such as the text
   of a skill that `skill get` prints. The other fields are only in `--json`.
+- A list tagged `table:"blocks"` prints each item as a block, not a row: its
+  first field on a line, then each other field as a wrapped paragraph with its
+  label. A field tagged `label:"-"` is a paragraph with no label. It is for a
+  list of long text, such as the terms of a DSL, which the cells of a table cut.
+- A list tagged `table:"sections"` prints each item as a section: the value of
+  its first field is the heading, and the rest of the item prints under it as an
+  object does. A section that is only one list prints that list under the
+  heading. `spec get` is a section for each kind of the DSL, with a block for
+  each term. Both tags are opt-in: a list of rows that hold lists, such as
+  `agent list`, stays a table.
 - A row whose type has a list of its own type has a tree: the items print as
   rows under it, with `├─` and `└─`. Each component of `health status` has its
   sub-components under it.
@@ -397,11 +407,11 @@ each problem read the same table. A test fails on a part of the DSL or a rule
 without an entry. Thus what the command tells cannot be different from what the
 code does.
 
-Three groups have them today. The behavior group has `osapi behavior spec` and
-`osapi behavior validate`. The endpoint group has
-`osapi controller endpoint spec` and `osapi controller endpoint validate`. The
-config group has `osapi config list` and `config get` in place of `spec`, and
-`osapi config validate`. A workflow DSL in osapi-orchestrator gets the same
+Three groups have them today. The behavior group has `osapi behavior spec get`
+and `osapi behavior validate`. The endpoint group has
+`osapi controller endpoint spec get` and `osapi controller endpoint validate`.
+The config group has `osapi config list` and `config get` in place of `spec`,
+and `osapi config validate`. A workflow DSL in osapi-orchestrator gets the same
 commands, from `guide` in a public package, in osapi-io/osapi#764.
 
 A skill keeps only judgment: what to ask the person, and which way to select. It

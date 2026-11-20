@@ -117,7 +117,7 @@ Built:
 - [`behavior list`, `get` and `validate`](behaviors.md#inspecting-behaviors-from-the-cli)
 - [`osapi init` with the embedded skill](agent-skills.md)
 - the build-a-behavior skill, in `.claude/skills/` of the osapi repository, and
-  the `osapi behavior new` command that it uses
+  the `osapi behavior create` command that it uses
 - evals for the skill, in its `evals/`
 
 This plan first said that the skill has no scaffold command, and that it keeps
@@ -143,7 +143,7 @@ result. The evals cover these cases:
 
 The first run of the eval for the internal behavior found that the fake host
 could not model state that a program keeps. `PrintsAfter` now does this. The
-build of the grouped eval found that `osapi behavior new` could not write a
+build of the grouped eval found that `osapi behavior create` could not write a
 behavior in its group. `--group` now does this.
 
 ## Next

@@ -148,7 +148,8 @@ var Group = command.Register(command.Define(
   group adds a word, `Flat`, are two settings, so nothing is inferred from a
   name.
 - **A method** is one command, with its input and output types. `.Sub("roles")`
-  puts it under a word of its own, so `list` above is `token roles list`.
+  puts it under a word of its own, so `list` above is `token roles list`. A
+  method is its `Sub` and its name, so a group can have `get` and `spec get`.
   `SubDoc("roles", "...")` is the one line of help of the `roles` command. Each
   input field is a flag, named for its json name with `_` as `-`. A field has a
   validate tag, a `doc` for its help, and an optional `short` for a one-letter
@@ -262,7 +263,13 @@ Each check has its rule and its fix, as for endpoints.
    `osapi client` is the commands that call the API, so the command is a local
    group under `osapi controller`. `nats setup` and `agent admission get` are
    built. `setup` is an action in `command.Actions`. `admission` is a noun, so
-   its command is `agent admission get`, as each noun has a verb under it.
+   its command is `agent admission get`, as each noun has a verb under it. The
+   `cli command` commands are built (osapi-io/osapi#934): `list`, `get`,
+   `create`, `spec get` and `validate`. Two of them are named by the rules.
+   `spec` is a noun, so its command is `spec get`, as `node hostname get` is.
+   `new` wrote a new group, which `create` says, so it is `create`; an action is
+   only for what a CRUD verb does not say. `controller endpoint` and `behavior`
+   have the same names, and move next.
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's
