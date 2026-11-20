@@ -138,7 +138,15 @@ var Group = command.Register(command.Define(
 ```
 
 - **A group** is the first word of each command, such as `token`. `Under(...)`
-  puts a group under a different command.
+  puts a group under a different command. `Flat()` makes the group add no word:
+  each method is a command under the group's parent, the root or the words of
+  `Under`. Thus `version` is a flat group at the root, and its method `version`
+  is `osapi version`. A command that stands alone under a parent that holds
+  other things, such as `osapi controller start`, is a flat group `Under`
+  `controller`. The group's name stays its identity, for its package and for
+  `cli command get --name`. Where the command goes, `Under`, and whether the
+  group adds a word, `Flat`, are two settings, so nothing is inferred from a
+  name.
 - **A method** is one command, with its input and output types. `.Sub("roles")`
   puts it under a word of its own, so `list` above is `token roles list`.
   `SubDoc("roles", "...")` is the one line of help of the `roles` command. Each
@@ -208,7 +216,8 @@ the endpoints and the behaviors, and which layer made each one.
 - a command has no `Short`, or a method with input has no `Example`
 - a value is a positional argument (`Args` is always `cobra.NoArgs`)
 - the last word of a command is not a CRUD verb or a listed action, as
-  `TestCommandShape` checks today
+  `TestCommandShape` checks today; a command of the root is a word of
+  `command.Roots` instead
 - a flag name is not the json name of its field
 - the handler does not have the signature of the method
 - a `.Sub` segment that makes a command of its own has no `SubDoc`, so its help
@@ -235,7 +244,10 @@ Each check has its rule and its fix, as for endpoints.
    `build-a-behavior` and `build-an-endpoint`. It keeps only judgment, and sends
    the agent to `spec` and `validate` for each fact.
 4. **The other groups**, one in each pull request: `config`, `version`, `nats`,
-   `skill`, `init`, `start`, `agent` and `controller`.
+   `skill`, `init`, `start`, `agent` and `controller`. `version` is built
+   (osapi-io/osapi#914): a flat group at the root, with the build of the binary
+   as its output type. `osapi version --json` has snake_case keys, such as
+   `version`, as the rest of the API does.
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's
