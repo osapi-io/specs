@@ -119,7 +119,7 @@ definition of a [behavior](behaviors.md). `pkg/sdk` imports nothing from
 `internal/`. For a route with no typed method, use one generic call:
 
 ```go
-resp, err := c.Request(ctx, http.MethodGet, "/api/next/node/_all/sysctl/vm.swappiness", nil)
+resp, err := c.Request(ctx, http.MethodGet, "/api/node/_all/sysctl/vm.swappiness", nil)
 ```
 
 It returns the body as the API sent it. An answer outside 2xx becomes the same

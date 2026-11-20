@@ -219,7 +219,7 @@ The platform, not the schema, reads two more tags:
   does not check facts before it sends the job: that would change how it sends
   jobs to hosts, for a small gain (osapi-io/osapi#768, not planned).
 
-## Served beside the hand-written domains
+## How a behavior is served
 
 A behavior runs through three generic parts. Each is written one time.
 
@@ -339,63 +339,38 @@ their own `behavior` category, with operations `behavior.<name>.<method>`. Its
 `gen/api.yaml` joins the main spec. Thus the SDK client, the UI client and the
 API docs cover it.
 
-A behavior that replaces a hand-written domain has the mark `behavior.Next`
-while the two exist:
+A behavior that replaces a hand-written domain deletes that domain in the same
+change. The two never run side by side: osapi has no `/api/next` and no
+`osapi client next`. Delete the hand-written domain, and fix what fails:
 
-- Its routes are under `/api/next`.
-- Its commands are under `osapi client next`.
-- Its spec is `gen/api.next.yaml`, which the join does not read.
-- The combined `internal/controller/api/next/gen/api.yaml` has each `Next`
-  behavior.
-
-The hand-written routes, commands, spec and docs do not change. Thus you can
-compare the behavior with the domain that it will replace, on the same server.
-sysctl has the mark until its cutover.
-
-For the cutover, remove the mark and fix what fails:
-
-- A test in `internal/behaviors/all` fails while a behavior that is not `Next`
+- `TestNoRouteIsServedTwice` in `internal/behaviors/all` fails while a behavior
   has the same route as a hand-written spec. It names the directory of that
   domain.
-- The CLI does not start while a hand-written command has the name of a behavior
-  command.
-- The compiler finds the processor case.
+- `TestEveryCommandIsAttached` names each hand-written command that has the name
+  of a behavior command.
+- The compiler names the processor and each test that passes its provider.
 - `behavior-gen-check` fails until `just generate` has joined the spec and made
   the clients from it again.
 
-A test holds that comparison for each domain in migration. `TestParity` in
-`internal/behaviors/all/spec_public_test.go` has one row for each behavior that
-replaces a hand-written domain. The row names the generated spec of the behavior
-and the spec of that domain. For each row, the test compares the two. It
-compares:
-
-- for each operation: the path without `/next`, the verb, the operationId, the
-  scopes, the parameters, the request body and the response codes
-- for each schema property: the type, the format, the enum, and if it is
-  required
-
-It does not compare prose and constraints. The generated spec uses different
-words, and has constraints that the old spec did not have.
-
-The row of a domain is added when its behavior is built. It is deleted with the
-hand-written spec at the cutover. The table is the list of domains that are
-still in migration. When it is empty, the test is deleted.
+The joined spec then changes, and `TestJoinedSpec` in `internal/apicontract`
+fails. Its golden diff is the change to the API. Write it again with `-update`,
+and read it. The cutover of sysctl kept each operation, path, permission and
+response code, and added the `prefix` of list and the `managed` of each entry.
 
 ## Generated, and committed
 
 `go generate ./internal/behaviors/all` runs `internal/behavior/gen`, which
 writes:
 
-| File                                             | Holds                                                                                                     |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `internal/behaviors/<name>/gen/api.go`           | the route table, registered from `init`                                                                   |
-| `internal/behaviors/<name>/gen/api_<method>.go`  | the method's handler and the decoder for its typed input                                                  |
-| `internal/behaviors/<name>/gen/cli.go`           | the behavior's commands, from its group, by the endpoint layer's command writer                           |
-| `internal/behaviors/<name>/gen/*_public_test.go` | a test for each of those files, described under the tests below                                           |
-| `internal/behaviors/<name>/gen/api.yaml`         | the behavior's spec, which `just generate` joins into the main one; `api.next.yaml` for a `Next` behavior |
-| `internal/behaviors/all/gen/gen.go`              | the import of every behavior's generated code: its routes and commands                                    |
-| `internal/controller/api/next/gen/api.yaml`      | one spec for the behaviors marked `Next`, while any is                                                    |
-| `docs/docs/sidebar/behaviors/<name>/<name>.md`   | the behavior's page, with its platforms and its settings                                                  |
+| File                                             | Holds                                                                           |
+| ------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `internal/behaviors/<name>/gen/api.go`           | the route table, registered from `init`                                         |
+| `internal/behaviors/<name>/gen/api_<method>.go`  | the method's handler and the decoder for its typed input                        |
+| `internal/behaviors/<name>/gen/cli.go`           | the behavior's commands, from its group, by the endpoint layer's command writer |
+| `internal/behaviors/<name>/gen/*_public_test.go` | a test for each of those files, described under the tests below                 |
+| `internal/behaviors/<name>/gen/api.yaml`         | the behavior's spec, which `just generate` joins into the main one              |
+| `internal/behaviors/all/gen/gen.go`              | the import of every behavior's generated code: its routes and commands          |
+| `docs/docs/sidebar/behaviors/<name>/<name>.md`   | the behavior's page, with its platforms and its settings                        |
 
 osapi generates the code into files. It does not build it when it starts. Thus a
 reviewer reads and diffs exactly what a route or a command does, as people read
@@ -427,8 +402,10 @@ behavior's spec are the same as an endpoint's, from the same code
 `openapi3` types of kin-openapi, the library that oapi-codegen uses to read
 specs. A test loads each written spec back and validates it. The keys are in the
 order of kin-openapi, which is alphabetical, not the order that a person uses.
-`TestNextSpec`, in `internal/apicontract`, holds the API contract of the
-behaviors under `/api/next` to a golden file.
+`TestJoinedSpecIsValid`, in `internal/apicontract`, validates the joined spec
+with kin-openapi. It found an object field whose `example` was a string, which a
+strict tool rejects. The builder now writes the example of an object or a list
+as its JSON.
 
 `osapi behavior create` also writes its first files with jen, in
 `internal/behavior/scaffold_files.go`. Those files are not generated code. A
@@ -847,17 +824,6 @@ The value still comes as a CLI flag, as the `--password` of a hand-written
 domain does. A read from standard input or a prompt is not built.
 
 ## Not built yet
-
-The cutover:
-
-- routes move from `/api/next` to `/api`
-- commands move from `client next` to `client`
-- the generated spec joins the main spec
-- the hand-written handler, processor and commands of sysctl are deleted
-
-The provider of sysctl is already in the directory of the behavior, as
-`debian.go`, `darwin.go` and `linux.go`, with their tests moved without changes.
-The hand-written domain imports it from there until the cutover.
 
 The SDK knows routes, not behaviors. It has a generic `Client.Request` to any
 API path. Its typed services, for example `client.Sysctl`, are hand-written over
