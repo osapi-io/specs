@@ -55,6 +55,11 @@ osapi config get --key controller.api.port  # one key in full
 osapi config validate                       # the checks start runs, starting nothing
 ```
 
+The commands come from the `config` group of the [command DSL](commands.md), in
+`internal/cli/commands/config/`. `list` prints one table of each key, sorted by
+key, so the keys of a section sit together; `--json` is the file and the keys,
+`{file, items}`. `get` prints the file and the setting.
+
 `list` and `get` read the config as `start` does, but they do not run the
 checks. They also work without a file. Thus they can show what is incorrect. The
 source of each value is `env`, `file`, `default` or `unset`. A field with the
@@ -63,7 +68,9 @@ tag `mask:"password"` prints as `********`.
 `validate` runs the checks of `start`, which are the table `Checks` in
 `internal/config/checks.go`: `file`, `parse`, `value`, `setting` and `bucket`.
 `validate` lists each problem, not only the first, with its rule, its key and
-the fix of the rule, in text and in `--json`. That is the shape of
+the fix of the rule, in text and in `--json`. It prints its report, then exits 1
+when the config is not valid: the method returns its output with
+`command.Fail()`, so a script or CI fails on it. That is the shape of
 `behavior validate`. `validate --help` lists each rule with its fix. A value
 that breaks its `validate` tag is named by its config key, such as
 `controller.api.security.signing_key`, not by its Go field. Thus the key goes

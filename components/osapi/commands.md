@@ -247,7 +247,10 @@ Each check has its rule and its fix, as for endpoints.
    `skill`, `init`, `start`, `agent` and `controller`. `version` is built
    (osapi-io/osapi#914): a flat group at the root, with the build of the binary
    as its output type. `osapi version --json` has snake_case keys, such as
-   `version`, as the rest of the API does.
+   `version`, as the rest of the API does. `config` is built
+   (osapi-io/osapi#915). Its `validate` returns its report with
+   `command.Fail()`: the report prints, then the command exits 1. `command.Long`
+   is the help of a group's command, as `CommandLong` is for an endpoint group.
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's
