@@ -191,12 +191,14 @@ builds it. Each one unblocks a set of domains:
 | A step on the controller before the job is queued             | a password hashed so the plaintext never reaches NATS                                                                                                     | user                                              |
 | The object store on `host.Host`                               | cron and file deploys of uploaded content                                                                                                                 | schedule, file                                    |
 
-`GET /api/node/{hostname}`, the status summary of the node, has no behavior
-shape. It stays hand-written until osapi-io/osapi#945. Hostname, disk, load,
-memory, OS and uptime are behaviors now. The others fit now: timezone, NTP, log,
-package, certificate, DNS, interface, route and ping. The "Not yet" list of the
-build-a-behavior skill is this table. Thus an agent that gets a request for one
-of these says so, and does not add code around the platform.
+The status summary of a node is the `status` behavior, at
+`GET /api/node/{hostname}/status` (osapi-io/osapi#945). It requires the
+hostname, uptime, os, load, memory and disk behaviors, and calls the get of each
+through `behavior.Call`. A read that fails is in `errors`, and the others still
+answer. Thus no hand-written node spec is left. The others fit now: timezone,
+NTP, log, package, certificate, DNS, interface, route and ping. The "Not yet"
+list of the build-a-behavior skill is this table. Thus an agent that gets a
+request for one of these says so, and does not add code around the platform.
 
 The cutover of a domain deletes its hand-written handler tests. Thus each case
 in them must go somewhere first:

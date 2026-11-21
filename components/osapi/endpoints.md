@@ -61,10 +61,9 @@ The definitions must express each row before the first group moves.
 The 94 operations under `/api/node/{hostname}` are host work. They become
 behaviors, not endpoints.
 
-One of them is not decided: `GET /api/node/{hostname}`, the status of a node. It
-runs on the agent, so it is host work. But its path is the root of the node, not
-the name of a behavior. When hostname, disk, memory and load are behaviors, it
-can be a behavior that requires them.
+The status of a node is one of them. It is the `status` behavior at
+`GET /api/node/{hostname}/status`, which requires the hostname, uptime, os,
+load, memory and disk behaviors (osapi-io/osapi#945).
 
 Some things are not API operations, and stay code:
 
@@ -457,8 +456,6 @@ an endpoint group too.
 
 ## Not decided
 
-- The place of `GET /api/node/{hostname}`. It is host work, but its path is not
-  under a behavior.
 - The rule for the operationIds after osapi#732.
 
 ## What this page does not cover
