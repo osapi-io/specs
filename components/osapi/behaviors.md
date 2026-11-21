@@ -192,6 +192,13 @@ refuse an input field with no tag, with the same words. The spec carries the
 whole tag in `x-oapi-codegen-extra-tags`, on a parameter and on each property of
 a body, so a Go client made from the spec validates as the server does.
 
+An optional field of a write's body, its validate tag starting with `omitempty`,
+has `omitempty` in its `json` tag too. Without it, the generated client sends
+`""` for an empty value, and the field's other rules refuse it: the `version` of
+`package create` sent `"version": ""` for a plain install, and the spec's
+pattern refused it. Only the integration test saw it. The `optional` rule of
+`behavior validate` now fails such a field, so `go test` sees it.
+
 An output can be a struct or a slice of structs. A slice becomes one result row
 for each element, and each row has the name of the host. sysctl `list` answers
 in this way now.
