@@ -437,15 +437,15 @@ response code, and added the `prefix` of list and the `managed` of each entry.
 `go generate ./internal/behaviors/all` runs `internal/behavior/gen`, which
 writes:
 
-| File                                             | Holds                                                                           |
-| ------------------------------------------------ | ------------------------------------------------------------------------------- |
-| `internal/behaviors/<name>/gen/api.go`           | the route table, registered from `init`                                         |
-| `internal/behaviors/<name>/gen/api_<method>.go`  | the method's handler and the decoder for its typed input                        |
-| `internal/behaviors/<name>/gen/cli.go`           | the behavior's commands, from its group, by the endpoint layer's command writer |
-| `internal/behaviors/<name>/gen/*_public_test.go` | a test for each of those files, described under the tests below                 |
-| `internal/behaviors/<name>/gen/api.yaml`         | the behavior's spec, which `just generate` joins into the main one              |
-| `internal/behaviors/all/gen/gen.go`              | the import of every behavior's generated code: its routes and commands          |
-| `docs/docs/sidebar/behaviors/<name>/<name>.md`   | the behavior's page, with its platforms and its settings                        |
+| File                                                     | Holds                                                                                            |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `internal/behaviors/<name>/gen/api.go`                   | the route table, registered from `init`                                                          |
+| `internal/behaviors/<name>/gen/api_<method>.go`          | the method's handler and the decoder for its typed input                                         |
+| `internal/behaviors/<name>/gen/cli.go`                   | the behavior's commands, from its group, by the endpoint layer's command writer                  |
+| `internal/behaviors/<name>/gen/*_public_test.go`         | a test for each of those files, described under the tests below                                  |
+| `internal/behaviors/<name>/gen/api.yaml`                 | the behavior's spec, which `just generate` joins into the main one                               |
+| `internal/behaviors/all/gen/gen.go`                      | the import of every behavior's generated code: its routes and commands                           |
+| `docs/docs/sidebar/reference/behaviors/<name>/<name>.md` | the behavior's page: `behavior get` and `method get` as markdown ([The docs site](docs-site.md)) |
 
 osapi generates the code into files. It does not build it when it starts. Thus a
 reviewer reads and diffs exactly what a route or a command does, as people read
