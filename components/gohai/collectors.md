@@ -202,6 +202,14 @@ Amazon in `rhel`, and did not know most of the Debian family. The table of the
 platform collector put Amazon in `rhel`, and on macOS the family was the value
 of `gopsutil`, not a family.
 
+## What will surprise you
+
+**A link on the host can be relative.** On Ubuntu, `/etc/localtime` links to
+`../usr/share/zoneinfo/Etc/UTC`, not to an absolute path. A collector that reads
+a link resolves a relative target from the directory of the link before it
+compares it with a prefix. The fake host of a test gives an absolute link, so
+only a live host showed this (osapi-io/osapi#970).
+
 ## Where this connects
 
 [The entry point](README.md) has the collector contract, the registry, and what
