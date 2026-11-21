@@ -163,8 +163,12 @@ var Group = endpoint.Register(endpoint.Define(
 
 - **`Uses[Deps]()`** names the struct of what the handlers use, such as the job
   client and the admission store, as interfaces. The controller gives one at
-  startup, in `internal/controller/handlers.go`. A test gives fakes. It is the
-  place of the host in a behavior.
+  startup, in `internal/controller/handlers.go`. A test gives the mockgen mocks
+  of the group's `mocks/`, never a fake written by hand. It is the place of the
+  host in a behavior. `controller endpoint spec get` lists each service that a
+  `Deps` takes now (`Jobs`, `Store`, `Objects`, `States`, `Health`, `Traces`)
+  under "What a Deps takes". A test fails on a field of a `Deps` that has no
+  entry there.
 
 - **`.Handle(fn)`** sets the function of a method,
   `func(ctx, Deps, In) (Out, error)`. `Validate` checks the signature. A handler
