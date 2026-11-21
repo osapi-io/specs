@@ -214,7 +214,7 @@ from the API port, 8080. Thus a scrape does not go through the authenticated
 API, and a scraper needs no token. The tradeoff: the metrics port has no
 authentication. Put it behind a firewall. Do not expose it.
 
-There are three metrics. They are about liveness, not about work:
+Three metrics are about liveness:
 
 | Metric                        | Is                                              |
 | ----------------------------- | ----------------------------------------------- |
@@ -222,15 +222,24 @@ There are three metrics. They are about liveness, not about work:
 | `osapi_subsystem_up`          | the same, one level down, per `SubsystemStatus` |
 | `osapi_heartbeat_age_seconds` | how long since an agent last checked in         |
 
+Four metrics count jobs:
+
+| Metric                       | Recorded by | Is                                                     |
+| ---------------------------- | ----------- | ------------------------------------------------------ |
+| `osapi_jobs_created_total`   | controller  | each job that the controller published, one per target |
+| `osapi_jobs_processed_total` | agent       | each job that the agent finished, by `status`          |
+| `osapi_jobs_active`          | agent       | the jobs that the agent runs now                       |
+| `osapi_job_duration_seconds` | agent       | how long each job ran on the agent, as a histogram     |
+
 Each component also records `osapi_nats_client_operation_duration_seconds`, from
 nats-client, for each call to NATS: by operation and by bucket or stream, with
 `error_type` on a failure. A key or a subject is never a label. Each connection
 gets the meter provider of its component, so each metrics server shows the calls
 of its own component.
 
-No metric counts jobs or measures the queue depth. If you need that now, read it
-from the job status events in `job-queue`. Know about this gap before you plan a
-dashboard.
+No metric measures the queue depth: the jobs that the API queued and that no
+agent has taken. If you need it now, read it from the job status events in
+`job-queue`. Know about this gap before you plan a dashboard.
 
 ## A sub-component has an address and a URL
 
