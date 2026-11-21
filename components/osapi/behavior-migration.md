@@ -202,10 +202,14 @@ on the Debian family. Packages are two behaviors (osapi-io/osapi#964).
 reads through gohai on every platform, and installs and removes with apt-get on
 the Debian family. `updatepackages` lists and refreshes the package index with
 apt, because the index is what the repositories have, not a fact about the host.
-The others fit now: NTP, log, certificate, DNS, interface, route and ping. The
-"Not yet" list of the build-a-behavior skill is this table. Thus an agent that
-gets a request for one of these says so, and does not add code around the
-platform.
+Its refresh reports `changed: true` only when a repository's Release file under
+`/var/lib/apt/lists` changed. Ansible's apt module reports a change on each
+update that runs, by the stamp time, and offers `cache_valid_time` to skip one.
+That fails the rule that a second identical call changes nothing, and apt-get's
+`Get:` lines do not tell either: the CI runner prints them on each run. The
+others fit now: NTP, log, certificate, DNS, interface, route and ping. The "Not
+yet" list of the build-a-behavior skill is this table. Thus an agent that gets a
+request for one of these says so, and does not add code around the platform.
 
 The cutover of a domain deletes its hand-written handler tests. Thus each case
 in them must go somewhere first:
