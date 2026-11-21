@@ -333,7 +333,9 @@ binary by its code signature. Each build has a new signature, so each push
 admits the binary again through sudo. A recipe does not ask for a password. Thus
 the user on the hub must have a `NOPASSWD: ALL` rule in `/etc/sudoers.d`. A rule
 for one command is not sufficient, because Ansible runs a different command
-through sudo each time. The VMs also have passwordless sudo.
+through sudo each time. The VMs also have passwordless sudo. Thus an agent can
+deploy the lab with no person present; [AGENTS.md](../../AGENTS.md#use-the-lab)
+says when.
 
 **A binary is never overwritten in place.** macOS kills a signed binary whose
 bytes change while it runs. Ansible's `copy` writes a temporary file and renames
