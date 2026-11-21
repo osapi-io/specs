@@ -925,9 +925,11 @@ and `go test` checks them through `behaviortest.Run`:
 | `called`   | a provider calls only the behaviors that its behavior requires | `go test`, `chain validate`           |
 | `used`     | an example calls each behavior that a behavior requires        | `go test`, `chain validate`           |
 
-`called` holds because the agent builds the provider of a required behavior, and
-of no other. `used` finds a requirement that no example tests, or that the
-behavior does not need.
+`behavior validate --help` lists `called` and `used` after the rules that
+`go test` checks, because `go test` checks them for each behavior. Thus a reader
+of the help sees each rule that a test can fail on. `called` holds because the
+agent builds the provider of a required behavior, and of no other. `used` finds
+a requirement that no example tests, or that the behavior does not need.
 
 There is no chain DSL. The glue between two steps is logic, not a field that
 goes from one output to the next input. dns reads the current resolvers and the
