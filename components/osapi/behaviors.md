@@ -174,6 +174,14 @@ name of a row type: the request parameter of the key `part` of a behavior
 the joined spec. A throwaway parent and child found that before any real child
 existed.
 
+The `route` behavior is the first child: a route is under its interface,
+`/api/node/{hostname}/network/interface/{name}/route`. A child's names in the
+spec start with its parent's, `NetworkInterfaceRoute`, as its path does. Its
+route keeps its destination in the body, because a CIDR's slash cannot go in a
+path segment. The integration test's reset deletes an example's item with each
+field that the delete takes, so it resets a route by its interface and its
+destination, as it resets an item by its key.
+
 A child that needs the parent's provider, such as to check that the user exists,
 declares `Requires` too. `Of` is the place in the API, not a call between the
 two.

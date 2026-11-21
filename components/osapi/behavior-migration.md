@@ -244,17 +244,24 @@ write examples run on `osapi0`, a dummy interface that the integration job
 makes, and set no gateway. A default route through `osapi0` would take the
 traffic of the runner.
 
-Routes are the `route` behavior under `network` (osapi-io/osapi#990). gohai
-reads the routes of the main table on every platform, and `get` gives the routes
-of one interface. A write on the Debian family goes only under the interface's
-own definition, as for interfaces, and refuses a default route: the interface
-behavior sets the gateway. The CLI takes a list of strings, not of structs. Thus
-a route is a string as `ip route` writes it,
-`10.0.0.0/8 via 192.168.1.1 metric 100`. The hand-written CLI took
-`to:via:metric`, which cannot hold an IPv6 address. The interface name rule,
-`interface_name`, is in the shared registry, because dns, interface and route
-each use it. With routes, no hand-written code reads or writes netplan. The
-others fit now: NTP, log, certificate and ping. The "Not yet" list of the
+Routes are the `route` behavior, under the interface with `behavior.Of`
+(osapi-io/osapi#990, #998): `osapi client node network interface route`, at
+`/api/node/{hostname}/network/interface/{name}/route`. gohai reads the routes of
+an interface on every platform. A write on the Debian family goes only under the
+interface's own definition, as for interfaces, and refuses a default route: the
+interface behavior sets the gateway. Each call is one route, as `ip route add`
+and `ip route del` are, with a flag for each value: `--destination` in CIDR
+notation, `--via` of the same family, and an optional `--metric`. Each has its
+own `validate` rule; only the family of the gateway against the destination is
+the provider's to check. A route was first a string as `ip route` writes it, a
+list of them a call, which replaced all the routes of the interface. That needed
+a rule of its own to parse the string. The destination is in the body, not the
+path, of an update or a delete: the router cannot match an encoded slash in a
+path segment, so `10.0.0.0%2F8` has no route. The routes of the whole host are
+in the facts of the agent; the behavior has no list of them. The interface name
+rule, `interface_name`, is in the shared registry, because dns, interface and
+route each use it. With routes, no hand-written code reads or writes netplan.
+The others fit now: NTP, log, certificate and ping. The "Not yet" list of the
 build-a-behavior skill is this table. Thus an agent that gets a request for one
 of these says so, and does not add code around the platform.
 
