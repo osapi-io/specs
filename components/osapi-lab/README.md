@@ -328,10 +328,12 @@ which is the check that every credential reached the right place.
 
 ## What will surprise you
 
-**`-K` asks for the hub's sudo password.** The macOS firewall of the hub admits
-a binary by its code signature. Each build has a new signature, so each push
-admits the binary again. The VMs need no password. Their account has
-passwordless sudo.
+**The hub needs passwordless sudo.** The macOS firewall of the hub admits a
+binary by its code signature. Each build has a new signature, so each push
+admits the binary again through sudo. A recipe does not ask for a password. Thus
+the user on the hub must have a `NOPASSWD: ALL` rule in `/etc/sudoers.d`. A rule
+for one command is not sufficient, because Ansible runs a different command
+through sudo each time. The VMs also have passwordless sudo.
 
 **A binary is never overwritten in place.** macOS kills a signed binary whose
 bytes change while it runs. Ansible's `copy` writes a temporary file and renames
