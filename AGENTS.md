@@ -62,17 +62,21 @@ nothing.
 
 Record an inconsistency. Do not make the change larger, and do not ignore the
 inconsistency. Open an issue on the repository where the fix goes, with the
-command that found it. Then continue your work. [Issues](CONTRIBUTING.md#issues)
-has the rule. Agents most often make the change larger.
+command that found it, and label it `side-finding`, its type and its component.
+Then continue your work. [Issues](CONTRIBUTING.md#issues) has the rule, and
+[Labels](CONTRIBUTING.md#labels) has the labels. Agents most often make the
+change larger.
 
 A page that does not agree with the code is the same situation. Say so. Fix the
 page in its own change. Do not write around the error.
 
 Work that you agree to do later is also an issue, in the repository where the
-change goes. Open it when you agree to the work. Your task list, your memory and
-the text of the session are not records. They stop when the session stops, and
-nobody else can read them. Use a task list only for the steps of the change that
-you do now. [Tracking](CONSTITUTION.md#tracking) has the rule.
+change goes. Open it when you agree to the work, with its labels. Work that
+waits on a different issue is `blocked`, with a blocked-by link to that issue.
+Your task list, your memory and the text of the session are not records. They
+stop when the session stops, and nobody else can read them. Use a task list only
+for the steps of the change that you do now.
+[Tracking](CONSTITUTION.md#tracking) has the rule.
 
 ## Write a page
 

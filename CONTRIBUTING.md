@@ -53,6 +53,57 @@ Do not open an issue for a problem that an attacker can use, because an issue is
 public when you open it. Make a draft advisory on the repository that it
 affects.
 
+### Labels
+
+Each issue gets its labels when you open it. A reader finds work by label, and
+an issue without labels is found only by its title. Before 21 November 2026, 225
+of the 272 issues of the organization had no label.
+
+| Label              | When                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------ |
+| `bug`              | The code does not do what its page or its contract says                                    |
+| `enhancement`      | New work: a feature, a migration, a new rule                                               |
+| `documentation`    | A page or a doc is incorrect or missing, and the code is correct                           |
+| `chore`            | A change that no caller sees: a refactor, a cleanup, a test, CI                            |
+| `tracker`          | An issue that groups others as sub-issues, such as osapi-io/osapi#964                      |
+| `decision`         | The owner must choose before work starts. The issue gives the choices and a recommendation |
+| `blocked`          | The work waits on a different issue                                                        |
+| `side-finding`     | Found during work on a different subject, and filed so that work stays its size            |
+| `component/<part>` | The part of the repository that the change goes in, such as `component/behavior-dsl`       |
+
+Give each issue one of the first six labels: its type. Add `blocked` and
+`side-finding` when they apply. Add one or more `component/` labels in a
+repository that has more than one part: osapi, gohai, osapi-lab,
+osapi-orchestrator and this repository. In this repository, the component is the
+organization component that the page is about, such as `component/osapi`, or
+`component/skills`. To add a component, create the label with a description that
+names its directories, and add it to the table below.
+
+A `blocked` issue says what it waits on in three places. The label finds it.
+GitHub's blocked-by link connects the two issues, so the issue that blocks shows
+what it blocks. A `Blocked by:` line in the body names the issue, or the event
+that is not an issue, such as a release:
+
+```bash
+gh issue edit "$n" --repo "osapi-io/$r" --add-label blocked
+gh api -X POST "repos/osapi-io/$r/issues/$n/dependencies/blocked_by" \
+  -F issue_id="$(gh api "repos/osapi-io/$r/issues/$blocker" -q .id)"
+```
+
+When the work that blocks it closes, remove `blocked`. A work item of a tracker
+is a GitHub sub-issue of the tracker, not a line of a checklist.
+
+`kind/` labels are for pull requests. The labeler sets them from the paths that
+a pull request changes. Do not put them on issues.
+
+| Repository         | Components                                                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| osapi              | `behavior-dsl`, `endpoint-dsl`, `command-dsl`, `validation`, `behaviors`, `agent`, `controller`, `job`, `cli`, `sdk`, `ui`, `telemetry`, `ci`, `skills` |
+| gohai              | `collectors`, `schema`, `ci`                                                                                                                            |
+| osapi-lab          | `image`, `hub`, `ci`                                                                                                                                    |
+| osapi-orchestrator | `ops`, `engine`, `ci`                                                                                                                                   |
+| specs              | one for each directory of `components/`, and `skills`, `constitution`                                                                                   |
+
 ## Prerequisites
 
 ```bash

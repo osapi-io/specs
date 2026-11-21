@@ -29,8 +29,11 @@ gh issue list --repo "osapi-io/$r" --state open --limit 100 \
   -q '.[] | "\(.number)\t\([.labels[].name]|join(","))\t\(.createdAt[:10])\t\(.title)"'
 ```
 
-Labels carry the kind (`bug`, `enhancement`) and the area (`kind/go`). Neither
-says whether anyone has started.
+Labels carry the type (`bug`, `enhancement`, `chore`), the part of the
+repository (`component/...`), and whether the work waits (`blocked`) or came from
+other work (`side-finding`). [Labels](../../../../CONTRIBUTING.md#labels) has the
+set. No label says whether anyone has started. An open issue without a type
+label is a finding: label it.
 
 ## What is already in hand
 
@@ -50,11 +53,21 @@ remains.
 
 ## Trackers
 
-A tracking issue here puts the others in a group as a markdown checklist of
-links, not as GitHub sub-issues. Thus
-`/repos/{owner}/{repo}/issues/{n}/sub_issues` returns nothing, and people mark
-the boxes by hand. Read the tracker for the group. Read the state from the
-issues themselves. The two disagree when a fix merges.
+A tracker has the `tracker` label, and its work items are GitHub sub-issues:
+
+```bash
+gh api "repos/osapi-io/$r/issues/$n/sub_issues" \
+  -q '.[] | "\(.number)\t\(.state)\t\([.labels[].name]|join(","))\t\(.title)"'
+```
+
+Older trackers have a markdown checklist of links, which people mark by hand.
+Read the state from the issues themselves, because a checklist and its issues
+disagree when a fix merges. A `blocked` issue names what it waits on with its
+blocked-by link:
+
+```bash
+gh api "repos/osapi-io/$r/issues/$n/dependencies/blocked_by" -q '.[].number'
+```
 
 ## Reporting
 
