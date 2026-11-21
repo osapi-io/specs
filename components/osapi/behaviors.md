@@ -208,12 +208,14 @@ A behavior builds on the two other DSLs: it makes an endpoint, its routes and
 its part of the spec, and CLI commands. Each layer owns the rules of what it
 makes, and `behavior validate` asks that layer. It does not keep a copy:
 
-| Rule                                            | Owner          | Asked as                                        |
-| ----------------------------------------------- | -------------- | ----------------------------------------------- |
-| The types a flag holds                          | CLI            | `command.Flaggable`, which its generator builds |
-| The `render` values an output knows             | CLI            | `command.TagProblems`                           |
-| An optional body field is `omitempty` in `json` | endpoint       | `endpoint.SentEmpty`, the `optional` rule       |
-| `dive`, `secret`, `pattern` in the spec         | rule, endpoint | the spec builder that ships the spec            |
+| Rule                                              | Owner          | Asked as                                        |
+| ------------------------------------------------- | -------------- | ----------------------------------------------- |
+| The types a flag holds                            | CLI            | `command.Flaggable`, which its generator builds |
+| The `render` values an output knows               | CLI            | `command.TagProblems`                           |
+| An optional body field is `omitempty` in `json`   | endpoint       | `endpoint.SentEmpty`, the `optional` rule       |
+| `dive`, `secret`, `pattern` in the spec           | rule, endpoint | the spec builder that ships the spec            |
+| A requirement is registered, with no cycle        | chain          | `behavior.ChainChecks`, the `requires` rule     |
+| An internal behavior has a behavior that needs it | chain          | `behavior.ChainChecks`, the `internal` rule     |
 
 A copy drifts. The behavior `surface` rule kept its own list of flag types,
 which allowed an `int64` that the generator could not build
@@ -583,11 +585,11 @@ Each one takes `--json`. Values come as flags, as in all of the [CLI](cli.md).
 
 `behavior spec get` lists each option, method, refinement, part of an example,
 call in a provider and field tag, with what it does and when to use it. It also
-lists how to build on other behaviors, the building blocks in the binary, the
-generated paths, and what the platform cannot do yet. The table is `Spec` in
-`internal/behavior/spec.go`. The building blocks come from the registry. A test
-fails on an option, method, part of an example or field tag of the package
-without a term.
+lists the generated paths, and what the platform cannot do yet. The table is
+`Spec` in `internal/behavior/spec.go`. How to build on other behaviors, and the
+building blocks in the binary, are in `behavior chain spec get`, which the chain
+layer owns. A test fails on an option, method, part of an example or field tag
+of the package without a term in one of the two.
 
 `behavior create` writes `internal/behaviors/<name>/` as a working behavior that
 keeps a value in a file, with each standard file. It adds its import to
@@ -847,9 +849,10 @@ behaviors that call outside APIs.
   `behavior list` marks it.
 - **Checks.** `behavior validate` fails a requirement that is not registered,
   and a cycle, under the rule `requires`. It fails an internal behavior that no
-  behavior requires, under the rule `internal`, because nothing can call it.
-  `behavior get` lists what a behavior uses and what uses it. The landing page
-  of the Behaviors section has a table of each behavior with the two lists,
+  behavior requires, under the rule `internal`, because nothing can call it. The
+  chain layer owns these two rules, and `behavior validate` states them in its
+  words. `behavior get` lists what a behavior uses and what uses it. The landing
+  page of the Behaviors section has a table of each behavior with the two lists,
   generated from the registry.
 
 `managedfile` is the first internal behavior. It writes files on a host, and
@@ -885,6 +888,55 @@ lists the candidates that the hand-written domains share.
 
 A chain across hosts or steps, where the output of one method is the input of
 the next, is a workflow. It stays with osapi-orchestrator.
+
+### Chains
+
+The behaviors that a behavior calls, and the ones that they call, are a chain:
+`dns → netplan → managedfile`,
+`status → (hostname, uptime, os, load, memory, disk)`. The chain has the name of
+the behavior at its top. It is not declared on its own. `Requires` on each
+behavior makes it (osapi-io/osapi#1000).
+
+`osapi behavior chain` is a group of the command DSL, as `behavior` is:
+
+| Command                       | Does                                                                                      |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| `chain list`                  | each behavior in a chain, with its tree and what calls it                                 |
+| `chain get --name <behavior>` | the calls of each example of the behavior, with what each call sends and gets             |
+| `chain validate`              | the chain rules, each with its fix                                                        |
+| `chain spec get`              | what a chain is, how to build one, what occurs when a step fails, and the building blocks |
+
+`chain get` does not read a record. It runs each example of the behavior on the
+fake host that `go test` uses, and `behavior.Call` records each call under the
+call that made it: the behavior, the method, the input, and the output or the
+error. `behavior.Record` gives the context that collects the steps. Thus the
+tree shows what the code does now, and it cannot be stale. A field with the tag
+`secret:"true"` shows as `[redacted]`. `behaviortest.Chains` runs the examples,
+in the binary as in the tests.
+
+The chain rules are `behavior.ChainChecks`. Two hold when the behaviors are
+built, and `behavior validate` checks them too. Two need a run of the examples,
+and `go test` checks them through `behaviortest.Run`:
+
+| Rule       | Requires                                                       | Checked by                            |
+| ---------- | -------------------------------------------------------------- | ------------------------------------- |
+| `requires` | each required behavior is registered, with no cycle            | `behavior validate`, `chain validate` |
+| `internal` | an internal behavior has a behavior that requires it           | `behavior validate`, `chain validate` |
+| `called`   | a provider calls only the behaviors that its behavior requires | `go test`, `chain validate`           |
+| `used`     | an example calls each behavior that a behavior requires        | `go test`, `chain validate`           |
+
+`called` holds because the agent builds the provider of a required behavior, and
+of no other. `used` finds a requirement that no example tests, or that the
+behavior does not need.
+
+There is no chain DSL. The glue between two steps is logic, not a field that
+goes from one output to the next input. dns reads the current resolvers and the
+netplan ID of the interface before it writes, and netplan puts its file back
+when `netplan generate` refuses it. A declarative chain would be too weak for
+that, or it would become a programming language. That is what osapi-orchestrator
+workflows are for, across hosts. A declarative `behavior.Chain` is worth it when
+two or more behaviors only pass the output of one building block to the next,
+with no logic.
 
 ## Secret inputs
 
