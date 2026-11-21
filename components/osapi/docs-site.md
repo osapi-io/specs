@@ -1,0 +1,75 @@
+# The docs site
+
+The docs site of osapi is in `docs/` of osapi-io/osapi, a Docusaurus site. Its
+pages are of two kinds. A page that says what this build has is generated from
+the binary. A page that explains or teaches is written by hand. Thus a page of
+the first kind cannot be wrong about the build, and a person writes only what
+the binary cannot say.
+
+## The sections
+
+| Section      | Has                                                                    | Written by                           |
+| ------------ | ---------------------------------------------------------------------- | ------------------------------------ |
+| Features     | what osapi does, by feature                                            | hand                                 |
+| Usage        | how to run it, and the CLI reference: a page for each command          | hand; the CLI pages generated        |
+| SDK          | the Go SDK                                                             | hand (osapi-io/osapi#1008)           |
+| Reference    | what this build has: behaviors, chains, endpoints, CLI groups, the API | generated; the landing pages by hand |
+| Architecture | how osapi is built                                                     | hand                                 |
+| Development  | how to build with osapi, and the DSLs                                  | hand; the DSL pages generated        |
+
+Reference answers "what does this build have". Development answers "how do I
+build one". The DSL pages are under Development, because only a person who
+builds osapi reads the grammar of a DSL.
+
+## A reference page is the output of a command
+
+Each page under Reference is the output of the `list` or `get` command that
+shows the same thing, written as markdown:
+
+| Page                         | Is the output of                                                              |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| Behaviors, and each behavior | `osapi behavior list`; `osapi behavior get`, and `method get` for each method |
+| Chains, and each chain       | `osapi behavior chain list`; `osapi behavior chain get`                       |
+| Endpoints, and each group    | `osapi controller endpoint list`; `osapi controller endpoint get`             |
+| CLI, and each local group    | `osapi cli command list`; `osapi cli command get`                             |
+
+`osapi cli docs reference generate` calls the handler of each command with the
+same dependencies that the CLI gives it, then prints the output with
+`command.Render` and a markdown printer, `cli.Markdown`. The terminal prints
+through the same `Render` with its own printer. Thus a page and its command show
+the same headings, key-value blocks and tables, and a field that a command adds
+is on its page with no other change. The first version of the behavior pages was
+a separate page builder. It showed less than `behavior get`, and nothing held
+the two together.
+
+A page links what it names. The rule of each page says which column or label is
+a link: the name of a behavior to its page, the behaviors that it uses or that
+use it, a behavior to its chain, and a command to its page in the CLI reference.
+
+A landing page, such as `reference/behaviors/behaviors.mdx`, is written by hand.
+It explains the section and imports the generated table, `_catalog.mdx`. The
+generator removes a generated page that no command writes now, such as the page
+of a behavior that was removed, and keeps a page that a person wrote.
+
+## The DSL pages
+
+`osapi cli docs dsl generate` writes a page for each DSL under
+`development/dsl/`: the behavior DSL, chains, the endpoint DSL and the command
+DSL. Each page is the spec that the `spec get` command of the DSL prints, in the
+same order. `guide.Spec.Markdown` writes it.
+
+## Checks
+
+`just cli-docs-generate` writes the CLI pages, the DSL pages and the reference.
+`just cli-docs-gen-check`, in `just test`, fails when one of them differs from
+the binary. Each generated page has the title of the thing in its front matter,
+with initialisms such as DNS in capitals. Docusaurus does not read the title
+from a heading after the generated comment, and showed the file name in the
+sidebar.
+
+## What is not generated yet
+
+The SDK pages, the permission tables, the config tables of the feature pages,
+the metrics reference and the navbar are written by hand. osapi-io/osapi#1005
+tracks each one. A feature page that copies a table of a behavior page can be
+wrong; osapi-io/osapi#1010 replaces the copies with links.
