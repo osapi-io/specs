@@ -162,7 +162,7 @@ The provider tree is the exception, and this is deliberate. It nests by what
 implements a thing. Thus a second driver is a new directory next to the first,
 not a set of files in many places: `provider/container/docker` and, when it
 exists, `provider/container/podman`. Thus that tree can be deeper than the URL.
-For example, `provider/network/netplan/dns` serves `/network/dns`.
+For example, `provider/network/netplan/route` serves `/network/route`.
 
 ## Broadcast is not optional
 

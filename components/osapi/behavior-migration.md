@@ -209,15 +209,29 @@ That fails the rule that a second identical call changes nothing, and apt-get's
 `Get:` lines do not tell either: the CI runner prints them on each run. DNS is
 the `dns` behavior under `network` (osapi-io/osapi#988). gohai reads it on every
 platform, and it writes through `netplan`, an internal behavior that writes a
-file under `/etc/netplan`, validates it with `netplan generate`, removes it when
-that fails, and applies it (osapi-io/osapi#987). Interfaces and routes will
-require `netplan` too. A write goes under the netplan ID of the definition that
-matches the interface, such as cloud-init's `all` for `en*`: netplan ignores a
-second definition of the same interface, so a file under the interface's name
-changed nothing on the lab's Ubuntu image. The others fit now: NTP, log,
-certificate, interface, route and ping. The "Not yet" list of the
-build-a-behavior skill is this table. Thus an agent that gets a request for one
-of these says so, and does not add code around the platform.
+file under `/etc/netplan`, validates it with `netplan generate`, and applies it
+(osapi-io/osapi#987). When `netplan generate` refuses the file, the file gets
+back the content that it had, or a new file is removed. A DNS write goes under
+the netplan ID of the definition that matches the interface, such as
+cloud-init's `all` for `en*`: netplan ignores a second definition of the same
+interface, so a file under the interface's name changed nothing on the lab's
+Ubuntu image. `netplan status` lists only the interfaces that netplan manages.
+Thus whether a host has an interface is gohai's to read, not netplan's: on the
+lab, a dummy interface that netplan did not manage was not in the list.
+
+Interfaces are the `interface` behavior under `network` (osapi-io/osapi#989),
+whose Go package is `iface` because `interface` is a Go keyword. gohai reads
+each interface on every platform. A write on the Debian family goes only under
+the interface's own definition: an interface that a match defines, such as
+cloud-init's `all`, is refused. A static address under `all` changes each
+interface that the match takes, now and later. On the lab that match took one
+interface, so a check that counted the interfaces let the write through. The
+write examples run on `osapi0`, a dummy interface that the integration job
+makes, and set no gateway. A default route through `osapi0` would take the
+traffic of the runner. The others fit now: NTP, log, certificate, route and
+ping. The "Not yet" list of the build-a-behavior skill is this table. Thus an
+agent that gets a request for one of these says so, and does not add code around
+the platform.
 
 The cutover of a domain deletes its hand-written handler tests. Thus each case
 in them must go somewhere first:

@@ -285,7 +285,12 @@ The endpoint server checks the token against the permission of the route. The
 target is a field of the request, so the route checks it with the other tags.
 The handler of each method calls `internal/behavior/dispatch`, which is written
 one time. It queues the job, on one host or each host of the target, and makes
-the `{job_id, results[]}` envelope.
+the `{job_id, results[]}` envelope. A host that runs the job and fails it is a
+row with `status: failed` and the error of the provider, on one host as on a
+broadcast. A job that osapi cannot send is a 500, and an item that the host does
+not have is a 404. Until osapi-io/osapi#989, a single host that failed a job was
+a 500 that said the job could not be sent. Thus the agent's message did not get
+to the caller.
 
 An earlier version served each method through one handler that read the
 definition when osapi started. It worked. But you could not open, debug or test
