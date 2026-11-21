@@ -158,9 +158,9 @@ not `updatepackages:*`, and the node status asked for `node:read`, not
 A result card reads the shape of the answer of its operation. A behavior answers
 one row per item, such as a package or a service, with the hostname on each row;
 the card groups the rows by host. The cards of packages and services read the
-nested lists of the hand-written domains for weeks after those became behaviors,
-and showed "0 packages" on each row (osapi-io/osapi#972, #1018). A click-through
-in the lab found them, which a type check of the UI does not
+nested lists of the hand-written domains after those became behaviors, and
+showed "0 packages" on each row (osapi-io/osapi#972, #1018). A click-through in
+the lab found them, which a type check of the UI does not
 ([AGENTS.md](../../AGENTS.md#use-the-lab)).
 
 ## Color: one palette with the CLI
