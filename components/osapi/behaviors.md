@@ -192,6 +192,16 @@ refuse an input field with no tag, with the same words. The spec carries the
 whole tag in `x-oapi-codegen-extra-tags`, on a parameter and on each property of
 a body, so a Go client made from the spec validates as the server does.
 
+## A refusal runs as the agent runs it
+
+The tests of a behavior run each refusal as the agent and `behavior.Call` do:
+the method's `validate` rules first, then the method. A refusal that a rule
+refuses holds with the rule's text, so the provider need not check what a tag
+already says. A refusal that no tag can say, such as "not found", holds with the
+provider's error. Before, the tests called the provider alone, so a rule
+declared only as a tag looked accepted, and each behavior checked its rules a
+second time in the provider.
+
 ## Each layer owns its rules
 
 A behavior builds on the two other DSLs: it makes an endpoint, its routes and
