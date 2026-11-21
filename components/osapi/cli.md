@@ -350,19 +350,23 @@ With `--json`, an error is one JSON document on stderr, from
 `internal/cli/errors.go`. Nothing else prints:
 
 ```json
-{"error": "insufficient permissions", "code": "forbidden", "status": 403}
+{"error": "insufficient permissions", "reason": "forbidden", "status": 403}
 ```
 
-| `code`                                                                                               | When                                                                             |
-| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `usage_error`                                                                                        | an unknown command or flag, or a missing required flag                           |
-| `fatal`                                                                                              | the command could not start, such as a config that will not load, with `details` |
-| `invalid_request`, `unauthorized`, `forbidden`, `not_found`, `conflict`, `server_error`, `api_error` | the API's answer, by status code                                                 |
-| `error`                                                                                              | anything the CLI cannot name more precisely                                      |
+| `reason`                                   | When                                                                                                          |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `usage_error`                              | an unknown command or flag, or a missing required flag                                                        |
+| `fatal`                                    | the command could not start, such as a config that will not load, with `details`                              |
+| a reason of the API, such as `not_managed` | the API's answer: the reason that the API gave, or the reason of its status when it gave none, or `api_error` |
+| `error`                                    | anything the CLI cannot name more precisely                                                                   |
 
-A program matches on `code`. The message can change between releases. The exit
-code is 2 for a usage error, and 1 for each other failure. Thus a script can
-tell "I called it incorrectly" from "it ran and failed" without stderr.
+A program matches on `reason`. The message can change between releases. The
+field was `code` until osapi-io/osapi#1020. The name read as the HTTP code,
+which is `status`. Before that change, the CLI made the reason from the status
+only, so each 409 was `conflict`. Now it passes the API's reason through, such
+as `not_managed`. The exit code is 2 for a usage error, and 1 for each other
+failure. Thus a script can tell "I called it incorrectly" from "it ran and
+failed" without stderr.
 
 ## Help as JSON, for agents
 
@@ -381,7 +385,7 @@ Thus an agent asks for the next one that it needs, and does not read 120
 commands at one time.
 
 The document of the root also has the contract that all commands share. Errors
-under `--json` are `{"error", "code"}` on stderr. The exit codes are 0 for
+under `--json` are `{"error", "reason"}` on stderr. The exit codes are 0 for
 success, 1 for an error and 2 for a usage error.
 
 It reads `--json` from the persistent flag of the root, not from the variable

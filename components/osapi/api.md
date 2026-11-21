@@ -124,6 +124,39 @@ body. `GET /api/node/{hostname}/file/status?path=...` was a POST with a body.
   then, some hand-written groups use other names, such as `...ListResponse` and
   `...MutationResponse`.
 
+## Each error says why
+
+An error answer is `ErrorResponse`:
+`{"error": "<message>", "reason": "<word>"}`. The HTTP status is the class of
+the problem. `reason` is the cause, a word that a program branches on. `error`
+is the message for a person, and its words can change between releases. The
+schema lists each reason, with what it means:
+
+| `reason`          | Status | Means                                                                    |
+| ----------------- | ------ | ------------------------------------------------------------------------ |
+| `invalid_request` | 400    | the request breaks a rule, such as a missing field                       |
+| `unauthorized`    | 401    | no token, or a token that is not valid                                   |
+| `forbidden`       | 403    | the token does not have the permission                                   |
+| `not_found`       | 404    | the host or osapi does not have what the request names                   |
+| `not_managed`     | 409    | the item is there, but osapi did not deploy it, so it does not change it |
+| `not_installed`   | 409    | the host does not have a program that the request needs                  |
+| `conflict`        | 409    | the state of the item blocks the request                                 |
+| `unavailable`     | 503    | a part that osapi depends on is down, such as NATS                       |
+| `server_error`    | 500    | the controller failed; its log has the cause                             |
+
+The generated routes take the reason from the error that the method maps
+(`endpoint.NotFound`, `.Conflict(...).Because(endpoint.ReasonNotManaged)`). The
+hand-written handlers take it from `apierr`, and the error handler of the API
+takes it from the status. The agent already names the cause of a failed job
+(`internal/job/errors.go`), and the reason carries it to the caller. A test
+fails when `endpoint.Reasons` and the enum of the schema differ, or when the
+schema does not say what a reason means.
+
+Two answers changed with the reason. A not found on a method with no key, such
+as a create whose object is not in the Object Store, was a 500. Not managed and
+not installed were a 404 that said "not found". The `ErrorResponse` before it
+had an integer `code`, which repeated the status, and almost nothing set it.
+
 ## The test
 
 `TestConventions` checks the joined spec,
