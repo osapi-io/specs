@@ -131,6 +131,16 @@ var Group = endpoint.Register(endpoint.Define(
   `internal/validation/rule`; [behaviors](behaviors.md) has them. Each rule of
   each input field has a `.Fails(doc, input)` that breaks it, as a behavior's
   refusals do, and `controller endpoint validate` names a rule that has none.
+
+- An optional field of a write's body, with `omitempty` in its validate tag, has
+  `omitempty` in its `json` tag too, also inside the type that `in:"body"`
+  names. Otherwise a client sends `""` or `0`, and the field's other rules
+  refuse it. The `optional` rule fails it, and the behavior DSL asks the same
+  check of its writes. admission's `reason` was the one field that broke it.
+
+- The rules after `dive` are each item's: `max=10,dive,max=255` is at most 10
+  items of at most 255 characters, in the server and in the spec. A field tagged
+  `secret:"true"` is write-only, with the password format, in the spec.
   `TestRefusals`, in `internal/controller/endpoints/all`, sends each one through
   the routes and expects 400 with `{"error": "..."}`. The route is the only
   place a handler runs, so the route's check holds for every call.
