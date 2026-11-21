@@ -228,10 +228,21 @@ interface that the match takes, now and later. On the lab that match took one
 interface, so a check that counted the interfaces let the write through. The
 write examples run on `osapi0`, a dummy interface that the integration job
 makes, and set no gateway. A default route through `osapi0` would take the
-traffic of the runner. The others fit now: NTP, log, certificate, route and
-ping. The "Not yet" list of the build-a-behavior skill is this table. Thus an
-agent that gets a request for one of these says so, and does not add code around
-the platform.
+traffic of the runner.
+
+Routes are the `route` behavior under `network` (osapi-io/osapi#990). gohai
+reads the routes of the main table on every platform, and `get` gives the routes
+of one interface. A write on the Debian family goes only under the interface's
+own definition, as for interfaces, and refuses a default route: the interface
+behavior sets the gateway. The CLI takes a list of strings, not of structs. Thus
+a route is a string as `ip route` writes it,
+`10.0.0.0/8 via 192.168.1.1 metric 100`. The hand-written CLI took
+`to:via:metric`, which cannot hold an IPv6 address. The interface name rule,
+`interface_name`, is in the shared registry, because dns, interface and route
+each use it. With routes, no hand-written code reads or writes netplan. The
+others fit now: NTP, log, certificate and ping. The "Not yet" list of the
+build-a-behavior skill is this table. Thus an agent that gets a request for one
+of these says so, and does not add code around the platform.
 
 The cutover of a domain deletes its hand-written handler tests. Thus each case
 in them must go somewhere first:

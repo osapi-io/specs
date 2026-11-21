@@ -237,7 +237,10 @@ install, the spec's pattern refused it, and only the integration test saw it.
 
 An output can be a struct or a slice of structs. A slice becomes one result row
 for each element, and each row has the name of the host. sysctl `list` answers
-in this way now.
+in this way now. An empty slice is one row with only the name and the status of
+the host. Thus a host that answered with nothing is different from a host that
+did not answer. The generated API tests expected no row there, until route `get`
+gave the first example with an empty list (osapi-io/osapi#990).
 
 The platform, not the schema, reads two more tags:
 
