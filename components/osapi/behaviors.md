@@ -103,26 +103,28 @@ the tags for authors. This page records why the design is as it is.
 
 ## What the definition decides
 
-| Declared                     | Decides                                                                                                                                                          |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `behavior.Node`              | The work runs on a host, through the job system. It is the only placement                                                                                        |
-| `behavior.Under("network")`  | Nests the behavior: `/api/node/{hostname}/network/dns`, `osapi client node network dns`                                                                          |
-| `Read`                       | `GET`, the `<group>:read` permission, no `changed` in the result                                                                                                 |
-| `Write`                      | `POST`, or `PUT` for `update` and `DELETE` for `delete`, and the `<group>:write` permission                                                                      |
-| `.Key("key")`                | The input field addressed in the path, `/{key}`                                                                                                                  |
-| `behavior.API`               | Routes, its part of the OpenAPI spec, and the API reference pages                                                                                                |
-| `behavior.CLI`               | Generated commands, with their pages in the CLI reference. It needs `API`, because the commands call the API                                                     |
-| `.Describe`, `.Explain`      | The one-line description, and the longer text that the help and the CLI page of a command, and the spec, carry                                                   |
-| `.Example`                   | Sample calls. They are the examples of a command, and the tests                                                                                                  |
-| `behavior.Config(v)`         | Settings under `behaviors.<name>`, with `v` as their defaults                                                                                                    |
-| `behavior.Platform(p, f)`    | How the provider is built on platform `p`: a distribution, `darwin`, or `linux` for every Linux host without its own. On any other, the methods report `skipped` |
-| `behavior.Sudo("prog")`      | A program the provider runs with sudo, which the agent's preflight checks                                                                                        |
-| `behavior.Runs("prog")`      | A program the provider runs without sudo; the agent warns at startup when it is missing                                                                          |
-| `.On(p...)`                  | Limits one method to some of the platforms. On any other platform, that method reports `skipped`, and its examples do not run there                              |
-| `.Sudo`, `.Runs` on a method | A program that only this method runs. A host needs it only where the method runs                                                                                 |
-| `behavior.Writes("...")`     | The paths the provider writes, removes or changes the mode of, as `path.Match` patterns; `"*"` is any path                                                       |
-| `behavior.KeepsState`        | The provider keeps a record in the `file-state` bucket                                                                                                           |
-| `behavior.Validator(...)`    | A `validate` tag of the behavior's own: its check, its schema and its message                                                                                    |
+| Declared                             | Decides                                                                                                                                                          |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `behavior.Node`                      | The work runs on a host, through the job system. It is the only placement                                                                                        |
+| `behavior.Under("network")`          | Nests the behavior: `/api/node/{hostname}/network/dns`, `osapi client node network dns`                                                                          |
+| `Read`                               | `GET`, the `<group>:read` permission, no `changed` in the result                                                                                                 |
+| `Write`                              | `POST`, or `PUT` for `update` and `DELETE` for `delete`, and the `<group>:write` permission                                                                      |
+| `.Key("key")`                        | The input field addressed in the path, `/{key}`                                                                                                                  |
+| `behavior.API`                       | Routes, its part of the OpenAPI spec, and the API reference pages                                                                                                |
+| `behavior.CLI`                       | Generated commands, with their pages in the CLI reference. It needs `API`, because the commands call the API                                                     |
+| `.Describe`, `.Explain`              | The one-line description, and the longer text that the help and the CLI page of a command, and the spec, carry                                                   |
+| `.Example`                           | Sample calls. They are the examples of a command, and the tests                                                                                                  |
+| `behavior.Config(v)`                 | Settings under `behaviors.<name>`, with `v` as their defaults                                                                                                    |
+| `behavior.Platform(p, f)`            | How the provider is built on platform `p`: a distribution, `darwin`, or `linux` for every Linux host without its own. On any other, the methods report `skipped` |
+| `behavior.Sudo("prog")`              | A program the provider runs with sudo, which the agent's preflight checks                                                                                        |
+| `behavior.Runs("prog")`              | A program the provider runs without sudo; the agent warns at startup when it is missing                                                                          |
+| `behavior.RunsOnPlatform(p, "prog")` | A program the provider runs on platform `p` only, such as `vm_stat` on darwin; a Linux host is not asked for it                                                  |
+| `behavior.RunsIfPresent("prog")`     | A program the provider runs only when the host has it, such as `zfs`; the agent and the integration test do not ask for it                                       |
+| `.On(p...)`                          | Limits one method to some of the platforms. On any other platform, that method reports `skipped`, and its examples do not run there                              |
+| `.Sudo`, `.Runs` on a method         | A program that only this method runs. A host needs it only where the method runs                                                                                 |
+| `behavior.Writes("...")`             | The paths the provider writes, removes or changes the mode of, as `path.Match` patterns; `"*"` is any path                                                       |
+| `behavior.KeepsState`                | The provider keeps a record in the `file-state` bucket                                                                                                           |
+| `behavior.Validator(...)`            | A `validate` tag of the behavior's own: its check, its schema and its message                                                                                    |
 
 The permission prefix is the group when there is one, and the name of the
 behavior when there is no group. Thus `dns` under `network` needs
