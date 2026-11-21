@@ -71,5 +71,13 @@ sidebar.
 
 The SDK pages, the permission tables, the config tables of the feature pages,
 the metrics reference and the navbar are written by hand. osapi-io/osapi#1005
-tracks each one. A feature page that copies a table of a behavior page can be
-wrong; osapi-io/osapi#1010 replaces the copies with links.
+tracks each one.
+
+A feature page explains a feature, and links to the generated page of each
+behavior that it uses for the permission, the platforms and the route of each
+method. It does not copy them. Before osapi-io/osapi#1010, seven feature pages
+had their own tables of operations, platforms and permissions, and four were
+wrong: the update checks asked for `package:*`, the node status for `node:read`,
+the timezone read was "skipped" on macOS and Linux where it runs, and the
+network page listed a route get that no longer exists. A copy goes stale the
+first time its behavior changes, and no check reads it.
