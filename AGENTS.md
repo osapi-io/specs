@@ -23,6 +23,25 @@ The symptom is a check that fails here but passes in CI, on a file that nobody
 changed. If this occurs, find the version that ran. Do this before you accept
 the failure as real.
 
+## Use the lab
+
+[The lab](components/osapi-lab/README.md) runs osapi on a Mac hub and on Linux
+and macOS VMs. An agent can deploy the lab with no person present. The hub and
+the VMs have passwordless sudo, so no recipe asks for a password.
+
+Deploy the lab when a change needs a real host: to run the integration tests, or
+to see that a read or a write operates on Linux and on macOS.
+
+- `just deploy` in osapi-lab copies your osapi build to the hub and the running
+  VMs.
+- `just ssh <vm>` opens a shell on a VM. Remove each file that you copy to a VM
+  when you finish.
+- `just go-unit-int` in osapi runs the integration tests against the lab when
+  `OSAPI_INTEGRATION_OSAPIFILE` and `OSAPI_INTEGRATION_TARGET` point at it.
+
+Ask a person before `just teardown`, and before a change to the security
+settings of the lab, such as its firewall or its sudo rules.
+
 ## Read the documents before you change them
 
 Read the page of the component under `components/`, and the subjects that it
