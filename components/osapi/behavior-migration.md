@@ -182,13 +182,14 @@ describes something that osapi does, and nothing else.
 These hand-written node operations use something that a behavior cannot express
 yet. Each is a platform change. This page designs it before somebody builds it.
 Each one unblocks a set of domains. Action methods, such as `service restart`,
-and the Object Store on `host.Host` are built (osapi-io/osapi#985), so they are
-not in the table:
+and the Object Store on `host.Host` are built (osapi-io/osapi#985). A resource
+under another is built with `behavior.Of` (osapi-io/osapi#986). Thus they are
+not in the table. A container's images are at `/container/docker/image/{image}`,
+which is not under a container, so they need no `Of`:
 
 | Missing                                                     | Operations                                                 | Blocks                             |
 | ----------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------- |
 | The `execute` and `shell` permissions beside read and write | command exec and shell, power, process signal, docker exec | command, power, process, container |
-| A resource under another, with two keys in the path         | a user's SSH keys, a container's images                    | user, container                    |
 | A step on the controller before the job is queued           | a password hashed so the plaintext never reaches NATS      | user                               |
 
 The status summary of a node is the `status` behavior, at

@@ -133,10 +133,11 @@ questions that select the pattern. Examples are: where is the truth about the
 thing, and what does "already done" look like.
 
 The "Not yet" list names what a behavior cannot express. Examples are an action
-method like `restart`, or a resource with two keys. When an agent gets a request
-for one, it says so and stops. It does not add code around the platform. This
-list is the same as the blockers in [the migration plan](behavior-migration.md),
-and it becomes shorter as people build them.
+method that streams, or a step on the controller before the job is queued. When
+an agent gets a request for one, it says so and stops. It does not add code
+around the platform. This list is the same as the blockers in
+[the migration plan](behavior-migration.md), and it becomes shorter as people
+build them.
 
 `test/skills/build-a-behavior/` has the requests that measure the skill, and
 `run.sh`. They test the skill, so they are not part of it, and the binary does
