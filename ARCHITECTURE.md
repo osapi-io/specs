@@ -208,8 +208,12 @@ osapi's agent and behaviors use it: osapi no longer detects the family itself.
 The collectors of gohai take their sources (a filesystem, a command runner, a
 clock and the family) from the caller, and gohai does not use `gopsutil`
 (osapi-io/gohai#292). Thus a behavior of osapi can call a collector with the
-sources of `host.Host`, and its example runs on the fake host. osapi's providers
-still call `gopsutil`, until they read through gohai (osapi-io/osapi#960).
+sources of `host.Host`, and its example runs on the fake host. osapi does not
+use `gopsutil`: its facts, its host, disk, memory, load and process reads, and
+the process metrics of its heartbeats come from gohai, on each Linux family and
+on macOS (osapi-io/osapi#960). The node-read behaviors still parse the host
+themselves, until they call gohai with the sources of `host.Host`
+(osapi-io/osapi#965).
 
 ## What is not here
 
