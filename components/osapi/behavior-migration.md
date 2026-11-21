@@ -195,10 +195,12 @@ The status summary of a node is the `status` behavior, at
 `GET /api/node/{hostname}/status` (osapi-io/osapi#945). It requires the
 hostname, uptime, os, load, memory and disk behaviors, and calls the get of each
 through `behavior.Call`. A read that fails is in `errors`, and the others still
-answer. Thus no hand-written node spec is left. The others fit now: timezone,
-NTP, log, package, certificate, DNS, interface, route and ping. The "Not yet"
-list of the build-a-behavior skill is this table. Thus an agent that gets a
-request for one of these says so, and does not add code around the platform.
+answer. Thus no hand-written node spec is left. Timezone is a behavior too
+(osapi-io/osapi#964): gohai reads it on every platform, and timedatectl sets it
+on the Debian family. The others fit now: NTP, log, package, certificate, DNS,
+interface, route and ping. The "Not yet" list of the build-a-behavior skill is
+this table. Thus an agent that gets a request for one of these says so, and does
+not add code around the platform.
 
 The cutover of a domain deletes its hand-written handler tests. Thus each case
 in them must go somewhere first:
