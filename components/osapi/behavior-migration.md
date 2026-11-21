@@ -179,17 +179,17 @@ describes something that osapi does, and nothing else.
 
 ## What blocks the other domains
 
-25 of the 94 hand-written node operations use something that a behavior cannot
-express yet. Each is a platform change. This page designs it before somebody
-builds it. Each one unblocks a set of domains:
+These hand-written node operations use something that a behavior cannot express
+yet. Each is a platform change. This page designs it before somebody builds it.
+Each one unblocks a set of domains. Action methods, such as `service restart`,
+and the Object Store on `host.Host` are built (osapi-io/osapi#985), so they are
+not in the table:
 
-| Missing                                                       | Operations                                                                                                                                                | Blocks                                            |
-| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| Action methods, a write named for what it does under the item | service start, stop, restart, enable, disable; docker start, stop, exec, pull; process signal; power reboot, shutdown; user password; command exec, shell | service, container, process, power, command, user |
-| The `execute` and `shell` permissions beside read and write   | command exec and shell, power, process signal, docker exec                                                                                                | command, power, process, container                |
-| A resource under another, with two keys in the path           | a user's SSH keys, a container's images                                                                                                                   | user, container                                   |
-| A step on the controller before the job is queued             | a password hashed so the plaintext never reaches NATS                                                                                                     | user                                              |
-| The object store on `host.Host`                               | cron and file deploys of uploaded content                                                                                                                 | schedule, file                                    |
+| Missing                                                     | Operations                                                 | Blocks                             |
+| ----------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------- |
+| The `execute` and `shell` permissions beside read and write | command exec and shell, power, process signal, docker exec | command, power, process, container |
+| A resource under another, with two keys in the path         | a user's SSH keys, a container's images                    | user, container                    |
+| A step on the controller before the job is queued           | a password hashed so the plaintext never reaches NATS      | user                               |
 
 The status summary of a node is the `status` behavior, at
 `GET /api/node/{hostname}/status` (osapi-io/osapi#945). It requires the
@@ -218,6 +218,19 @@ interface, so a file under the interface's name changed nothing on the lab's
 Ubuntu image. `netplan status` lists only the interfaces that netplan manages.
 Thus whether a host has an interface is gohai's to read, not netplan's: on the
 lab, a dummy interface that netplan did not manage was not in the list.
+
+Services are the `service` behavior (osapi-io/osapi#991). gohai reads the
+services of each Linux host with `systemctl`. On the Debian family, create and
+update deploy an uploaded object as `/etc/systemd/system/osapi-<name>.service`
+through the `object` and `managedfile` behaviors, and delete, start, stop,
+restart, enable and disable are actions on a service that osapi deployed. An
+action reports `changed: true` only when systemd says the service moved: an
+enable of a unit with no `[Install]` section, which systemd calls static, runs
+and changes nothing. On the lab, the hand-written domain reported a change on
+each such enable. The hand-written domain also read the main process of a
+service. gohai does not read it, so the behavior does not have it. gohai lists
+only the units that systemd has loaded, so a service that is stopped and
+disabled is not found until gohai reads the unit files too (osapi-io/gohai#321).
 
 Interfaces are the `interface` behavior under `network` (osapi-io/osapi#989),
 whose Go package is `iface` because `interface` is a Go keyword. gohai reads
@@ -270,8 +283,9 @@ domain does each of them now:
   that installs what it manages needs it.
 - **Service control**: reload or restart after a change. The service domain does
   it, and NTP, hostname and cron do it again.
-- **File deploy from the object store.** The file domain and cron do it, after
-  the object store is on `host.Host`.
+- **File deploy from the object store.** The file domain and cron do it. The
+  `object` behavior reads the object, and `managedfile` writes it. The service
+  behavior is the first that requires the two.
 - **Run a command and read its output.** Each provider does it now through
   `h.Exec`. It becomes a behavior only if it gets checks that each caller needs,
   for example a refusal of input that can get to a shell.
