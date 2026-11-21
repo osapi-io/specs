@@ -38,7 +38,9 @@ collector, and the example of the behavior runs on the fake host.
 
 gohai has facts about the host: what is installed, what the hardware is, and how
 the host is configured. The resolver configuration, the accounts and their
-authorized keys, and the installed packages are facts.
+authorized keys, and the installed packages are facts. So are the services: each
+unit, its description, and whether it starts at boot. "Enabled" is the state of
+the unit file, not whether the unit runs now.
 
 The live state of a service that osapi manages is not a fact. Examples are the
 sync status of chrony, and the package updates that the repository index has.
