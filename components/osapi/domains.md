@@ -162,7 +162,8 @@ The provider tree is the exception, and this is deliberate. It nests by what
 implements a thing. Thus a second driver is a new directory next to the first,
 not a set of files in many places: `provider/container/docker` and, when it
 exists, `provider/container/podman`. Thus that tree can be deeper than the URL.
-For example, `provider/network/netplan/route` serves `/network/route`.
+No provider is deeper now: the last one, `provider/network/netplan`, became the
+dns, interface, route and netplan behaviors (osapi-io/osapi#990).
 
 ## Broadcast is not optional
 
