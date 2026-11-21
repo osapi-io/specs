@@ -17,12 +17,13 @@ They also share the content of this page:
 
 `pkg/gohai/source` has the type `Sources`:
 
-| Field    | Type                       | A zero value is               |
-| -------- | -------------------------- | ----------------------------- |
-| `FS`     | `avfs.VFS`                 | the filesystem of the host    |
-| `Exec`   | `source.Runner`            | the commands of the host      |
-| `Now`    | `func() time.Time`         | `time.Now`                    |
-| `Family` | string, `pkg/gohai/family` | `family.Detect()` of the host |
+| Field      | Type                       | A zero value is                               |
+| ---------- | -------------------------- | --------------------------------------------- |
+| `FS`       | `avfs.VFS`                 | the filesystem of the host                    |
+| `Exec`     | `source.Runner`            | the commands of the host                      |
+| `Now`      | `func() time.Time`         | `time.Now`                                    |
+| `Family`   | string, `pkg/gohai/family` | `family.Detect()` of the host                 |
+| `Resolver` | `source.Resolver`          | `net.DefaultResolver`: `/etc/hosts`, then DNS |
 
 Each collector has `NewWith(src)`. `NewWith` selects the variant from the family
 of `src`, and gives the variant the `FS`, `Exec` and `Now` of `src`. `New()` is
@@ -70,8 +71,10 @@ library.
 
 Every host collector now reads through its sources. A user lookup reads
 `/etc/passwd`, the current user is `id -u`, and a program on the `PATH` is
-`sh -c 'command -v <name>'`. The DNS lookups of the hostname collector are not a
-source, and stay outside on purpose.
+`sh -c 'command -v <name>'`. The FQDN of the hostname collector comes from the
+`Resolver`, as Ohai and Ansible get it from the system resolver: the canonical
+name of the host, then a reverse lookup. Only the FQDN needs it. The hostname is
+the output of `hostname`, with no lookup (osapi-io/gohai#316).
 
 **A `Collect` method never uses `os.ReadFile`, `exec.Command` or `time.Now`.**
 It uses `FS`, `Exec` and `Now`. A test gives the files and the command output
