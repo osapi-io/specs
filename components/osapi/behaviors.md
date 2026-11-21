@@ -192,12 +192,38 @@ refuse an input field with no tag, with the same words. The spec carries the
 whole tag in `x-oapi-codegen-extra-tags`, on a parameter and on each property of
 a body, so a Go client made from the spec validates as the server does.
 
-An optional field of a write's body, its validate tag starting with `omitempty`,
-has `omitempty` in its `json` tag too. Without it, the generated client sends
-`""` for an empty value, and the field's other rules refuse it: the `version` of
-`package create` sent `"version": ""` for a plain install, and the spec's
-pattern refused it. Only the integration test saw it. The `optional` rule of
-`behavior validate` now fails such a field, so `go test` sees it.
+## Each layer owns its rules
+
+A behavior builds on the two other DSLs: it makes an endpoint, its routes and
+its part of the spec, and CLI commands. Each layer owns the rules of what it
+makes, and `behavior validate` asks that layer. It does not keep a copy:
+
+| Rule                                            | Owner          | Asked as                                        |
+| ----------------------------------------------- | -------------- | ----------------------------------------------- |
+| The types a flag holds                          | CLI            | `command.Flaggable`, which its generator builds |
+| The `render` values an output knows             | CLI            | `command.TagProblems`                           |
+| An optional body field is `omitempty` in `json` | endpoint       | `endpoint.SentEmpty`, the `optional` rule       |
+| `dive`, `secret`, `pattern` in the spec         | rule, endpoint | the spec builder that ships the spec            |
+
+A copy drifts. The behavior `surface` rule kept its own list of flag types,
+which allowed an `int64` that the generator could not build
+(osapi-io/osapi#973). The `optional` rule was written first in the behavior DSL
+only, and a hand-written endpoint could still send `""` (osapi-io/osapi#974).
+
+The behavior's own rules cover what only a behavior has. The name and the group
+are lowercase letters and digits, with no dash, because the generators make Go
+names of them (osapi-io/osapi#976). An input field has a `json` name and a
+`doc`, no `default`, which the server does not apply, and is not named
+`hostname` or `target`, which every request has (osapi-io/osapi#975,
+osapi-io/osapi#978, osapi-io/osapi#980, osapi-io/osapi#981). A key is required,
+because it is a path segment. A struct that an output holds is named in one spec
+for every behavior, so two behaviors cannot each have a different `Usage`
+(osapi-io/osapi#979).
+
+An audit of the three DSLs on 20 November 2026 found these: each was an
+assumption of a generator that no rule checked. The `version` of
+`package create` was the first one seen. It sent `"version": ""` for a plain
+install, the spec's pattern refused it, and only the integration test saw it.
 
 An output can be a struct or a slice of structs. A slice becomes one result row
 for each element, and each row has the name of the host. sysctl `list` answers
