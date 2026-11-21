@@ -912,7 +912,12 @@ call that made it: the behavior, the method, the input, and the output or the
 error. `behavior.Record` gives the context that collects the steps. Thus the
 tree shows what the code does now, and it cannot be stale. A field with the tag
 `secret:"true"` shows as `[redacted]`. `behaviortest.Chains` runs the examples,
-in the binary as in the tests.
+in the binary as in the tests. The page of each behavior that calls others has a
+**Chain** section from the same runs: a table for each example, with the calls
+that it makes, each under the call that made it (osapi-io/osapi#1003).
+`go generate` writes it, so a change to what a behavior sends shows in the diff
+of its page. `behaviortest.ChainRun.Calls` formats the rows of the table and of
+`chain get`, so the two read the same.
 
 The chain rules are `behavior.ChainChecks`. Two hold when the behaviors are
 built, and `behavior validate` checks them too. Two need a run of the examples,
