@@ -75,8 +75,11 @@ source, and stay outside on purpose.
 
 **A `Collect` method never uses `os.ReadFile`, `exec.Command` or `time.Now`.**
 It uses `FS`, `Exec` and `Now`. A test gives the files and the command output
-through `internal/sourcetest`, and does not touch the host. A new collector
-breaks this rule most often. A reviewer must look for it first.
+through `internal/sourcetest`, and does not touch the host. The command runner
+of a test is `MockRunner` in `pkg/gohai/source/mocks`, which mockgen generates.
+It is exported, so a caller such as osapi tests its own use of gohai with the
+same double, and nobody writes a runner by hand (osapi-io/gohai#314). A new
+collector breaks this rule most often. A reviewer must look for it first.
 
 Two facts changed on purpose, to follow Ohai. On Linux, `machine_id` reads
 `/etc/machine-id` first, then `/var/lib/dbus/machine-id`, then DMI
