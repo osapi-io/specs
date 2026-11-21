@@ -308,6 +308,30 @@ grep -ilE 'consistent across all layers' CONTRIBUTING.md   # stated
 grep -ilE 'upsert' CONTRIBUTING.md                          # was not
 ```
 
+### A component pull request links its specs pull request
+
+The description of a pull request in a component repository has this line:
+
+```
+Specs: https://github.com/osapi-io/specs/pull/<number>
+```
+
+The specs pull request links to the component pull request in the same way. Open
+the specs pull request first. Then its URL exists when you open the component
+pull request.
+
+A change to a component makes a statement on its page true or false. A reviewer
+who reads only the component pull request cannot see that statement. A link that
+somebody adds after the pull request opens is too late, because the reviewer can
+read the pull request first. A link in a comment is not in the description, and
+a reviewer does not find it. From 2026-11-15 to 2026-11-20, component pull
+requests opened without the link six times.
+
+The `Specs Link` workflow in each component repository is the statement of
+record. It fails a pull request that does not have the line, and it runs again
+when the description changes. It does not check a pull request from a bot, such
+as Dependabot, because a dependency update has no specs change.
+
 ### Every README has the shape of its kind
 
 A README has the headings of its kind, in this order. The kinds are the ones
