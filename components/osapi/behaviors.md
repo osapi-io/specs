@@ -429,6 +429,15 @@ with kin-openapi. It found an object field whose `example` was a string, which a
 strict tool rejects. The builder now writes the example of an object or a list
 as its JSON.
 
+The name of a behavior and its Go package are two names. The name is the route,
+the command, the permission and the docs page. The Go package is where the
+definition lives, and every generator reads it from the package of the types,
+not from the name. `osapi behavior create --package <go-package>` sets it. With
+no `--package`, it is the name. The scaffold refuses a name that is a Go
+keyword, such as `package`, and asks for `--package`. It does not change a name
+to make it a Go name. Thus `--name package --package packages` serves `/package`
+from `internal/behaviors/packages/`.
+
 `osapi behavior create` also writes its first files with jen, in
 `internal/behavior/scaffold_files.go`. Those files are not generated code. A
 person edits them from the first minute, so they do not go in `gen/`. But the
