@@ -621,6 +621,10 @@ example can tell how the host is before the call:
 - `Prints`: the output of a command
 - `PrintsAfter`: the output of a command after a different command ran
 - `Exists`: a file
+- `OnPlatform`: the platforms the example runs on, for an answer that is the
+  platform's own. An Ubuntu host reads `ubuntu` and a Mac reads `darwin`, so one
+  example cannot hold for both. Each platform that a method serves must still
+  run one of its examples, or the `platforms` check fails.
 
 It can also tell what the call changes, with `Wrote`, `Removed` and `Ran`.
 
