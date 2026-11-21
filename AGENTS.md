@@ -39,6 +39,17 @@ to see that a read or a write operates on Linux and on macOS.
 - `just go-unit-int` in osapi runs the integration tests against the lab when
   `OSAPI_INTEGRATION_OSAPIFILE` and `OSAPI_INTEGRATION_TARGET` point at it.
 
+A test in the lab includes the UI. The controller of the hub serves it, at the
+URL that `.lab/config/client.yaml` of osapi-lab names. For each flow that the
+change touches, open its block on the Configure page, run each method, and look
+at the result: the fields that it asks for, the rows that it shows, and a
+refusal. Then report the UI results with the CLI and integration results. A
+passing type check of the UI is not a test of it. On 21 November 2026 a route
+change went to review with the UI only type-checked, and a person had to ask for
+the click-through. The UI is not on a local host. Thus an agent does not type a
+token into it: a person signs in, then the agent continues. Remove the blocks
+that you add, and anything that the flows wrote on a VM, when you finish.
+
 Ask a person before `just teardown`, and before a change to the security
 settings of the lab, such as its firewall or its sudo rules.
 
