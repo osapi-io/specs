@@ -141,6 +141,28 @@ no token has, and did not have `schedule:*` (osapi-io/osapi#749). The published
 site also tells what each role permits for an *operator*, because a person who
 configures a role looks there.
 
+A block of the Configure page checks the permission of the operation that it
+calls, and no other. `go generate ./internal/authtoken/gen/operations`, which
+`go generate ./...` runs after the spec is joined, writes
+`ui/src/lib/operations.gen.ts`: the scope of each operation of the joined spec,
+by the name of its function in the generated client. `BLOCK_OPERATIONS` in
+`ui/src/lib/permissions.ts` names the operation that each block calls, and the
+permission of the block comes from that file. TypeScript fails the build on an
+operation that the spec does not have, and a Go test fails when the file is
+stale. Before osapi-io/osapi#1006 the map gave each block a permission by hand,
+and three were wrong after the package and status behaviors had their own
+permissions: the index refresh and the check for updates asked for `package:*`,
+not `updatepackages:*`, and the node status asked for `node:read`, not
+`status:read`.
+
+A result card reads the shape of the answer of its operation. A behavior answers
+one row per item, such as a package or a service, with the hostname on each row;
+the card groups the rows by host. The cards of packages and services read the
+nested lists of the hand-written domains for weeks after those became behaviors,
+and showed "0 packages" on each row (osapi-io/osapi#972, #1018). A click-through
+in the lab found them, which a type check of the UI does not
+([AGENTS.md](../../AGENTS.md#use-the-lab)).
+
 ## Color: one palette with the CLI
 
 The UI and the CLI use one palette. The palette is the six colors of the logo,
