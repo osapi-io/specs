@@ -64,11 +64,17 @@ process:execute   command:execute   command:shell     docker:execute
 The names come from a comparison of the two blocks in
 `internal/authtoken/permissions.go`.
 
-The list is the fastest way to understand the role. `write` can change the
-configuration, but it cannot make anything *occur*. It restarts nothing, runs no
-command, reboots nothing, admits no machine, and cannot read who did. Each
-permission in the list runs something, decides what can run, or shows who ran
-something.
+The list is the fastest way to understand the role. `write` cannot run a
+command, reboot, signal a process, admit a machine, or read who did something.
+
+It can still make things occur. Service start, stop, restart, enable and disable
+check `service:write`, which `write` has. This page said until 21 November 2026
+that `write` "restarts nothing"; the service routes check `service:write`, and
+they did when the page was written. `write` can also reach root without the
+permissions that it does not have: a cron entry runs as the user that it names,
+`user:write` adds SSH keys, and `file:write` and `package:write` change what
+runs. osapi-io/osapi#999 audits the roles against the people who use osapi, and
+decides these.
 
 `read` has the reads of each domain. It does not have the writes, or the
 permissions in the list above.

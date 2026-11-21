@@ -96,13 +96,13 @@ is a GitHub sub-issue of the tracker, not a line of a checklist.
 `kind/` labels are for pull requests. The labeler sets them from the paths that
 a pull request changes. Do not put them on issues.
 
-| Repository         | Components                                                                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| osapi              | `behavior-dsl`, `endpoint-dsl`, `command-dsl`, `validation`, `behaviors`, `agent`, `controller`, `job`, `cli`, `sdk`, `ui`, `telemetry`, `ci`, `skills` |
-| gohai              | `collectors`, `schema`, `ci`                                                                                                                            |
-| osapi-lab          | `image`, `hub`, `ci`                                                                                                                                    |
-| osapi-orchestrator | `ops`, `engine`, `ci`                                                                                                                                   |
-| specs              | one for each directory of `components/`, and `skills`, `constitution`                                                                                   |
+| Repository         | Components                                                                                                                                                      |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| osapi              | `behavior-dsl`, `endpoint-dsl`, `command-dsl`, `validation`, `behaviors`, `agent`, `auth`, `controller`, `job`, `cli`, `sdk`, `ui`, `telemetry`, `ci`, `skills` |
+| gohai              | `collectors`, `schema`, `ci`                                                                                                                                    |
+| osapi-lab          | `image`, `hub`, `ci`                                                                                                                                            |
+| osapi-orchestrator | `ops`, `engine`, `ci`                                                                                                                                           |
+| specs              | one for each directory of `components/`, and `skills`, `constitution`                                                                                           |
 
 ## Prerequisites
 
