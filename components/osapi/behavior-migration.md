@@ -197,10 +197,19 @@ hostname, uptime, os, load, memory and disk behaviors, and calls the get of each
 through `behavior.Call`. A read that fails is in `errors`, and the others still
 answer. Thus no hand-written node spec is left. Timezone is a behavior too
 (osapi-io/osapi#964): gohai reads it on every platform, and timedatectl sets it
-on the Debian family. The others fit now: NTP, log, package, certificate, DNS,
-interface, route and ping. The "Not yet" list of the build-a-behavior skill is
-this table. Thus an agent that gets a request for one of these says so, and does
-not add code around the platform.
+on the Debian family. Packages are two behaviors (osapi-io/osapi#964).
+`package`, whose Go package is `packages` because `package` is a Go keyword,
+reads through gohai on every platform, and installs and removes with apt-get on
+the Debian family. `updatepackages` lists and refreshes the package index with
+apt, because the index is what the repositories have, not a fact about the host.
+Its refresh reports `changed: true` only when a repository's Release file under
+`/var/lib/apt/lists` changed. Ansible's apt module reports a change on each
+update that runs, by the stamp time, and offers `cache_valid_time` to skip one.
+That fails the rule that a second identical call changes nothing, and apt-get's
+`Get:` lines do not tell either: the CI runner prints them on each run. The
+others fit now: NTP, log, certificate, DNS, interface, route and ping. The "Not
+yet" list of the build-a-behavior skill is this table. Thus an agent that gets a
+request for one of these says so, and does not add code around the platform.
 
 The cutover of a domain deletes its hand-written handler tests. Thus each case
 in them must go somewhere first:
