@@ -165,6 +165,13 @@ var Group = command.Register(command.Define(
   them with `command.Provide(token.Group, func() token.Deps {...})` in
   `cmd/commands.go`, which then calls `command.AttachLocal`. A group whose Deps
   has fields and no Provide fails when it runs. An empty Deps needs no wiring.
+  `cli command spec get` lists each type that a `Deps` field has, under "What a
+  Deps takes", with how a test replaces it: `memfs.New()` for `avfs.VFS`,
+  `fstest.MapFS` for `fs.FS`, a value for the config, a function for a
+  `func(...)` field, and a mockgen mock for an interface. A test fails on a
+  field whose type has no entry. On 21 November 2026, three groups (agent,
+  controller and NATS server) and the process tests of the DSL tested with fakes
+  written by hand. They now use mockgen mocks.
 - **The output** prints from the output type of the method, with the tags of its
   fields. A renderer, `command.Render(Group, "method", fn).Because("...")`, is
   only for a shape that no output type gives. With `--json`, a command prints
