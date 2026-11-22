@@ -1019,6 +1019,25 @@ tree shows what the code does now, and it cannot be stale. A field with the tag
 `secret:"true"` shows as `[redacted]`. `behaviortest.Chains` runs the examples,
 in the binary as in the tests.
 
+A real job records its chain with the same mechanism. The job handler of the
+agent gives the processor a context from `behavior.Record`, so each
+`behavior.Call` of the method adds its step. The response of the job has the
+tree as `client.Step`: the behavior, the method, `changed`, the error, the
+duration in milliseconds, and the calls of the step. The agent records the tree
+also when a step fails, because a failed job is where the tree helps most.
+`osapi client job get` prints a line for each host:
+
+```text
+ubuntu-1: (netplan get, netplan update (changed) → managedfile update (changed))
+```
+
+`client.FormatSteps` writes the line. A run records no input and no output. An
+input is redacted only by its top-level `secret` tags, an output is not
+redacted, and the content of a managed file can be large. The request and the
+response of the job have the input and the output of the method at the top. The
+format is the one that a behavior of an extension returns (osapi-io/osapi#1064).
+The audit entry and the job view of the UI do not show the tree yet.
+
 The chain rules are `behavior.ChainChecks`. Two hold when the behaviors are
 built, and `behavior validate` checks them too. Two need a run of the examples,
 and `go test` checks them through `behaviortest.Run`:
