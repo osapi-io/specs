@@ -65,16 +65,15 @@ The shared components that each page uses for the same thing:
 | a checkbox              | `components/ui/checkbox.tsx`                                         |
 | a load for a form       | `hooks/use-load.ts`, under each resource hook such as `useObjects`   |
 
-A table header is in capitals, in the tint of its section, as the CLI prints it.
-A page uses these, not a raw `<button>`, `<input>` or `<textarea>`. A picker of
-a resource gives `Picker` only its options; the trigger, the keyboard, the
-loading state and the empty list, `None.`, are the same in each. A hook that
-loads choices for a form builds on `useLoad`, which keeps the value as it was
-when the load fails, so a picker stays empty and the form still works. A page
-that must show a failure, such as Admission, keeps its own error state. A result
-card counts its summary line from its per-host `results`, so a card never shows
-a status that it did not count. A panel inside a card has the `surface` token,
-not a hex value.
+A table header is in capitals and gray. A page uses these, not a raw `<button>`,
+`<input>` or `<textarea>`. A picker of a resource gives `Picker` only its
+options; the trigger, the keyboard, the loading state and the empty list,
+`None.`, are the same in each. A hook that loads choices for a form builds on
+`useLoad`, which keeps the value as it was when the load fails, so a picker
+stays empty and the form still works. A page that must show a failure, such as
+Admission, keeps its own error state. A result card counts its summary line from
+its per-host `results`, so a card never shows a status that it did not count. A
+panel inside a card has the `surface` token, not a hex value.
 
 **A value has the format that the CLI gives it.** `lib/format.ts` has the
 formatters of `internal/cli/ui.go` in TypeScript: `formatTime` prints
@@ -214,15 +213,14 @@ color that it copies. Thus a page and a terminal show the same color for the
 same thing. [The output style of the CLI](cli.md#color) has the rules for the
 terminal. A change to a color changes both.
 
-| Color               | Means                                    | Tokens                                      |
-| ------------------- | ---------------------------------------- | ------------------------------------------- |
-| green `#67ea94`     | ok: ready, completed, applied            | `primary`, `status-ready`, `status-applied` |
-| amber `#ffd787`     | needs attention: pending, retried        | `status-pending`                            |
-| red `#ef4444`       | wrong: failed, error                     | `status-error`                              |
-| gray `#8a8a8a`      | secondary text, and a count of zero      | `text-muted`                                |
-| the logo colors     | section headings                         | `heading-1` to `heading-5`                  |
-| a dark tint of each | the labels and icons under that heading  | `tint-1` to `tint-5`                        |
-| dark blue `#2300fd` | the logo accent: heading bar, background | `accent`                                    |
+| Color               | Means                                       | Tokens                                      |
+| ------------------- | ------------------------------------------- | ------------------------------------------- |
+| green `#67ea94`     | ok: ready, completed, applied               | `primary`, `status-ready`, `status-applied` |
+| amber `#ffd787`     | needs attention: pending, retried           | `status-pending`                            |
+| red `#ef4444`       | wrong: failed, error                        | `status-error`                              |
+| gray `#8a8a8a`      | secondary text, labels, and a count of zero | `text-muted`                                |
+| the logo colors     | section headings                            | `heading-1` to `heading-5`                  |
+| dark blue `#2300fd` | the logo accent: heading bar, background    | `accent`                                    |
 
 **Green, amber and red mean status, and nothing else.** The chrome is neutral:
 borders, the navigation, the stat numbers and URLs. A count of zero is gray,
@@ -237,14 +235,14 @@ load. `PageLayout` sets `data-heading-color` on each `SectionLabel` when the
 page changes. Thus two headings next to each other never have the same color.
 Each heading has a short bar in the dark blue of the logo at its left.
 
-**A label takes the tint of its section heading.** This is the tint tier of the
-CLI, and the tints are the `tints` of `internal/cli/theme.go`. A label is a
-`CopyField` label, such as `ID:`, an icon of a `MetricValue`, or the icon of a
-card. A value has the text color. An ID, a unit and a missing value are gray.
-`index.css` gives each element after a heading the `--section-tint` of that
-heading, with the selector `[data-heading-color="N"] ~ *`. The `text-tint`
-utility reads it. Thus a label must be in the same parent element as the
-heading, below it. A label outside a section is gray.
+**A label is gray, under each heading.** A label is a `CopyField` label, such as
+`ID:`, a key of a `KVList`, a table header, the icon of a `MetricValue`, or the
+icon of a card. A value has the text color. An ID, a unit and a missing value
+are gray too. Only the heading takes the color of its section. Before 21
+November 2026 a label took a dark tint of its heading, as the CLI's labels do.
+Under the green Agents heading, the dark green labels mixed with the status
+green of the Ready badges and the health dots, and the cards had too much color.
+The CLI keeps its tints.
 
 The logo has two colors that a heading cannot use as they are:
 
