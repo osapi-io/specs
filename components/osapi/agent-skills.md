@@ -68,6 +68,11 @@ rules of its own, so it cannot become different from the skill. `.agents/skills`
 is a link to `.claude/skills`, so each coding agent in the checkout finds the
 pointer.
 
+The other dev skills have the same shape: `add-a-domain`, `build-a-command`,
+`build-an-endpoint` and `build-a-dsl`. `build-a-dsl` is the guide to the parts
+that the three DSLs share, for a change to one of those parts or a new DSL. The
+skill of each DSL sends the agent to it when the change touches a shared part.
+
 It sends the agent to the sources that cannot become incorrect. It does not copy
 them:
 
