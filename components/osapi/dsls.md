@@ -18,19 +18,47 @@ the docs page `development/dsl/new-dsl.md` points to the skill, and
 | ------------ | ---------------------------------------------- | --------------------------------------------------------------- |
 | Spec         | `guide.Spec` in `internal/guide`               | a term for each exported part of the DSL: what it does, when    |
 | Checks       | `guide.Checks` in `internal/guide`             | each rule of validate, what it requires, and its fix            |
-| Commands     | `<dsl> spec get`, `<dsl> validate`, `create`   | the spec, the problems with their fixes, and a new definition   |
+| Registry     | `dsl.Register` in `internal/dsl`               | each DSL with its command, skill, page, permissions, operations |
+| Commands     | `dsl.Commands()`                               | the commands that each DSL has, listed below                    |
 | Typed values | named types and constants in the DSL package   | each value from a fixed set, with a validate rule               |
 | Tag keys     | `command.KnownTags`, `command.TagKeys`         | the struct tag keys that the three DSLs read                    |
-| Permissions  | `declarations()` in `internal/authtoken`       | the permission of each method that the API serves               |
+| Permissions  | `Permissions` of each registered DSL           | the permission of each method that the API serves               |
 | Generation   | `genfile.Writer` in `internal/cli/command/gen` | the files of a run, written only when the whole run succeeds    |
 | Checks of CI | `go-generate-check`, `*-scaffold-check`        | generated files that match, and a scaffold that passes its test |
 | Docs page    | `dslPages` in `cmd/commands.go`                | the page under `development/dsl/` that the spec writes          |
 | Skill        | `internal/skills/resources/dev-skills/`        | judgment only; it sends an agent to `spec get` and `validate`   |
 
+## The shared commands
+
+Each DSL registers once in `internal/dsl`, from a `dsl.go` in its package. The
+registry holds the name of the DSL, the command of its group, its skill, its
+docs page, and, for a DSL whose definitions serve the API, its permissions and
+its operations. `Without` names a shared command that does not apply, with the
+reason. `TestEveryDSLHasTheSharedParts` in `internal/cli/commands/all` fails
+when a DSL does not have a shared command, its skill or its page, and when a
+`Without` entry has no reason. Thus a command that one DSL gets, each DSL gets,
+or the change says why not.
+
+| Command       | behavior | chain                        | endpoint | command             |
+| ------------- | -------- | ---------------------------- | -------- | ------------------- |
+| `list`        | yes      | yes                          | yes      | yes                 |
+| `get`         | yes      | yes                          | yes      | yes                 |
+| `method get`  | yes      | no: a chain has no methods   | yes      | yes                 |
+| `spec get`    | yes      | yes                          | yes      | yes                 |
+| `validate`    | yes      | yes                          | yes      | yes                 |
+| `create`      | yes      | no: `Requires` makes a chain | yes      | yes                 |
+| `openapi get` | yes      | no: a chain serves no route  | yes      | no: it calls no API |
+
+`method get` shows one method in full in each DSL: its fields with their
+constraints, its output, its examples and what it refuses. An endpoint method
+also shows where the request carries each field, and its errors. The chain uses
+the skill of the behavior DSL.
+
 ## What keeps the parts complete
 
 Tests hold each table to the code:
 
+- `TestEveryDSLHasTheSharedParts`, above.
 - A spec test reads the exported functions of the DSL package and fails on one
   that has no term. The behavior DSL has `TestSpecHasEveryPartOfTheDSL`. The
   endpoint DSL and the command DSL have `TestSpecCoversTheDSL`.
@@ -47,9 +75,10 @@ does not refuse a misspelled value: `behavior.Platform("debain", ...)` compiles.
 Each typed value also has a validate rule that refuses a value outside its set,
 such as `KnownPlatforms()`, `KnownGroups()` and `KnownParents()`. The sweeps of
 osapi-io/osapi#1062 and osapi-io/osapi#1072 gave the DSLs these types.
-osapi-io/osapi#1078 plans two guards: a test that fails on a new bare `string`
-in the exported API of a DSL, and a test that fails on a string literal where a
-typed value goes.
+`internal/dslcheck` has two guards (osapi-io/osapi#1078): a test that fails on a
+new bare `string` in the exported API of a DSL that its allowlist does not give
+a reason for, and a test that fails on a string literal where a typed value
+goes.
 
 Go reads a struct tag only by its exact key. Thus a misspelled key does nothing,
 and no compiler reports it. The three DSLs use one list, `command.KnownTags`.
@@ -58,14 +87,16 @@ refuses one of an input field.
 
 ## Permissions
 
-`declarations()` reads the permissions from the registries of the endpoint DSL
-and the behavior DSL. A rule gives the built-in roles their permissions, and
-`AdminOnly()` keeps a permission from `write` and `read`.
-[Permissions](permissions.md) has the rule. A new DSL with API routes adds its
-registry to three places: `declarations()`, the generator of the SDK constants
-in `internal/authtoken/gen`, and `RegistryOperations`, which gives the
-permission of each operation of the UI. A DSL with no API route, as the command
-DSL, declares no permission.
+`declarations()` reads the permissions from `dsl.All()`: the `Permissions` of
+each DSL that serves the API. A rule gives the built-in roles their permissions,
+and `AdminOnly()` keeps a permission from `write` and `read`.
+[Permissions](permissions.md) has the rule. The generator of the SDK constants
+in `internal/authtoken/gen` and `RegistryOperations`, which gives the permission
+of each operation of the UI, read `dsl.All()` too. Thus a new DSL with API
+routes changes none of the three: it gives `Permissions` and `Operations` when
+it registers. A DSL with no API route, as the command DSL, gives neither.
+`dsl.All()` is in the order of the names, so the permissions of the behaviors
+come before those of the endpoint groups.
 
 ## Generation
 
