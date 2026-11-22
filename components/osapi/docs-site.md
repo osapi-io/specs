@@ -77,8 +77,10 @@ it names.
   header, such as the key-value table of a behavior page, has gray keys.
 - Under the pointer, a card is as the UI's `Card`: only its border is brighter,
   `white/20` from `white/9`. A card has no colored bar.
-- The open page has the text color and the dark-blue bar in the sidebar. The
-  open tab of an API page has a dark-blue line under it.
+- The open page has the text color and the raised background in the sidebar, as
+  a page under the pointer has. The open tab of a Tabs block or of an API page
+  has the raised background and a border. Nothing that is open or selected has a
+  blue line or bar under or beside it.
 - Green, amber and red are a status only: on a success, warning or danger note.
   An HTTP method is a quiet chip in a logo color: GET cyan, POST yellow, PUT and
   PATCH blue, DELETE magenta. A required field is magenta.
