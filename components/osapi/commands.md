@@ -137,16 +137,19 @@ var Group = command.Register(command.Define(
 ))
 ```
 
-- **A group** is the first word of each command, such as `token`. `Under(...)`
-  puts a group under a different command. `Flat()` makes the group add no word:
-  each method is a command under the group's parent, the root or the words of
-  `Under`. Thus `version` is a flat group at the root, and its method `version`
-  is `osapi version`. A command that stands alone under a parent that holds
-  other things, such as `osapi controller start`, is a flat group `Under`
-  `controller`. The group's name stays its identity, for its package and for
-  `cli command get --name`. Where the command goes, `Under`, and whether the
-  group adds a word, `Flat`, are two settings, so nothing is inferred from a
-  name.
+- **A group** is the first word of each command, such as `token`.
+  `Under(command.ParentController)` puts a group under a different command. A
+  parent is a `command.Parent` constant. Attach makes a word that has no
+  command, so a misspelled parent was a new command at the root, and
+  `osapi cli command validate` refuses a word outside `KnownParents()`. `Flat()`
+  makes the group add no word: each method is a command under the group's
+  parent, the root or the words of `Under`. Thus `version` is a flat group at
+  the root, and its method `version` is `osapi version`. A command that stands
+  alone under a parent that holds other things, such as
+  `osapi controller start`, is a flat group `Under` `controller`. The group's
+  name stays its identity, for its package and for `cli command get --name`.
+  Where the command goes, `Under`, and whether the group adds a word, `Flat`,
+  are two settings, so nothing is inferred from a name.
 - **A method** is one command, with its input and output types. `.Sub("roles")`
   puts it under a word of its own, so `list` above is `token roles list`. A
   method is its `Sub` and its name, so a group can have `get` and `spec get`.
