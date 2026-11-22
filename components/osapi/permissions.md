@@ -139,15 +139,27 @@ registers in the `init` of its own package, and that `init` can run after the
 `init` of `authtoken`. `osapi token roles list` prints the result, with the
 behaviors.
 
-The permission of a hand-written domain still goes in four places. If you forget
-one, a different failure occurs.
+The permission of a hand-written domain goes in two places, as a string. If you
+forget one, a different failure occurs.
 
-| Add it to                         | Or else                      |
-| --------------------------------- | ---------------------------- |
-| the permission constants          | it does not exist            |
-| `builtinPermissions`              | it is not a known permission |
-| `builtinRolePermissions`          | **it reaches nobody**        |
-| the SDK's `client.Permission` set | a consumer cannot name it    |
+| Add it to                | Or else                      |
+| ------------------------ | ---------------------------- |
+| `builtinPermissions`     | it is not a known permission |
+| `builtinRolePermissions` | **it reaches nobody**        |
+
+`go generate ./internal/behaviors/all` writes the rest from `AllPermissions` and
+`RolePermissions`: the SDK's constants in `pkg/sdk/client/permissions.gen.go`,
+and the UI's list in `ui/src/lib/permissions.gen.ts`. A test fails when either
+file is stale. A constant is `Perm`, then the resource and the verb with
+capitals, such as `PermDiskRead` for `disk:read`. Thus a behavior's permission
+has a constant too. `just cli-docs-generate` writes the role table of the
+configuration page of the docs site from `RolePermissions`.
+
+Before osapi-io/osapi#1009 the SDK's constants were a third hand list, with no
+constant for the 11 permissions of behaviors, and the role table left out
+`status:read`, `updatepackages:read` and `updatepackages:write`. `PermCronRead`
+and `PermCronWrite` are now `PermScheduleRead` and `PermScheduleWrite`, the name
+of the permission.
 
 The third failure gives no signal. A permission can be in the OpenAPI
 specification, and a handler can check it. If no role has it, no token can ever
@@ -180,4 +192,4 @@ its decode is not a verification.
 
 ______________________________________________________________________
 
-Written from `internal/authtoken/` and `pkg/sdk/client/permissions.go`.
+Written from `internal/authtoken/` and `pkg/sdk/client/permissions.gen.go`.

@@ -184,8 +184,9 @@ not get those values.
 
 ## What is not generated yet
 
-The SDK pages, the permission tables and the metrics reference are written by
-hand. osapi-io/osapi#1005 tracks each one.
+The SDK pages and the metrics reference are written by hand. osapi-io/osapi#1005
+tracks each one. The role table of the configuration page is generated, as the
+config tables are, between `<!-- osapi:roles -->` markers.
 
 A feature page explains a feature, and links to the generated page of each
 behavior that it uses for the permission, the platforms and the route of each
