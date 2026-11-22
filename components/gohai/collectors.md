@@ -49,6 +49,37 @@ writes that change it. It still runs on each family, because the family selects
 only writes. Ohai is the test when it is not clear: a read that Ohai has no
 plugin for, and that a daemon or a remote index answers, is not gohai's.
 
+## What each collector is, from the binary
+
+`gohai.Collectors()` describes each built-in collector, and `gohai collector`
+prints the same data. The commands have the shape of the DSL commands of osapi:
+
+| Command                          | Shows                                                                |
+| -------------------------------- | -------------------------------------------------------------------- |
+| `gohai collector list`           | each collector, its category, its default and its dependencies       |
+| `gohai collector get --name <c>` | its package, its constructor, the fields of its facts, and its reads |
+| `gohai collector spec get`       | each part of a collector, what it does and when to use it            |
+| `gohai collector validate`       | the problems of each collector against the rules, each with its fix  |
+
+The constructor is `<package>.NewWith(src)` for a collector that reads the host,
+and `<package>.New()` for a cloud collector. The fields come from the field of
+`gohai.Facts` whose JSON name is the name of the collector.
+
+The reads are not written by hand. `gohai.Collectors()` runs each collector on
+an empty host of debian, rhel and darwin, through `internal/readlog`, which logs
+each file that the collector opens or looks at and each command that it runs.
+Thus the list agrees with the code, and it cannot be stale. The empty host is
+the limit: a collector reads under these paths when they have content, such as
+each device under `/sys/class/net`, and the list does not show those reads. A
+cloud collector reads the metadata service of its provider over HTTP, outside
+`source.Sources`. Thus it is not run, and its entry names the service.
+
+`validate` checks four rules: a name of lowercase letters, digits and
+underscores, with no two the same; a category of the roster; a field of
+`gohai.Facts` for the facts; and dependencies that are other registered
+collectors. osapi reads `gohai.Collectors()` to tell an author of a behavior
+which facts exist (osapi-io/osapi#1016).
+
 ## Choosing what to read
 
 There are four positions, in order. A collector uses the first position that
