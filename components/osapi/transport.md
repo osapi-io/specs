@@ -97,8 +97,18 @@ On the server of osapi, `auth.type: operator` takes two files:
 
 A client uses `auth.type: creds` with a `creds_file`, which has the JWT and seed
 of a user. When osapi does not run the server, `osapi nats setup` makes the
-streams and buckets of osapi with the connection of the controller. Nothing else
-makes them.
+streams and buckets of osapi with the connection of the controller. It is the
+one place that creates a bucket from the config, or changes the settings of one
+that exists.
+
+The agent and the controller each connect with their own config, and
+`jobclient.Connect` opens the job, registry, facts and state buckets. It binds
+to a bucket that exists, and creates one only when it is missing. It never
+changes the settings of a bucket that exists. Before osapi-io/osapi#1096, each
+connection updated each bucket from its own config. The lab hub sets
+`nats.kv.ttl: 1h` and the agents set no TTL, so the maximum age of the job queue
+changed at each connection. Each change to one hour removed each job older than
+one hour at once.
 
 `nsc`, the NATS tool, makes the operator, the accounts and the users. osapi only
 reads the files. [osapi-lab](../osapi-lab/README.md#nats-in-operator-mode) lists
