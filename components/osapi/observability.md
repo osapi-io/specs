@@ -119,6 +119,20 @@ value as `key=value`, so a value says what it is: `host=debian-1` on a
 span leads with `error=`, and a value with a space is quoted, as in logfmt.
 `--json` gives each span's whole `attributes` map instead.
 
+The clocks of the hosts do not agree. Each host syncs to its own NTP server, and
+on the lab the hub and the VMs were up to 30 ms apart. A span cannot start
+before the span that caused it. Thus an agent's `job.process` that starts before
+the controller's `job.publish` shows that the clock of the agent's host is
+behind. The Traces page drew its bar to the left of its cause, and the trace was
+longer than the request. `tree` now moves such a span, and the spans under it,
+forward to the start of its parent. It moves only a span of a different service
+from its parent, because spans of one process share a clock. The answer gives
+the move as `clock_skew` on the span, against the parent that the tree shows,
+and the Traces page shows it in amber beside the name. Jaeger's clock skew
+adjuster does the same for a child that lasts longer than its parent, as a job
+lasts longer than its publish. Better NTP makes the skew smaller, but it does
+not remove it: a span such as `exec hostname` lasts about 1 ms.
+
 `trace get` shows the size on `response.write`. The request span has the size
 too, from otelecho, but its DETAIL stays the status. On `job.publish`, DETAIL is
 the operation and the target that the caller gave, such as
