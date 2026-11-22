@@ -471,7 +471,10 @@ Each step is one pull request, with its own specs change.
    their file writer, `gen/genfile`, which cleans, writes, groups imports,
    formats and writes the registry of blank imports, and their spec writer,
    `gen/specgen`, with one encoding and one reference to the shared
-   `ErrorResponse`.
+   `ErrorResponse`. A `genfile.Writer` changes nothing on disk until the run
+   calls `Flush` at its end. Thus a run that fails or panics part way leaves the
+   files of the last run. Before, a panic in jennifer left a `gen/` directory
+   empty, and a commit removed its files (osapi#1070).
 
 After step 3, a node domain that moves to a behavior (osapi#731, osapi#838) is
 an endpoint group too.
