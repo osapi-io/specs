@@ -151,8 +151,9 @@ takes it from the status. The agent already names the cause of a failed job
 (`internal/job/errors.go`), and the reason carries it to the caller. A test
 fails when `endpoint.Reasons` and the enum of the schema differ, or when the
 schema does not say what a reason means. A reason is the type `endpoint.Reason`,
-and `Because` takes one. Use a constant: Go converts an untyped string literal
-to the type, so a literal compiles, and no check compares it with the schema.
+and `Because` takes one. Go converts an untyped string literal to the type. Thus
+`endpoint validate` checks each error that a method maps, under the rule
+`reason`, and refuses a reason outside `endpoint.Reasons`.
 
 Two answers changed with the reason. A not found on a method with no key, such
 as a create whose object is not in the Object Store, was a 500. Not managed and
