@@ -120,7 +120,7 @@ the tags for authors. This page records why the design is as it is.
 | `.Describe`, `.Explain`              | The one-line description, and the longer text that the help and the CLI page of a command, and the spec, carry. Neither has `<`, `>`, `{` or `}`: the docs site reads them as markup, so `behavior validate` refuses them                                                                                                                                      |
 | `.Example`                           | Sample calls. They are the examples of a command, and the tests                                                                                                                                                                                                                                                                                                |
 | `behavior.Config(v)`                 | Settings under `behaviors.<name>`, with `v` as their defaults                                                                                                                                                                                                                                                                                                  |
-| `behavior.Platform(p, f)`            | How the provider is built on platform `p`: a distribution, `darwin`, or `linux` for every Linux host without its own. On any other, the methods report `skipped`                                                                                                                                                                                               |
+| `behavior.Platform(p, f)`            | How the provider is built on platform `p`, a `PlatformName` constant: `PlatformDebian`, `PlatformDarwin`, or `PlatformLinux` for every Linux host without its own. On any other, the methods report `skipped`                                                                                                                                                  |
 | `behavior.Sudo("prog")`              | A program the provider runs with sudo, which the agent's preflight checks                                                                                                                                                                                                                                                                                      |
 | `behavior.Runs("prog")`              | A program the provider runs without sudo; the agent warns at startup when it is missing                                                                                                                                                                                                                                                                        |
 | `behavior.RunsOnPlatform(p, "prog")` | A program the provider runs on platform `p` only, such as `vm_stat` on darwin; a Linux host is not asked for it                                                                                                                                                                                                                                                |
@@ -880,7 +880,7 @@ var Behavior = behavior.Register(behavior.Define(
     "sysctl", "Kernel parameters, written to sysctl.d files and applied",
     behavior.Node,
     behavior.Requires(managedfile.Behavior),
-    behavior.Platform("debian", newDebian),
+    behavior.Platform(behavior.PlatformDebian, newDebian),
     ...
 ))
 ```
@@ -1062,6 +1062,25 @@ directory of the behavior:
 - **Telemetry.** osapi never records it on a span. `behavior validate` fails a
   field that is tagged both `secret` and `telemetry:"attr"`, under the rule
   `secret`.
+
+Go reads a tag only by its exact key and value. Thus `secret:"True"`, or the key
+`secrte`, makes the field an ordinary field, and nothing reports it. Under the
+rule `tag`, `behavior validate` fails each field of an input or an output,
+nested fields too, that has a tag key outside `behavior.KnownTags`, a `secret`
+value other than `true`, or a `telemetry` value other than `attr`.
+
+## Typed values
+
+A value that the DSL selects from a fixed set is a named type with constants, as
+`Verb` is. A platform is a `PlatformName`: `PlatformLinux`, `PlatformDarwin` or
+`PlatformDebian`. `Platform`, `On`, `RunsOnPlatform` and `OnPlatform` take one.
+Go converts an untyped string literal to a named type. Thus
+`Platform("debain", ...)` compiles, and `behavior validate` is the guard: under
+the rule `platform`, it fails a name outside `KnownPlatforms()`. Before this
+rule, `Platform("debain", ...)` fell back to the linux provider, and a behavior
+with no linux provider skipped each method on Debian with no error. To name a
+new family of gohai, add its constant to `KnownPlatforms` first.
+osapi-io/osapi#1062 has the other values of the DSLs that become types.
 
 Redaction matches names, as the denylist does. If you tag a field `value` as
 secret, osapi redacts each request field with the name `value`, in each

@@ -115,8 +115,9 @@ var Group = endpoint.Register(endpoint.Define(
 - **A method** is `Get`, `Post`, `Put` or `Delete`, with its input and output
   types. A field of the input tagged `in:"path"` is the key, and a field tagged
   `in:"query"` is a query parameter. The other fields are the JSON body, or one
-  field tagged `in:"body"` is the whole body. The path is
-  `/api/<group>[/<sub>][/{key}][/<action>]`.
+  field tagged `in:"body"` is the whole body. `endpoint validate` fails any
+  other value of `in`, under the rule `in`, because such a field went into the
+  body with no error. The path is `/api/<group>[/<sub>][/{key}][/<action>]`.
 
 - **The output type** is the response. A named struct is a schema in the
   components, with its name. A struct with no name, such as `Message`, is in
