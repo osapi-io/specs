@@ -106,6 +106,21 @@ only grows at the end, and a stream has that shape.
 
 A read from the store has a five-second fetch timeout.
 
+## Filters read the whole log
+
+`GET /api/audit` and `osapi client audit list` take four filters: `writes` (each
+method but GET), `user`, `operation` (text of the operation ID or of the path,
+in any case) and `status`. An entry is listed when it matches each filter that
+is set. The stream pages by sequence, so it cannot skip the entries that do not
+match. Thus a request with a filter reads the whole log with `ListAll`, as an
+export does, and the endpoint pages the entries that match. `total_items` is
+then the count of the entries that match. A request with no filter reads only
+its page with `List`.
+
+The cost of a filter grows with the size of the log, which the retention of the
+stream limits. An index by subject, such as one subject for each method, would
+let JetStream filter with no full read. Nothing needs it yet.
+
 ## The write outlives the request
 
 The middleware writes the entry with `context.Background()`, not with the

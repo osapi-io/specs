@@ -94,6 +94,16 @@ from the `traceresponse` header of the answer, which the controller sets on each
 answer and the CLI reads for its trace line (`lib/trace.ts`). A block that
 failed keeps its trace too. The links are `IdBadge`s, with no underline.
 
+**The Audit page shows the changes first.** The list hides the reads at first,
+because the UI's own polling reads fill the log, and an operator looks for a
+change. A box shows the reads. The filters are the user, text of the operation
+or the path, and the status, and the controller applies them to the whole log.
+The columns are the time, the user, the method, the operation (or the path, when
+the entry has no operation ID), the status and the duration. A click on an entry
+opens it in full: the user, the roles, the source IP, the operation, the path,
+the status, the duration, the request with each secret replaced, and the links
+to its job and its trace (`RunLinks`).
+
 Thus:
 
 - Markup with one resource is a domain component.
