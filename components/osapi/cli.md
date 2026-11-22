@@ -411,12 +411,16 @@ each problem read the same table. A test fails on a part of the DSL or a rule
 without an entry. Thus what the command tells cannot be different from what the
 code does.
 
-Three groups have them today. The behavior group has `osapi behavior spec get`
-and `osapi behavior validate`. The endpoint group has
-`osapi controller endpoint spec get` and `osapi controller endpoint validate`.
-The config group has `osapi config list` and `config get` in place of `spec`,
-and `osapi config validate`. A workflow DSL in osapi-orchestrator gets the same
-commands, from `guide` in a public package, in osapi-io/osapi#764.
+Five groups have them today. The behavior group has `osapi behavior spec get`
+and `osapi behavior validate`. The chain group has
+`osapi behavior chain spec get` and `osapi behavior chain validate`. The
+endpoint group has `osapi controller endpoint spec get` and
+`osapi controller endpoint validate`. The command group has
+`osapi cli command spec get` and `osapi cli command validate`. The config group
+has `osapi config list` and `config get` in place of `spec`, and
+`osapi config validate`. [The parts of a DSL](dsls.md) has what each DSL shares.
+A workflow DSL in osapi-orchestrator gets the same commands, from `guide` in a
+public package, in osapi-io/osapi#764.
 
 A skill keeps only judgment: what to ask the person, and which way to select. It
 sends the agent to these commands for each fact.
