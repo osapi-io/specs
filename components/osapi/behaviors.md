@@ -949,6 +949,16 @@ has a record of. The prefix alone is not sufficient: the agent's own unit is
 `osapi-agent.service`, and on the lab a delete of the service `agent` would have
 stopped the agent.
 
+A read takes the same name as a write. `list` and `get` show a service that
+osapi deployed by the name it was deployed with, such as `app`, not by the name
+of its unit, `osapi-app`, and set `managed`. `get` finds it by either name. A
+unit with the prefix that osapi did not deploy, such as `osapi-agent`, keeps its
+name and is not managed. If the host has a unit `app.service` of its own too,
+`get app` gives the service that osapi deployed, because the writes act on that
+one. Before osapi-io/osapi#1028 the reads came from gohai with the names of the
+units. Thus a `get app` after `create app` was not found, and a person had to
+know the prefix.
+
 `managedfile` is the first internal behavior. It writes files on a host, and
 keeps a record of them in `file-state`. A caller sets the mode, owner and group
 of the file. A caller can also mark content as a secret. Then the record keeps
