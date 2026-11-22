@@ -168,6 +168,15 @@ behavior in its group. `--group` now does this.
    - Generate the typed services of the SDK from the joined spec, after the part
      of each behavior joins it. Then the SDK comes fully from the spec, and
      never imports a behavior.
+   - Group moved on its own (osapi-io/osapi#992). The user domain keeps the user
+     and SSH key routes, because a user needs a step on the controller
+     (osapi-io/osapi#1094). The duplicate-route check works for each route, not
+     for each directory, so a domain can lose some routes to a behavior. The
+     group behavior reads `/etc/group` through gohai on each platform, so Fedora
+     and macOS answer list and get, and it changes groups on the Debian family.
+     Its permissions are `group:read` and `group:write`, the name of the
+     behavior, not `user:read` and `user:write`. The built-in roles grant them.
+     A custom role that named `user:write` for groups must name `group:write`.
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.
@@ -190,7 +199,7 @@ which is not under a container, so they need no `Of`:
 | Missing                                                     | Operations                                                 | Blocks                             |
 | ----------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------- |
 | The `execute` and `shell` permissions beside read and write | command exec and shell, power, process signal, docker exec | command, power, process, container |
-| A step on the controller before the job is queued           | a password hashed so the plaintext never reaches NATS      | user                               |
+| A step on the controller before the job is queued           | a password hashed so the plaintext never reaches NATS      | user (osapi-io/osapi#1094)         |
 
 The status summary of a node is the `status` behavior, at
 `GET /api/node/{hostname}/status` (osapi-io/osapi#945). It requires the
