@@ -67,20 +67,19 @@ ansible/
   inventory.example.yml     committed: the shape of an inventory
   inventory.yml             gitignored: the hub, its tailnet name, the checkout
   group_vars/all.yml        committed: the VMs, a name and a base image each
-  playbooks/                site, push, secrets, hub, images, vms, agents, client,
-                            teardown
+  playbooks/                site, push, deploy, secrets, hub, images, vms, ready,
+                            client, teardown
   roles/
     build                   compiles the osapi checkout, on your machine
     secrets                 the lab's secrets and the VMs' SSH key, kept, and the admin token, renewed
     hub                     osapi's NATS server, controller and Jaeger on the hub
     lab_vm                  one of the lab's VMs, mapped onto tart_vm
-    agent                   one VM's agent: config, IGNORE_LINUX, restart
     client                  the client config on your machine
     packer                  builds a Packer template on a host      (generic)
     tart_vm                 one Tart VM: clone, launchd, add_host   (generic)
     launchd                 one launchd agent                       (generic)
     firewall                admits one app through the macOS firewall (generic)
-packer/                     the images: OS preparation and the osapi binary
+packer/                     one image for each VM: the whole VM, in HCL
 .lab/ (gitignored)          builds, secrets, the VMs' SSH key, rendered configs
 ```
 
@@ -107,8 +106,8 @@ same module gives `ansible-lint`, `ansible-fmt` and `ansible-test`, which
 | Recipe          | Playbook       | Does                                                  |
 | --------------- | -------------- | ----------------------------------------------------- |
 | `just list`     | `list.yml`     | Every VM, its image and its osapi build; changes none |
-| `just push`     | `push.yml`     | Rebuild the fleet from your osapi checkout            |
-| `just deploy`   | `deploy.yml`   | Copy your build into the hub and the running VMs      |
+| `just deploy`   | `deploy.yml`   | Bake the changed images, replace those VMs            |
+| `just push`     | `push.yml`     | Bake each image again, replace each VM                |
 | `just site`     | `site.yml`     | Everything, from nothing                              |
 | `just ssh vm`   | `client.yml`   | Refresh `.lab/ssh/config`, then `ssh -F` through it   |
 | `just teardown` | `teardown.yml` | Remove the lab from the hub                           |
@@ -137,7 +136,7 @@ that is defined there.
 
 ## How a build reaches the fleet
 
-`playbooks/push.yml` builds the fleet again from your checkout:
+`playbooks/deploy.yml` brings the fleet to your checkout:
 
 - **`build`** compiles the osapi checkout that the inventory names, for darwin
   and linux on arm64, on your machine. It builds the UI first, because osapi
@@ -148,24 +147,25 @@ that is defined there.
   skips the build.
 - **`hub`** copies the darwin build to the hub, admits it through the firewall
   again, and restarts the NATS and controller agents.
-- **`images`** puts the linux build into an image for each distribution, with
-  the name `img-<distro>-<tag>`. The tag is the short commit of the build. It
-  ends with `-dirty` when the checkout had uncommitted changes. Thus the image
-  list of the hub tells which osapi each image has. The hub keeps the
-  fingerprint of each image. It builds an image again only when the image is
-  missing or the fingerprint is different. Thus a tree with changes gets a new
-  image only when it changed again. It deletes images from other builds.
-- **`vms`** clones a VM again when its recorded image and fingerprint are
-  different from what it must run. It adds each VM to the inventory.
-- **`agents`** puts the config of each VM in place, and starts its agent.
+- **`images`** bakes an image for each VM of the inventory, with the name
+  `img-<vm>-<tag>`. The image is the whole VM: the linux build, its config, its
+  NATS credential, its hostname and each package, such as Docker. The tag is the
+  short commit of the build. It ends with `-dirty` when the checkout had
+  uncommitted changes. The fingerprint of an image is the fingerprint of the
+  build and a hash of `packer/`. The hub keeps it, and builds an image again
+  only when the image is missing or the fingerprint is different. Before a
+  build, the playbook makes the NATS user of the VM, because the credential must
+  exist before it goes into the image. It deletes images from other builds.
+- **`vms`** deletes the admission of a VM and clones it again when its image
+  changed. It adds each VM to the inventory.
+- **`ready`** waits until the controller reports the agent of each VM as
+  `Ready`. The agent starts at boot with the baked config, and the hub admits
+  it. Nothing logs in to a VM.
 
-Each VM is then exactly its image and a config. When the source changed, this
-takes some minutes. Most of the time is Packer, which boots each image one time.
-When the source did not change, a push changes nothing.
-
-`playbooks/deploy.yml` is the fast loop. It copies the build into the hub and
-the running VMs, and does not change the images. Thus a VM runs a build that its
-image does not have, until the next push.
+Each VM is then exactly its image. When the source or `packer/` changed, this
+takes some minutes. Most of the time is Packer, which boots one VM for each
+image. When nothing changed, a deploy changes nothing. `playbooks/push.yml` does
+the same, but bakes each image again and replaces each VM, also with no change.
 
 ## Why it is built this way
 
@@ -196,12 +196,20 @@ each step safe to run two times, and keeps the VMs in an inventory. The cost is
 a Python toolchain, and `uv` reduces that to one lock file. pytorch runs Ansible
 through `uv` from a justfile for the runner fleet of its `ci-infra`.
 
-**The image has osapi, never its config.** A VM that you build again from its
-image runs exactly the build that went into it. It does not run the last file
-that somebody copied onto it. The config and the NATS credentials of the VM stay
-out of the image. Ansible puts them in after the clone. In the same way, the
-macos-vms project of Mozilla has the Tart host give the credentials of a VM at
-boot, and does not put them in the image.
+**The image is the whole VM.** A VM that you build again from its image runs
+exactly what went into it: the build, the config, the credential and the
+packages. Nothing configures a VM after it boots, so a VM cannot drift from its
+image. The cost is one image for each VM, not one for each distribution, and an
+image that holds the NATS credential of its VM. The images are local Tart images
+on the hub and never leave it. The owner decided this in osapi-io/osapi-lab#29.
+
+**The image is written in HCL.** `packer/lab.pkr.hcl` uses only the provisioners
+of Packer: `file` copies each file in, and `shell` runs short `inline` steps.
+`templatefile()` renders the config of the agent from
+`packer/agent.yaml.pkrtpl.hcl`. A difference between distributions is a map in
+`locals`, such as the Docker package. The NATS credential is a `sensitive`
+variable, and the playbook passes it in `PKR_VAR_nats_creds`. Thus it is in no
+argument list and no log.
 
 **Packer still builds the images.** No Ansible collection controls Tart. The
 `packer` role copies `packer/` to the hub and runs it there, because Tart runs
@@ -228,9 +236,9 @@ guess.
 `/etc/machine-id`. The image ships that file empty. Thus systemd writes a new
 one on the first boot of each clone.
 
-**Secrets never go into an image or the repository.** The lab makes them one
-time on your machine, in `.lab/`. The hub and each VM get only their rendered
-config.
+**Secrets never go into the repository.** The lab makes them one time on your
+machine, in `.lab/`. The hub gets its rendered config. Each image gets the
+config and the NATS credential of its own VM.
 
 The admin token is the exception to "one time". osapi signs a token for three
 months. Thus each run of the `secrets` role checks `.lab/secrets/token` with
@@ -280,7 +288,7 @@ and on every run, so a changed account reaches the hub:
 nsc generate config --mem-resolver --sys-account SYS --force --config-file .lab/secrets/resolver.conf
 ```
 
-Each user is made where it is deployed, by
+Each user is made before its image is baked, by
 `ansible/roles/secrets/tasks/user.yml`:
 
 ```bash
@@ -342,18 +350,16 @@ bytes change while it runs. Ansible's `copy` writes a temporary file and renames
 it over the target, which gives the new binary its own inode.
 
 **Fedora runs with `IGNORE_LINUX=1`.** The agent of osapi stops at startup on a
-distribution that is not on its supported list. On each node that is not Ubuntu
-or Debian, the `agent` role sets the override of osapi in a systemd drop-in.
-Thus the agent starts, runs the generic Linux providers and skips the others.
-The role removes the drop-in from Ubuntu and Debian nodes. Thus the check for
-supported distributions still runs where it passes. The two are the `debian`
-platform of osapi, so each behavior runs on them.
+distribution that is not on its supported list. The Fedora image has the
+override of osapi in a systemd drop-in. Thus the agent starts, runs the generic
+Linux providers and skips the others. The Ubuntu and Debian images have no
+drop-in. Thus the check for supported distributions still runs where it passes.
+The two are the `debian` platform of osapi, so each behavior runs on them.
 
-**A config that osapi refuses stops the deploy.** Before the `agent` role sends
-a rendered config, it runs `client health liveness` with it, on your machine,
-with the darwin build. `invalid config` stops the deploy. A failure for a
-different reason does not stop it, for example a controller that has not started
-yet.
+**A config that osapi refuses stops the build of its image.** The image runs
+`client health liveness` with its baked config. `invalid config` stops the
+build. A failure for a different reason does not stop it, for example a
+controller that the build VM cannot reach.
 
 **The VMs are reachable only through the hub.** They sit on the hub's vmnet
 subnet. Ansible jumps through the hub to reach them; nothing on your network can
@@ -378,8 +384,8 @@ loss, not a failed ping.
 **Stopping a VM by hand does not keep it stopped.** Its launchd agent restarts
 it. Unload the agent to stop a VM for good.
 
-**A push after a source change throws away anything done inside a VM.** It
-reclones every VM whose image changed. `deploy.yml` keeps them.
+**A deploy after a change throws away anything done inside a VM.** It reclones
+every VM whose image changed, and a push reclones each VM.
 
 ## Where it sits
 
