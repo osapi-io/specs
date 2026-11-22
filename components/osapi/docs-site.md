@@ -58,6 +58,34 @@ of a behavior that was removed, and keeps a page that a person wrote.
 DSL. Each page is the spec that the `spec get` command of the DSL prints, in the
 same order. `guide.Spec.Markdown` writes it.
 
+## The look
+
+The site has the look of the UI and the CLI. The palette is
+`docs/src/css/palette.gen.css` and `docs/src/palette.gen.ts`, which
+`go generate ./internal/behaviors/all` writes from `internal/cli/theme.go`, as
+it writes the status colors of the UI. A test fails when a file is stale.
+`docs/src/css/custom.css` uses the palette as `--osapi-*` variables.
+
+- Green, amber and red mean a status only. A link, and the color of the site, is
+  the blue text color of the logo.
+- Each `h2` takes a logo color in page order, after the dark-blue bar, as a
+  section heading of the UI does.
+- The page that is open has the text color and the dark-blue bar, in the
+  sidebar, and the text color in the breadcrumb. The open item of the navbar has
+  the text color and the others are gray, as in the UI.
+- A table has faint lines and a header in small gray capitals, as the UI's.
+- A code block uses the CLI's colors: keywords magenta, strings yellow, names
+  cyan, numbers blue and comments gray.
+- The dark page is the UI's: `#0a0a0a` under black cards and code. The light
+  page uses the dark tints of the logo colors, which read on white, as the
+  README's `logo-light.svg` does.
+
+Before osapi-io/osapi#1037 the site had a theme of its own. Green was the color
+of each link, of the navbar and of the cards. A purple rule was under the
+navbar, and the headings were white. "Getting Started" and "Usage" in the navbar
+were active on each page, because a doc item of the navbar is active on each
+page of its sidebar.
+
 ## Checks
 
 `just cli-docs-generate` writes the CLI pages, the DSL pages and the reference.
