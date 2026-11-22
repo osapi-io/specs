@@ -210,7 +210,9 @@ behavior in its group. `--group` now does this.
      the rule `ntp_server`, a hostname or an IP address: the hand-written domain
      checked only that the list was not empty, so a server with a line break
      could add a directive to the file. In a container, whose clock is its
-     host's, each method reports skipped.
+     host's, each method reports skipped. The lab found that the hand-written
+     domain ran `chronyc sources -c`, which prints the table and not CSV, so
+     each host returned no servers.
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.
