@@ -749,8 +749,16 @@ read whose command does not have the mark. Two reads say `.NotAFact`: the
 updates of the package index, which are what the repositories have, and the
 definition that netplan has of an interface, which is the configuration of
 netplan. A write runs its programs with `h.Exec`. A fact that gohai does not
-read is a change to gohai first. gohai does not yet describe its collectors to
-osapi (osapi-io/gohai#322, osapi-io/osapi#1016).
+read is a change to gohai first.
+
+`behavior spec get` lists gohai's collectors, under "gohai collectors", from
+`gohai.Collectors()` (gohai v1.11.0). Each entry says what the collector
+returns, how a provider builds it, such as `dns.NewWith(h.Sources())`, and the
+files and commands that it reads on debian, rhel and darwin. An example gives
+those with `Exists` and `Prints`. gohai records the reads on an empty host, so a
+collector also reads under those paths when they have content.
+`internal/behavior/collectors` makes the section, and the generated Behavior DSL
+page has it too.
 
 ## Tests a behavior gets from its definition
 
