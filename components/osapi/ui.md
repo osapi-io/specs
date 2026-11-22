@@ -242,10 +242,10 @@ terminal. A change to a color changes both.
 **Green, amber and red mean status, and nothing else.** The chrome is neutral:
 borders, the navigation, the stat numbers and URLs. A count of zero is gray,
 because `failed: 0` is not a failure. The `admin` role chip is gray, because a
-role is not a problem. A URL has the text color and is a link that underlines on
-hover. A component row shows its status word only when the status is not ok. The
-green dot says ok, so a card of healthy rows has one mark on each row, not two.
-The page has no background picture behind the cards.
+role is not a problem. A URL is a link in the logo's cyan that underlines on
+hover, as a link of the docs site is. A component row shows its status word only
+when the status is not ok. The green dot says ok, so a card of healthy rows has
+one mark on each row, not two.
 
 **Section headings take the logo colors in page order:** cyan, magenta, yellow,
 green, blue. These are the five heading colors of the CLI. The CLI mixes their
@@ -273,7 +273,8 @@ The logo has two colors that a heading cannot use as they are:
 
 **The background network is part of the design.** `network-map-background.tsx`
 draws it in the dark blue. A flood that moves through it sparkles white. Do not
-remove it to make a page quieter.
+remove it to make a page quieter. osapi-io/osapi#1031 removed it, and
+osapi-io/osapi#1052 put it back.
 
 The loading spinner takes one heading color, which `spinner-color.ts` selects
 one time for each page load.
