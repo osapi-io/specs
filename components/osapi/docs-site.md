@@ -131,8 +131,19 @@ page stays a `.md` file, because the build drops raw HTML in a `.md` page.
 osapi-io/osapi#725 removed this output with the pages of each method. Before
 then, the same three things were on each method's page, as raw HTML in an `.mdx`
 page. osapi-io/osapi#1044 brought back only the screen for one host. The fleet
-and the JSON came back after it. A command that a person wrote, not a behavior,
-has no example output yet (osapi-io/osapi#1049).
+and the JSON came back after it.
+
+A command of an endpoint group shows its output too. `.Prints(out)` gives an
+`.Example` the answer of the API, a value of the method's output type. The
+command generator, `internal/cli/command/gen`, prints the value through
+`command.Derive`, as the CLI prints the answer, and writes the screen and the
+JSON in the Result section of the page. An endpoint method runs on the
+controller, not on a host, so its page has no screen for the fleet. The
+generator fixes the time that an age is from to 2026-01-15 10:00 UTC, and prints
+each time in UTC. Thus a page is the same on each run and in each time zone, and
+`cli-docs-gen-check` does not fail from the clock. A hand-written command of
+`cmd/` has no example output yet. It gets one when it becomes a behavior
+(osapi-io/osapi#1049).
 
 ## The navbar
 

@@ -189,7 +189,11 @@ var Group = endpoint.Register(endpoint.Define(
 
 - **`.Command(short, long)`** and **`.Example("--flag value")`** give the CLI
   command its own help, for a person at a shell, and its examples. Each input
-  field is a flag, named for its json name with `_` as `-`.
+  field is a flag, named for its json name with `_` as `-`. **`.Prints(out)`**
+  gives the last example the answer of the API, which the page of the command
+  shows ([the docs site](docs-site.md)). `Prints` takes any value, so
+  `endpoint validate` refuses one that is not of the method's output type, under
+  the rule `prints`.
 
 - **The output** of each command comes from the output type of its method, with
   the tags of its fields ([the CLI](cli.md#output-comes-from-the-output-type)).
