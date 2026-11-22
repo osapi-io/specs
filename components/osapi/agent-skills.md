@@ -137,11 +137,10 @@ The docs site links to these files and does not keep a copy. `SKILL.md` adds the
 questions that select the pattern. Examples are: where is the truth about the
 thing, and what does "already done" look like.
 
-The "Not yet" list names what a behavior cannot express. Examples are an action
-method that streams, or a step on the controller before the job is queued. When
-an agent gets a request for one, it says so and stops. It does not add code
-around the platform. This list is the same as the blockers in
-[the migration plan](behavior-migration.md), and it becomes shorter as people
+The "Not yet" list names what a behavior cannot express. An example is an action
+method that streams. When an agent gets a request for one, it says so and stops.
+It does not add code around the platform. This list is the same as the blockers
+in [the migration plan](behavior-migration.md), and it becomes shorter as people
 build them.
 
 `test/skills/build-a-behavior/` has the requests that measure the skill, and
