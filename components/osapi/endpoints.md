@@ -126,6 +126,14 @@ var Group = endpoint.Register(endpoint.Define(
   gave the header `Location: .../<nil>`, or dropped the example from the spec,
   with no error.
 
+- **An example** names the flags of the method's command. Under the rule
+  `example`, `endpoint validate` refuses a flag that the command does not have.
+  The flags are the fields of the input, with the `flag` and `short` tags, and
+  the fields of the struct that `in:"body"` names. `--json`, `--debug` and
+  `--osapi-file` are the flags of each command. The command DSL checks its
+  examples with the same function, `command.ExampleFlagProblems`. Before the
+  rule, a misspelled flag put a command that fails on the docs page.
+
 - **The HTTP method** of a method is unexported: `Get`, `Post`, `Put` and
   `Delete` set it, and `Method.HTTPMethod()` reads it. Thus an author cannot
   name a method that is not one.
