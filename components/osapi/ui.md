@@ -65,16 +65,15 @@ The shared components that each page uses for the same thing:
 | a checkbox              | `components/ui/checkbox.tsx`                                         |
 | a load for a form       | `hooks/use-load.ts`, under each resource hook such as `useObjects`   |
 
-A table header is in capitals, in the tint of its section, as the CLI prints it.
-A page uses these, not a raw `<button>`, `<input>` or `<textarea>`. A picker of
-a resource gives `Picker` only its options; the trigger, the keyboard, the
-loading state and the empty list, `None.`, are the same in each. A hook that
-loads choices for a form builds on `useLoad`, which keeps the value as it was
-when the load fails, so a picker stays empty and the form still works. A page
-that must show a failure, such as Admission, keeps its own error state. A result
-card counts its summary line from its per-host `results`, so a card never shows
-a status that it did not count. A panel inside a card has the `surface` token,
-not a hex value.
+A table header is in capitals and gray. A page uses these, not a raw `<button>`,
+`<input>` or `<textarea>`. A picker of a resource gives `Picker` only its
+options; the trigger, the keyboard, the loading state and the empty list,
+`None.`, are the same in each. A hook that loads choices for a form builds on
+`useLoad`, which keeps the value as it was when the load fails, so a picker
+stays empty and the form still works. A page that must show a failure, such as
+Admission, keeps its own error state. A result card counts its summary line from
+its per-host `results`, so a card never shows a status that it did not count. A
+panel inside a card has the `surface` token, not a hex value.
 
 **A value has the format that the CLI gives it.** `lib/format.ts` has the
 formatters of `internal/cli/ui.go` in TypeScript: `formatTime` prints
@@ -214,21 +213,22 @@ color that it copies. Thus a page and a terminal show the same color for the
 same thing. [The output style of the CLI](cli.md#color) has the rules for the
 terminal. A change to a color changes both.
 
-| Color               | Means                                    | Tokens                                      |
-| ------------------- | ---------------------------------------- | ------------------------------------------- |
-| green `#67ea94`     | ok: ready, completed, applied            | `primary`, `status-ready`, `status-applied` |
-| amber `#ffd787`     | needs attention: pending, retried        | `status-pending`                            |
-| red `#ef4444`       | wrong: failed, error                     | `status-error`                              |
-| gray `#8a8a8a`      | secondary text, and a count of zero      | `text-muted`                                |
-| the logo colors     | section headings                         | `heading-1` to `heading-5`                  |
-| a dark tint of each | the labels and icons under that heading  | `tint-1` to `tint-5`                        |
-| dark blue `#2300fd` | the logo accent: heading bar, background | `accent`                                    |
+| Color               | Means                                       | Tokens                                      |
+| ------------------- | ------------------------------------------- | ------------------------------------------- |
+| green `#67ea94`     | ok: ready, completed, applied               | `primary`, `status-ready`, `status-applied` |
+| amber `#ffd787`     | needs attention: pending, retried           | `status-pending`                            |
+| red `#ef4444`       | wrong: failed, error                        | `status-error`                              |
+| gray `#8a8a8a`      | secondary text, labels, and a count of zero | `text-muted`                                |
+| the logo colors     | section headings                            | `heading-1` to `heading-5`                  |
+| dark blue `#2300fd` | the logo accent: the heading bar            | `accent`                                    |
 
 **Green, amber and red mean status, and nothing else.** The chrome is neutral:
 borders, the navigation, the stat numbers and URLs. A count of zero is gray,
 because `failed: 0` is not a failure. The `admin` role chip is gray, because a
 role is not a problem. A URL has the text color and is a link that underlines on
-hover.
+hover. A component row shows its status word only when the status is not ok. The
+green dot says ok, so a card of healthy rows has one mark on each row, not two.
+The page has no background picture behind the cards.
 
 **Section headings take the logo colors in page order:** cyan, magenta, yellow,
 green, blue. These are the five heading colors of the CLI. The CLI mixes their
@@ -237,14 +237,14 @@ load. `PageLayout` sets `data-heading-color` on each `SectionLabel` when the
 page changes. Thus two headings next to each other never have the same color.
 Each heading has a short bar in the dark blue of the logo at its left.
 
-**A label takes the tint of its section heading.** This is the tint tier of the
-CLI, and the tints are the `tints` of `internal/cli/theme.go`. A label is a
-`CopyField` label, such as `ID:`, an icon of a `MetricValue`, or the icon of a
-card. A value has the text color. An ID, a unit and a missing value are gray.
-`index.css` gives each element after a heading the `--section-tint` of that
-heading, with the selector `[data-heading-color="N"] ~ *`. The `text-tint`
-utility reads it. Thus a label must be in the same parent element as the
-heading, below it. A label outside a section is gray.
+**A label is gray, under each heading.** A label is a `CopyField` label, such as
+`ID:`, a key of a `KVList`, a table header, the icon of a `MetricValue`, or the
+icon of a card. A value has the text color. An ID, a unit and a missing value
+are gray too. Only the heading takes the color of its section. Before 21
+November 2026 a label took a dark tint of its heading, as the CLI's labels do.
+Under the green Agents heading, the dark green labels mixed with the status
+green of the Ready badges and the health dots, and the cards had too much color.
+The CLI keeps its tints.
 
 The logo has two colors that a heading cannot use as they are:
 
@@ -287,18 +287,35 @@ command output in a code block.
 the bundle. When it was first in the list, a browser without it showed a serif
 Courier.
 
+## The dashboard
+
+The dashboard shows what needs attention first. Its four tiles are the agents
+that are ready, the failed jobs, the dead letters (the jobs that used up their
+retries), and the uptime and version of the controller. A count of zero is gray
+and a count of failures is red. The NATS version and its URL are a line of the
+NATS card. The consumer count is on the line of the stream in Storage.
+
+The controller card is at the left. The NATS card and Storage are at the right,
+one above the other, so the short NATS card does not leave a gap. A component
+shows its version only when the version is not the version of the controller,
+and then in amber. A mismatch is the case that a person looks for. An age is
+`up 2m`, not `2m`, so that the number has a meaning.
+
 ## The agent cards
 
 The dashboard shows a card for each agent. The registry of agents gives the
 agents in no fixed order. Thus `use-agents.ts` sorts them by hostname. Without
 the sort, two cards changed places on each poll (osapi-io/osapi#823).
 
-A card lists its fields in the order of `osapi client agent list`: the machine
-ID, the conditions, the labels, the age, the load, the OS and the version. The
-metrics row always has two columns, the age and the load. A value that the agent
-does not report is `-`. Thus the cards align when a host, such as Fedora, does
-not report the load. The age is from `started_at`, as `FormatAge` of the CLI
-prints it, and the uptime of the API is in the tooltip. The memory line is
+A card lists its fields in the order of `osapi client agent list`: the
+conditions, the labels, the age, the load and the OS. The machine ID and the
+fingerprint are in an `Identity` disclosure below the health checks, because
+nobody scans them. The card shows the version of the agent only when it is not
+the version of the controller, in amber. The metrics row always has two columns,
+the age and the load. A value that the agent does not report is `-`. Thus the
+cards align when a host, such as Fedora, does not report the load. The age is
+`up` and the time from `started_at`, as `FormatAge` of the CLI prints it, and
+the uptime of the system is in the tooltip. The memory line is
 `7.7 GB total, 3.4 GB used, 4.3 GB free`, as `osapi client agent get` prints it.
 A drain or an undrain applies at the agent's next heartbeat, up to 20s after the
 controller accepts it. The card shows the request at once: the badge reads
