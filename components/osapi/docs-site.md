@@ -95,6 +95,16 @@ because a doc item of the navbar is active on each page of its sidebar. The
 languages in `additionalLanguages`, bash among them, were in a nested `prism`
 key that Docusaurus does not read, so bash was not highlighted.
 
+The dev server and the build do not apply the CSS in the same order. The build's
+minifier merges rules that have the same declarations, and that can move a rule
+of `custom.css` before a rule of Docusaurus or of the OpenAPI plugin that has
+the same weight. Then the other rule wins in production only. After
+osapi-io/osapi#1037, three rules lost this way: the underline of a link under
+the pointer showed on a card, a link in an admonition had the text color and an
+underline, and each language tab of an API page had the plugin's line, not the
+dark-blue one. Thus a rule of `custom.css` that must win over a rule of the same
+weight is `!important`. Do not depend on its place in the file.
+
 ## The output of a command
 
 Each command page of a behavior shows what its examples print, under Result.
