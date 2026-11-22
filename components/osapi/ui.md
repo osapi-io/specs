@@ -220,13 +220,15 @@ terminal. A change to a color changes both.
 | red `#ef4444`       | wrong: failed, error                        | `status-error`                              |
 | gray `#8a8a8a`      | secondary text, labels, and a count of zero | `text-muted`                                |
 | the logo colors     | section headings                            | `heading-1` to `heading-5`                  |
-| dark blue `#2300fd` | the logo accent: heading bar, background    | `accent`                                    |
+| dark blue `#2300fd` | the logo accent: the heading bar            | `accent`                                    |
 
 **Green, amber and red mean status, and nothing else.** The chrome is neutral:
 borders, the navigation, the stat numbers and URLs. A count of zero is gray,
 because `failed: 0` is not a failure. The `admin` role chip is gray, because a
 role is not a problem. A URL has the text color and is a link that underlines on
-hover.
+hover. A component row shows its status word only when the status is not ok. The
+green dot says ok, so a card of healthy rows has one mark on each row, not two.
+The page has no background picture behind the cards.
 
 **Section headings take the logo colors in page order:** cyan, magenta, yellow,
 green, blue. These are the five heading colors of the CLI. The CLI mixes their
@@ -285,18 +287,35 @@ command output in a code block.
 the bundle. When it was first in the list, a browser without it showed a serif
 Courier.
 
+## The dashboard
+
+The dashboard shows what needs attention first. Its four tiles are the agents
+that are ready, the failed jobs, the dead letters (the jobs that used up their
+retries), and the uptime and version of the controller. A count of zero is gray
+and a count of failures is red. The NATS version and its URL are a line of the
+NATS card. The consumer count is on the line of the stream in Storage.
+
+The controller card is at the left. The NATS card and Storage are at the right,
+one above the other, so the short NATS card does not leave a gap. A component
+shows its version only when the version is not the version of the controller,
+and then in amber. A mismatch is the case that a person looks for. An age is
+`up 2m`, not `2m`, so that the number has a meaning.
+
 ## The agent cards
 
 The dashboard shows a card for each agent. The registry of agents gives the
 agents in no fixed order. Thus `use-agents.ts` sorts them by hostname. Without
 the sort, two cards changed places on each poll (osapi-io/osapi#823).
 
-A card lists its fields in the order of `osapi client agent list`: the machine
-ID, the conditions, the labels, the age, the load, the OS and the version. The
-metrics row always has two columns, the age and the load. A value that the agent
-does not report is `-`. Thus the cards align when a host, such as Fedora, does
-not report the load. The age is from `started_at`, as `FormatAge` of the CLI
-prints it, and the uptime of the API is in the tooltip. The memory line is
+A card lists its fields in the order of `osapi client agent list`: the
+conditions, the labels, the age, the load and the OS. The machine ID and the
+fingerprint are in an `Identity` disclosure below the health checks, because
+nobody scans them. The card shows the version of the agent only when it is not
+the version of the controller, in amber. The metrics row always has two columns,
+the age and the load. A value that the agent does not report is `-`. Thus the
+cards align when a host, such as Fedora, does not report the load. The age is
+`up` and the time from `started_at`, as `FormatAge` of the CLI prints it, and
+the uptime of the system is in the tooltip. The memory line is
 `7.7 GB total, 3.4 GB used, 4.3 GB free`, as `osapi client agent get` prints it.
 A drain or an undrain applies at the agent's next heartbeat, up to 20s after the
 controller accepts it. The card shows the request at once: the badge reads
