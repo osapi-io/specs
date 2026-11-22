@@ -211,6 +211,16 @@ behaviors had their own permissions: the index refresh and the check for updates
 asked for `package:*`, not `updatepackages:*`, and the node status asked for
 `node:read`, not `status:read`.
 
+The Configure page keeps the stack and its controls in reach. The panel of
+blocks stays in view as the stack grows, and scrolls on its own when it is
+taller than the window. A new block gets the focus, which brings it into view.
+The bar with Apply is pinned to the bottom of the window. After Apply the stack
+keeps each block and its result. The bar then says what the run did, such as
+`3 applied: 3 ok`, and has Clear, to start over, and Run again, which makes the
+stack ready to apply again. A selected chip is the text color with the logo's
+dark-blue line under it, not green, because green is a status
+(osapi-io/osapi#1043).
+
 ## Color: one palette with the CLI
 
 The UI and the CLI use one palette. The palette is the six colors of the logo,

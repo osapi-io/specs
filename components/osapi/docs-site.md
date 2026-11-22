@@ -64,27 +64,36 @@ The site has the look of the UI and the CLI. The palette is
 `docs/src/css/palette.gen.css` and `docs/src/palette.gen.ts`, which
 `go generate ./internal/behaviors/all` writes from `internal/cli/theme.go`, as
 it writes the status colors of the UI. A test fails when a file is stale.
-`docs/src/css/custom.css` uses the palette as `--osapi-*` variables.
+`docs/src/css/custom.css` uses the palette, and copies the parts of the UI that
+it names.
 
-- Green, amber and red mean a status only. A link, and the color of the site, is
-  the blue text color of the logo.
-- Each `h2` takes a logo color in page order, after the dark-blue bar, as a
-  section heading of the UI does.
-- The page that is open has the text color and the dark-blue bar, in the
-  sidebar, and the text color in the breadcrumb. The open item of the navbar has
-  the text color and the others are gray, as in the UI.
-- A table has faint lines and a header in small gray capitals, as the UI's.
+- The type is the UI's: the system font, a page title of 1.75rem, and a section
+  heading of 1.125rem. Each `h2` takes a logo color in page order, after the
+  dark-blue bar, as a section of the UI does. Under a heading, the text is the
+  text color and gray.
+- A link is a word in the logo's cyan, underlined only under the pointer.
+- A table, a code block, a note and a card are cards of the UI: black, a faint
+  border and 8px corners. A table header is small gray capitals. A table with no
+  header, such as the key-value table of a behavior page, has gray keys.
+- The open page has the text color and the dark-blue bar in the sidebar. A card
+  shows the same bar under the pointer. The open tab of an API page has a
+  dark-blue line under it.
+- Green, amber and red are a status only: on a success, warning or danger note.
+  An HTTP method is a quiet chip in a logo color: GET cyan, POST yellow, PUT and
+  PATCH blue, DELETE magenta. A required field is magenta.
 - A code block uses the CLI's colors: keywords magenta, strings yellow, names
-  cyan, numbers blue and comments gray.
-- The dark page is the UI's: `#0a0a0a` under black cards and code. The light
-  page uses the dark tints of the logo colors, which read on white, as the
-  README's `logo-light.svg` does.
+  cyan, numbers and flags blue, comments gray. In bash, a command name is the
+  text color, because Prism colors only the commands that it knows.
+- The dark page is the UI's: `#0a0a0a` under black cards. The light page uses
+  the dark tints of the logo colors, which read on white, as the README's
+  `logo-light.svg` does.
 
 Before osapi-io/osapi#1037 the site had a theme of its own. Green was the color
-of each link, of the navbar and of the cards. A purple rule was under the
-navbar, and the headings were white. "Getting Started" and "Usage" in the navbar
-were active on each page, because a doc item of the navbar is active on each
-page of its sidebar.
+of each link, of the navbar and of the cards, and a purple rule was under the
+navbar. "Getting Started" and "Usage" in the navbar were active on each page,
+because a doc item of the navbar is active on each page of its sidebar. The
+languages in `additionalLanguages`, bash among them, were in a nested `prism`
+key that Docusaurus does not read, so bash was not highlighted.
 
 ## Checks
 
