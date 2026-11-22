@@ -155,7 +155,8 @@ that is defined there.
   build and a hash of `packer/`. The hub keeps it, and builds an image again
   only when the image is missing or the fingerprint is different. Before a
   build, the playbook makes the NATS user of the VM, because the credential must
-  exist before it goes into the image. It deletes images from other builds.
+  exist before it goes into the image. It deletes images from other builds,
+  except an image that a build recorded in the last hour.
 - **`vms`** deletes the admission of a VM and clones it again when its image
   changed. It adds each VM to the inventory.
 - **`ready`** waits until the controller reports the agent of each VM as
@@ -167,6 +168,21 @@ takes some minutes. Most of the time is Packer, which boots one VM for each
 image. When nothing changed, a deploy changes nothing. `playbooks/rebuild.yml`
 does the same, but bakes each image again and replaces each VM, also with no
 change.
+
+Only one run at a time changes the images and the VMs. `deploy`, `rebuild`,
+`site`, `images`, `vms` and `teardown` take a lock on the hub,
+`~/.osapi-lab/lock`, with one `mkdir`. The lock names its holder: the machine,
+the process of `ansible-playbook`, the build and the start time. A second run
+stops with that name. A playbook that a run imports takes the lock that the run
+holds, and the outermost playbook gives it back. On 22 November 2026, two runs
+at once deleted the images of each other, because each run deletes the images
+that its own build does not clone (osapi-io/osapi-lab#38).
+
+A run that stops before its end keeps the lock. The next run on the same machine
+finds that the process is gone, and breaks the lock. A lock from a run on a
+different machine needs `-e lab_lock_break=true`. Ansible cannot run a step
+after a play fails in a different play, so the lock has no release on failure.
+The check of the process takes its place.
 
 ## Why it is built this way
 
