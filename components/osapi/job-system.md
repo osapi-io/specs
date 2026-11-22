@@ -41,9 +41,11 @@ osapi records the status as **events that it only adds**. It does not change a
 field. Thus the history of a job stays after the job. Later, a reader can see
 that something was queued, started and failed, in that order.
 
-Results go to a **separate bucket**, `job-responses`. Thus a caller that reads a
-result does not search the status history of the job for it.
-`internal/config/nats.go` declares the two buckets.
+`internal/config/nats.go` declares a **separate bucket** for results,
+`job-responses`. The agent does not write to it: `WriteJobResponse` puts each
+result in `job-queue` under `responses.{job-id}.{host}.{time}`. Thus
+`job-responses` stays empty, and its TTL limits nothing. osapi-io/osapi#1095
+decides whether to remove the bucket or to write the results to it.
 
 ## Routing and targeting
 
@@ -164,6 +166,11 @@ One setting, `nats.kv.ttl`, goes to `job-queue` and to `job-responses`. Thus the
 definition, the status events and the response of a job expire together. Only a
 setting for each bucket can make them different, and there is none. `bus.JobKV`
 and `bus.ResponseKV` in `internal/bus/bus.go` read the same field.
+
+`osapi nats setup`, or the server that osapi runs, sets the TTL of the buckets
+from the config of the server. A connection of the agent or the controller does
+not change it (osapi-io/osapi#1096). Thus the TTL of the server decides how long
+a job stays.
 
 The shipped `osapi.yaml` sets it to one hour. `osapi.dev.yaml` does not set it,
 and osapi ignores the parse error. Thus a deployment from that file gets no
