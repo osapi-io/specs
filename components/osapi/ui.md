@@ -85,6 +85,15 @@ formatter of its own. A field has the name that the CLI gives it, such as
 the same resource. A result's summary line is `2 hosts: 1 ok, 1 skipped`, then
 the whole job ID in gray, as the CLI prints it. A job ID is never cut.
 
+**A result links its job and its trace.** On the Configure page, each block that
+ran shows a line under its card with the job and the trace of its call, whole,
+each with a copy button (`RunLinks` in `components/domain/run-links.tsx`). A
+click on the job opens `/admin/jobs/<id>`, which shows the detail of that job
+above the list. A click on the trace opens `/admin/traces/<id>`. The trace comes
+from the `traceresponse` header of the answer, which the controller sets on each
+answer and the CLI reads for its trace line (`lib/trace.ts`). A block that
+failed keeps its trace too. The links are `IdBadge`s, with no underline.
+
 Thus:
 
 - Markup with one resource is a domain component.
