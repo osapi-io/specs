@@ -128,6 +128,24 @@ code into a colored span. Thus the page shows what a terminal shows, and
 `cli-docs-gen-check` fails when the printer changes and the page does not. The
 page stays a `.md` file, because the build drops raw HTML in a `.md` page.
 
+A page that a person wrote shows the same screens with a marker, which
+`osapi cli docs reference generate` fills from the first example of a behavior's
+method:
+
+```markdown
+<!-- osapi:output sysctl list web-01 mac-01:skipped web-02:failed -->
+<!-- /osapi:output -->
+```
+
+The words after the method are the hosts: `host` answers the example,
+`host:skipped` skips as a Mac does, and `host:failed` fails. One host is
+`--target host`, and more hosts are `--target _all`. `--json` last gives the
+response body, which the CLI prints with no table and no color. The output page,
+`usage/cli/output.md`, is made of these screens. Before, it wrote them by hand
+in `text` blocks, which have no colors. In a fleet screen, a value that is the
+example's host becomes the host's own, so `hostname get` shows each host's own
+name.
+
 osapi-io/osapi#725 removed this output with the pages of each method. Before
 then, the same three things were on each method's page, as raw HTML in an `.mdx`
 page. osapi-io/osapi#1044 brought back only the screen for one host. The fleet
