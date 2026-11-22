@@ -1065,9 +1065,11 @@ directory of the behavior:
 
 Go reads a tag only by its exact key and value. Thus `secret:"True"`, or the key
 `secrte`, makes the field an ordinary field, and nothing reports it. Under the
-rule `tag`, `behavior validate` fails each field of an input or an output,
-nested fields too, that has a tag key outside `behavior.KnownTags`, a `secret`
-value other than `true`, or a `telemetry` value other than `attr`.
+rule `tag`, `behavior validate` fails each field of an input, nested fields too,
+that has a tag key outside `command.KnownTags`. It fails each field of an input
+or an output that has a `secret` value other than `true`, or a `telemetry` value
+other than `attr`. The command DSL checks the keys of an output, with the same
+list, under the rule `output`. Thus one list of tag keys serves the three DSLs.
 
 ## Typed values
 
