@@ -1097,6 +1097,30 @@ The other typed values:
   agent and the file endpoints use the constants. The value that a header or a
   form carries is a string, and the conversion is at that boundary.
 
+Two tests in `internal/dslcheck` keep the DSLs typed. They apply to the behavior
+DSL, the endpoint DSL and the command DSL:
+
+- **`TestStringsAreReviewed`** reads the exported API of the three DSLs. It
+  lists each function or method parameter, and each struct field, of type
+  `string`, `[]string` or a map with string keys. It compares the list with
+  `internal/dslcheck/testdata/strings.txt`, which gives each string a category
+  and a reason: `identity`, `free text`, `program`, `path pattern`, `fixture`,
+  `boundary` or `checked`. A `checked` string picks from a set, and a validate
+  rule or a test checks it. A new string fails the test until it is a type with
+  constants, or until the file has it with its reason. An entry that the API no
+  longer has fails the test too.
+- **`TestNoLiteralForATypedValue`** reads the definitions under
+  `internal/behaviors`, `internal/controller/endpoints` and
+  `internal/cli/commands`. It fails a string literal where a typed value of a
+  DSL goes: an argument, a conversion or a field of a composite literal. Thus
+  `behavior.Under("netwrok")` fails before a test runs, and the constants are
+  the only way to name a value. Generated files are exempt: a generator writes
+  each permission as a literal, because the constant of a new permission is
+  written after the routes, from the registry that the routes register in.
+
+`behavior new` writes `Under(behavior.GroupNetwork)` and
+`Area(behavior.AreaConfig)`, and it refuses a group outside `KnownGroups()`.
+
 Redaction matches names, as the denylist does. If you tag a field `value` as
 secret, osapi redacts each request field with the name `value`, in each
 behavior. Give a secret field a name that tells what it has.
