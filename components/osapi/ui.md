@@ -222,9 +222,11 @@ taller than the window. A new block gets the focus, which brings it into view.
 The bar with Apply is pinned to the bottom of the window. After Apply the stack
 keeps each block and its result. The bar then says what the run did, such as
 `3 applied: 3 ok`, and has Clear, to start over, and Run again, which makes the
-stack ready to apply again. A selected chip is the text color with the logo's
-dark-blue line under it, not green, because green is a status
-(osapi-io/osapi#1043).
+stack ready to apply again. A selected chip has the border and fill that a chip
+under the pointer has, a little stronger, and white text. It has no colored
+line, and it is not green, because green is a status (osapi-io/osapi#1043). The
+block that has the focus has the border that a card under the pointer has, not a
+blue ring. A block with a status keeps the border of its status.
 
 ## Color: one palette with the CLI
 
