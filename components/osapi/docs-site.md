@@ -112,6 +112,24 @@ osapi-io/osapi#725 removed the colored output with the pages of each method, and
 back on each command page in osapi-io/osapi#1044. A command that a person wrote,
 not a behavior, has no example output yet.
 
+## The navbar
+
+The dropdowns of the navbar come from the docs tree, not from a list in the
+config. `docs/src/navbar.ts` reads the pages of a folder when the site builds,
+in the order of their `sidebar_position`, with the title of each page.
+
+- **Features** has each page of `sidebar/features`, except its index.
+- **SDK** has the overview of the client, then a section for each folder of
+  `sidebar/sdk/client`, in the order of its `_category_.json`, then the platform
+  pages and the link to the orchestrator.
+- **Behaviors** has the page of each behavior under `reference/behaviors`, which
+  the registry generates.
+
+Thus a new page shows in the navbar with no edit, and a page that is gone leaves
+it. Before osapi-io/osapi#1014 the config had 65 doc IDs written by hand. The
+Features dropdown had 16 of the 29 feature pages, and no behavior page was in
+the navbar.
+
 ## Checks
 
 `just cli-docs-generate` writes the CLI pages, the DSL pages and the reference.
