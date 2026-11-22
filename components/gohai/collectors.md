@@ -38,11 +38,12 @@ collector, and the example of the behavior runs on the fake host.
 
 gohai has facts about the host: what is installed, what the hardware is, and how
 the host is configured. The resolver configuration, the accounts and their
-authorized keys, and the installed packages are facts. So are the services: each
-unit, its description, and whether it starts at boot. "Enabled" is the state of
-the unit file, not whether the unit runs now. The list has each installed unit,
-also one that systemd has not loaded, such as a stopped and disabled unit. Such
-a unit comes from `systemctl list-unit-files`, with the state `dead`, and its
+authorized keys, the installed packages, and the certificate authorities that
+the host trusts (\`ca_certificates\`) are facts. So are the services: each unit,
+its description, and whether it starts at boot. "Enabled" is the state of the
+unit file, not whether the unit runs now. The list has each installed unit, also
+one that systemd has not loaded, such as a stopped and disabled unit. Such a
+unit comes from `systemctl list-unit-files`, with the state `dead`, and its
 `unit_file_state` says why it does not start: `disabled`, `static` or `masked`.
 
 The live state of a service that osapi manages is not a fact. Examples are the
