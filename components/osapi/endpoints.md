@@ -119,6 +119,13 @@ var Group = endpoint.Register(endpoint.Define(
   other value of `in`, under the rule `in`, because such a field went into the
   body with no error. The path is `/api/<group>[/<sub>][/{key}][/<action>]`.
 
+- **`Location` and `Example[T]`** name a field by its json name.
+  `endpoint validate` checks the names, under the rule `field`: the field that
+  `Location` names is a json field of the output, and the field that
+  `Example[T]` names is a json field of `T`. Before the rule, a misspelled name
+  gave the header `Location: .../<nil>`, or dropped the example from the spec,
+  with no error.
+
 - **The output type** is the response. A named struct is a schema in the
   components, with its name. A struct with no name, such as `Message`, is in
   place. A field is required when its json tag has no `omitempty`. `time.Time`
