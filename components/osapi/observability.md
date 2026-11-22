@@ -44,11 +44,18 @@ osapi-controller  GET /api/...                        otelecho, the root
 ```
 
 The controller starts the trace, and gives it back in the `traceresponse` header
-of each response (W3C Trace Context level 2). The CLI prints the trace ID at the
-end of the summary line, after the job ID, and the SDK gives it as
-`Response.TraceID()`. Thus the trace flows through the system that the CLI
-already talks to. The machine of the CLI needs no access to the tracing backend,
-which a company network often does not allow.
+of each response (W3C Trace Context level 2). The SDK gives it as
+`Response.TraceID()`. The CLI gives the SDK a transport, `cli.TraceTransport`,
+that keeps the trace of each answer. Thus each command prints the trace of its
+request, and no command has code for it. The trace is at the end of the summary
+line, after the job ID. A command with no summary line, such as `agent list` or
+`controller status`, prints it as its last line. A command that fails prints it
+under its error, where a person looks next. Before osapi-io/osapi#1033 only the
+summary line printed it, so those commands and each failure had none. The
+`/api/health` routes have no trace, because the controller does not trace the
+polls of the dashboard and of the probes. Thus the trace flows through the
+system that the CLI already talks to. The machine of the CLI needs no access to
+the tracing backend, which a company network often does not allow.
 
 A CLI with a tracing exporter opens a span for the command, and the trace starts
 there. A CLI without an exporter sends no trace context. If it sent the context
