@@ -107,7 +107,7 @@ same module gives `ansible-lint`, `ansible-fmt` and `ansible-test`, which
 | --------------- | -------------- | ----------------------------------------------------- |
 | `just list`     | `list.yml`     | Every VM, its image and its osapi build; changes none |
 | `just deploy`   | `deploy.yml`   | Bake the changed images, replace those VMs            |
-| `just push`     | `push.yml`     | Bake each image again, replace each VM                |
+| `just rebuild`  | `rebuild.yml`  | Bake each image again, replace each VM                |
 | `just site`     | `site.yml`     | Everything, from nothing                              |
 | `just ssh vm`   | `client.yml`   | Refresh `.lab/ssh/config`, then `ssh -F` through it   |
 | `just teardown` | `teardown.yml` | Remove the lab from the hub                           |
@@ -164,8 +164,9 @@ that is defined there.
 
 Each VM is then exactly its image. When the source or `packer/` changed, this
 takes some minutes. Most of the time is Packer, which boots one VM for each
-image. When nothing changed, a deploy changes nothing. `playbooks/push.yml` does
-the same, but bakes each image again and replaces each VM, also with no change.
+image. When nothing changed, a deploy changes nothing. `playbooks/rebuild.yml`
+does the same, but bakes each image again and replaces each VM, also with no
+change.
 
 ## Why it is built this way
 
