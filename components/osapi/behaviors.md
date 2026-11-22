@@ -380,11 +380,11 @@ behavior fails `behavior validate`. The macOS provider still implements
 returns `ErrUnsupported`.
 
 The builder gets a `host.Host` from `internal/behavior/host`: the platform, the
-filesystem, the command runner, the file state store, the hostname, the clock
-and the settings of the behavior. A provider gets the time from `h.Time()`, not
-from `time.Now`. Thus the fake host can give an example a fixed time, and an
-output that the time changes, such as uptime on macOS, is the same each run. If
-a behavior has no provider on the platform, or its builder returns
+filesystem, the command runner, the file state store, the hostname, the facts,
+the clock and the settings of the behavior. A provider gets the time from
+`h.Time()`, not from `time.Now`. Thus the fake host can give an example a fixed
+time, and an output that the time changes, such as uptime on macOS, is the same
+each run. If a behavior has no provider on the platform, or its builder returns
 `provider.ErrUnsupported`, its methods report `skipped`. The agent logs which
 providers it built. The built providers go into the registry of the agent, which
 gives them facts as it does for each other provider.
@@ -736,13 +736,16 @@ write to the same directory.
 
 A builder gets a `host.Host`, and the provider uses only its services: `h.FS`
 for files, `h.Exec` for programs, `h.Sources()` for gohai, `h.Objects`,
-`h.FileState`, `h.Time()`, the settings and the required providers. The fake
-host of `behaviortest` replaces each one: an in-memory filesystem, a generated
-mock of the command runner, an in-memory store, the objects of `Stored`, and a
-fixed clock. Thus a behavior that uses these services gets its tests with no
-fake of its own. `behavior spec get` has a term for each service, under "The
-host a provider gets", with what it is, how the tests replace it, and when to
-use it. A test fails when a field of `host.Host` has no term.
+`h.FileState`, `h.Facts`, `h.Time()`, the settings and the required providers.
+The fake host of `behaviortest` replaces each one: an in-memory filesystem, a
+generated mock of the command runner, an in-memory store, the objects of
+`Stored`, no facts, and a fixed clock. `h.Facts` returns the facts that the
+agent collected last, for a template that a person uploaded, such as the object
+of a cron entry. A value that the provider uses itself comes from gohai. Thus a
+behavior that uses these services gets its tests with no fake of its own.
+`behavior spec get` has a term for each service, under "The host a provider
+gets", with what it is, how the tests replace it, and when to use it. A test
+fails when a field of `host.Host` has no term.
 
 A read of a fact of the host goes through gohai: a collector with `h.Sources()`,
 such as `services.NewWith(h.Sources())`. gohai's runner marks the context of

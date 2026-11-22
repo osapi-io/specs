@@ -98,6 +98,10 @@ permissions in `builtinAdminOnly`:
 | `schedule:write`                               | a cron entry runs a command as any user    |
 | `admission:write`, `agent:write`, `audit:read` | `AdminOnly()` on the endpoint groups       |
 
+`schedule:write` is admin only from `AdminOnly()` on the create, update and
+delete methods of the schedule behavior (osapi-io/osapi#1106), not from
+`builtinAdminOnly`. The hand-written schedule domain is gone.
+
 A behavior or a group that takes over a hand-written domain marks the same
 methods `AdminOnly()`, and `authtoken.Check` fails until it does, because one
 permission cannot be admin only on one method and not on another.

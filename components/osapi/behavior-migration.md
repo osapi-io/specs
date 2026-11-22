@@ -19,8 +19,8 @@ it requires the internal `managedfile` behavior.
 [Behaviors](behaviors.md#behaviors-built-on-other-behaviors) describes them.
 
 What remains: the other domains whose providers depend on each other must use
-requirements when each one moves. An example is cron, which uses the file
-provider.
+requirements when each one moves. The schedule behavior requires `object` and
+`managedfile`, as the service behavior does.
 
 ## What the platform owns
 
@@ -223,6 +223,17 @@ behavior in its group. `--group` now does this.
      1, as that domain did. A PID that the host does not have is not found,
      because the signal reads the process first. Each row of a list is one
      process of one host, so the SDK's `ProcessInfoResult` is that row.
+   - Schedule moved on its own (osapi-io/osapi#1106). Its create, update and
+     delete get the object through `object` and write the cron file through
+     `managedfile`, on the Debian family. Its list and get read the records of
+     `managedfile` for the files in `/etc/cron.d` and in
+     `/etc/cron.{hourly,daily,weekly,monthly}`. Thus they show only the entries
+     that osapi deployed. These are not facts of the host, so gohai does not
+     read them. A create refuses a file at the path that osapi did not deploy.
+     The writes are `AdminOnly()`, so only `admin` has `schedule:write`
+     ([permissions](permissions.md#the-built-in-roles)). A template object reads
+     the facts of the agent through `host.Host.Facts`, which this move added.
+     The CLI takes the vars as `--vars key=value`, not `--var`.
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.
@@ -384,8 +395,8 @@ domain does each of them now:
 - **Service control**: reload or restart after a change. The service domain does
   it, and NTP, hostname and cron do it again.
 - **File deploy from the object store.** The `object` behavior reads the object,
-  and `managedfile` writes it. The service and file behaviors require the two.
-  Cron still deploys through the hand-written file provider.
+  and `managedfile` writes it. The service, file and schedule behaviors require
+  the two.
 - **Run a command and read its output.** Each provider does it now through
   `h.Exec`. It becomes a behavior only if it gets checks that each caller needs,
   for example a refusal of input that can get to a shell.
