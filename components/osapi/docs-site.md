@@ -95,6 +95,23 @@ because a doc item of the navbar is active on each page of its sidebar. The
 languages in `additionalLanguages`, bash among them, were in a nested `prism`
 key that Docusaurus does not read, so bash was not highlighted.
 
+## The output of a command
+
+Each command page of a behavior shows what its examples print, under Result.
+`command.Output` runs the CLI's own printer on each example's output, as one
+host, `web-01`, answers it, with the colors forced on. It writes the result, the
+escape codes of the colors included, in a fenced block of language `ansi`. The
+site's `CodeBlock` wrapper, `docs/src/theme/CodeBlock`, shows such a block with
+`Ansi`, which turns each code into a colored span. Thus the page shows what a
+terminal shows, and `cli-docs-gen-check` fails when the printer changes and the
+page does not. The page stays a `.md` file, because the build drops raw HTML in
+a `.md` page.
+
+osapi-io/osapi#725 removed the colored output with the pages of each method, and
+`usage/cli/output.md` showed the output one time, in plain text. The output came
+back on each command page in osapi-io/osapi#1044. A command that a person wrote,
+not a behavior, has no example output yet.
+
 ## Checks
 
 `just cli-docs-generate` writes the CLI pages, the DSL pages and the reference.
