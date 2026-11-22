@@ -41,13 +41,25 @@ domains must name the new permissions.
 the public API of osapi, not an internal detail. A consumer can name the
 permission that it needs.
 
-`client.Permission` is a named type, not an alias of `string`. Thus a role, or a
-different string variable, does not compile where a permission goes. The DSLs
-return a `client.Permission`. The text of a token's claims, of command output
-and of a route's scope is a `string`, and the conversion is at that boundary,
-with `string()` or `authtoken.Strings`. Go converts an untyped string literal to
-a named type. Thus `.Permission("helth:read")` compiles, and `authtoken.Check`
-is the guard for a name that nothing declares.
+`client.Permission` and `client.Role` are named types, not aliases of `string`.
+Thus a role does not compile where a permission goes, and a permission does not
+compile where a role goes. The DSLs return a `client.Permission`. The check of
+each request keeps the types too:
+
+- `authtoken.ResolvePermissions` takes the roles as `[]Role`, the direct
+  permissions as `[]Permission` and the custom roles as `authtoken.CustomRoles`,
+  a `map[Role][]Permission`. It returns a `map[Permission]bool`.
+- `authtoken.HasPermission` takes a `Permission`.
+- The custom roles of the config are a `map[client.Role]CustomRole`, and each
+  `CustomRole` has `[]client.Permission`. Each hand-written handler takes
+  `authtoken.CustomRoles`.
+
+A token's claims, a route's scope and the output of a command are text. The
+conversion is at those boundaries: `authtoken.RolesOf` and
+`authtoken.PermissionsOf` read the claims, and `string()` or `authtoken.Strings`
+writes the text. Go converts an untyped string literal to a named type. Thus
+`.Permission("helth:read")` compiles, and `authtoken.Check` is the guard for a
+name that nothing declares.
 
 ## The three built-in roles
 
