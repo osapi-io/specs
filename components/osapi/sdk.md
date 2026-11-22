@@ -54,15 +54,15 @@ the object makes the name longer, and it does not make it more clear.
 
 These are not permitted exceptions. They get new names.
 
-| Current              | Becomes       | Which rule                                         |
-| -------------------- | ------------- | -------------------------------------------------- |
-| `Docker.ImageRemove` | `RemoveImage` | 3. The only object-then-verb method in the SDK     |
-| `Ping.Do`            | `Send`        | 2. `Do` names no action; `Ping.Ping` would stutter |
-| `File.Stale`         | `ListStale`   | 3. Returns `StaleList`, a list of a sub-resource   |
-| `File.Changed`       | `GetChanged`  | 3. Returns `FileChanged` for a path                |
-| `Health.Liveness`    | `GetLiveness` | 5. Three distinct reads on one service             |
-| `Health.Ready`       | `GetReady`    | 5.                                                 |
-| `Health.Status`      | `GetStatus`   | 5.                                                 |
+| Current              | Becomes             | Which rule                                                                    |
+| -------------------- | ------------------- | ----------------------------------------------------------------------------- |
+| `Docker.ImageRemove` | `RemoveImage`       | 3. The only object-then-verb method in the SDK                                |
+| `Ping.Do`            | `Connectivity.Ping` | 2. `Do` names no action; the behavior names the service (osapi-io/osapi#1110) |
+| `File.Stale`         | `ListStale`         | 3. Returns `StaleList`, a list of a sub-resource                              |
+| `File.Changed`       | `GetChanged`        | 3. Returns `FileChanged` for a path                                           |
+| `Health.Liveness`    | `GetLiveness`       | 5. Three distinct reads on one service                                        |
+| `Health.Ready`       | `GetReady`          | 5.                                                                            |
+| `Health.Status`      | `GetStatus`         | 5.                                                                            |
 
 **Why a rename and not an exception.** The cost of a rename becomes larger with
 each release. osapi has released tags, and the orchestrator pins one. Thus each

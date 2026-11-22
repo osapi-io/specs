@@ -189,6 +189,18 @@ behavior in its group. `--group` now does this.
      `--unit=nginx.service`, because the generated probe found that a value that
      starts with `-` reached `journalctl` as an option. The permission stays
      `log:read`, the name of the group.
+   - Ping moved to the `ping` action of the connectivity behavior, under the
+     network group (osapi-io/osapi#1110):
+     `osapi client node network connectivity ping --address <ip>`, on
+     `POST /api/node/{hostname}/network/connectivity/ping`. A behavior named
+     `ping` with an action `ping` would read `network ping ping`, so the
+     behavior is named for what it reports. The provider runs the host's `ping`
+     through `h.Exec` (iputils on Linux, `ping` and `ping6` on macOS) and reads
+     its summary, in place of the pro-bing library in the agent. Thus the
+     examples run on the fake host. A host that does not answer is 100% loss,
+     not an error. The permission stays `network:write`, as an action takes the
+     write verb today; osapi-io/osapi#999 can move it to `execute`. The SDK
+     service is `Connectivity.Ping`.
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.
@@ -281,9 +293,10 @@ path segment, so `10.0.0.0%2F8` has no route. The routes of the whole host are
 in the facts of the agent; the behavior has no list of them. The interface name
 rule, `interface_name`, is in the shared registry, because dns, interface and
 route each use it. With routes, no hand-written code reads or writes netplan.
-The others fit now: NTP, certificate and ping. The "Not yet" list of the
-build-a-behavior skill is this table. Thus an agent that gets a request for one
-of these says so, and does not add code around the platform.
+The others fit now: NTP and certificate. Log (osapi-io/osapi#1105) and ping
+(osapi-io/osapi#1110) moved. The "Not yet" list of the build-a-behavior skill is
+this table. Thus an agent that gets a request for one of these says so, and does
+not add code around the platform.
 
 The cutover of a domain deletes its hand-written handler tests. Thus each case
 in them must go somewhere first:
