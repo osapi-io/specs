@@ -67,7 +67,7 @@ ansible/
   inventory.example.yml     committed: the shape of an inventory
   inventory.yml             gitignored: the hub, its tailnet name, the checkout
   group_vars/all.yml        committed: the VMs, a name and a base image each
-  playbooks/                site, push, deploy, secrets, hub, images, vms, ready,
+  playbooks/                site, rebuild, deploy, secrets, hub, images, vms, ready,
                             client, teardown
   roles/
     build                   compiles the osapi checkout, on your machine
@@ -338,7 +338,7 @@ which is the check that every credential reached the right place.
 ## What will surprise you
 
 **The hub needs passwordless sudo.** The macOS firewall of the hub admits a
-binary by its code signature. Each build has a new signature, so each push
+binary by its code signature. Each build has a new signature, so each rebuild
 admits the binary again through sudo. A recipe does not ask for a password. Thus
 the user on the hub must have a `NOPASSWD: ALL` rule in `/etc/sudoers.d`. A rule
 for one command is not sufficient, because Ansible runs a different command
@@ -386,7 +386,7 @@ loss, not a failed ping.
 it. Unload the agent to stop a VM for good.
 
 **A deploy after a change throws away anything done inside a VM.** It reclones
-every VM whose image changed, and a push reclones each VM.
+every VM whose image changed, and a rebuild reclones each VM.
 
 ## Where it sits
 
