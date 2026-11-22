@@ -126,6 +126,10 @@ var Group = endpoint.Register(endpoint.Define(
   gave the header `Location: .../<nil>`, or dropped the example from the spec,
   with no error.
 
+- **The HTTP method** of a method is unexported: `Get`, `Post`, `Put` and
+  `Delete` set it, and `Method.HTTPMethod()` reads it. Thus an author cannot
+  name a method that is not one.
+
 - **The output type** is the response. A named struct is a schema in the
   components, with its name. A struct with no name, such as `Message`, is in
   place. A field is required when its json tag has no `omitempty`. `time.Time`

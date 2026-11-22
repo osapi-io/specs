@@ -150,6 +150,11 @@ var Group = command.Register(command.Define(
   name stays its identity, for its package and for `cli command get --name`.
   Where the command goes, `Under`, and whether the group adds a word, `Flat`,
   are two settings, so nothing is inferred from a name.
+- **An example** names the flags of its command. `osapi cli command validate`
+  refuses a flag that the command does not have, under the rule `help`: a flag
+  of a field of the input, its `short` letter, a config key that `Flag` names,
+  or `--json`, `--debug` or `--osapi-file`. A misspelled flag made a docs page
+  show a command that fails.
 - **A method** is one command, with its input and output types. `.Sub("roles")`
   puts it under a word of its own, so `list` above is `token roles list`. A
   method is its `Sub` and its name, so a group can have `get` and `spec get`.
