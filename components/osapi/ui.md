@@ -141,27 +141,69 @@ no token has, and did not have `schedule:*` (osapi-io/osapi#749). The published
 site also tells what each role permits for an *operator*, because a person who
 configures a role looks there.
 
-A block of the Configure page checks the permission of the operation that it
-calls, and no other. `go generate ./internal/authtoken/gen/operations`, which
-`go generate ./...` runs after the spec is joined, writes
-`ui/src/lib/operations.gen.ts`: the scope of each operation of the joined spec,
-by the name of its function in the generated client. `BLOCK_OPERATIONS` in
-`ui/src/lib/permissions.ts` names the operation that each block calls, and the
-permission of the block comes from that file. TypeScript fails the build on an
-operation that the spec does not have, and a Go test fails when the file is
-stale. Before osapi-io/osapi#1006 the map gave each block a permission by hand,
-and three were wrong after the package and status behaviors had their own
-permissions: the index refresh and the check for updates asked for `package:*`,
-not `updatepackages:*`, and the node status asked for `node:read`, not
-`status:read`.
+The registry of behaviors makes a block of the Configure page for each method of
+each behavior that the API serves. `go generate ./internal/behaviors/all` runs
+`internal/behavior/uiblocks/gen`, which writes `ui/src/lib/blocks.gen.ts`. The
+type of a block is the behavior and the method, such as `route-create`. Each
+block has:
 
-A result card reads the shape of the answer of its operation. A behavior answers
-one row per item, such as a package or a service, with the hostname on each row;
-the card groups the rows by host. The cards of packages and services read the
-nested lists of the hand-written domains after those became behaviors, and
-showed "0 packages" on each row (osapi-io/osapi#972, #1018). A click-through in
-the lab found them, which a type check of the UI does not
-([AGENTS.md](../../AGENTS.md#use-the-lab)).
+- the fields of the input of the method. Each field has its place in the request
+  (the path, the query or the body), its kind, its doc as the hint, whether it
+  is required, the values of a `oneof` rule, and whether it is a secret.
+- the HTTP method and the path of the route.
+- the permission of the method.
+- the fields of the rows that the method answers.
+
+The Configure page makes the form, the request and the result card from this
+file. `BehaviorBlockForm` shows a text field for each string, number or list,
+and a checkbox for each flag. The block is ready when each required field has a
+value. `runBehavior` in `ui/src/lib/behavior-block.ts` puts each field in its
+place and calls the route. `GenericRowsResult` in `result-card.tsx` groups the
+rows by host and shows a column for each field of the output. Thus a new method
+of a behavior gets its block, and a changed input or output changes its block,
+with no change to the UI. A Go test fails when the file is stale.
+
+Some behavior of the generic block is not clear from the code:
+
+- The request keeps `@` and `:` in a path key. The controller reads a path key
+  as the client sends it. Thus an escaped `@fact.` reference does not resolve,
+  and the controller refuses it.
+- A flag goes in the request only after a person sets it. Thus a flag that
+  nobody touched keeps the default of the API.
+- A refusal (a status of 400 or more) puts the block in its error state, with
+  the `error` and the `reason` of the answer.
+- A person puts each behavior in a group of the Add Block panel, in
+  `BEHAVIOR_GROUPS` of `ui/src/hooks/use-stack.ts`. Its key is the name of the
+  behavior, as a generated type. Thus TypeScript fails the build when a behavior
+  has no group.
+
+Three blocks keep a card of their own: `disk-get`, `memory-get` and
+`status-get`. They show usage bars and figures, which a table of rows does not.
+`BEHAVIOR_CARDS` in `result-card.tsx` names the fields of the output that each
+of these cards reads, as generated types. Thus TypeScript fails the build when
+the behavior stops answering one of those fields. Before osapi-io/osapi#1007
+each behavior block had a hand-written form, call and card. The cards of
+packages and services read the nested lists of the hand-written domains after
+those became behaviors, and showed "0 packages" on each row (osapi-io/osapi#972,
+#1018). A click-through in the lab found them, which a type check of the UI does
+not ([AGENTS.md](../../AGENTS.md#use-the-lab)). osapi-io/osapi#1027 moves what
+the three cards show into hints on the fields of the output, and the group into
+the definition.
+
+A block that a person writes by hand, such as a cron job or a file upload,
+checks the permission of the operation that it calls, and no other.
+`go generate ./internal/authtoken/gen/operations`, which `go generate ./...`
+runs after the spec is joined, writes `ui/src/lib/operations.gen.ts`: the scope
+of each operation of the joined spec, by the name of its function in the
+generated client. `BLOCK_OPERATIONS` in `ui/src/lib/permissions.ts` names the
+operation that each of these blocks calls, and the permission of the block comes
+from that file. A behavior block takes its permission from `blocks.gen.ts`.
+TypeScript fails the build on an operation that the spec does not have, and a Go
+test fails when the file is stale. Before osapi-io/osapi#1006 the map gave each
+block a permission by hand, and three were wrong after the package and status
+behaviors had their own permissions: the index refresh and the check for updates
+asked for `package:*`, not `updatepackages:*`, and the node status asked for
+`node:read`, not `status:read`.
 
 ## Color: one palette with the CLI
 
