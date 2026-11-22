@@ -41,6 +41,14 @@ domains must name the new permissions.
 the public API of osapi, not an internal detail. A consumer can name the
 permission that it needs.
 
+`client.Permission` is a named type, not an alias of `string`. Thus a role, or a
+different string variable, does not compile where a permission goes. The DSLs
+return a `client.Permission`. The text of a token's claims, of command output
+and of a route's scope is a `string`, and the conversion is at that boundary,
+with `string()` or `authtoken.Strings`. Go converts an untyped string literal to
+a named type. Thus `.Permission("helth:read")` compiles, and `authtoken.Check`
+is the guard for a name that nothing declares.
+
 ## The three built-in roles
 
 A rule in `RolePermissions` makes each role from the permissions that osapi
@@ -139,8 +147,8 @@ Declare the method. The permission and its roles come from the definition:
 - **A behavior:** register it. Its methods need `<name>:read` and
   `<name>:write`, or those of its group.
 - **An endpoint group:** register it. A GET needs `<group>:read`, and each other
-  verb `<group>:write`. `.Permission("agent:read")` names a different one, which
-  something else must declare.
+  verb `<group>:write`. `.Permission(client.PermAgentRead)` names a different
+  one, which something else must declare. Use the `Perm` constant, not a string.
 - **A hand-written domain** under `internal/controller/api`: add each permission
   that it needs to `builtinPermissions` in `internal/authtoken/permissions.go`,
   as a string. The list goes as each domain becomes a behavior.
