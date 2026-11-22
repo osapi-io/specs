@@ -159,11 +159,33 @@ with initialisms such as DNS in capitals. Docusaurus does not read the title
 from a heading after the generated comment, and showed the file name in the
 sidebar.
 
+## The config tables
+
+A feature page that has settings shows them in a table that `config.Keys`
+writes: each key, its type, its default, the environment variable that sets it,
+and its doc. The page marks where the table goes, with the key prefixes that it
+shows:
+
+```markdown
+<!-- osapi:config agent.facts nats.facts -->
+<!-- /osapi:config -->
+```
+
+`osapi cli docs reference generate` writes the table between the two markers,
+and keeps the rest of the page. Thus `just cli-docs-generate` writes it, and
+`cli-docs-gen-check` fails when a key changes and its table does not.
+
+A key with no default in `config.Defaults` gets its value from
+`configs/osapi.yaml`, the config that osapi ships. The table says so, as
+`none; 9091 in configs/osapi.yaml`, and does not call that value a default.
+Before osapi-io/osapi#1011 the tables were written by hand, and they gave 9091,
+9092, `agent-facts` and `5m` as defaults. A config file without those keys does
+not get those values.
+
 ## What is not generated yet
 
-The SDK pages, the permission tables, the config tables of the feature pages,
-the metrics reference and the navbar are written by hand. osapi-io/osapi#1005
-tracks each one.
+The SDK pages, the permission tables and the metrics reference are written by
+hand. osapi-io/osapi#1005 tracks each one.
 
 A feature page explains a feature, and links to the generated page of each
 behavior that it uses for the permission, the platforms and the route of each
