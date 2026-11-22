@@ -182,11 +182,27 @@ Before osapi-io/osapi#1011 the tables were written by hand, and they gave 9091,
 9092, `agent-facts` and `5m` as defaults. A config file without those keys does
 not get those values.
 
+## The metrics reference
+
+`internal/telemetry/instruments` lists each metric that osapi records: its name
+without the namespace, its kind, unit, labels, the component that records it,
+and its doc. The code that makes an instrument takes its name and doc from that
+list. `just cli-docs-generate` writes the table of `features/metrics.md` between
+`<!-- osapi:metrics -->` markers from the same list. A test records a behavior
+call and compares the labels of its values with the list.
+
+Before osapi-io/osapi#1012 the table was written by hand, and it did not have
+the three behavior metrics. A name must not have the `osapi_` prefix, because
+the Prometheus exporter adds it: `osapi_behavior_calls_total` was exported as
+`osapi_osapi_behavior_calls_total` until osapi-io/osapi#1056.
+`osapi_nats_client_operation_duration_seconds` is in the prose of the page, not
+the table, because nats-client records it.
+
 ## What is not generated yet
 
-The SDK pages and the metrics reference are written by hand. osapi-io/osapi#1005
-tracks each one. The role table of the configuration page is generated, as the
-config tables are, between `<!-- osapi:roles -->` markers.
+The SDK pages are written by hand. osapi-io/osapi#1005 tracks each one. The role
+table of the configuration page is generated, as the config tables are, between
+`<!-- osapi:roles -->` markers.
 
 A feature page explains a feature, and links to the generated page of each
 behavior that it uses for the permission, the platforms and the route of each
