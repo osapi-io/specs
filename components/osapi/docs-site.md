@@ -75,9 +75,10 @@ it names.
 - A table, a code block, a note and a card are cards of the UI: black, a faint
   border and 8px corners. A table header is small gray capitals. A table with no
   header, such as the key-value table of a behavior page, has gray keys.
-- The open page has the text color and the dark-blue bar in the sidebar. A card
-  shows the same bar under the pointer. The open tab of an API page has a
-  dark-blue line under it.
+- Under the pointer, a card is as the UI's `Card`: only its border is brighter,
+  `white/20` from `white/9`. A card has no colored bar.
+- The open page has the text color and the dark-blue bar in the sidebar. The
+  open tab of an API page has a dark-blue line under it.
 - Green, amber and red are a status only: on a success, warning or danger note.
   An HTTP method is a quiet chip in a logo color: GET cyan, POST yellow, PUT and
   PATCH blue, DELETE magenta. A required field is magenta.
@@ -102,8 +103,10 @@ the same weight. Then the other rule wins in production only. After
 osapi-io/osapi#1037, three rules lost this way: the underline of a link under
 the pointer showed on a card, a link in an admonition had the text color and an
 underline, and each language tab of an API page had the plugin's line, not the
-dark-blue one. Thus a rule of `custom.css` that must win over a rule of the same
-weight is `!important`. Do not depend on its place in the file.
+dark-blue one. Docusaurus' `.cardContainer_*` is on the same element as `.card`,
+so in the build it can also give a card a bright border, and the white of the
+text under the pointer. Thus a rule of `custom.css` that must win over a rule of
+the same weight is `!important`. Do not depend on its place in the file.
 
 ## The output of a command
 
