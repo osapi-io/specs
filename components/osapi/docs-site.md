@@ -108,19 +108,26 @@ weight is `!important`. Do not depend on its place in the file.
 ## The output of a command
 
 Each command page of a behavior shows what its examples print, under Result.
-`command.Output` runs the CLI's own printer on each example's output, as one
-host, `web-01`, answers it, with the colors forced on. It writes the result, the
-escape codes of the colors included, in a fenced block of language `ansi`. The
-site's `CodeBlock` wrapper, `docs/src/theme/CodeBlock`, shows such a block with
-`Ansi`, which turns each code into a colored span. Thus the page shows what a
-terminal shows, and `cli-docs-gen-check` fails when the printer changes and the
-page does not. The page stays a `.md` file, because the build drops raw HTML in
-a `.md` page.
+`command.Output` gives three things for each example:
 
-osapi-io/osapi#725 removed the colored output with the pages of each method, and
-`usage/cli/output.md` showed the output one time, in plain text. The output came
-back on each command page in osapi-io/osapi#1044. A command that a person wrote,
-not a behavior, has no example output yet.
+- the command for one host, `--target web-01`, and what the CLI prints;
+- the same command for `--target _all`, where `web-01` and `web-02` answer and
+  `mac-01` skips with `operation not supported on this OS family`;
+- the API's response, which `--json` prints.
+
+The two screens come from the CLI's own printer, with the colors forced on. The
+generator writes each screen, the escape codes of the colors included, in a
+fenced block of language `ansi`. The site's `CodeBlock` wrapper,
+`docs/src/theme/CodeBlock`, shows such a block with `Ansi`, which turns each
+code into a colored span. Thus the page shows what a terminal shows, and
+`cli-docs-gen-check` fails when the printer changes and the page does not. The
+page stays a `.md` file, because the build drops raw HTML in a `.md` page.
+
+osapi-io/osapi#725 removed this output with the pages of each method. Before
+then, the same three things were on each method's page, as raw HTML in an `.mdx`
+page. osapi-io/osapi#1044 brought back only the screen for one host. The fleet
+and the JSON came back after it. A command that a person wrote, not a behavior,
+has no example output yet (osapi-io/osapi#1049).
 
 ## The navbar
 
