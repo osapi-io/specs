@@ -178,6 +178,13 @@ behavior in its group. `--group` now does this.
      name of the behavior, not `user:read` and `user:write`. The built-in roles
      grant them. A custom role that named `user:write` for groups must name
      `group:write`.
+   - Then user moved (osapi-io/osapi#992). Its `create` and `passwd` hash the
+     password on the controller, so the job has only the hash. The password
+     route is `POST /user/{name}/passwd`, an action that always reports a
+     change, and `passwd` is a word of `command.Actions`. The user behavior
+     reads through gohai's users collector on each platform, and changes users
+     on the Debian family. The SSH keys stay hand-written until they move under
+     user with `behavior.Of` (osapi-io/osapi#993).
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.

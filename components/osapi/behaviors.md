@@ -1119,7 +1119,7 @@ before it queues the job. The step runs in a span of its own,
 `behavior.<name>.<method>.before`. It changes what the caller sent into what the
 agent gets: a user's `password` becomes `password_hash` with `password.Hash`,
 the SHA-512 crypt hash that `chpasswd -e` takes. `internal/password` has the
-hash, and the hand-written user domain uses the same function.
+hash. The user behavior's `create` and `passwd` each have a step.
 
 Two rules keep the plain secret out of the job:
 
@@ -1138,9 +1138,16 @@ Under the rule `before`, `behavior validate` checks the step:
 - each field with the tag `before` has a step to set it, and the value of the
   tag is `set`.
 
-The examples of the method are inputs of the provider. They have the hash, as
-the agent gets it, not the password. The audit log records the request, with the
-secret redacted, as for each other method.
+An example of the method has the password and its hash. The route test and the
+integration test send the password, as a caller does. The route test then checks
+that the job has a hash and no password, and not the same hash, because each
+hash has a new salt. The provider test gets the hash, as the agent does. The
+audit log records the request, with the secret redacted, as for each other
+method.
+
+A secret field cannot have the rule `required`. The agent checks the input
+again, and the step has cleared the field. Thus the provider refuses a call with
+no hash, and an example under `Fails` shows the refusal.
 
 ## Typed values
 
