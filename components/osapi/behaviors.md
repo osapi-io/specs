@@ -1097,6 +1097,43 @@ or an output that has a `secret` value other than `true`, or a `telemetry` value
 other than `attr`. The command DSL checks the keys of an output, with the same
 list, under the rule `output`. Thus one list of tag keys serves the three DSLs.
 
+## A step on the controller
+
+A secret that the agent must not see in plain text, such as a password, cannot
+travel in the job. The input of a behavior is the data of its job, and NATS and
+the job KV keep that data. A field with the tag `secret:"true"` stays out of the
+audit log and the spans, but not out of NATS. Thus a method that takes such a
+secret declares a controller step with `.Before(fn)`. The function is
+`func(ctx context.Context, in In) (In, error)`, on the input type of the method.
+
+The generated route calls the step through `dispatch.Run`, on the controller,
+before it queues the job. The step runs in a span of its own,
+`behavior.<name>.<method>.before`. It changes what the caller sent into what the
+agent gets: a user's `password` becomes `password_hash` with `password.Hash`,
+the SHA-512 crypt hash that `chpasswd -e` takes. `internal/password` has the
+hash, and the hand-written user domain uses the same function.
+
+Two rules keep the plain secret out of the job:
+
+- **Each field with the tag `secret:"true"` is empty after the step.** If a
+  secret field is not empty, `RunBefore` fails, and osapi does not queue the
+  job. Thus a step that forgets to clear the password does not leak it.
+- **A field that the step fills has the tag `before:"set"`.** The request, the
+  command and the block of the UI do not have it, so a caller cannot send a hash
+  directly.
+
+Under the rule `before`, `behavior validate` checks the step:
+
+- its signature takes the method's input type and returns it, with an error;
+- the behavior is served, because the step runs in its route;
+- the input has a secret field, which the step keeps out of the job;
+- each field with the tag `before` has a step to set it, and the value of the
+  tag is `set`.
+
+The examples of the method are inputs of the provider. They have the hash, as
+the agent gets it, not the password. The audit log records the request, with the
+secret redacted, as for each other method.
+
 ## Typed values
 
 A value that the DSL selects from a fixed set is a named type with constants, as
