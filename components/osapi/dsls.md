@@ -4,9 +4,13 @@ osapi has three DSLs: the behavior DSL (`internal/behavior`), the endpoint DSL
 (`internal/controller/endpoint`) and the command DSL (`internal/cli/command`).
 The chain rules are a fourth set of terms in `internal/behavior`. Each DSL
 defines a different thing, but each has the same parts. This page names the
-parts, so that a new DSL gets each one and an old DSL keeps each one. The osapi
-page `development/dsl/new-dsl.md` tells an author the same parts, with the
-steps.
+parts, so that a new DSL gets each one and an old DSL keeps each one. The guide
+for an author is the `build-a-dsl` dev skill in the binary
+(`internal/skills/resources/dev-skills/build-a-dsl/`), with the procedure in
+`SKILL.md` and each part in `references/parts.md`.
+`osapi skill get --name build-a-dsl` prints it. The binary is its only source:
+the docs page `development/dsl/new-dsl.md` points to the skill, and
+[Agent skills](agent-skills.md) tells how the dev skills are kept.
 
 ## The parts
 
