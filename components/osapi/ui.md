@@ -151,16 +151,24 @@ block has:
   is required, the values of a `oneof` rule, and whether it is a secret.
 - the HTTP method and the path of the route.
 - the permission of the method.
-- the fields of the rows that the method answers.
+- the area of the behavior, from `behavior.Area` in its definition.
+- the fields of the rows that the method answers, as the CLI's output reads
+  them: the label, the `render` tag, and the fields of an object or of a list of
+  objects.
 
 The Configure page makes the form, the request and the result card from this
 file. `BehaviorBlockForm` shows a text field for each string, number or list,
 and a checkbox for each flag. The block is ready when each required field has a
 value. `runBehavior` in `ui/src/lib/behavior-block.ts` puts each field in its
 place and calls the route. `GenericRowsResult` in `result-card.tsx` groups the
-rows by host and shows a column for each field of the output. Thus a new method
-of a behavior gets its block, and a changed input or output changes its block,
-with no change to the UI. A Go test fails when the file is stale.
+rows by host and shows each field of the output by its label. It formats a value
+by its `render` tag, as the CLI does: bytes as a size, such as 1.9 GB, a time in
+the one format, and a flag as yes or no. An object is one line, such as
+`total 1.9 GB, free 843.7 MB, used 253.2 MB`. A list of objects, such as the
+disks of a host, is one line for each item under the row. A host whose one row
+is only a list counts the items: `4 disks`. Thus a new method of a behavior gets
+its block, and a changed input or output changes its block, with no change to
+the UI. A Go test fails when the file is stale.
 
 Some behavior of the generic block is not clear from the code:
 
@@ -171,23 +179,22 @@ Some behavior of the generic block is not clear from the code:
   nobody touched keeps the default of the API.
 - A refusal (a status of 400 or more) puts the block in its error state, with
   the `error` and the `reason` of the answer.
-- A person puts each behavior in a group of the Add Block panel, in
-  `BEHAVIOR_GROUPS` of `ui/src/hooks/use-stack.ts`. Its key is the name of the
-  behavior, as a generated type. Thus TypeScript fails the build when a behavior
-  has no group.
+- A behavior's blocks go in the group of the Add Block panel that its area
+  names. `behavior validate` refuses a served behavior with no area, or with an
+  area that is not in `behavior.Areas`. `ui/src/hooks/use-stack.ts` checks that
+  each area of `blocks.gen.ts` is a group of the panel, so TypeScript fails the
+  build for an area that the panel does not have.
 
-Three blocks keep a card of their own: `disk-get`, `memory-get` and
-`status-get`. They show usage bars and figures, which a table of rows does not.
-`BEHAVIOR_CARDS` in `result-card.tsx` names the fields of the output that each
-of these cards reads, as generated types. Thus TypeScript fails the build when
-the behavior stops answering one of those fields. Before osapi-io/osapi#1007
-each behavior block had a hand-written form, call and card. The cards of
-packages and services read the nested lists of the hand-written domains after
-those became behaviors, and showed "0 packages" on each row (osapi-io/osapi#972,
-#1018). A click-through in the lab found them, which a type check of the UI does
-not ([AGENTS.md](../../AGENTS.md#use-the-lab)). osapi-io/osapi#1027 moves what
-the three cards show into hints on the fields of the output, and the group into
-the definition.
+No behavior block has a card of its own. Until osapi-io/osapi#1027 the blocks of
+disk, memory and status had hand-written cards, and a person placed each
+behavior in a group by hand. The cards showed sizes from bytes and the fields of
+objects. The `render` and `label` tags of the output, which the CLI already
+read, say the same, so the generic card shows them now. Before
+osapi-io/osapi#1007 each behavior block had a hand-written form, call and card.
+The cards of packages and services read the nested lists of the hand-written
+domains after those became behaviors, and showed "0 packages" on each row
+(osapi-io/osapi#972, #1018). A click-through in the lab found them, which a type
+check of the UI does not ([AGENTS.md](../../AGENTS.md#use-the-lab)).
 
 A block that a person writes by hand, such as a cron job or a file upload,
 checks the permission of the operation that it calls, and no other.
