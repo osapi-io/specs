@@ -198,18 +198,23 @@ check of the UI does not ([AGENTS.md](../../AGENTS.md#use-the-lab)).
 
 A block that a person writes by hand, such as a cron job or a file upload,
 checks the permission of the operation that it calls, and no other.
-`go generate ./internal/authtoken/gen/operations`, which `go generate ./...`
-runs after the spec is joined, writes `ui/src/lib/operations.gen.ts`: the scope
-of each operation of the joined spec, by the name of its function in the
-generated client. `BLOCK_OPERATIONS` in `ui/src/lib/permissions.ts` names the
-operation that each of these blocks calls, and the permission of the block comes
-from that file. A behavior block takes its permission from `blocks.gen.ts`.
-TypeScript fails the build on an operation that the spec does not have, and a Go
-test fails when the file is stale. Before osapi-io/osapi#1006 the map gave each
-block a permission by hand, and three were wrong after the package and status
-behaviors had their own permissions: the index refresh and the check for updates
-asked for `package:*`, not `updatepackages:*`, and the node status asked for
-`node:read`, not `status:read`.
+`go generate ./internal/authtoken/gen/operations` writes
+`ui/src/lib/operations.gen.ts`: the permission of each operation, by the name of
+its function in the generated client. The endpoint groups and the behaviors give
+their operations from their definitions. The hand-written domains give theirs
+from their own specs, `internal/controller/api/node/*/gen/api.yaml`, because
+such a spec is the only definition of its domain. The generator does not read
+the joined spec, which is output. A test in `internal/behaviors/all` fails when
+the two sources do not agree with the joined spec. `BLOCK_OPERATIONS` in
+`ui/src/lib/permissions.ts` names the operation that each of these blocks calls,
+and the permission of the block comes from that file. A behavior block takes its
+permission from `blocks.gen.ts`. TypeScript fails the build on an operation that
+the spec does not have, and a Go test fails when the file is stale. Before
+osapi-io/osapi#1006 the map gave each block a permission by hand, and three were
+wrong after the package and status behaviors had their own permissions: the
+index refresh and the check for updates asked for `package:*`, not
+`updatepackages:*`, and the node status asked for `node:read`, not
+`status:read`.
 
 The Configure page keeps the stack and its controls in reach. The panel of
 blocks stays in view as the stack grows, and scrolls on its own when it is
