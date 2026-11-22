@@ -23,7 +23,8 @@ permission of each method from the definition:
 
 - the resource is the top-level group, or the name of the behavior when it has
   no group
-- the verb is `read` for a `Read` method and `write` for a `Write` method
+- the verb is `read` for a `Read` method, `write` for a `Write` method, and
+  `execute` for an `Action`, such as a service restart
 
 The `get` of sysctl needs `sysctl:read`. dns under `network` needs
 `network:read`, the same as now. `osapi behavior get --name <name>` lists them.
@@ -61,50 +62,63 @@ writes the text. Go converts an untyped string literal to a named type. Thus
 `.Permission("helth:read")` compiles, and `authtoken.Check` is the guard for a
 name that nothing declares.
 
-## The three built-in roles
+## The built-in roles
 
-A rule in `RolePermissions` makes each role from the permissions that osapi
-knows. No list of roles is written by hand.
+osapi has one built-in role for each kind of person or program that uses it
+(osapi-io/osapi#999). A rule in `RolePermissions` makes each role from the
+permissions that osapi knows. No list of roles is written by hand, except the
+two short lists of `auditor` and `observer`.
 
-| Role    | Gets                                                      |
-| ------- | --------------------------------------------------------- |
-| `admin` | each permission                                           |
-| `write` | each `read` and `write` permission that is not admin only |
-| `read`  | each `read` permission that is not admin only             |
+| Role         | Who                                  | Gets                                                             |
+| ------------ | ------------------------------------ | ---------------------------------------------------------------- |
+| `admin`      | the owner of the fleet               | each permission                                                  |
+| `operator`   | the person on call                   | each `read` and each `execute` permission that is not admin only |
+| `automation` | CI, or a workflow that changes hosts | each `read` and each `write` permission that is not admin only   |
+| `auditor`    | a person who audits                  | `audit:read`, `trace:read`, `job:read`, `health:read`            |
+| `read`       | a person who looks                   | each `read` permission that is not admin only                    |
+| `observer`   | a dashboard or a monitor             | `health:read`, `status:read`, `agent:read`                       |
 
-A permission is admin only when its verb is `execute` or `shell`, or when a
-method that needs it is marked `AdminOnly()`.
+The verbs separate the two kinds of change. `write` changes what a host is
+configured to be: a file, a package, a sysctl value. `execute` makes something
+happen and changes no configuration: a restart, a signal, a reboot. An action of
+a behavior has the permission `<name>:execute`, and is a write in each other
+way: a modify job and an output that reports `changed`. Thus an operator
+restarts a service and cannot change its unit file, and automation changes the
+unit file and cannot restart it.
 
-`trace:read` is in each role, `read` included. A trace shows the hosts,
-operations and errors of a request, the same as the job that the role can
-already read. It is a separate permission so that a custom role can read jobs
-without traces.
+A permission is admin only when its verb is `shell`, when a method that needs it
+is marked `AdminOnly()`, or when it is one of the hand-written domains' admin
+permissions in `builtinAdminOnly`:
 
-`write` is not `admin` minus one thing. It does not have these:
+| Admin only                                     | Why                                        |
+| ---------------------------------------------- | ------------------------------------------ |
+| `command:shell`                                | a shell                                    |
+| `command:execute`, `docker:execute`            | any command, on the host or in a container |
+| `user:write`                                   | an account or an SSH key reaches root      |
+| `schedule:write`                               | a cron entry runs a command as any user    |
+| `admission:write`, `agent:write`, `audit:read` | `AdminOnly()` on the endpoint groups       |
 
-```
-admission:write   agent:write       audit:read        power:execute
-process:execute   command:execute   command:shell     docker:execute
-```
+A behavior or a group that takes over a hand-written domain marks the same
+methods `AdminOnly()`, and `authtoken.Check` fails until it does, because one
+permission cannot be admin only on one method and not on another.
 
-The verb makes the four `execute` permissions and `command:shell` admin only.
-`AdminOnly()` on the methods of the admission, agent and audit endpoint groups
-makes `admission:write`, `agent:write` and `audit:read` admin only.
+`file:write`, `package:write` and `sysctl:write` stay with `automation`. Each of
+them can reach root: a file can be a unit or a sudoers entry, a package runs
+install scripts, and a sysctl value can weaken the kernel. Thus give
+`automation` only to a program that you trust as root, and say so where it is
+configured. osapi does not hide this behind the role's name.
 
-The list is the fastest way to understand the role. `write` cannot run a
-command, reboot, signal a process, admit a machine, or read who did something.
+`read` keeps `log:read`, `file:read` and `process:read`, which can show a
+secret: a log line, the content of a file, the arguments of a process. A
+dashboard gets `observer`, which reads no log, file or command output.
 
-It can still make things occur. Service start, stop, restart, enable and disable
-check `service:write`, which `write` has. This page said until 21 November 2026
-that `write` "restarts nothing"; the service routes check `service:write`, and
-they did when the page was written. `write` can also reach root without the
-permissions that it does not have: a cron entry runs as the user that it names,
-`user:write` adds SSH keys, and `file:write` and `package:write` change what
-runs. osapi-io/osapi#999 audits the roles against the people who use osapi, and
-decides these.
+`trace:read` is in `operator`, `automation`, `auditor` and `read`. A trace shows
+the hosts, operations and errors of a request, the same as the job.
 
-`read` has the reads of each domain. It does not have the writes, or the
-permissions in the list above.
+Not covered yet: a permission for each behavior in a group (`network:write`
+covers dns, interface and route, osapi-io/osapi#1115), a token limited to some
+hosts (osapi-io/osapi#1116), and a workflow that acts for a user
+(osapi-io/osapi#1114).
 
 ## How a token resolves to a permission set
 
@@ -135,29 +149,12 @@ removes that permission.
 `HasPermission` is then a map lookup. There is no wildcard, no inheritance at
 check time and no implicit grant.
 
-## `RoleHierarchy` is a different thing
-
-`internal/authtoken/token.go` has a second map:
-
-```go
-var RoleHierarchy = map[string][]string{
-    "admin": {"read", "write", "admin"},
-    "write": {"read", "write"},
-    "read":  {"read"},
-}
-```
-
-This map is about **scopes on the token**. `GenerateAllowedRoles` uses it when
-it makes a token. It is not the permission resolution above. People confuse the
-two, because both are maps with role names as keys. Permissions come from
-`RolePermissions(role)`. This map decides what a token can claim.
-
 ## Adding a permission
 
 Declare the method. The permission and its roles come from the definition:
 
-- **A behavior:** register it. Its methods need `<name>:read` and
-  `<name>:write`, or those of its group.
+- **A behavior:** register it. Its methods need `<name>:read`, `<name>:write`
+  and, for an action, `<name>:execute`, or those of its group.
 - **An endpoint group:** register it. A GET needs `<group>:read`, and each other
   verb `<group>:write`. `.Permission(client.PermAgentRead)` names a different
   one, which something else must declare. Use the `Perm` constant, not a string.
@@ -165,9 +162,9 @@ Declare the method. The permission and its roles come from the definition:
   that it needs to `builtinPermissions` in `internal/authtoken/permissions.go`,
   as a string. The list goes as each domain becomes a behavior.
 
-To keep a permission from `write` and `read`, mark the method `.AdminOnly()`, in
-the behavior DSL or the endpoint DSL. Each method that needs the permission must
-agree. `osapi token roles get --name write` shows what a role gets.
+To keep a permission from each role but `admin`, mark the method `.AdminOnly()`,
+in the behavior DSL or the endpoint DSL. Each method that needs the permission
+must agree. `osapi token roles get --name <role>` shows what a role gets.
 `osapi behavior spec get` and `osapi endpoint spec get` teach the same rule.
 
 `AllPermissions()` and `RolePermissions(role)` make their result on each call,
