@@ -178,6 +178,17 @@ behavior in its group. `--group` now does this.
      name of the behavior, not `user:read` and `user:write`. The built-in roles
      grant them. A custom role that named `user:write` for groups must name
      `group:write`.
+   - The log domain moved to two behaviors under the `log` group
+     (osapi-io/osapi#1105): `entry`, at `/api/node/{hostname}/log/entry`, and
+     `source`, at `/api/node/{hostname}/log/source`. The query and the query of
+     a unit are one `list` with a `unit` filter, so `/log/unit/{name}` is gone.
+     journald answers the journal, so both read with `journalctl` and say so
+     with `.NotAFact`. They run on each Linux host and skip in a container and
+     on macOS; the hand-written domain ran on the Debian family only. Each
+     filter goes to `journalctl` in one argument with its option, such as
+     `--unit=nginx.service`, because the generated probe found that a value that
+     starts with `-` reached `journalctl` as an option. The permission stays
+     `log:read`, the name of the group.
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.
@@ -270,7 +281,7 @@ path segment, so `10.0.0.0%2F8` has no route. The routes of the whole host are
 in the facts of the agent; the behavior has no list of them. The interface name
 rule, `interface_name`, is in the shared registry, because dns, interface and
 route each use it. With routes, no hand-written code reads or writes netplan.
-The others fit now: NTP, log, certificate and ping. The "Not yet" list of the
+The others fit now: NTP, certificate and ping. The "Not yet" list of the
 build-a-behavior skill is this table. Thus an agent that gets a request for one
 of these says so, and does not add code around the platform.
 
