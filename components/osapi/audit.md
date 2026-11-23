@@ -8,7 +8,7 @@ roles cannot.
 
 ## What an entry holds
 
-An entry has thirteen fields. The table below has twelve rows, because `method`
+An entry has fifteen fields. The table below has fourteen rows, because `method`
 and `path` describe one thing.
 
 | Field             | Is                                                     |
@@ -17,6 +17,7 @@ and `path` describe one thing.
 | `timestamp`       | when the request was processed                         |
 | `user`            | the authenticated subject, from the JWT `sub` claim    |
 | `roles`           | the roles the token carried                            |
+| `targets`         | the target scope of the token, if it has one           |
 | `method`, `path`  | the request                                            |
 | `operation_id`    | the OpenAPI operation, where one is known              |
 | `source_ip`       | the client                                             |
@@ -25,9 +26,15 @@ and `path` describe one thing.
 | `trace_id`        | the OpenTelemetry trace, for correlation               |
 | `job_id`          | the job the request created, if it created one         |
 | `request_summary` | what the request asked for, with sensitive values gone |
+| `steps`           | the step tree of the job, for each host                |
 
 `job_id` joins an audit entry to the status timeline of a job. Thus you can
 answer "who asked for this" and "what happened to it" together.
+
+`steps` records the behavior chain of the job: the calls of other behaviors that
+the method made on each host. The API also answers `chain`, the same steps on
+one line for each host, which `osapi client audit get` prints. The store does
+not keep `chain`. The endpoint makes it from `steps` with `client.FormatSteps`.
 
 ## A read is recorded and not summarised
 
@@ -150,6 +157,25 @@ Almost all requests make one job, and osapi records it. If a request makes more
 than one job, osapi records the first and loses the others. Thus the audit trail
 cannot show all of the jobs that one call made.
 
+## The steps come from the job client, at request time
+
+The sink that keeps the job ID also keeps the steps. The job client calls
+`RecordSteps` for each response that it collects: one host for a job to one
+host, and each host for a broadcast. It calls it also when the job failed on the
+host, because a response that failed has its steps. The sink keeps only the
+steps of the job that it recorded. The middleware reads the steps after the
+handler returns, and writes them in the entry.
+
+osapi records the steps at request time, and does not read them from the job
+when an auditor reads the entry. An entry is append-only, and it stays for the
+`max_age` of the audit stream. A job stays only for the TTL of the job bucket.
+Thus a join at read time loses the chain when the job expires, and the chain of
+an entry can change after the write.
+
+The cost: a host that answers after the request returned is not in the entry.
+That is a host that answers after the timeout, or after the controller stopped
+the wait for a broadcast. The job has the steps of that host.
+
 ## Where this connects
 
 [Permissions](permissions.md) has `audit:read`, and why only `admin` and
@@ -160,6 +186,8 @@ why a secret goes there and not into an argument.
 
 [The job system](job-system.md) has the job that `job_id` points to, and its
 status events.
+
+[Behaviors](behaviors.md#chains) has the step tree that `steps` records.
 
 ______________________________________________________________________
 
