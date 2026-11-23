@@ -213,12 +213,15 @@ Some behavior of the generic block is not clear from the code:
   nobody touched keeps the default of the API.
 - A refusal (a status of 400 or more) puts the block in its error state, with
   the `error` and the `reason` of the answer.
-- A behavior's blocks go in the area of the Add Block panel that its `AreaName`
-  names. `behavior validate` refuses a served behavior with no area, or with an
-  area that is not in `behavior.Areas`. `ui/src/hooks/use-stack.ts` checks that
-  each area of `blocks.gen.ts` is an area of the panel, so TypeScript fails the
-  build for an area that the panel does not have. The hand-written blocks add
-  the areas `files` and `audit`.
+- A behavior's blocks go in the area of the Add Block panel that its
+  `behavior.Area` names. `blocks.gen.ts` also has `AREAS`, which
+  `internal/behavior/uiblocks` writes from `area.All`: the name and the label of
+  each area, in order. `BLOCK_AREAS` in `ui/src/hooks/use-stack.ts` is `AREAS`
+  with the blocks of each area, and the panel has no tab for an area with no
+  block, such as `fleet`. The area of a hand-written block is an `AreaName`, the
+  union that `blocks.gen.ts` writes, so TypeScript fails the build for an area
+  that is not in `area.All`. [Areas](endpoints.md#areas) tells where the areas
+  come from.
 
 No behavior block has a card of its own. Until osapi-io/osapi#1027 the blocks of
 disk, memory and status had hand-written cards, and a person placed each

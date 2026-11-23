@@ -85,6 +85,7 @@ short:
 ```go
 var Group = endpoint.Register(endpoint.Define(
 	"agent", "The agents of the fleet",
+	endpoint.Area(area.Fleet),
 	endpoint.Title("Agent Management API"),
 	endpoint.Tag("agent_operations", "Agent",
 		"Operations related to agent discovery and details."),
@@ -111,6 +112,11 @@ var Group = endpoint.Register(endpoint.Define(
   hand-written spec. The full spec puts the title in front of each tag, and the
   UI's client files get their names from the result. Thus the move does not
   rename them.
+
+- **An area** is a constant of `internal/area`, such as `area.Fleet`.
+  `endpoint validate` refuses a group with no area, or with an area that is not
+  in `area.All`, under the rule `area`. [Areas](#areas) tells what the area
+  decides.
 
 - **A method** is `Get`, `Post`, `Put` or `Delete`, with its input and output
   types. A field of the input tagged `in:"path"` is the key, and a field tagged
@@ -284,8 +290,59 @@ from the spec, and names each method from it ([the Go SDK](sdk.md)).
 `internal/behaviors/all`, so it reads the new spec. Thus `just generate` runs
 `go generate` one time, and one run leaves nothing stale.
 
+Each operation also has an `x-osapi-area` extension: the area of its group, such
+as `fleet`. The full spec has the `x-osapi-areas` extension at its top. It lists
+each area of `area.All`, in order, with its name and its label.
+
 `behavior-gen-check` runs `go generate ./internal/behaviors/all`, and fails when
 a spec of a behavior or the full spec changed.
+
+## Areas
+
+An area groups the operations of osapi for a person, such as Networking or
+Fleet. The UI, the docs site and the SDK pages show the same areas, with the
+same labels, in the same order. Before osapi-io/osapi#1204, the UI had a list of
+the areas, with their labels and order, in `ui/src/hooks/use-stack.ts`. An
+endpoint group had no area. Thus the SDK pages were one list.
+
+`internal/area` is the one source. It has a constant for each area, and
+`area.All` gives the label of each area in its order:
+
+| Area         | Label      | Has                                                                                  |
+| ------------ | ---------- | ------------------------------------------------------------------------------------ |
+| `services`   | Services   | behaviors                                                                            |
+| `software`   | Software   | behaviors                                                                            |
+| `config`     | Config     | behaviors                                                                            |
+| `node`       | Node       | behaviors                                                                            |
+| `networking` | Networking | behaviors                                                                            |
+| `security`   | Security   | behaviors                                                                            |
+| `containers` | Containers | behaviors                                                                            |
+| `files`      | Files      | the `file` endpoint group, the Object Store                                          |
+| `command`    | Command    | behaviors                                                                            |
+| `hardware`   | Hardware   | behaviors                                                                            |
+| `audit`      | Audit      | the `audit` endpoint group                                                           |
+| `fleet`      | Fleet      | `agent`, `admission`, `job`, `health`, `controller`, `nats`, `facts` and `telemetry` |
+
+A behavior declares its area with `behavior.Area`, and an endpoint group with
+`endpoint.Area`. The generated group of a behavior gets the area of the
+behavior. The area goes from the definition to these outputs:
+
+- **The spec.** Each operation has `x-osapi-area`, and the full spec has
+  `x-osapi-areas` ([the full spec](#the-full-spec)).
+- **The UI.** `internal/behavior/uiblocks` writes `area.All` as `AREAS` in
+  `ui/src/lib/blocks.gen.ts`. The Add Block panel has a tab for each area that
+  has a block ([the UI](ui.md)).
+- **The SDK pages.** `internal/sdk/gen` reads the areas from the spec, and puts
+  the page of each service in the folder of its area ([the Go SDK](sdk.md)).
+- **The navbar.** The SDK dropdown has a section for each folder of the SDK
+  pages ([the docs site](docs-site.md)).
+- **The catalogs.** `osapi behavior list` and `osapi controller endpoint list`
+  show the area of each behavior and each group. The reference pages of the
+  behaviors and the endpoints show these tables.
+
+Thus a change to `area.All` changes each output in the same `just generate`.
+`behavior-gen-check`, `sdk-gen-check`, `cli-docs-gen-check` and the Go test of
+`blocks.gen.ts` fail when an output is stale.
 
 Before osapi#833, `just generate` joined the specs with `redocly join`. The join
 read a hand-written components spec, which had the info and `ErrorResponse`. The
