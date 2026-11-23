@@ -67,6 +67,7 @@ of the 272 issues of the organization had no label.
 | `chore`            | A change that no caller sees: a refactor, a cleanup, a test, CI                            |
 | `tracker`          | An issue that groups others as sub-issues, such as osapi-io/osapi#964                      |
 | `decision`         | The owner must choose before work starts. The issue gives the choices and a recommendation |
+| `architecture`     | Long-term design of how the system fits together. Only the owner starts it                 |
 | `blocked`          | The work waits on a different issue                                                        |
 | `side-finding`     | Found during work on a different subject, and filed so that work stays its size            |
 | `component/<part>` | The part of the repository that the change goes in, such as `component/behavior-dsl`       |
@@ -78,6 +79,10 @@ osapi-orchestrator and this repository. In this repository, the component is the
 organization component that the page is about, such as `component/osapi`, or
 `component/skills`. To add a component, create the label with a description that
 names its directories, and add it to the table below.
+
+An agent does not pick an `architecture` issue, and a sweep does not list it as
+work that is left. Examples are workflows, secret management and extensions. An
+agent works on one only when the owner names it.
 
 A `blocked` issue says what it waits on in three places. The label finds it.
 GitHub's blocked-by link connects the two issues, so the issue that blocks shows

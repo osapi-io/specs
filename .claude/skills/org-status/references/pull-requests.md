@@ -68,3 +68,15 @@ repositories. That index updates on its own schedule. Thus a PR that somebody
 opened a short time ago may not show. Use it only when the user wants an
 approximate count for the org, and says that the time is not important.
 Otherwise, run `gh pr list` in a loop. It reads the live state.
+
+## Held on purpose
+
+Leave these out of each sweep, each report and each merge run:
+
+- osapi-io/osapi#661, the TypeScript 7 bump in `ui/`, and each later TypeScript
+  7 bump there. typescript-eslint does not support TypeScript 7 yet. The owner
+  holds it. Check the peer range of typescript-eslint again only when the owner
+  asks about it.
+- The Dependabot pull requests of osapi-ui and osapi-sdk. Both repositories are
+  archived, so nobody can close them. `--no-archived` keeps them out of a sweep.
+  `gh search prs --owner osapi-io` includes them.

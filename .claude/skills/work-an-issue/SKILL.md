@@ -22,6 +22,9 @@ fix already merged and nobody closed the issue.
 
 Thus the first step is never the fix.
 
+Do not start an issue that has the `architecture` label unless the user names
+it. Only the owner starts that work ([Labels](../../../CONTRIBUTING.md#labels)).
+
 This skill ends at a merged pull request that closed the issue.
 [org-status](../org-status/SKILL.md) finds and reports issues. This skill acts
 on one.
@@ -130,15 +133,19 @@ often.
 ## 5. Verify
 
 ```bash
-mise exec -- just test
+mise exec -- go test -cover ./<each package that you changed>
 ```
 
-Always run it through `mise`. A bare `just` runs the version that is installed
-globally. A bare `go test` skips `go-mod-check` and the other recipes of the
-gate. That is how an untidy nested module gets to CI.
+Run only the checks that can find a problem in the change, as
+[Check a change](../../../AGENTS.md#check-a-change) tells. CI runs the full
+gate on the pull request. The full suite of osapi takes approximately ten
+minutes, so do not run it. In specs, `mise exec -- just test` is fast, and it is
+the gate.
 
-`just test` is the gate, and it is necessary. A targeted loop adds to it, but
-never replaces it. For a timing bug, only the loop proves anything:
+Always run tools through `mise`. A bare `just` runs the version that is
+installed globally. A change to a nested module under `examples/` also needs
+`just go-mod-check`, because a bare `go test` does not tidy it. For a timing
+bug, only a loop proves anything:
 
 ```bash
 go test -run 'TestName/subtest' -count=50 -race ./pkg/...

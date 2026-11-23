@@ -2,6 +2,11 @@
 
 First, get the repository set, as [SKILL.md](../SKILL.md) tells.
 
+A request to triage Dependabot is a request to finish the queue: vet each pull
+request, merge the clean ones, rebase the others and merge them. Clear a LOOK or
+a false STOP yourself when the evidence clears it. Report the result, not a list
+of commands for the user.
+
 Then vet each pull request in the queue with [vetting.md](vetting.md). A STOP
 leaves the queue. A LOOK also leaves it, until the reader clears it.
 
