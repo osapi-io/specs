@@ -167,12 +167,12 @@ var Group = endpoint.Register(endpoint.Define(
   `TestHandlersRunFromRoutes`, in the same package, fails a call of a handler
   from other code, as `behaviortest` fails a direct call of a behavior's method.
 
-- **`ID`** keeps the operationId of the hand-written spec. The generated Go SDK
-  and the UI client get their names from it. Thus the move does not change a
-  name that a program calls. When the SDK services are generated (osapi#732),
-  the IDs can follow a rule. Without `ID`, the operationId is the verb, the
-  group, the sub-path and the method name, in Pascal case, as
-  [the API conventions](api.md) require.
+- **`ID`** keeps the operationId of the hand-written spec. The UI client gets
+  its names from it. Thus the move does not change a name that the UI calls. The
+  Go SDK takes its names from the `x-osapi-method` extension, not from the
+  operationId ([the Go SDK](sdk.md#names-come-from-the-spec)). Without `ID`, the
+  operationId is the verb, the group, the sub-path and the method name, in
+  Pascal case, as [the API conventions](api.md) require.
 
 - **`Errors`** maps the errors of a method to status codes. An error that is not
   in the list is a 500. Each method also gets 400 when it has an input, 401 and
@@ -277,9 +277,12 @@ The spec of each group is in `gen/api.yaml` of the group too. That spec has its
 own copy of `ErrorResponse`. Thus it is complete, and the generated tests of a
 behavior validate each answer against it.
 
-The SDK client is generated in `pkg/sdk/client/gen`. `go generate ./...` runs
-that package after `internal/behaviors/all`, so it reads the new spec. Thus
-`just generate` runs `go generate` one time, and one run leaves nothing stale.
+Each operation has an `x-osapi-method` extension: the name of the method in its
+group, such as `get`. `internal/sdk/gen` writes the typed services of the SDK
+from the spec, and names each method from it ([the Go SDK](sdk.md)).
+`go generate ./...` runs that generator in `pkg/sdk/client` after
+`internal/behaviors/all`, so it reads the new spec. Thus `just generate` runs
+`go generate` one time, and one run leaves nothing stale.
 
 `behavior-gen-check` runs `go generate ./internal/behaviors/all`, and fails when
 a spec of a behavior or the full spec changed.

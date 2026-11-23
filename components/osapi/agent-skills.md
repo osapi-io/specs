@@ -145,8 +145,7 @@ thing, and what does "already done" look like.
 The "Not yet" list names what a behavior cannot express. An example is an action
 method that streams. When an agent gets a request for one, it says so and stops.
 It does not add code around the platform. The list becomes shorter as people
-build the items. [Behaviors](behaviors.md#not-built-yet) has the parts of the
-platform that are not built yet.
+build the items.
 
 The requests that measure the skill are in its `evals/` directory, with
 `run.sh`: `internal/skills/resources/dev-skills/build-a-behavior/evals/` in

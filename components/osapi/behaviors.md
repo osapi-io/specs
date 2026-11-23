@@ -1357,10 +1357,9 @@ The other typed values:
 - **An area** of the UI is an `AreaName`, such as `AreaHardware`. `Areas` lists
   them, and `behavior validate` already refused an area outside it.
 - **A content type** is `client.ContentType`: `ContentRaw` or `ContentTemplate`.
-  The SDK's `FileDeployOpts`, `Stored` in an example, the file behavior, the
-  file provider, the agent and the file endpoints use the constants. The value
-  that a header or a form carries is a string, and the conversion is at that
-  boundary.
+  `Stored` in an example, the file behavior, the file provider, the agent and
+  the file endpoints use the constants. The value that a header or a form
+  carries is a string, and the conversion is at that boundary.
 
 Two tests in `internal/dslcheck` keep the DSLs typed. They apply to the behavior
 DSL, the endpoint DSL and the command DSL:
@@ -1392,10 +1391,3 @@ behavior. Give a secret field a name that tells what it has.
 
 The value still comes as a CLI flag, such as the `--password` of `user create`.
 A read from standard input or a prompt is not built.
-
-## Not built yet
-
-The SDK knows routes, not behaviors. It has a generic `Client.Request` to any
-API path. Its typed services, for example `client.Sysctl`, are hand-written over
-the client that oapi-codegen generates from the spec. To generate those typed
-services from the full spec too is osapi-io/osapi#732.
