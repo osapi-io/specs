@@ -184,8 +184,15 @@ var Group = command.Register(command.Define(
   UTC. The CLI page of the command shows the sample as the CLI prints it, and as
   JSON for `--json`. A method that prints a body needs one, and validate fails a
   method without one. A method with no body needs none. Its page shows the one
-  line, such as `web-01 draining`, for the key flag of each example. A process
-  prints no output, so its page has none (osapi-io/osapi#1049).
+  line, such as `web-01 draining`, for the key flag of each example.
+- **`.Logs(lines...)`** gives the example of a process the lines that the
+  process writes at the info level when it starts. Each line is a
+  `command.LogLine`: a level, a message and its attributes. The lines are in
+  `samples.go` of the group, and come from a real start with the default config.
+  The generator writes them through `cli.LogHandler`, the handler that the root
+  logs through, with color on. Thus the CLI page shows the lines as a terminal
+  shows them, and then as JSON for `--json`. Validate fails a process with no
+  `.Logs`, and `.Logs` on a method (osapi-io/osapi#1206).
 - **`.Handle(fn)`** sets the function, `func(ctx, Deps, In) (Out, error)`.
 - **`Uses[Deps]()`** names what the methods use, as interfaces. The CLI gives
   them with `command.Provide(token.Group, func() token.Deps {...})` in
@@ -334,9 +341,10 @@ Each check has its rule and its fix, as for endpoints.
 ## Processes
 
 A process is a command that runs until a signal, such as
-`osapi nats server start`. It has no input and prints no output. The DSL
-declares it with `command.Process("start").Setup(fn)`, and the generated command
-calls `command.Serve`, in `internal/cli/command/process.go`.
+`osapi nats server start`. It has no input and no output type. It writes log
+lines, which `.Logs` puts on its page. The DSL declares it with
+`command.Process("start").Setup(fn)`, and the generated command calls
+`command.Serve`, in `internal/cli/command/process.go`.
 
 One context goes through each command. `cmd.Execute` makes it, cancels it on the
 first `SIGINT` or `SIGTERM`, and gives it to cobra. A command reads it as
