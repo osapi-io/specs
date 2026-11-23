@@ -1182,7 +1182,29 @@ input is redacted only by its top-level `secret` tags, an output is not
 redacted, and the content of a managed file can be large. The request and the
 response of the job have the input and the output of the method at the top. The
 format is the one that a behavior of an extension returns (osapi-io/osapi#1064).
-The audit entry and the job view of the UI do not show the tree yet.
+The job view of the UI shows the tree of each host, one row for each call
+(osapi-io/osapi#1162). The trace has a span `behavior.<name>.<method>` for each
+call, under the span of the call that made it. The audit entry has the job ID
+and the trace ID, and not the tree. The audit middleware writes the entry from
+the HTTP request, and the tree is in the job responses that the endpoint
+collects. osapi-io/osapi#1193 tracks the tree in the audit entry.
+
+A chain does not roll back. A step that fails returns its error to the step that
+called it, and the job fails on that host. The writes before the failure stay on
+the host. Only a building block undoes its own change: netplan puts its file
+back when `netplan generate` refuses it. When `netplan apply` fails, the new
+file stays in `/etc/netplan`, and the job shows the line
+`netplan update (failed) → managedfile update (changed)`. A test of the netplan
+provider records this chain through `behavior.Record` and checks the line. A
+retry with the same input reports no change and does not run `netplan apply`,
+because `managedfile update` finds the same content on disk. osapi-io/osapi#1194
+tracks that. The `Behavior chains` feature page of the osapi docs tells a caller
+this story.
+
+Only an author composes behaviors, in Go, with `Requires`. A user does not
+compose behaviors on one host without Go. Multi-step work is an
+osapi-orchestrator workflow. This is the current rule, from the decision on
+osapi-io/osapi#1063. Extensions (osapi-io/osapi#1064) can change it.
 
 The chain rules are `behavior.ChainChecks`. Two hold when the behaviors are
 built, and `behavior validate` checks them too. Two need a run of the examples,
