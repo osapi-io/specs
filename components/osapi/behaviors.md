@@ -405,13 +405,15 @@ one time. It queues the job, on one host or each host of the target, and makes
 the `{job_id, results[]}` envelope. A host that runs the job and fails it is a
 row with `status: failed` and the error of the provider, on one host as on a
 broadcast. A job that osapi cannot send is a 500. On one host, the API answers
-`ErrNotFound` with 404 on each method, and `ErrNotManaged` and `ErrNotInstalled`
-with 409; `ErrUnsupported` is a `skipped` row. Before osapi-io/osapi#1021, a not
-found on a method with no key, such as a create whose object is not in the
-Object Store, was a 500, and not managed and not installed were a 404 that said
-"not found". Until osapi-io/osapi#989, a single host that failed a job was a 500
-that said the job could not be sent. Thus the agent's message did not get to the
-caller.
+`ErrNotFound` with 404 on each method, `ErrNotManaged` and `ErrNotInstalled`
+with 409, and `ErrInvalid` with 400; `ErrUnsupported` is a `skipped` row.
+`ErrInvalid` is an input that the host refuses and that the validate tags cannot
+see, such as a path that is a directory where `file status` reads a file. Before
+osapi-io/osapi#1021, a not found on a method with no key, such as a create whose
+object is not in the Object Store, was a 500, and not managed and not installed
+were a 404 that said "not found". Until osapi-io/osapi#989, a single host that
+failed a job was a 500 that said the job could not be sent. Thus the agent's
+message did not get to the caller.
 
 An earlier version served each method through one handler that read the
 definition when osapi started. It worked. But you could not open, debug or test
@@ -489,12 +491,12 @@ Inside, the same conventions apply:
   declared in `host`, where providers use it. Thus the runner of the agent and
   the generated mock of the fake host both satisfy it.
 - The errors that a provider returns and that the API answers differently are in
-  `internal/behavior`: `ErrUnsupported`, `ErrNotFound`, `ErrNotManaged` and
-  `ErrNotInstalled`. `internal/provider` gives the same values under its own
-  names to the providers that the agent uses for its own facts, under
-  `internal/provider/node`. `behavior spec get` lists each one, with what the
-  API answers and when to return it, under "Errors a provider returns". A test
-  fails on an exported error with no entry there.
+  `internal/behavior`: `ErrUnsupported`, `ErrNotFound`, `ErrNotManaged`,
+  `ErrNotInstalled` and `ErrInvalid`. `internal/provider` gives the same values
+  under its own names to the providers that the agent uses for its own facts,
+  under `internal/provider/node`. `behavior spec get` lists each one, with what
+  the API answers and when to return it, under "Errors a provider returns". A
+  test fails on an exported error with no entry there.
 - The file-state record, `managedfile.State`, and its key,
   `managedfile.StateKey`, belong to `managedfile`, the behavior that owns
   managed files. The file endpoints of the controller read them from there. A
