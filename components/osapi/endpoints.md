@@ -269,10 +269,12 @@ the controller serves and of each behavior. `specgen.Full`, in
 - The endpoint groups come first, in the order of the directory of each spec.
   Then the behaviors come, in the order of `behavior.All`: the order of their
   commands, so `sshkey` is after `user`.
-- Each group keeps its own part in that order: its tag, its paths and its
-  schemas. The tag gets the title of its group in front, with `_` for each
-  space, such as `Agent_Management_API_agent_operations`. `x-tagGroups` puts the
-  tag under that title.
+- Each group keeps its paths and its schemas in that order. Its tag gets the
+  title of its group in front, with `_` for each space, such as
+  `Agent_Management_API_agent_operations`. The tags are in the order of the
+  areas of `area.All`, and in the order above in an area. `x-tagGroups` puts
+  each tag under the label of its area. A tag with no area of `area.All` is an
+  error.
 - `ErrorResponse` is the first schema. `endpoint.ErrorSchema` builds it from
   `endpoint.Reasons` and `endpoint.ReasonDocs`. Thus the schema has each reason
   that the server sends, with what it means.
@@ -335,8 +337,13 @@ A behavior declares its area with `behavior.Area`, and an endpoint group with
 `endpoint.Area`. The generated group of a behavior gets the area of the
 behavior. The area goes from the definition to these outputs:
 
-- **The spec.** Each operation has `x-osapi-area`, and the full spec has
-  `x-osapi-areas` ([the full spec](#the-full-spec)).
+- **The spec.** Each operation and each tag has `x-osapi-area`, and the full
+  spec has `x-osapi-areas` ([the full spec](#the-full-spec)). The full spec puts
+  the tags in the order of `area.All`, and `x-tagGroups` has a group for each
+  area that has a tag, with the label of the area.
+- **The API reference.** The OpenAPI plugin of the docs site groups the pages by
+  `x-tagGroups`. Thus the API sidebar has the areas of the UI and the SDK pages
+  ([the docs site](docs-site.md#the-api-reference)).
 - **The UI.** `internal/behavior/uiblocks` writes `area.All` as `AREAS` in
   `ui/src/lib/blocks.gen.ts`. The Add Block panel has a tab for each area that
   has a block ([the UI](ui.md)).
@@ -347,6 +354,9 @@ behavior. The area goes from the definition to these outputs:
   `area.All` ([the docs site](docs-site.md)).
 - **The navbar.** The SDK dropdown and the Behaviors dropdown have a section for
   each folder of an area ([the docs site](docs-site.md)).
+- **The feature pages.** The feature pages are in a folder for each area, with a
+  `_category_.json` that a person writes from `area.All`
+  ([the docs site](docs-site.md#the-feature-pages)).
 - **The catalogs.** `osapi behavior list` and `osapi controller endpoint list`
   show the area of each behavior and each group. The reference pages of the
   behaviors and the endpoints show these tables.

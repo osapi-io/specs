@@ -10,12 +10,16 @@ the binary cannot say.
 
 | Section      | Has                                                                    | Written by                           |
 | ------------ | ---------------------------------------------------------------------- | ------------------------------------ |
-| Features     | what osapi does, by feature                                            | hand                                 |
+| Features     | what osapi does, by feature, in a group for each area                  | hand; the index from the sidebar     |
 | Usage        | how to run it, and the CLI reference: a page for each command          | hand; the CLI pages generated        |
 | SDK          | the Go SDK                                                             | generated; the overviews by hand     |
 | Reference    | what this build has: behaviors, chains, endpoints, CLI groups, the API | generated; the landing pages by hand |
 | Architecture | how osapi is built                                                     | hand                                 |
 | Development  | how to build with osapi, and the DSLs                                  | hand; the DSL pages generated        |
+
+Each section is a folder of `docs/docs/sidebar` with a `_category_.json`. The
+file gives the label, the position and the index page of the section. The index
+page has `sidebar_position: 0`, so it is first in its section.
 
 Reference answers "what does this build have". Development answers "how do I
 build one". The DSL pages are under Development, because only a person who
@@ -197,7 +201,9 @@ The dropdowns of the navbar come from the docs tree, not from a list in the
 config. `docs/src/navbar.ts` reads the pages of a folder when the site builds,
 in the order of their `sidebar_position`, with the title of each page.
 
-- **Features** has each page of `sidebar/features`, except its index.
+- **Features** has a section for each folder of `sidebar/features`, with the
+  pages of the folder by title. The label and the order of a section come from
+  the `_category_.json` of its folder ([the feature pages](#the-feature-pages)).
 - **SDK** has the overview of the client, then a section for each folder of
   `sidebar/sdk/client`, with the page of each service in it. The label and the
   order of a section come from the `_category_.json` of its folder, which
@@ -205,8 +211,9 @@ in the order of their `sidebar_position`, with the title of each page.
   ([areas](endpoints.md#areas)). Then it has the platform pages and the link to
   the orchestrator.
 - **Behaviors** has a section for each folder of `reference/behaviors`, with the
-  page of each behavior in it. The label and the order of a section come from
-  the `_category_.json` of its folder, as in the SDK dropdown. Thus the two
+  page of each behavior in it, and the page of each behavior that is nested
+  under another behavior. The label and the order of a section come from the
+  `_category_.json` of its folder, as in the SDK dropdown. Thus the two
   dropdowns have the same areas in the same order. The internal behaviors are
   the last section, "Internal". The site has no Endpoints dropdown and no Chains
   dropdown.
@@ -215,6 +222,43 @@ Thus a new page shows in the navbar with no edit, and a page that is gone leaves
 it. Before osapi-io/osapi#1014 the config had 65 doc IDs written by hand. The
 Features dropdown had 16 of the 29 feature pages, and no behavior page was in
 the navbar.
+
+## The feature pages
+
+The feature pages are in a folder of `sidebar/features` for each area that has a
+feature page, such as `features/networking/`, and in `features/platform/`. The
+platform pages tell how osapi operates for each area: authentication, the job
+system, tracing, metrics, notifications, health checks, the agent pages, the
+dashboard, audit logging and behavior chains. The `_category_.json` of a folder
+of an area has the label of the area and its order in `area.All`. Platform is
+last. A person writes these files, because the feature pages are written by
+hand.
+
+A feature page has no `sidebar_position`. Thus the pages of a folder are in the
+order of their titles. Before osapi-io/osapi#1215, the 30 pages were in one
+folder, and seven positions were on two pages each. Thus the order was not
+fixed.
+
+The index, `features/features.mdx`, has no list of the pages. Its `FeatureIndex`
+component (`docs/src/components/FeatureIndex.tsx`) reads the sidebar, and shows
+a section for each folder with a card for each page. Thus the index cannot
+disagree with the pages. Before, `features.md` had a table of the pages that a
+person wrote, in a third order.
+
+## The API reference
+
+The OpenAPI plugin writes the pages of the API reference and their sidebar,
+`docs/docs/gen/api/sidebar.ts`, from the full spec. It groups the pages by the
+`x-tagGroups` of the spec (`groupPathsBy: 'tagGroup'`). The spec has a group for
+each area, with the label of the area ([areas](endpoints.md#areas)). Each tag is
+a category in the group of its area, with the title of its group or behavior as
+its `x-displayName`, such as "Package updates". The plugin puts the info page of
+the spec in each group. `docs/sidebars.ts` removes it from the groups, and puts
+it first, one time.
+
+Before osapi-io/osapi#1215, the sidebar had a category for each tag, with names
+such as "Node/Dns" and "Node/Updatepackages", and `x-tagGroups` had a group for
+each tag.
 
 ## Checks
 
@@ -254,9 +298,10 @@ not get those values.
 `internal/telemetry/instruments` lists each metric that osapi records: its name
 without the namespace, its kind, unit, labels, the component that records it,
 and its doc. The code that makes an instrument takes its name and doc from that
-list. `just cli-docs-generate` writes the table of `features/metrics.md` between
-`<!-- osapi:metrics -->` markers from the same list. A test records a behavior
-call and compares the labels of its values with the list.
+list. `just cli-docs-generate` writes the table of
+`features/platform/metrics.md` between `<!-- osapi:metrics -->` markers from the
+same list. A test records a behavior call and compares the labels of its values
+with the list.
 
 Before osapi-io/osapi#1012 the table was written by hand, and it did not have
 the three behavior metrics. A name must not have the `osapi_` prefix, because

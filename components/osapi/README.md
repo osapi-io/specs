@@ -1,8 +1,8 @@
 # osapi
 
-osapi manages Linux hosts over a message bus. Thus you can configure a host
-through an interface. You do not log in and edit files. Almost each constraint
-below comes from the need to do this on a fleet, not on one machine.
+osapi manages Linux and macOS hosts over a message bus. Thus you can configure a
+host through an interface. You do not log in and edit files. Almost each
+constraint below comes from the need to do this on a fleet, not on one machine.
 
 osapi ships two parts together: a **controller** with a REST API, and an
 **agent** on each managed host. `cmd/` has the two entry points, and `main.go`
