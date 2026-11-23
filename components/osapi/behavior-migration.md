@@ -178,6 +178,20 @@ behavior in its group. `--group` now does this.
      name of the behavior, not `user:read` and `user:write`. The built-in roles
      grant them. A custom role that named `user:write` for groups must name
      `group:write`.
+   - Command moved on its own (osapi-io/osapi#1113). `exec` and `shell` are
+     actions of the `command` behavior, at the same routes. `exec` is
+     `AdminOnly()`, so its permission stays `command:execute`, admin only.
+     `shell` has `.Shell()`, which gives the verb `shell`. Thus its permission
+     stays `command:shell`, and only the admin role gets it. `AreaCommand` keeps
+     the blocks under Command in the UI. These parts of the DSL are new for it
+     too. `Runs(behavior.AnyProgram)` declares each program, because the caller
+     names the program. `EnabledBy("agent.command.enabled")` fails each method
+     on an agent where the key is false, as the hand-written processor did.
+     `h.Exec.RunCmdFull` returns the output, the error output and the exit code
+     apart. `Exits` gives the exit code of a command on the fake host. The
+     generated probe found that a command that starts with `-` reached
+     `/bin/sh -c` as an option. Thus the command field of each method has
+     `startsnotwith=-`.
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.
@@ -197,9 +211,9 @@ under another is built with `behavior.Of` (osapi-io/osapi#986). Thus they are
 not in the table. A container's images are at `/container/docker/image/{image}`,
 which is not under a container, so they need no `Of`:
 
-| Missing                                                     | Operations                                                 | Blocks                             |
-| ----------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------- |
-| The `execute` and `shell` permissions beside read and write | command exec and shell, power, process signal, docker exec | command, power, process, container |
+| Missing                                                     | Operations                         | Blocks                    |
+| ----------------------------------------------------------- | ---------------------------------- | ------------------------- |
+| The `execute` and `shell` permissions beside read and write | power, process signal, docker exec | power, process, container |
 
 The status summary of a node is the `status` behavior, at
 `GET /api/node/{hostname}/status` (osapi-io/osapi#945). It requires the
@@ -303,9 +317,9 @@ domain does each of them now:
 - **File deploy from the object store.** The file domain and cron do it. The
   `object` behavior reads the object, and `managedfile` writes it. The service
   behavior is the first that requires the two.
-- **Run a command and read its output.** Each provider does it now through
-  `h.Exec`. It becomes a behavior only if it gets checks that each caller needs,
-  for example a refusal of input that can get to a shell.
+- **Run a command and read its output.** Each provider does it through `h.Exec`.
+  The `command` behavior runs the command of a caller. A provider does not call
+  it.
 
 A chain across hosts or across steps is a workflow. That is the job of
 osapi-orchestrator, not a requirement.
@@ -317,12 +331,12 @@ by hand, the next `just generate` writes over the change. The file stays in git,
 so that a reviewer can read the diff. `just behavior-gen-check`, which
 `just test` runs, generates the files again and fails on each difference.
 
-**Not everything fits the template.** File upload, `docker exec` and command
-execution stream data, or take multipart bodies. The generated handlers cover a
-request that has one typed input and one typed output for each host. A behavior
-that needs more keeps a hand-written handler for that one method. The definition
-says so explicitly, not by omission. That handler registers its own route next
-to the generated routes.
+**Not everything fits the template.** File upload and `docker exec` stream data,
+or take multipart bodies. The generated handlers cover a request that has one
+typed input and one typed output for each host. A behavior that needs more keeps
+a hand-written handler for that one method. The definition says so explicitly,
+not by omission. That handler registers its own route next to the generated
+routes.
 
 **Path parameters lose their validation tags in strict-server generation.** That
 is why `node/sysctl/validate.go` states `required,min=1,sysctl_key` again now.
