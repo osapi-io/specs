@@ -129,7 +129,7 @@ it into the skip.
 A new provider is one of these four. When you know which one you write, you know
 what it must do.
 
-**A direct provider runs commands.** `internal/provider/node/process` is the
+**A direct provider runs commands.** `internal/provider/node/power` is the
 example. Nothing else is between them. The provider must handle its own
 arguments.
 

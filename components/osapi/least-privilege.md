@@ -225,7 +225,10 @@ They stay as they are and need root. An audit of them under `User=osapi` and
 | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Reads: services, NTP, timezone, packages, DNS, routes, logs; ping where `net.ipv4.ping_group_range` has the agent's group | cron (`/etc/cron.d`), service unit files (`/etc/systemd/system`)                       |
 | hostname, timezone, power and service actions, through sudo over D-Bus                                                    | NTP sources (`/etc/chrony/sources.d`)                                                  |
-| process signal, with `CAP_KILL`                                                                                           | netplan (`/etc/netplan`, `/run`), packages, users and groups, SSH keys (`ProtectHome`) |
+|                                                                                                                           | netplan (`/etc/netplan`, `/run`), packages, users and groups, SSH keys (`ProtectHome`) |
+
+Process signal is not a hand-written provider. The process behavior runs `kill`
+through sudo, and declares it with `Sudo` (osapi-io/osapi#1112).
 
 A ping needs no sudo rule and no capability, but the group of the agent must be
 in `net.ipv4.ping_group_range`. The agent sends it on an ICMP datagram socket,

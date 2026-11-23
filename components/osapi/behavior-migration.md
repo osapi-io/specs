@@ -213,6 +213,16 @@ behavior in its group. `--group` now does this.
      host's, each method reports skipped. The lab found that the hand-written
      domain ran `chronyc sources -c`, which prints the table and not CSV, so
      each host returned no servers.
+   - Process moved on its own (osapi-io/osapi#1112), after the `execute` verb
+     (osapi-io/osapi#999). `list` and `get` read through the process collector
+     of gohai: `/proc` on Linux and `ps` on macOS. `get` reads one process, not
+     the list. `signal` is an action, so it needs `process:execute`. The
+     `operator` role has it, and the `automation` role does not. It runs
+     `kill -<SIG> <pid>` through sudo, in place of `syscall.Kill` in the agent.
+     It keeps the six signals of the hand-written domain and refuses a PID below
+     1, as that domain did. A PID that the host does not have is not found,
+     because the signal reads the process first. Each row of a list is one
+     process of one host, so the SDK's `ProcessInfoResult` is that row.
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.
@@ -232,9 +242,9 @@ under another is built with `behavior.Of` (osapi-io/osapi#986). Thus they are
 not in the table. A container's images are at `/container/docker/image/{image}`,
 which is not under a container, so they need no `Of`:
 
-| Missing                                                     | Operations                                          | Blocks                      |
-| ----------------------------------------------------------- | --------------------------------------------------- | --------------------------- |
-| The `execute` and `shell` permissions beside read and write | command exec and shell, process signal, docker exec | command, process, container |
+| Missing                                                     | Operations                          | Blocks             |
+| ----------------------------------------------------------- | ----------------------------------- | ------------------ |
+| The `execute` and `shell` permissions beside read and write | command exec and shell, docker exec | command, container |
 
 Power is a behavior (osapi-io/osapi#1111). `reboot` and `shutdown` are actions,
 so their permission is `power:execute`, and the `operator` role has it. On the
