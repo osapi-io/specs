@@ -201,6 +201,18 @@ behavior in its group. `--group` now does this.
      not an error. The permission stays `network:write`, as an action takes the
      write verb today; osapi-io/osapi#999 can move it to `execute`. The SDK
      service is `Connectivity.Ping`.
+   - NTP moved on its own (osapi-io/osapi#1104). Its read runs
+     `chronyc tracking` and `chronyc -c sources` with `.NotAFact`: the sync
+     status is the live state of chrony, not a fact of the host, so it does not
+     go through gohai. Its writes go through `managedfile` to
+     `/etc/chrony/sources.d/osapi-ntp.sources`, so the file-state bucket records
+     the file, which the hand-written domain did not. A server is checked with
+     the rule `ntp_server`, a hostname or an IP address: the hand-written domain
+     checked only that the list was not empty, so a server with a line break
+     could add a directive to the file. In a container, whose clock is its
+     host's, each method reports skipped. The lab found that the hand-written
+     domain ran `chronyc sources -c`, which prints the table and not CSV, so
+     each host returned no servers.
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.
@@ -316,10 +328,10 @@ path segment, so `10.0.0.0%2F8` has no route. The routes of the whole host are
 in the facts of the agent; the behavior has no list of them. The interface name
 rule, `interface_name`, is in the shared registry, because dns, interface and
 route each use it. With routes, no hand-written code reads or writes netplan.
-The others fit now: NTP and certificate. Log (osapi-io/osapi#1105) and ping
-(osapi-io/osapi#1110) moved. The "Not yet" list of the build-a-behavior skill is
-this table. Thus an agent that gets a request for one of these says so, and does
-not add code around the platform.
+The others fit now: certificate. Log (osapi-io/osapi#1105), ping
+(osapi-io/osapi#1110) and NTP (osapi-io/osapi#1104) moved. The "Not yet" list of
+the build-a-behavior skill is this table. Thus an agent that gets a request for
+one of these says so, and does not add code around the platform.
 
 The cutover of a domain deletes its hand-written handler tests. Thus each case
 in them must go somewhere first:
