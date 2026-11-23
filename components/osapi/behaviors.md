@@ -125,7 +125,7 @@ the tags for authors. This page records why the design is as it is.
 | `.Describe`, `.Explain`                 | The one-line description, and the longer text that the help and the CLI page of a command, and the spec, carry. Neither has `<`, `>`, `{` or `}`: the docs site reads them as markup, so `behavior validate` refuses them                                                                                                                                                                                                      |
 | `.Example`                              | Sample calls. They are the examples of a command, and the tests                                                                                                                                                                                                                                                                                                                                                                |
 | `behavior.Config(v)`                    | Settings under `behaviors.<name>`, with `v` as their defaults                                                                                                                                                                                                                                                                                                                                                                  |
-| `behavior.Platform(p, f)`               | How the provider is built on platform `p`, a `PlatformName` constant: `PlatformDebian`, `PlatformDarwin`, or `PlatformLinux` for every Linux host without its own. On any other, the methods report `skipped`                                                                                                                                                                                                                  |
+| `behavior.Platform(p, f)`               | How the provider is built on platform `p`, a `PlatformName` constant: `PlatformDebian`, `PlatformSUSE`, `PlatformDarwin`, or `PlatformLinux` for every Linux host without its own. On any other, the methods report `skipped`                                                                                                                                                                                                  |
 | `behavior.Sudo("prog")`                 | A program the provider runs with sudo, which the agent's preflight checks                                                                                                                                                                                                                                                                                                                                                      |
 | `behavior.Runs("prog")`                 | A program the provider runs without sudo; the agent warns at startup when it is missing                                                                                                                                                                                                                                                                                                                                        |
 | `behavior.RunsOnPlatform(p, "prog")`    | A program the provider runs on platform `p` only, such as `vm_stat` on darwin; a Linux host is not asked for it                                                                                                                                                                                                                                                                                                                |
@@ -1068,17 +1068,21 @@ stopped the agent.
 `certificate` is the second (osapi-io/osapi#1108). It writes the PEM of an
 object as `osapi-<name>.crt` in the local directory of the family, the directory
 that gohai's `ca_certificates` collector reads:
-`/usr/local/share/ca-certificates` on the Debian family and
-`/etc/pki/ca-trust/source/anchors` on the RHEL family. Then it rebuilds the
-trust store with `update-ca-certificates` or `update-ca-trust`. The directory
-comes from gohai's `cacertificates.LayoutFor`, so a CA that osapi writes is a CA
-that gohai reads. A CA that osapi deployed reads by its name, with `managed`, as
-a service does. Thus `managedfile` has a provider for `PlatformLinux` too, not
-only for the Debian family: its writes are the same on each Linux family. The
-behavior declares each program with `SudoOnPlatform`, so a Debian host is not
-asked for `update-ca-trust`. SUSE and Alpine run `update-ca-certificates`
-through the linux provider, which does not declare it. Thus they read only
-(osapi-io/osapi#1122).
+`/usr/local/share/ca-certificates` on the Debian family,
+`/etc/pki/trust/anchors` on SUSE, and `/etc/pki/ca-trust/source/anchors` on the
+RHEL family. Then it rebuilds the trust store: with `update-ca-certificates` on
+the Debian family and SUSE, and with `update-ca-trust` on the others. The
+directory comes from gohai's `cacertificates.LayoutFor`, so a CA that osapi
+writes is a CA that gohai reads. A CA that osapi deployed reads by its name,
+with `managed`, as a service does. Thus `managedfile` has a provider for
+`PlatformLinux` too, not only for the Debian family: its writes are the same on
+each Linux family. The behavior declares a provider for `PlatformDebian`,
+`PlatformSUSE` and `PlatformLinux`, and each program with `SudoOnPlatform`. Thus
+a Debian or SUSE host is not asked for `update-ca-trust`, and a RHEL host is not
+asked for `update-ca-certificates` (osapi-io/osapi#1122). A delete runs
+`update-ca-certificates --fresh` on the Debian family and SUSE, because without
+`--fresh` the links of the CA stay in `/etc/ssl/certs`. osapi does not support
+Alpine. There the writer is the reader, and the writes report `skipped`.
 
 A read takes the same name as a write. `list` and `get` show a service that
 osapi deployed by the name it was deployed with, such as `app`, not by the name
@@ -1269,14 +1273,15 @@ no hash, and an example under `Fails` shows the refusal.
 ## Typed values
 
 A value that the DSL selects from a fixed set is a named type with constants, as
-`Verb` is. A platform is a `PlatformName`: `PlatformLinux`, `PlatformDarwin` or
-`PlatformDebian`. `Platform`, `On`, `RunsOnPlatform`, `SudoOnPlatform` and
-`OnPlatform` take one. Go converts an untyped string literal to a named type.
-Thus `Platform("debain", ...)` compiles, and `behavior validate` is the guard:
-under the rule `platform`, it fails a name outside `KnownPlatforms()`. Before
-this rule, `Platform("debain", ...)` fell back to the linux provider, and a
-behavior with no linux provider skipped each method on Debian with no error. To
-name a new family of gohai, add its constant to `KnownPlatforms` first.
+`Verb` is. A platform is a `PlatformName`: `PlatformLinux`, `PlatformDarwin`,
+`PlatformDebian` or `PlatformSUSE`. `Platform`, `On`, `RunsOnPlatform`,
+`SudoOnPlatform` and `OnPlatform` take one. Go converts an untyped string
+literal to a named type. Thus `Platform("debain", ...)` compiles, and
+`behavior validate` is the guard: under the rule `platform`, it fails a name
+outside `KnownPlatforms()`. Before this rule, `Platform("debain", ...)` fell
+back to the linux provider, and a behavior with no linux provider skipped each
+method on Debian with no error. To name a new family of gohai, add its constant
+to `KnownPlatforms` first.
 
 The other typed values:
 
