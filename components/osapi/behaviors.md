@@ -154,10 +154,10 @@ own, with its types, its provider, its docs page and its chain. It takes three
 things from the parent:
 
 - **The path.** The route is the parent's item, then the child:
-  `/api/node/{hostname}/user/{name}/sshkey/{fingerprint}`. `Method.PathKeys()`
-  is the parent's key, then the method's own key, and each generator reads it:
-  the request fields that go in the path, the decoder, the generated API tests
-  and the span attributes.
+  `/api/node/{hostname}/user/{name}/sshkey`. `Method.PathKeys()` is the parent's
+  key, then the method's own key, and each generator reads it: the request
+  fields that go in the path, the decoder, the generated API tests and the span
+  attributes.
 - **The command.**
   `osapi client node user sshkey delete --name alice --fingerprint SHA256:...`.
   The endpoint layer already reads a path field in the prefix of a group, as it
@@ -186,6 +186,19 @@ destination, as it resets an item by its key.
 A child that needs the parent's provider, such as to check that the user exists,
 declares `Requires` too. `Of` is the place in the API, not a call between the
 two.
+
+The `sshkey` behavior is the second child, under user. It requires user, and
+reads the user through `behavior.Call` of `user.Get`, so that a missing user is
+not found and the trace shows the call. Its delete keeps the fingerprint in the
+body, as a route keeps its destination: the base64 of a fingerprint can have a
+slash. A delete for a user that the host does not have reports `changed: false`.
+Thus the integration test can reset a key before the example adds its user.
+
+`After` can name a method of the parent. An example of a key adds its user
+first, with `After(user.CreateInput{...})`. The fake host runs the parent's
+method on the parent's provider, on the same host. The integration test runs the
+parent's command, and deletes the parent's item with the parent's delete, after
+the example's own item.
 
 ## Types become JSON Schema
 

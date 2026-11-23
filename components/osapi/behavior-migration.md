@@ -183,8 +183,11 @@ behavior in its group. `--group` now does this.
      route is `POST /user/{name}/passwd`, an action that always reports a
      change, and `passwd` is a word of `command.Actions`. The user behavior
      reads through gohai's users collector on each platform, and changes users
-     on the Debian family. The SSH keys stay hand-written until they move under
-     user with `behavior.Of` (osapi-io/osapi#993).
+     on the Debian family. Then the SSH keys moved under user with
+     `behavior.Of`, as the `sshkey` behavior (osapi-io/osapi#993):
+     `osapi client node user sshkey`. It reads through gohai's ssh collector and
+     writes `~/.ssh/authorized_keys` on the Debian family. Nothing of the
+     hand-written user domain is left.
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.
