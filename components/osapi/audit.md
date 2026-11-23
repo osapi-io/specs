@@ -116,7 +116,9 @@ is set. The stream pages by sequence, so it cannot skip the entries that do not
 match. Thus a request with a filter reads the whole log with `ListAll`, as an
 export does, and the endpoint pages the entries that match. `total_items` is
 then the count of the entries that match. A request with no filter reads only
-its page with `List`.
+its page with `List`. A token with a target scope is the same as a filter: the
+request reads the whole log and pages the entries in the scope.
+[Permissions](permissions.md#a-tokens-target-scope) has the rule.
 
 The cost of a filter grows with the size of the log, which the retention of the
 stream limits. An index by subject, such as one subject for each method, would
