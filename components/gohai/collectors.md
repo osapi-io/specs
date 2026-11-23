@@ -102,8 +102,10 @@ There are four positions, in order. A collector uses the first position that
 covers what it needs.
 
 1. **A file**, through `FS`: `/proc`, `/sys` and `/etc` on Linux.
-2. **A command**, through `Exec`: `sysctl`, `ioreg`, `ps` and `df` on macOS,
-   `ip`, `lscpu` and `ethtool` on Linux.
+2. **A command**, through `Exec`: `sysctl`, `ioreg`, `ps`, `df` and `dscl` on
+   macOS, `ip`, `lscpu` and `ethtool` on Linux. On macOS the users and the ssh
+   collectors read the accounts and their homes from the directory service with
+   `dscl`, because `/etc/passwd` has only the system accounts (gohai v1.12.1).
 3. **A library**, only when it reads through the sources, or reads nothing from
    the host. Official provider SDKs, or plain `net/http`, are for the cloud
    collectors.
