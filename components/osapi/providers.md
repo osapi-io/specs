@@ -182,16 +182,16 @@ new gohai collector, or a new field of one. It is never a method of a provider
 (osapi-io/osapi#962). When gohai does not have a read, the change goes into
 gohai first, as the macOS routes did (osapi-io/gohai#301).
 
-A provider gets these host attributes in three steps:
-
-1. It embeds the shared facts holder.
-2. It asserts the setter contract at compile time.
-3. osapi registers it.
-
-Registration causes the injection. **A provider that osapi makes but never
-registers has no facts.** An operation that needs facts then fails when you call
-it, not at startup. That is the worse time to learn about it.
-`internal/provider/facts.go` has all three parts.
+**A behavior's provider reads the facts from its host, as `h.Facts`.** This is
+the only path for the facts to a provider. `buildRegistry` in
+`internal/agent/setup.go` sets `h.Facts` when it makes the host of the
+behaviors. The registry is made before the agent. Thus `h.Facts` reads the agent
+at each call, and returns the facts that the agent collected last. Before the
+agent collects the facts, `h.Facts` returns nil. A provider does not embed a
+facts holder, and the registry does not inject facts. The fake host of
+`behaviortest` gives no facts, as
+[the host a provider gets](behaviors.md#the-host-a-provider-gets) tells
+(osapi-io/osapi#1138).
 
 ## Three rules about the boundary
 

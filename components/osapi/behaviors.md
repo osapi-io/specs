@@ -401,8 +401,8 @@ the clock and the settings of the behavior. A provider gets the time from
 time, and an output that the time changes, such as uptime on macOS, is the same
 each run. If a behavior has no provider on the platform, or its builder returns
 `provider.ErrUnsupported`, its methods report `skipped`. The agent logs which
-providers it built. The built providers go into the registry of the agent, which
-gives them facts as it does for each other provider.
+providers it built. The built providers go into the registry of the agent. A
+provider reads the facts of the agent from `h.Facts`.
 
 **The CLI.** The commands of a behavior come from its endpoint group, as the
 commands of an endpoint do. `internal/controller/endpoint/gen/commandgen`, the
