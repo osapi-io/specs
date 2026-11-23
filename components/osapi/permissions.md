@@ -23,8 +23,9 @@ permission of each method from the definition:
 
 - the resource is the top-level group, or the name of the behavior when it has
   no group
-- the verb is `read` for a `Read` method, `write` for a `Write` method, and
-  `execute` for an `Action`, such as a service restart
+- the verb is `read` for a `Read` method, `write` for a `Write` method,
+  `execute` for an `Action`, such as a service restart, and `shell` for an
+  `Action` with `.Shell()`, such as command shell
 
 The `get` of sysctl needs `sysctl:read`. dns under `network` needs
 `network:read`, the same as now. `osapi behavior get --name <name>` lists them.
@@ -93,7 +94,7 @@ permissions in `builtinAdminOnly`:
 | Admin only                                     | Why                                                        |
 | ---------------------------------------------- | ---------------------------------------------------------- |
 | `command:shell`                                | a shell                                                    |
-| `command:execute`                              | any command on the host                                    |
+| `command:execute`                              | `AdminOnly()` on command exec: any command on the host     |
 | `container:execute`                            | `AdminOnly()`: docker exec runs any command in a container |
 | `user:write`                                   | an account or an SSH key reaches root                      |
 | `schedule:write`                               | a cron entry runs a command as any user                    |
@@ -102,6 +103,10 @@ permissions in `builtinAdminOnly`:
 `schedule:write` is admin only from `AdminOnly()` on the create, update and
 delete methods of the schedule behavior (osapi-io/osapi#1106), not from
 `builtinAdminOnly`. The hand-written schedule domain is gone.
+
+`command:execute` is admin only from `AdminOnly()` on the exec action of the
+command behavior (osapi-io/osapi#1113). No hand-written domain is left, so
+`builtinAdminOnly` is empty.
 
 A behavior or a group that takes over a hand-written domain marks the same
 methods `AdminOnly()`, and `authtoken.Check` fails until it does, because one

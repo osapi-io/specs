@@ -247,6 +247,21 @@ behavior in its group. `--group` now does this.
      family. Its writes are `AdminOnly()` too, and `user:read` and `user:write`
      are no longer built-in permissions: the two behaviors declare them. Nothing
      of the hand-written user domain is left.
+   - Command moved on its own (osapi-io/osapi#1113), the last hand-written node
+     domain. `exec` and `shell` are actions of the `command` behavior, at the
+     same routes. `exec` is `AdminOnly()`, so its permission stays
+     `command:execute`, admin only. `shell` has `.Shell()`, which gives the verb
+     `shell`. Thus its permission stays `command:shell`, and only the admin role
+     gets it. `AreaCommand` keeps the blocks under Command in the UI. These
+     parts of the DSL are new for it too. `Runs(behavior.AnyProgram)` declares
+     each program, because the caller names the program. `h.Exec.RunCmdFull`
+     runs a program as the agent's user, in a directory and with a timeout, and
+     returns the output, the error output and the exit code apart. `Exits` gives
+     the exit code of a command on the fake host. The provider refuses each
+     command where `host.Host.CommandEnabled` is false, as docker exec does,
+     with the same `host.ErrCommandDisabled`. The generated probe found that a
+     command that starts with `-` reached `/bin/sh -c` as an option. Thus the
+     command field of each method has `startsnotwith=-`.
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.
@@ -258,17 +273,11 @@ describes something that osapi does, and nothing else.
 
 ## What blocks the other domains
 
-These hand-written node operations use something that a behavior cannot express
-yet. Each is a platform change. This page designs it before somebody builds it.
-Each one unblocks a set of domains. Action methods, such as `service restart`,
-and the Object Store on `host.Host` are built (osapi-io/osapi#985). A resource
-under another is built with `behavior.Of` (osapi-io/osapi#986). Thus they are
-not in the table. Docker exec moved with the container behaviors
-(osapi-io/osapi#994), so it is not in the table either:
-
-| Missing                                                     | Operations             | Blocks  |
-| ----------------------------------------------------------- | ---------------------- | ------- |
-| The `execute` and `shell` permissions beside read and write | command exec and shell | command |
+Nothing. Command was the last hand-written node domain (osapi-io/osapi#1113).
+Each node operation is a behavior now. Action methods and the Object Store on
+`host.Host` (osapi-io/osapi#985), a resource under another with `behavior.Of`
+(osapi-io/osapi#986), the `execute` verb (osapi-io/osapi#999) and the `shell`
+verb (osapi-io/osapi#1113) were the platform changes that the domains needed.
 
 Power is a behavior (osapi-io/osapi#1111). `reboot` and `shutdown` are actions,
 so their permission is `power:execute`, and the `operator` role has it. On the
@@ -434,9 +443,9 @@ domain does each of them now:
 - **File deploy from the object store.** The `object` behavior reads the object,
   and `managedfile` writes it. The service, file and schedule behaviors require
   the two.
-- **Run a command and read its output.** Each provider does it now through
-  `h.Exec`. It becomes a behavior only if it gets checks that each caller needs,
-  for example a refusal of input that can get to a shell.
+- **Run a command and read its output.** Each provider does it through `h.Exec`.
+  The `command` behavior runs the command of a caller. A provider does not call
+  it.
 
 A chain across hosts or across steps is a workflow. That is the job of
 osapi-orchestrator, not a requirement.
@@ -448,12 +457,11 @@ by hand, the next `just generate` writes over the change. The file stays in git,
 so that a reviewer can read the diff. `just behavior-gen-check`, which
 `just test` runs, generates the files again and fails on each difference.
 
-**Not everything fits the template.** File upload and command execution stream
-data, or take multipart bodies. The generated handlers cover a request that has
-one typed input and one typed output for each host. A behavior that needs more
-keeps a hand-written handler for that one method. The definition says so
-explicitly, not by omission. That handler registers its own route next to the
-generated routes.
+**Not everything fits the template.** File upload streams data, or take
+multipart bodies. The generated handlers cover a request that has one typed
+input and one typed output for each host. A behavior that needs more keeps a
+hand-written handler for that one method. The definition says so explicitly, not
+by omission. That handler registers its own route next to the generated routes.
 
 **Path parameters lose their validation tags in strict-server generation.** That
 is why `node/sysctl/validate.go` states `required,min=1,sysctl_key` again now.
