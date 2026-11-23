@@ -179,6 +179,13 @@ var Group = command.Register(command.Define(
 - **`.Fails(doc, input)`** gives an input that breaks a rule of the input. Each
   rule of each field needs one, as for an endpoint and a behavior. A test runs
   each one, and expects the usage error.
+- **`.Prints(sample)`** gives the example before it an output: a value of the
+  output type of the method, in `samples.go` of the group, with each time in
+  UTC. The CLI page of the command shows the sample as the CLI prints it, and as
+  JSON for `--json`. A method that prints a body needs one, and validate fails a
+  method without one. A method with no body needs none. Its page shows the one
+  line, such as `web-01 draining`, for the key flag of each example. A process
+  prints no output, so its page has none (osapi-io/osapi#1049).
 - **`.Handle(fn)`** sets the function, `func(ctx, Deps, In) (Out, error)`.
 - **`Uses[Deps]()`** names what the methods use, as interfaces. The CLI gives
   them with `command.Provide(token.Group, func() token.Deps {...})` in
@@ -203,12 +210,12 @@ group is `command.Group`. The endpoint types implement both.
 
 `go generate ./internal/cli/commands/all` writes, for each group:
 
-| File                                       | Has                                                      |
-| ------------------------------------------ | -------------------------------------------------------- |
-| `internal/cli/commands/<group>/gen/cli.go` | a cobra command for each method, its flags, help and run |
-| `internal/cli/command/testdata/scaffold/`  | the golden files of `osapi cli command new`              |
-| `internal/cli/commands/all/gen/gen.go`     | the registration of each group                           |
-| `docs/docs/sidebar/usage/cli/<group>/`     | the CLI pages, from cobra                                |
+| File                                       | Has                                                        |
+| ------------------------------------------ | ---------------------------------------------------------- |
+| `internal/cli/commands/<group>/gen/cli.go` | a cobra command for each method, its flags, help and run   |
+| `internal/cli/command/testdata/scaffold/`  | the golden files of `osapi cli command new`                |
+| `internal/cli/commands/all/gen/gen.go`     | the registration of each group                             |
+| `docs/docs/sidebar/usage/cli/<group>/`     | the CLI pages, from cobra, with the output of each example |
 
 The endpoint generator writes the `cli.go` of an endpoint group with the same
 code.
