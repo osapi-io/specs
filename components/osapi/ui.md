@@ -243,6 +243,16 @@ index refresh and the check for updates asked for `package:*`, not
 `updatepackages:*`, and the node status asked for `node:read`, not
 `status:read`.
 
+The panel refuses a block that has no permission that it knows. The chip of such
+a block is disabled and has a lock, as for a role that does not have the
+permission. The type of a hand-written block is a key of `BLOCK_OPERATIONS`.
+Thus TypeScript fails the build for a hand-written block that has no operation.
+Before osapi-io/osapi#1161 the panel enabled a block that had no permission.
+Command exec and ping had no entry, so a role that cannot run a command saw both
+enabled. The controller refused the request with 403, thus the error was in the
+UI only. The panel also showed power reboot and shutdown two times: a
+hand-written copy and the behavior block.
+
 The Configure page keeps the stack and its controls in reach. The panel of
 blocks stays in view as the stack grows, and scrolls on its own when it is
 taller than the window. A new block gets the focus, which brings it into view.
@@ -254,6 +264,24 @@ under the pointer has, a little stronger, and white text. It has no colored
 line, and it is not green, because green is a status (osapi-io/osapi#1043). The
 block that has the focus has the border that a card under the pointer has, not a
 blue ring. A block with a status keeps the border of its status.
+
+A new block of a behavior that writes or runs an action has no target. The card
+asks for the hosts. Apply does not run the block, and the card shows it as
+pending, until it has a target. A read starts with `_all`. A block that runs on
+the controller, such as a file upload, keeps `_all` and does not use it. Before
+osapi-io/osapi#1166 each new block started with `_all`, also a reboot or a
+delete. Thus a person who applied with no look changed each host. The chip and
+the card of each block show whether the block is a read, a write or an action.
+The mark is the verb of the permission of the block: `read`, `write`, or a verb
+of an action (`execute`, `shell` or `exec`).
+
+`JobView` shows the chain of calls of a job, as `osapi client job get` does. For
+each host that answered with steps, its Chain section shows each call as
+`behavior.method`, under the call that made it. Each call has `changed`, the
+error of a call that failed, and its duration. A job that has `chain` lines and
+no steps shows the lines. The Jobs page and the job panel of a Configure result
+both use `JobView`. Before osapi-io/osapi#1162 the UI did not show the steps
+that the job API returns.
 
 ## Color: one palette with the CLI
 
@@ -384,8 +412,14 @@ and poll, and a failure was silent.
 the UI. The gate does not cover the UI, and nothing in the output of the gate
 says so.
 
-The UI has its own checks: `just react-lint`, `just react-test` and the
-Docusaurus build for its documentation.
+The UI has its own checks: `just react-lint`, `just react-test`,
+`just react-unit` and the Docusaurus build for its documentation.
+`just react-unit` runs `bun test` on the `src/**/*.test.ts` files of the UI. bun
+runs the tests itself, with no test package, and `tsconfig.test.json` checks
+their types. It is one of the quick checks of `just test`, so CI runs it. The
+tests read the logic of the pages, such as the permission of a block. They do
+not render a page. Thus a click-through in the lab is still necessary
+([AGENTS.md](../../AGENTS.md#use-the-lab)).
 
 ## Where this connects
 
