@@ -40,10 +40,8 @@ generated method cannot miss an operation, and each status goes through one
 function. `spec-client-check` still builds a client that oapi-codegen writes
 from the spec, in a module of its own, as a person outside osapi would.
 
-The model is the hook for the next two generators: the reference pages of the
-SDK (osapi-io/osapi#1008) and its examples from the examples of each behavior
-(osapi-io/osapi#1013). Each reads the same model. Thus the code, the pages and
-the examples cannot name a method in two ways.
+The same model makes the examples and the reference pages of the SDK. Thus the
+code, the pages and the examples cannot name a method in two ways.
 
 ## Names come from the spec
 
@@ -88,8 +86,8 @@ func (s *NetworkDNSService) Update(
 
 One struct, not a list of arguments, because a write has many optional fields
 and a call must not depend on their order. The input has the same fields as the
-input of the behavior and the flags of its command. Thus an example of a
-behavior can become an SDK call field by field (osapi-io/osapi#1013).
+input of the behavior and the flags of its command. Thus the generator writes
+each example of a behavior as an SDK call, field by field.
 
 A method with no body takes `ctx`, then each parameter of the path, then each
 parameter of the query that the request must have, then `params`: a struct of
@@ -118,6 +116,38 @@ type with its name. `Step`, in `job_steps.go`, has a `*bool` `Changed`, because
 a step of a method with no changed field leaves it out. osapi's own job code
 uses that type.
 
+## The examples and the pages are generated
+
+A behavior and an endpoint group declare each example as the flags of its CLI
+command, such as `--target web-01 --interface-name eth0`. The endpoint layer
+reads the flags of each example into the input of the command: the parameters of
+the path and the query, and the properties of the body. It writes the inputs in
+the `x-osapi-examples` extension of the operation, each with its doc. An example
+with no doc gets the summary of the method. Two examples with the same input are
+one example. An upload has no example in the spec, because the SDK has no
+generated method for a multipart form.
+
+The same `go generate` run writes a program for each service,
+`examples/sdk/client/<service>.go`. The program has a function for each example,
+which calls the method with the input of the example and prints the answer as
+JSON. Give the name of an example to run it, such as
+`go run network_dns.go update`. The target of a node is `OSAPI_TARGET`, `_any`
+by default, not the host of the example. `examples-check` compiles each program.
+
+`just sdk-docs-generate` writes a page for each service under
+`docs/docs/sidebar/sdk/client`, in `node/` or `controller/`. It also writes the
+table of the services in `client.md`, between the `osapi:sdk-services` markers.
+A page has each method that the source of the SDK declares for the service: its
+signature, its doc comment and the permission from the spec. Then it has the
+code of each example and the types. A method that a person wrote is on the page
+too, with its doc comment.
+
+`sdk-gen-check` writes the programs and the pages again, and fails when one
+changed. Before osapi-io/osapi#1013 and osapi-io/osapi#1008, a person wrote 32
+programs and 34 pages. The pages listed a `Create` method that the job service
+did not have, and gave the status read the permission `node:read`, not
+`status:read`. The DNS page linked a program that did not exist.
+
 ## Errors
 
 Each method sends through `Client.Send`. An answer outside 2xx becomes a typed
@@ -133,7 +163,9 @@ path.
 a method only for a JSON body. `File.GetChanged` compares a SHA-256 on the
 caller's side and calls no operation of its own. Constants that osapi's own
 packages use, such as the job states, the content types and the permissions, are
-in their own files.
+in their own files. `examples/sdk/client/file_upload.go` is the one program that
+a person writes: it calls the three methods of the file service that the
+generator does not write. The page of the file service links it.
 
 The SDK imports nothing from `internal/`. `go-pkg-check` fails when it does. For
 a route with no typed method, use the generic call:
@@ -157,9 +189,8 @@ with no body. The model and the generator have their own tests.
 
 [Endpoints](endpoints.md#the-full-spec) tells what writes the full spec, and the
 checks that hold it to the server. The client of the UI comes from the same
-spec, through a different generator. [The embedded UI](ui.md) describes it. The
-SDK pages of the site are still written by hand: [the docs site](docs-site.md)
-tracks them.
+spec, through a different generator. [The embedded UI](ui.md) describes it.
+[The docs site](docs-site.md) tells which pages of the site are generated.
 
 ______________________________________________________________________
 

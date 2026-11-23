@@ -12,7 +12,7 @@ the binary cannot say.
 | ------------ | ---------------------------------------------------------------------- | ------------------------------------ |
 | Features     | what osapi does, by feature                                            | hand                                 |
 | Usage        | how to run it, and the CLI reference: a page for each command          | hand; the CLI pages generated        |
-| SDK          | the Go SDK                                                             | hand (osapi-io/osapi#1008)           |
+| SDK          | the Go SDK                                                             | generated; the overviews by hand     |
 | Reference    | what this build has: behaviors, chains, endpoints, CLI groups, the API | generated; the landing pages by hand |
 | Architecture | how osapi is built                                                     | hand                                 |
 | Development  | how to build with osapi, and the DSLs                                  | hand; the DSL pages generated        |
@@ -231,9 +231,11 @@ the table, because nats-client records it.
 
 ## What is not generated yet
 
-The SDK pages are written by hand. osapi-io/osapi#1005 tracks each one. The role
-table of the configuration page is generated, as the config tables are, between
-`<!-- osapi:roles -->` markers.
+The overview of the client of the SDK and its guidelines are written by hand.
+The page of each service of the SDK is generated, from the spec and the source
+of the SDK: [the SDK](sdk.md#the-examples-and-the-pages-are-generated) tells
+how. The role table of the configuration page is generated, as the config tables
+are, between `<!-- osapi:roles -->` markers.
 
 A feature page explains a feature, and links to the generated page of each
 behavior that it uses for the permission, the platforms and the route of each
