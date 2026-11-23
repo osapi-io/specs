@@ -461,15 +461,22 @@ lists and the methods of each registered behavior. `admin` and `write` get the
 read and write of a behavior. `read` gets its read.
 
 The preflight of the agent checks each program that a behavior declares with
-`Sudo`, together with its own list. At startup, the agent warns about each
-program declared with `Runs` that is not installed. A program declared on a
-method counts only on a platform where the method runs. `hostname` declares
+`Sudo`, together with its own list. At startup, the agent also finds each
+program that a behavior declares with `Runs` or `Sudo` and that the host does
+not have. It looks for a `Runs` program on its `PATH`, and for a `Sudo` program
+on its `PATH` and in `/usr/local/sbin`, `/usr/sbin` and `/sbin`, because sudo
+finds a program there. The agent logs a warning for each missing program, and
+reports the list as `missing_programs` in its registration. `agent get` and
+`agent list` show it (osapi-io/osapi#1139). A program declared on a method
+counts only on a platform where the method runs. `hostname` declares
 `hostnamectl` on `update`, so an agent on macOS does not ask for it. A missing
 program fails only that behavior, so it does not stop the agent. Nobody edits
 either list for a behavior. The fake host fails an example that runs a program
 without its declaration, and counts the programs that the required behaviors
-declare. The integration test fails when its image does not have a declared
-program.
+declare. The integration test `TestPrograms` reads `missing_programs` from each
+agent that the suite targets, and fails when one is not empty. Thus on CI it
+checks the runner, and against the lab it checks each VM, not the machine that
+runs `go test`.
 
 The paths and the records that a behavior changes are declared the same way. The
 fake host fails an example that writes, removes or changes the mode of a path
