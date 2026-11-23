@@ -135,12 +135,15 @@ JSON. Give the name of an example to run it, such as
 by default, not the host of the example. `examples-check` compiles each program.
 
 `just sdk-docs-generate` writes a page for each service under
-`docs/docs/sidebar/sdk/client`, in `node/` or `controller/`. It also writes the
-table of the services in `client.md`, between the `osapi:sdk-services` markers.
-A page has each method that the source of the SDK declares for the service: its
-signature, its doc comment and the permission from the spec. Then it has the
-code of each example and the types. A method that a person wrote is on the page
-too, with its doc comment.
+`docs/docs/sidebar/sdk/client`, in one list with no folders. The services are
+fields of one client, so the pages are not grouped by the part of the server
+that answers. A method that takes a host shows it in its signature. The
+generator writes the table of the services in `client.md`, between the
+`osapi:sdk-services` markers, and removes a page that it wrote before when its
+service is gone. A page has each method that the source of the SDK declares for
+the service: its signature, its doc comment and the permission from the spec.
+Then it has the code of each example and the types. A method that a person wrote
+is on the page too, with its doc comment.
 
 `sdk-gen-check` writes the programs and the pages again, and fails when one
 changed. Before osapi-io/osapi#1013 and osapi-io/osapi#1008, a person wrote 32
