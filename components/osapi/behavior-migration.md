@@ -403,9 +403,10 @@ compares the image ID before and after it. exec is an action marked `.Always()`.
 The agent refuses it unless `agent.command.enabled` is true: `h.CommandEnabled`
 carries that setting, and `RunPrivilegedCmdFull` gives exec the standard output,
 the standard error and the exit code. An exit code that is not 0 is a result,
-not a failure. Each action of the two behaviors is `AdminOnly()`, because exec
-shares `container:execute` with start, stop and pull
-([permissions](permissions.md)). The permissions `docker:read`, `docker:write`
+not a failure. exec has `.PermitAs(behavior.VerbExec)`, so its permission is
+`container:exec`, which only the admin role gets. start, stop and pull keep
+`container:execute`, which the operator role gets (osapi-io/osapi#1136,
+[permissions](permissions.md)). The permissions `docker:read`, `docker:write`
 and `docker:execute` are gone. The write examples run on the container
 `osapitest`, from `alpine:3.20`.
 
