@@ -22,8 +22,8 @@ It has no Go and ships nothing. Its content is:
    │ jaeger     :4317, :16686 │           └──────────────────────────────┘
    └────────────▲─────────────┘
                 │ vmnet, the subnet's .1
-     ┌──────────┼───────────┐
- ubuntu-1    debian-1    fedora-1        Tart VMs, one agent each
+     ┌──────────┼───────────┬────────────┐
+ ubuntu-1    debian-1    fedora-1    debian-lts    Tart VMs, one agent each
 ```
 
 The hub runs the embedded NATS server of osapi, the controller and Jaeger as
@@ -157,18 +157,24 @@ that is defined there.
   fingerprint is different. Before a build, the playbook makes the NATS user of
   the VM, because the credential must exist before it goes into the image. It
   deletes images from other builds, except an image that a build recorded in the
-  last hour.
+  last hour. It does not bake an image for a VM that upgrades in place while
+  that VM exists.
 - **`vms`** deletes the admission of a VM and clones it again when its image
-  changed. It adds each VM to the inventory.
+  changed. It clones a VM that upgrades in place only when the VM does not
+  exist. It adds each VM to the inventory.
+- **`upgrade`** copies the linux build to `/usr/local/bin/osapi` on each VM that
+  upgrades in place. If the binary changed, it restarts `osapi-agent`. Then it
+  waits until the controller reports an agent process with a new `started_at`
+  that is `Ready`. If the agent does not come back in 3 minutes, the run fails.
 - **`ready`** waits until the controller reports the agent of each VM as
   `Ready`. The agent starts at boot with the baked config, and the hub admits
   it. Nothing logs in to a VM.
 
-Each VM is then exactly its image. When the source or `packer/` changed, this
-takes some minutes. Most of the time is Packer, which boots one VM for each
-image. When nothing changed, a deploy changes nothing. `playbooks/rebuild.yml`
-does the same, but bakes each image again and replaces each VM, also with no
-change.
+Each VM, except `debian-lts`, is then exactly its image. When the source or
+`packer/` changed, this takes some minutes. Most of the time is Packer, which
+boots one VM for each image. When nothing changed, a deploy changes nothing.
+`playbooks/rebuild.yml` does the same, but bakes each image again and replaces
+each VM, also with no change.
 
 Only one run at a time changes the images and the VMs. `deploy`, `rebuild`,
 `site`, `images`, `vms` and `teardown` take a lock on the hub,
@@ -265,6 +271,27 @@ build occurs there, and only binaries move.
 description of the build to `/etc/osapi-lab/image`. `list.yml` reads it from
 each VM, with `osapi version`. Thus you can read what a VM runs. You do not
 guess.
+
+**One VM upgrades in place, on purpose.** Each other VM is a new clone after
+each change, with a new machine ID, a new disk and no history. That tests osapi
+on a new host, but never the upgrade of a host that ran an earlier build. Two
+upgrade bugs reached main on 23 November 2026, and a host with history shows
+both:
+
+- the durable consumers of old machine IDs on `osapi-JOBS` grew to the limit of
+  1000 and stopped each job (osapi-io/osapi#1154)
+- NATS refuses a new deliver policy on a consumer that exists, thus an upgraded
+  agent reports `ConsumersUnavailable` (osapi-io/osapi#1181)
+
+Thus `debian-lts` has `upgrade_in_place: true` in `group_vars/all.yml`. It is
+cloned one time. After that, each deploy copies the new build into it and
+restarts its agent, as an operator upgrades a host. It keeps its machine ID, the
+KV records of its agent, its file state, its consumers and its job history. This
+breaks the rule that a VM is its image, for one VM only. It keeps the config and
+the packages of its first image. A change to `packer/` does not get to it.
+`just rebuild` bakes its image again and replaces it, so a person can reset it.
+`ready` and `consumers` check it as they check the other VMs
+(osapi-io/osapi-lab#49).
 
 **Each clone gets its own machine ID.** osapi identifies an agent by
 `/etc/machine-id`. The image ships that file empty. Thus systemd writes a new
@@ -419,7 +446,8 @@ loss, not a failed ping.
 it. Unload the agent to stop a VM for good.
 
 **A deploy after a change throws away anything done inside a VM.** It reclones
-every VM whose image changed, and a rebuild reclones each VM.
+every VM whose image changed, and a rebuild reclones each VM. `debian-lts` is
+the exception for a deploy: it keeps its state until a rebuild.
 
 ## Where it sits
 
