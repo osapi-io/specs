@@ -1196,12 +1196,32 @@ called it, and the job fails on that host. The writes before the failure stay on
 the host. Only a building block undoes its own change: netplan puts its file
 back when `netplan generate` refuses it. When `netplan apply` fails, the new
 file stays in `/etc/netplan`, and the job shows the line
-`netplan update (failed) → managedfile update (changed)`. A test of the netplan
-provider records this chain through `behavior.Record` and checks the line. A
-retry with the same input reports no change and does not run `netplan apply`,
-because `managedfile update` finds the same content on disk. osapi-io/osapi#1194
-tracks that. The `Behavior chains` feature page of the osapi docs tells a caller
-this story.
+`netplan update (failed) → (managedfile update (changed), managedfile update (changed))`.
+A test of the netplan provider records this chain through `behavior.Record` and
+checks the line. The `Behavior chains` feature page of the osapi docs tells a
+caller this story.
+
+The second `managedfile update` puts a mark in the record of the file:
+`managedfile.MarkUnapplied` adds the metadata key `osapi.unapplied`. No caller
+writes that key. Thus a retry with the same input does not agree with the
+record, and `managedfile update` reports a change and writes the record without
+the mark. Then netplan runs `netplan apply` again. After an apply that succeeds,
+the same input reports no change. Before osapi-io/osapi#1194, a retry found the
+same content on disk, reported no change and did not apply the file.
+`certificate` and `service` mark the record in the same way when the command
+after the write fails: `update-ca-certificates`, `update-ca-trust` or
+`systemctl daemon-reload`. When the command fails after a delete, the behavior
+puts the file back with the mark, so a retry deletes it and runs the command
+again. The record keeps the metadata of a file that osapi stopped managing, and
+`managedfile get` gives its `object_sha256`. Thus the file comes back with the
+record that it had, and `file stale list` does not change.
+
+The mark keeps the file that the caller asked for. A rollback would also make a
+retry apply. But `netplan apply` can fail after it applied a part of the file.
+Then the host would use a part of a file that is not on disk. A check of the
+host, as sysctl does with the runtime value, is not available for each command:
+no command tells whether `systemctl daemon-reload` or `update-ca-certificates`
+ran after the last write.
 
 Only an author composes behaviors, in Go, with `Requires`. A user does not
 compose behaviors on one host without Go. Multi-step work is an
