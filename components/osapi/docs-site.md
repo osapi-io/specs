@@ -51,6 +51,16 @@ It explains the section and imports the generated table, `_catalog.mdx`. The
 generator removes a generated page that no command writes now, such as the page
 of a behavior that was removed, and keeps a page that a person wrote.
 
+The pages of the behaviors and of the endpoint groups are in a folder for each
+area ([areas](endpoints.md#areas)), as the SDK pages are. The page of a behavior
+is `reference/behaviors/<area>/<name>/<name>.md`, and the page of an endpoint
+group is `reference/endpoints/<area>/<group>.md`. The generator writes the
+`_category_.json` of each folder of an area, with the label of the area and its
+order in `area.All`. Thus the sidebar shows the areas in the order of the SDK
+pages. An internal behavior has no area. Its page is in the folder `internal`,
+which is after the areas. The generator removes the `_category_.json` of an area
+that has no page now, and each folder that is empty.
+
 ## The DSL pages
 
 `osapi cli docs dsl generate` writes a page for each DSL under
@@ -176,8 +186,11 @@ in the order of their `sidebar_position`, with the title of each page.
   `internal/sdk/gen` writes from the areas of the spec
   ([areas](endpoints.md#areas)). Then it has the platform pages and the link to
   the orchestrator.
-- **Behaviors** has the page of each behavior under `reference/behaviors`, which
-  the registry generates.
+- **Behaviors** has a section for each folder of `reference/behaviors`, with the
+  page of each behavior in it. The label and the order of a section come from
+  the `_category_.json` of its folder, as in the SDK dropdown. Thus the two
+  dropdowns have the same areas in the same order. The internal behaviors are
+  the last section. The site has no Endpoints dropdown.
 
 Thus a new page shows in the navbar with no edit, and a page that is gone leaves
 it. Before osapi-io/osapi#1014 the config had 65 doc IDs written by hand. The

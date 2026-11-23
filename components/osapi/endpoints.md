@@ -334,8 +334,11 @@ behavior. The area goes from the definition to these outputs:
   has a block ([the UI](ui.md)).
 - **The SDK pages.** `internal/sdk/gen` reads the areas from the spec, and puts
   the page of each service in the folder of its area ([the Go SDK](sdk.md)).
-- **The navbar.** The SDK dropdown has a section for each folder of the SDK
-  pages ([the docs site](docs-site.md)).
+- **The reference pages.** The page of each behavior and each endpoint group is
+  in the folder of its area, with a `_category_.json` from `area.All`
+  ([the docs site](docs-site.md)).
+- **The navbar.** The SDK dropdown and the Behaviors dropdown have a section for
+  each folder of an area ([the docs site](docs-site.md)).
 - **The catalogs.** `osapi behavior list` and `osapi controller endpoint list`
   show the area of each behavior and each group. The reference pages of the
   behaviors and the endpoints show these tables.
