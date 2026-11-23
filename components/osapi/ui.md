@@ -222,6 +222,11 @@ Some behavior of the generic block is not clear from the code:
   `AreaName`, the union that `blocks.gen.ts` writes, so TypeScript fails the
   build for an area that is not in `area.All`. [Areas](endpoints.md#areas) tells
   where the areas come from.
+- In an area, a behavior's blocks are in a category with the title of the
+  behavior, from its definition, such as "Package updates". The UI has no list
+  of names of its own. A hand-written block gives the label of its category. The
+  categories are in the order of the commands of the CLI, so "User SSH key" is
+  after "User", and "Interface route" is after "Interface".
 
 No behavior block has a card of its own. Until osapi-io/osapi#1027 the blocks of
 disk, memory and status had hand-written cards, and a person placed each

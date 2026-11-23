@@ -266,8 +266,9 @@ the controller serves and of each behavior. `specgen.Full`, in
 
 - The info is the info of the API: the title "osapi", its tagline, the version,
   the contact and the license. A constant in `specgen` holds it.
-- The endpoint groups come first, then the behaviors. Each set is in the order
-  of the directory of its spec.
+- The endpoint groups come first, in the order of the directory of each spec.
+  Then the behaviors come, in the order of `behavior.All`: the order of their
+  commands, so `sshkey` is after `user`.
 - Each group keeps its own part in that order: its tag, its paths and its
   schemas. The tag gets the title of its group in front, with `_` for each
   space, such as `Agent_Management_API_agent_operations`. `x-tagGroups` puts the

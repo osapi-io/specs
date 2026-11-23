@@ -56,9 +56,13 @@ The generator keeps no list of names. It takes each one from the spec:
 | field   | the property, with Go initialisms                      | `SearchDomains`, `JobID`, `Min15` |
 
 The endpoint layer writes `x-osapi-method` on each operation: the name of the
-method in the definition of its group or behavior. The CLI command has the same
-name. Thus `osapi client node network dns get` is `c.NetworkDNS.Get`. To change
-a name, change it in the definition.
+method in the definition of its group or behavior. It writes `x-osapi-group` on
+each tag: the name of the group, which is the word of the path that the service
+name stops at. The name of the tag for a person, `x-displayName`, is the title
+of the behavior, such as "Package updates". Thus the service name does not come
+from that title. The CLI command has the same name. Thus
+`osapi client node network dns get` is `c.NetworkDNS.Get`. To change a name,
+change it in the definition.
 
 A group of a node that has the name of a group of the controller gets `Node` in
 front: the file behavior is `NodeFile`, next to `File`, the Object Store.
