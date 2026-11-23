@@ -31,6 +31,14 @@ and a page that still imports it fails the type check. Before this, `orval` left
 the old files. The configure page imported three clients whose tags had changed
 names, and it used code from an older `orval` (osapi#784).
 
+`just react-generate-check` writes the client again and compares it with the
+committed files. If a file is different, the check fails and tells you to run
+`just react-generate`. `just test` and CI run it with the quick checks.
+`go generate` does not run `orval`. Thus, before this check, a bump of `orval`
+that changes its output went to main with the old client two times (osapi#686,
+osapi#1150). Now the pull request of the bump fails until somebody regenerates
+the client.
+
 ## The four kinds of component
 
 Two answers separate the kinds: **what each one knows, and if it renders**. The
