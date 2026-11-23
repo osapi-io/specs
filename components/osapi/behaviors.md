@@ -458,8 +458,12 @@ Inside, the same conventions apply:
 
 Permissions and sudo also come from the definitions. `internal/authtoken` makes
 the known permissions, and those of each built-in role, from the hand-written
-lists and the methods of each registered behavior. `admin` and `write` get the
-read and write of a behavior. `read` gets its read.
+lists and the methods of each registered behavior. The persona roles get a
+behavior's permissions by a rule: `admin` gets each one, `read` gets each read,
+`automation` gets each read and write, and `operator` gets each read and
+execute, except the permissions that are admin only.
+[Permissions](permissions.md) has each role, and the permissions that are admin
+only and why.
 
 The preflight of the agent checks each program that a behavior declares with
 `Sudo`, together with its own list. At startup, the agent also finds each
