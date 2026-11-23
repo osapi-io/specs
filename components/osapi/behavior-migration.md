@@ -314,21 +314,25 @@ service. gohai does not read it, so the behavior does not have it. gohai lists
 only the units that systemd has loaded, so a service that is stopped and
 disabled is not found until gohai reads the unit files too (osapi-io/gohai#321).
 
-File deploy is the `file` behavior (osapi-io/osapi#1109): `deploy` and
-`undeploy` are actions, and `status` is a read, at `/api/node/{hostname}/file`.
-On each Linux host, deploy reads the object through the `object` behavior,
-renders a template with the facts of the agent, `.Vars` and `.Hostname`, and
-writes the file through `managedfile`. Thus `managedfile` runs on each Linux
-host, not only on the Debian family, and its record keeps the object and the
-content type. The stale list of the controller reads the object from that
-record. Undeploy removes the file through `managedfile`, which keeps the record
-and marks it undeployed. Status compares the file with the checksum in the
-record. A deploy with no content type uses the content type of the object. The
-upload, list, get and delete of objects stay with the controller's file
-endpoints. macOS has no file deploy, because `managedfile` reads the owner with
-GNU `stat` (osapi-io/osapi#1119). A deploy with no mode keeps the mode of a file
-that is there, and gives a new file 0644. The owner and the group are names, not
-numeric ids.
+File deploy is the `file` behavior (osapi-io/osapi#1109). Deploy is `update`
+(`PUT`), undeploy is `delete` (`DELETE`), and `status` is a read, all at
+`/api/node/{hostname}/file`, with the path in the body or the query. Deploy and
+undeploy are writes, not actions, so that their permission is `file:write`. A
+deploy writes each path as root, and the decision of osapi-io/osapi#999 keeps
+`file:write` with `automation`, not with `operator`. An update that writes the
+same file again reports `changed: false`. On each Linux host, deploy reads the
+object through the `object` behavior, renders a template with the facts of the
+agent, `.Vars` and `.Hostname`, and writes the file through `managedfile`. Thus
+`managedfile` runs on each Linux host, not only on the Debian family, and its
+record keeps the object and the content type. The stale list of the controller
+reads the object from that record. Undeploy removes the file through
+`managedfile`, which keeps the record and marks it undeployed. Status compares
+the file with the checksum in the record. A deploy with no content type uses the
+content type of the object. The upload, list, get and delete of objects stay
+with the controller's file endpoints. macOS has no file deploy, because
+`managedfile` reads the owner with GNU `stat` (osapi-io/osapi#1119). A deploy
+with no mode keeps the mode of a file that is there, and gives a new file 0644.
+The owner and the group are names, not numeric ids.
 
 Certificate authorities are the `certificate` behavior (osapi-io/osapi#1108).
 gohai's `ca_certificates` collector reads the trust store on every platform: the
