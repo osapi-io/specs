@@ -54,11 +54,17 @@ of a behavior that was removed, and keeps a page that a person wrote.
 The pages of the behaviors, the chains and the endpoint groups are in a folder
 for each area ([areas](endpoints.md#areas)), as the SDK pages are:
 
-| Page              | Path                                          |
-| ----------------- | --------------------------------------------- |
-| a behavior        | `reference/behaviors/<area>/<name>/<name>.md` |
-| a chain           | `reference/chains/<area>/<name>.md`           |
-| an endpoint group | `reference/endpoints/<area>/<group>.md`       |
+| Page              | Path                                                   |
+| ----------------- | ------------------------------------------------------ |
+| a behavior        | `reference/behaviors/<area>/<name>/<name>.md`          |
+| a nested behavior | `reference/behaviors/<area>/<parent>/<name>/<name>.md` |
+| a chain           | `reference/chains/<area>/<name>.md`                    |
+| an endpoint group | `reference/endpoints/<area>/<group>.md`                |
+
+A nested behavior is a behavior that `behavior.Of` puts under another, such as
+`sshkey` under `user`. Its folder is in the folder of its parent, because its
+command is under the command of its parent: `osapi client node user sshkey`.
+Thus the sidebar shows Security, then User, then User SSH key.
 
 The area of a chain is the area of the behavior at the top of the chain. The
 generator writes the `_category_.json` of each folder of an area, with the label
@@ -214,10 +220,11 @@ the navbar.
 
 `just cli-docs-generate` writes the CLI pages, the DSL pages and the reference.
 `just cli-docs-gen-check`, in `just test`, fails when one of them differs from
-the binary. Each generated page has the title of the thing in its front matter,
-with initialisms such as DNS in capitals. Docusaurus does not read the title
-from a heading after the generated comment, and showed the file name in the
-sidebar.
+the binary. Each generated page has the title of the thing in its front matter.
+The title of a behavior comes from its definition (see
+[What the definition decides](behaviors.md#what-the-definition-decides)), such
+as "DNS" or "Package updates". Docusaurus does not read the title from a heading
+after the generated comment, and showed the file name in the sidebar.
 
 ## The config tables
 
