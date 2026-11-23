@@ -151,17 +151,21 @@ It does not add code around the platform. The list becomes shorter as people
 build the items. [Behaviors](behaviors.md#not-built-yet) has the parts of the
 platform that are not built yet.
 
-`test/skills/build-a-behavior/` has the requests that measure the skill, and
-`run.sh`. They test the skill, so they are not part of it, and the binary does
-not have them. `run.sh` runs each request in a new session and checks the result
-with commands. Nobody reads the result to check it.
+The requests that measure the skill are in its `evals/` directory, with
+`run.sh`: `internal/skills/resources/dev-skills/build-a-behavior/evals/` in
+osapi. Each skill keeps all of its files in its directory, and
+`internal/skills` embeds the full directory. Thus the binary has the evals too,
+but `osapi init` does not install them. `run.sh` runs each request in a new
+session and checks the result with commands. Nobody reads the result to check
+it.
 
 The requests cover these cases:
 
 - a served behavior
-- a behavior that runs a program with sudo and declares refusals
-- an internal behavior that a different behavior requires
-- a behavior for one platform
+- a behavior with a key, that runs a program with sudo and declares refusals
+- an internal behavior, with no routes and no commands
+- a behavior that requires `managedfile`, and does not copy it
+- a behavior for the `linux` platform
 - a secret input
 - a behavior in a group
 - a request that the platform cannot express. It passes when the skill says so.
