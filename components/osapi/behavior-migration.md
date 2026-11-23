@@ -265,6 +265,22 @@ service. gohai does not read it, so the behavior does not have it. gohai lists
 only the units that systemd has loaded, so a service that is stopped and
 disabled is not found until gohai reads the unit files too (osapi-io/gohai#321).
 
+File deploy is the `file` behavior (osapi-io/osapi#1109): `deploy` and
+`undeploy` are actions, and `status` is a read, at `/api/node/{hostname}/file`.
+On each Linux host, deploy reads the object through the `object` behavior,
+renders a template with the facts of the agent, `.Vars` and `.Hostname`, and
+writes the file through `managedfile`. Thus `managedfile` runs on each Linux
+host, not only on the Debian family, and its record keeps the object and the
+content type. The stale list of the controller reads the object from that
+record. Undeploy removes the file through `managedfile`, which keeps the record
+and marks it undeployed. Status compares the file with the checksum in the
+record. A deploy with no content type uses the content type of the object. The
+upload, list, get and delete of objects stay with the controller's file
+endpoints. macOS has no file deploy, because `managedfile` reads the owner with
+GNU `stat` (osapi-io/osapi#1119). A deploy with no mode keeps the mode of a file
+that is there, and gives a new file 0644. The owner and the group are names, not
+numeric ids.
+
 Interfaces are the `interface` behavior under `network` (osapi-io/osapi#989),
 whose Go package is `iface` because `interface` is a Go keyword. gohai reads
 each interface on every platform. A write on the Debian family goes only under
@@ -324,9 +340,9 @@ domain does each of them now:
   that installs what it manages needs it.
 - **Service control**: reload or restart after a change. The service domain does
   it, and NTP, hostname and cron do it again.
-- **File deploy from the object store.** The file domain and cron do it. The
-  `object` behavior reads the object, and `managedfile` writes it. The service
-  behavior is the first that requires the two.
+- **File deploy from the object store.** The `object` behavior reads the object,
+  and `managedfile` writes it. The service and file behaviors require the two.
+  Cron still deploys through the hand-written file provider.
 - **Run a command and read its output.** Each provider does it now through
   `h.Exec`. It becomes a behavior only if it gets checks that each caller needs,
   for example a refusal of input that can get to a shell.
