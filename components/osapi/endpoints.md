@@ -330,8 +330,8 @@ endpoint group had no area. Thus the SDK pages were one list.
 `objectstore` has the Object Store only. Until osapi-io/osapi#1208 its name was
 `files`, but the `file` behavior, which deploys an object to a host, is in
 `config`. `logs` is after `node`, because log entry and log source were in
-`node` before. `audit` and `fleet` have no block in the UI, thus the Configure
-page has no tab for them ([the UI](ui.md)).
+`node` before. `audit` and `fleet` have no behavior, thus the Behaviors page of
+the UI has no section for them ([the UI](ui.md)).
 
 A behavior declares its area with `behavior.Area`, and an endpoint group with
 `endpoint.Area`. The generated group of a behavior gets the area of the
@@ -344,9 +344,10 @@ behavior. The area goes from the definition to these outputs:
 - **The API reference.** The OpenAPI plugin of the docs site groups the pages by
   `x-tagGroups`. Thus the API sidebar has the areas of the UI and the SDK pages
   ([the docs site](docs-site.md#the-api-reference)).
-- **The UI.** `internal/behavior/uiblocks` writes `area.All` as `AREAS` in
-  `ui/src/lib/blocks.gen.ts`. The Add Block panel has a tab for each area that
-  has a block ([the UI](ui.md)).
+- **The UI.** `internal/behavior/uicatalog` writes `area.All` as `AREAS` in
+  `ui/src/lib/catalog.gen.ts`. The Behaviors page has a section for each area
+  that has a behavior, and the list of steps of the Plans page has the same
+  areas ([the UI](ui.md)).
 - **The SDK pages.** `internal/sdk/gen` reads the areas from the spec, and puts
   the page of each service in the folder of its area ([the Go SDK](sdk.md)).
 - **The reference pages.** The page of each behavior, each chain and each
@@ -363,7 +364,7 @@ behavior. The area goes from the definition to these outputs:
 
 Thus a change to `area.All` changes each output in the same `just generate`.
 `behavior-gen-check`, `sdk-gen-check`, `cli-docs-gen-check` and the Go test of
-`blocks.gen.ts` fail when an output is stale.
+`catalog.gen.ts` fail when an output is stale.
 
 Before osapi#833, `just generate` joined the specs with `redocly join`. The join
 read a hand-written components spec, which had the info and `ErrorResponse`. The
