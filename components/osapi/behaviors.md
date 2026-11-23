@@ -515,8 +515,9 @@ write, and `operator` gets each read and execute, except the permissions that
 are admin only. [Permissions](permissions.md) has each role, and the permissions
 that are admin only and why.
 
-The preflight of the agent checks each program that a behavior declares with
-`Sudo`, together with its own list. At startup, the agent also finds each
+The preflight of the agent checks only the programs that the behaviors declare
+with `Sudo` on the platform of the host. The agent has no list of its own
+(osapi-io/osapi#1180). At startup, the agent also finds each
 program that a behavior declares with `Runs` or `Sudo` and that the host does
 not have. It looks for a `Runs` program on its `PATH`, and for a `Sudo` program
 on its `PATH` and in `/usr/local/sbin`, `/usr/sbin` and `/sbin`, because sudo
