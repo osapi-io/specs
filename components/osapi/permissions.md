@@ -35,8 +35,8 @@ The `get` of sysctl needs `sysctl:read`. dns under `network` needs
 Thus a domain that moves to a behavior can change its permission. The node reads
 were all `node:read`. As behaviors, each has its own: `uptime:read`, `os:read`,
 `disk:read`, `memory:read`, `load:read`, and `hostname:read` with
-`hostname:write`. `node:read` now covers only the status summary, and
-`node:write` is gone, because hostname update was its only endpoint. The
+`hostname:write`. The status summary needs `status:read`. `node:read` and
+`node:write` are gone, because no endpoint needs them (osapi-io/osapi#1171). The
 built-in roles get each behavior permission, so a token with a built-in role
 keeps its access. A custom role that named `node:read` or `node:write` for these
 domains must name the new permissions.
@@ -55,8 +55,8 @@ each request keeps the types too:
   a `map[Role][]Permission`. It returns a `map[Permission]bool`.
 - `authtoken.HasPermission` takes a `Permission`.
 - The custom roles of the config are a `map[client.Role]CustomRole`, and each
-  `CustomRole` has `[]client.Permission`. Each hand-written handler takes
-  `authtoken.CustomRoles`.
+  `CustomRole` has `[]client.Permission`. The scope middleware and the endpoint
+  server take `authtoken.CustomRoles`.
 
 A token's claims, a route's scope and the output of a command are text. The
 conversion is at those boundaries: `authtoken.RolesOf` and
@@ -89,9 +89,8 @@ way: a modify job and an output that reports `changed`. Thus an operator
 restarts a service and cannot change its unit file, and automation changes the
 unit file and cannot restart it.
 
-A permission is admin only when its verb is `shell` or `exec`, when a method
-that needs it is marked `AdminOnly()`, or when it is one of the hand-written
-domains' admin permissions in `builtinAdminOnly`:
+A permission is admin only when its verb is `shell` or `exec`, or when a method
+that needs it is marked `AdminOnly()`:
 
 | Admin only                                     | Why                                                    |
 | ---------------------------------------------- | ------------------------------------------------------ |
@@ -103,16 +102,14 @@ domains' admin permissions in `builtinAdminOnly`:
 | `admission:write`, `agent:write`, `audit:read` | `AdminOnly()` on the endpoint groups                   |
 
 `schedule:write` is admin only from `AdminOnly()` on the create, update and
-delete methods of the schedule behavior (osapi-io/osapi#1106), not from
-`builtinAdminOnly`. The hand-written schedule domain is gone.
+delete methods of the schedule behavior (osapi-io/osapi#1106). `command:execute`
+is admin only from `AdminOnly()` on the exec action of the command behavior
+(osapi-io/osapi#1113). `builtinAdminOnly`, the list of the admin permissions of
+the hand-written domains, is gone (osapi-io/osapi#1171).
 
-`command:execute` is admin only from `AdminOnly()` on the exec action of the
-command behavior (osapi-io/osapi#1113). No hand-written domain is left, so
-`builtinAdminOnly` is empty.
-
-A behavior or a group that takes over a hand-written domain marks the same
-methods `AdminOnly()`, and `authtoken.Check` fails until it does, because one
-permission cannot be admin only on one method and not on another.
+Each method that needs a permission marks `AdminOnly()` the same.
+`authtoken.Check` fails when they do not agree, because one permission cannot be
+admin only on one method and not on another.
 
 An action can have a verb of its own, with `.PermitAs(verb)`. The container
 behaviors need it (osapi-io/osapi#1136). docker start and stop, and image pull,
@@ -186,9 +183,9 @@ Declare the method. The permission and its roles come from the definition:
 - **An endpoint group:** register it. A GET needs `<group>:read`, and each other
   verb `<group>:write`. `.Permission(client.PermAgentRead)` names a different
   one, which something else must declare. Use the `Perm` constant, not a string.
-- **A hand-written domain** under `internal/controller/api`: add each permission
-  that it needs to `builtinPermissions` in `internal/authtoken/permissions.go`,
-  as a string. The list goes as each domain becomes a behavior.
+- **A permission that no method declares:** `builtinPermissions` in
+  `internal/authtoken/permissions.go` has it. It has only `health:read` and
+  `trace:read`, which endpoint groups name with `.Permission`.
 
 To keep a permission from each role but `admin`, mark the method `.AdminOnly()`,
 in the behavior DSL or the endpoint DSL. Each method that needs the permission

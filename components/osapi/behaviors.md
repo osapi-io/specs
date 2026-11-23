@@ -275,9 +275,8 @@ behavior.Validator("motd_text", noEscapes, rule.Pattern(`^[^\x1b]*$`),
 `internal/validation` registers each one with the validator of the server,
 through `rule.OnDeclare`, in either order of package initialization. A tag that
 more than one behavior uses, such as `interface_name`, is in
-`internal/validation`, with `rule.Register` next to it. `sysctl_key` is there
-too, from the hand-written sysctl domain, although only the sysctl behavior uses
-it now.
+`internal/validation`, with `rule.Register` next to it. Only the sysctl behavior
+uses `sysctl_key`, so it is a `behavior.Validator` of sysctl.
 
 The behavior DSL and the endpoint DSL read a validate tag through the same
 package, `internal/validation/rule`. Thus they give the same constraints, and

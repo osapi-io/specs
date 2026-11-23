@@ -68,10 +68,10 @@ rules of its own, so it cannot become different from the skill. `.agents/skills`
 is a link to `.claude/skills`, so each coding agent in the checkout finds the
 pointer.
 
-The other dev skills have the same shape: `add-a-domain`, `build-a-command`,
-`build-an-endpoint` and `build-a-dsl`. `build-a-dsl` is the guide to the parts
-that the three DSLs share, for a change to one of those parts or a new DSL. The
-skill of each DSL sends the agent to it when the change touches a shared part.
+The other dev skills have the same shape: `build-a-command`, `build-an-endpoint`
+and `build-a-dsl`. `build-a-dsl` is the guide to the parts that the three DSLs
+share, for a change to one of those parts or a new DSL. The skill of each DSL
+sends the agent to it when the change touches a shared part.
 
 It sends the agent to the sources that cannot become incorrect. It does not copy
 them:
@@ -137,9 +137,6 @@ see that. Thus the skill does not depend on the site.
   owns, secrets and settings), how the fake host replaces it in tests, which
   provider to copy for each kind of state, and the input checks that the probes
   enforce.
-- `references/migrating.md` has the steps to move a hand-written domain. Move
-  the provider and its tests without changes. Wrap them. Find a replacement for
-  each hand-written handler test case before the cutover deletes it.
 
 The docs site links to these files and does not keep a copy. `SKILL.md` adds the
 questions that select the pattern. Examples are: where is the truth about the
