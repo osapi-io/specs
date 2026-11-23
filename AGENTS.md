@@ -32,8 +32,11 @@ the VMs have passwordless sudo, so no recipe asks for a password.
 Deploy the lab when a change needs a real host: to run the integration tests, or
 to see that a read or a write operates on Linux and on macOS.
 
+- `just lab-session <name> "<commands>"` in osapi-lab holds the lab for your
+  deploy and your tests, and gives it back at the end, also when a step fails.
+  Use the issue as the name, such as `osapi-1139`. Other agents wait for it.
 - `just deploy` in osapi-lab copies your osapi build to the hub and the running
-  VMs.
+  VMs. Run it in your session, with `LAB_SESSION` set.
 - `just ssh <vm>` opens a shell on a VM. Remove each file that you copy to a VM
   when you finish.
 - `just go-unit-int` in osapi runs the integration tests against the lab when

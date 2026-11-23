@@ -149,14 +149,15 @@ that is defined there.
   again, and restarts the NATS and controller agents.
 - **`images`** bakes an image for each VM of the inventory, with the name
   `img-<vm>-<tag>`. The image is the whole VM: the linux build, its config, its
-  NATS credential, its hostname and each package, such as Docker. The tag is the
-  short commit of the build. It ends with `-dirty` when the checkout had
-  uncommitted changes. The fingerprint of an image is the fingerprint of the
-  build and a hash of `packer/`. The hub keeps it, and builds an image again
-  only when the image is missing or the fingerprint is different. Before a
-  build, the playbook makes the NATS user of the VM, because the credential must
-  exist before it goes into the image. It deletes images from other builds,
-  except an image that a build recorded in the last hour.
+  NATS credential, its hostname and each package that a behavior runs, such as
+  Docker and chrony. The tag is the short commit of the build. It ends with
+  `-dirty` when the checkout had uncommitted changes. The fingerprint of an
+  image is the fingerprint of the build and a hash of `packer/`. The hub keeps
+  it, and builds an image again only when the image is missing or the
+  fingerprint is different. Before a build, the playbook makes the NATS user of
+  the VM, because the credential must exist before it goes into the image. It
+  deletes images from other builds, except an image that a build recorded in the
+  last hour.
 - **`vms`** deletes the admission of a VM and clones it again when its image
   changed. It adds each VM to the inventory.
 - **`ready`** waits until the controller reports the agent of each VM as
@@ -183,6 +184,22 @@ finds that the process is gone, and breaks the lock. A lock from a run on a
 different machine needs `-e lab_lock_break=true`. Ansible cannot run a step
 after a play fails in a different play, so the lock has no release on failure.
 The check of the process takes its place.
+
+The lock of one run does not cover the tests after the deploy. Thus a second
+deploy can replace the build while the tests of the first still run against it
+(osapi-io/osapi-lab#41). A session holds the lock from the deploy through the
+end of the tests:
+
+- `just lock <name>` takes the lock for the session `<name>`. It waits while a
+  different run or session holds the lock.
+- Each recipe that runs with `LAB_SESSION=<name>` is the holder of the lock, so
+  it runs, and it keeps the lock when it ends.
+- `just unlock <name>` gives the lock back.
+- `just lab-session <name> <command>` takes the lock, runs the command with
+  `LAB_SESSION` set, and gives the lock back, also when the command fails.
+
+The holder of a session is `session <machine> <name>`. A session that is older
+than `lock_session_ttl`, 2 hours, is stale, and the next run breaks it.
 
 ## Why it is built this way
 
