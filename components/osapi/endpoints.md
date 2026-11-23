@@ -308,20 +308,27 @@ endpoint group had no area. Thus the SDK pages were one list.
 `internal/area` is the one source. It has a constant for each area, and
 `area.All` gives the label of each area in its order:
 
-| Area         | Label      | Has                                                                                  |
-| ------------ | ---------- | ------------------------------------------------------------------------------------ |
-| `services`   | Services   | behaviors                                                                            |
-| `software`   | Software   | behaviors                                                                            |
-| `config`     | Config     | behaviors                                                                            |
-| `node`       | Node       | behaviors                                                                            |
-| `networking` | Networking | behaviors                                                                            |
-| `security`   | Security   | behaviors                                                                            |
-| `containers` | Containers | behaviors                                                                            |
-| `files`      | Files      | the `file` endpoint group, the Object Store                                          |
-| `command`    | Command    | behaviors                                                                            |
-| `hardware`   | Hardware   | behaviors                                                                            |
-| `audit`      | Audit      | the `audit` endpoint group                                                           |
-| `fleet`      | Fleet      | `agent`, `admission`, `job`, `health`, `controller`, `nats`, `facts` and `telemetry` |
+| Area          | Label        | Has                                                                                  |
+| ------------- | ------------ | ------------------------------------------------------------------------------------ |
+| `services`    | Services     | behaviors                                                                            |
+| `software`    | Software     | behaviors                                                                            |
+| `config`      | Config       | behaviors                                                                            |
+| `node`        | Node         | behaviors                                                                            |
+| `logs`        | Logs         | behaviors: log entry and log source                                                  |
+| `networking`  | Networking   | behaviors                                                                            |
+| `security`    | Security     | behaviors                                                                            |
+| `containers`  | Containers   | behaviors                                                                            |
+| `objectstore` | Object Store | the `file` endpoint group, the Object Store                                          |
+| `command`     | Command      | behaviors                                                                            |
+| `hardware`    | Hardware     | behaviors                                                                            |
+| `audit`       | Audit        | the `audit` endpoint group                                                           |
+| `fleet`       | Fleet        | `agent`, `admission`, `job`, `health`, `controller`, `nats`, `facts` and `telemetry` |
+
+`objectstore` has the Object Store only. Until osapi-io/osapi#1208 its name was
+`files`, but the `file` behavior, which deploys an object to a host, is in
+`config`. `logs` is after `node`, because log entry and log source were in
+`node` before. `audit` and `fleet` have no block in the UI, thus the Configure
+page has no tab for them ([the UI](ui.md)).
 
 A behavior declares its area with `behavior.Area`, and an endpoint group with
 `endpoint.Area`. The generated group of a behavior gets the area of the
@@ -334,8 +341,11 @@ behavior. The area goes from the definition to these outputs:
   has a block ([the UI](ui.md)).
 - **The SDK pages.** `internal/sdk/gen` reads the areas from the spec, and puts
   the page of each service in the folder of its area ([the Go SDK](sdk.md)).
-- **The navbar.** The SDK dropdown has a section for each folder of the SDK
-  pages ([the docs site](docs-site.md)).
+- **The reference pages.** The page of each behavior, each chain and each
+  endpoint group is in the folder of its area, with a `_category_.json` from
+  `area.All` ([the docs site](docs-site.md)).
+- **The navbar.** The SDK dropdown and the Behaviors dropdown have a section for
+  each folder of an area ([the docs site](docs-site.md)).
 - **The catalogs.** `osapi behavior list` and `osapi controller endpoint list`
   show the area of each behavior and each group. The reference pages of the
   behaviors and the endpoints show these tables.
