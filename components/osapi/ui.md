@@ -218,10 +218,10 @@ Some behavior of the generic block is not clear from the code:
   `internal/behavior/uiblocks` writes from `area.All`: the name and the label of
   each area, in order. `BLOCK_AREAS` in `ui/src/hooks/use-stack.ts` is `AREAS`
   with the blocks of each area, and the panel has no tab for an area with no
-  block, such as `fleet`. The area of a hand-written block is an `AreaName`, the
-  union that `blocks.gen.ts` writes, so TypeScript fails the build for an area
-  that is not in `area.All`. [Areas](endpoints.md#areas) tells where the areas
-  come from.
+  block, such as `fleet` and `audit`. The area of a hand-written block is an
+  `AreaName`, the union that `blocks.gen.ts` writes, so TypeScript fails the
+  build for an area that is not in `area.All`. [Areas](endpoints.md#areas) tells
+  where the areas come from.
 
 No behavior block has a card of its own. Until osapi-io/osapi#1027 the blocks of
 disk, memory and status had hand-written cards, and a person placed each
@@ -251,6 +251,12 @@ permission by hand, and three were wrong after the package and status behaviors
 had their own permissions: the index refresh and the check for updates asked for
 `package:*`, not `updatepackages:*`, and the node status asked for `node:read`,
 not `status:read`.
+
+The hand-written blocks are the blocks of the Object Store (`object-list`,
+`object-upload`, `object-delete` and `object-stale`), in the area `objectstore`.
+The Configure page has no block of the audit log. The Audit page, at
+`/admin/audit`, lists, opens and exports the entries. Before osapi-io/osapi#1208
+the panel had an Audit tab with the same three operations.
 
 The panel refuses a block that has no permission that it knows. The chip of such
 a block is disabled and has a lock, as for a role that does not have the
