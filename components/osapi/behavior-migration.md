@@ -220,9 +220,16 @@ under another is built with `behavior.Of` (osapi-io/osapi#986). Thus they are
 not in the table. A container's images are at `/container/docker/image/{image}`,
 which is not under a container, so they need no `Of`:
 
-| Missing                                                     | Operations                                                 | Blocks                             |
-| ----------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------- |
-| The `execute` and `shell` permissions beside read and write | command exec and shell, power, process signal, docker exec | command, power, process, container |
+| Missing                                                     | Operations                                          | Blocks                      |
+| ----------------------------------------------------------- | --------------------------------------------------- | --------------------------- |
+| The `execute` and `shell` permissions beside read and write | command exec and shell, process signal, docker exec | command, process, container |
+
+Power is a behavior (osapi-io/osapi#1111). `reboot` and `shutdown` are actions,
+so their permission is `power:execute`, and the `operator` role has it. On the
+Debian family each runs `shutdown -r -- +N` or `shutdown -h -- +N` through sudo.
+`--` stops a message that starts with `-` from becoming an option. A container,
+macOS and the other Linux families report `skipped`. Each method says
+`.Disrupts`, so the integration test does not run it on a live host.
 
 The status summary of a node is the `status` behavior, at
 `GET /api/node/{hostname}/status` (osapi-io/osapi#945). It requires the
