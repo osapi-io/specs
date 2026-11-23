@@ -248,6 +248,39 @@ can do different amounts of damage, they need two permissions, also if their
 shape is the same. That is why `command:shell` is separate from
 `command:execute`.
 
+## A token's target scope
+
+A role applies to each host. A token can also have a target scope, the `targets`
+claim, so that a team can act only on its own hosts. The scope is a list of
+hostnames and labels, such as `web-01` and `group:web`.
+`osapi token generate -t` sets it. A token without targets acts on each host.
+The `target_scope` rule refuses `_all`, `_any` and `_local` in a scope, because
+they are not hosts.
+
+`validation.InScope` compares a target with the scope:
+
+- **A label target** is in the scope when a label of the scope has the same key,
+  and its value is the same or above the value of the target. `group:web` covers
+  `group:web.dev`. It does not cover `group:webapp`. This is the same prefix
+  rule that routes a label target to the agents.
+- **A host target** is in the scope when the scope names the host. It is also in
+  the scope when the agent that the target resolves to has a label that a label
+  of the scope covers. The resolution is `ResolveTarget`, so a machine ID and a
+  hostname give the same result.
+- **`_all` and `_any`** are never in a scope. They reach each agent, or an agent
+  that NATS selects, and a scope cannot limit them.
+
+The scope middleware checks the `hostname` path parameter of each route, after
+the permission check. A target outside the scope gets 403, and no job goes to a
+host. The job group checks the target of a retry, because it is in the body. A
+retry without a target goes to `_any`, so a scoped token must name a target. The
+middleware puts the scope in the context of the request, and `authtoken.InScope`
+reads it there. The audit entry records the scope.
+
+The scope limits where a token acts. It does not limit the reads of the
+controller, such as the jobs, the traces and the audit log. osapi-io/osapi#1188
+has that decision.
+
 ## What checks it
 
 The handler checks it, through scope middleware that the domain package wraps
@@ -262,9 +295,10 @@ verify it. When the UI hides something, that does not protect it.
 [Behaviors](behaviors.md#how-a-behavior-is-served) tells how the permissions of
 a behavior come from its definition, and how the persona roles get them.
 
-[The embedded UI](ui.md) tells what the UI does with the roles claim, and why
-its decode is not a verification.
+[The embedded UI](ui.md) tells what the UI does with the roles claim and the
+targets claim, and why its decode is not a verification.
 
 ______________________________________________________________________
 
-Written from `internal/authtoken/` and `pkg/sdk/client/permissions.gen.go`.
+Written from `internal/authtoken/`, `internal/validation/target.go`,
+`internal/controller/api/middleware.go` and `pkg/sdk/client/permissions.gen.go`.

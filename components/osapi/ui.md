@@ -167,6 +167,13 @@ no token has, and did not have `schedule:*` (osapi-io/osapi#749). The published
 site also tells what each role permits for an *operator*, because a person who
 configures a role looks there.
 
+The UI also reads the targets claim, the target scope of the token.
+`jwtClaimStrings` in `ui/src/lib/jwt.ts` reads the roles and the targets. The
+Roles page shows the targets, or "each host" for a token without a scope. The
+detail of an audit entry shows the scope that the entry records. The UI does not
+hide a host outside the scope. The controller refuses a request to it with 403.
+[Permissions](permissions.md#a-tokens-target-scope) tells the rule.
+
 The registry of behaviors makes a block of the Configure page for each method of
 each behavior that the API serves. `go generate ./internal/behaviors/all` runs
 `internal/behavior/uiblocks/gen`, which writes `ui/src/lib/blocks.gen.ts`. The
