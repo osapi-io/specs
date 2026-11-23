@@ -1100,6 +1100,18 @@ caller sets the mode, owner and group of the file. A caller can also mark
 content as a secret. Then the record keeps no checksum of it, because somebody
 can recover a short secret from its SHA-256 by guessing.
 
+The record keeps two checksums. `sha256` is the SHA-256 of the file.
+`file status` compares the file on the host with it to find drift.
+`object_sha256` is the SHA-256 of the object that the file came from, when the
+caller names an object. `file stale list` compares the object in the object
+store with it. For a template, the file is the rendered object, so the two
+checksums are different. Before osapi-io/osapi#1131 the stale list compared the
+object with `sha256`. Thus it showed each template deploy as stale. A record
+without `object_sha256`, from a deploy before that change, is stale until the
+next deploy. A record that names no object, such as a sysctl file, is never
+stale. When the object changes and the file does not, a write changes only the
+record and reports a change.
+
 It reads ownership with `stat` and sets it with `chown` through sudo, which
 `managedfile` declares. Thus the fake host tests it like each other command. The
 `apptoken` eval found that it was missing. A token written through `managedfile`
