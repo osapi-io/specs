@@ -278,9 +278,9 @@ key of an enrolled agent (osapi #696). It is now
 
 [Running commands](exec.md) tells what runs a command and when sudo applies.
 [Behaviors](behaviors.md) has the declarations that the steps join.
-[Moving domains to behaviors](behavior-migration.md) has the order of the
-domains. [Agent identity](agent-identity.md) tells which messages the controller
-believes. That is a different question from what the agent can do.
+[Built-in behaviors](built-in-behaviors.md) has the decisions of each behavior
+that osapi ships. [Agent identity](agent-identity.md) tells which messages the
+controller believes. That is a different question from what the agent can do.
 
 ______________________________________________________________________
 

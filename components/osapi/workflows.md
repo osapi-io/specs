@@ -4,8 +4,8 @@ This is a proposal. Nobody built it yet. A workflow is a named, ordered set of
 behavior calls across hosts. You write it as a file. osapi checks it before it
 runs, and a second run gives the same result. This page records the design, so
 that people can read it and argue with it before anybody writes code. When the
-feature is built, the content moves into a subject page, as
-[behavior-migration](behavior-migration.md) will.
+feature is built, the content moves into a subject page, as the plan of the
+behavior migration moved into [behaviors](behaviors.md).
 
 ## Why
 

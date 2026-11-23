@@ -14,41 +14,44 @@ parts of each method from that definition:
 
 Nobody writes these by hand in each layer.
 
-Behaviors replace [providers](providers.md), one domain at a time. sysctl is the
-first. [The migration plan](behavior-migration.md) has the order of the others,
-and the parts that are not built yet.
+Each operation on a node is a behavior now. Behaviors replaced the hand-written
+domains, one domain at a time, from sysctl to command (osapi-io/osapi#1113).
+[Built-in behaviors](built-in-behaviors.md) tells why each behavior that osapi
+ships operates as it does.
 
 ## Why
 
-A new domain is slow to add, because most of the code connects layers and has no
-logic. A measurement on `main` on 12 November 2026, before sysctl moved, found:
+A hand-written domain was slow to add, because most of its code connected layers
+and had no logic. A measurement on `main` on 12 November 2026, before sysctl
+moved, found:
 
-- `sysctl get` has 59 lines of logic in `debian.go`, and 312 hand-written lines
+- `sysctl get` had 59 lines of logic in `debian.go`, and 312 hand-written lines
   around it: handler 153, validator 10, agent processor 28, SDK 56, CLI 63,
-  operation constants 2. Its spec is 104 more lines of hand-written YAML.
-- In the full repository, the handlers, agent processors, SDK and CLI are 47,792
-  hand-written lines, against 15,189 lines of provider.
+  operation constants 2. Its spec was 104 more lines of hand-written YAML.
+- In the full repository, the handlers, agent processors, SDK and CLI were
+  47,792 hand-written lines, against 15,189 lines of provider.
 - The last three domain additions changed 130 files (`service`), 75
   (`certificate`) and 47 (the SSH key operations).
 
-The connecting code is the same each time, and somebody types it again each
-time. The `key` argument to `sysctl get` is declared by hand in eight locations.
-Its pattern, `^[a-zA-Z0-9][a-zA-Z0-9._-]*$`, is written three times. The handler
-sends the job payload as a `map[string]string`. The agent reads it back into an
-anonymous `struct{ Key string }`. Nothing checks that the two agree.
+The connecting code was the same each time, and somebody typed it again each
+time. The `key` argument to `sysctl get` was declared by hand in eight
+locations. Its pattern, `^[a-zA-Z0-9][a-zA-Z0-9._-]*$`, was written three times.
+The handler sent the job payload as a `map[string]string`. The agent read it
+back into an anonymous `struct{ Key string }`. Nothing checked that the two
+agreed.
 
-The same shapes occur again and again in the codebase:
+The same shapes occurred again and again in the codebase:
 
 - 40 anonymous payload structs in `internal/agent`.
 - 90 copies of the `ok`/`failed`/`skipped`/`timeout` switch in the handlers.
-- 94 handlers that branch on `IsBroadcastTarget`.
-- 136 hand-written SDK result types, with 127 functions that copy generated
+- 94 handlers that branched on `IsBroadcastTarget`.
+- 136 hand-written SDK result types, with 127 functions that copied generated
   types into them.
 
-The cost is clear, and it also blocks agents. An agent that must add a domain
-must copy all of it from convention. An agent that must use osapi had nothing to
-learn operations from, until `osapi init`, `help --json` and `behavior get`
-existed. Those read the definitions.
+The cost was clear, and it also blocked agents. An agent that had to add a
+domain had to copy all of it from convention. An agent that must use osapi had
+nothing to learn operations from, until `osapi init`, `help --json` and
+`behavior get` existed. Those read the definitions.
 
 ## What a definition is
 
@@ -95,8 +98,7 @@ The directory of each behavior has the same files:
 Each file with code has a test with its name. This is the rule for the rest of
 the repository too. `methods_public_test.go` calls each method on the mocked
 provider. `debian_public_test.go` tests the Debian provider. The platform files
-are next to the definition, not in a subdirectory, as the `debian.go`,
-`darwin.go` and `linux.go` of the hand-written providers are.
+are next to the definition, not in a subdirectory.
 
 `docs/docs/sidebar/development/behaviors.md` in osapi describes the layout and
 the tags for authors. This page records why the design is as it is.
@@ -140,6 +142,18 @@ The permission prefix is the group when there is one, and the name of the
 behavior when there is no group. Thus `dns` under `network` needs
 `network:read`, as it does now.
 
+The names of the methods are verbs, because they become the commands.
+`behavior validate` refuses a read with a name that is not `list`, `get` or
+`status`, and a write with a name that is not `create`, `update` or `delete`. A
+write with a different name is an action, such as `restart`, and its name must
+be one of the actions of the CLI. For a synonym, such as `remove` or `add`, the
+refusal gives the standard verb.
+
+Thus no method creates an item and also updates it. `create` is `POST`, and
+`update` is `PUT`. The split gives 404 a meaning. When `update` answers 404, the
+item that the caller wanted to change does not exist. One method that creates
+and updates cannot tell the caller that.
+
 The things that the controller answers itself (audit, jobs, admission and
 health) are not behaviors, and have no placement. They never go to a host.
 
@@ -147,9 +161,43 @@ health) are not behaviors, and have no placement. They never go to a host.
 A behavior that only other behaviors use has neither. Only the job system can
 get to it.
 
-`internal/behaviors/behavior.go` has `Path`, `HTTPMethod`, `Permission` and
+`internal/behavior/behavior.go` has `Path`, `HTTPMethod`, `Permission` and
 `Command`. They change a definition into those four values. For sysctl, they
-give the same routes and permissions that the hand-written API serves now.
+gave the same routes and permissions that the hand-written API served.
+
+## The name of a behavior
+
+The name of a behavior is the thing that it manages, not the tool that does the
+work. The NTP behavior is `ntp`, and chrony does its work. The behavior that
+runs jobs on a schedule is `schedule`, and cron does its work. If the name is
+the tool, the name becomes incorrect when a different tool does the work. Then
+the route, the permission and the command change together, and a change to the
+route breaks each caller. Do not use an abbreviation as a name: the behavior is
+`memory`, not `mem`.
+
+One question decides if the tool is in the route: does the caller select the
+tool, or does the host?
+
+A caller selects a container runtime. A person decided to run Docker, and wants
+to address it directly. Thus the runtime is a behavior in the `container` group,
+at `/container/docker`. A Podman behavior can go next to it, at
+`/container/podman`, and the two can be on one host.
+
+A caller does not select a package manager. The host selected it before. A
+request to a fleet to install a package cannot depend on which hosts use apt.
+Thus the route is `/package`, and the provider of each platform runs the tool of
+that platform. `ntp` and `schedule` are the same.
+
+An error in either direction has a cost:
+
+- If the route has a tool that the caller did not select, one call cannot go to
+  the full fleet.
+- If the route does not have a tool that the caller selected, the caller cannot
+  address two runtimes on one host.
+
+The name is the same in the route, the command and the docs page. The Go package
+can have a different name, when the name is a Go keyword
+([generated, and committed](#generated-and-committed)).
 
 ## A resource under another
 
@@ -225,10 +273,11 @@ behavior.Validator("motd_text", noEscapes, rule.Pattern(`^[^\x1b]*$`),
 ```
 
 `internal/validation` registers each one with the validator of the server,
-through `rule.OnDeclare`, in either order of package initialization. The tags of
-the hand-written domains, for example `sysctl_key`, stay in
-`internal/validation`, with `rule.Register` next to each, because those domains
-also use them. `sysctl_key` moves to the behavior at its cutover.
+through `rule.OnDeclare`, in either order of package initialization. A tag that
+more than one behavior uses, such as `interface_name`, is in
+`internal/validation`, with `rule.Register` next to it. `sysctl_key` is there
+too, from the hand-written sysctl domain, although only the sysctl behavior uses
+it now.
 
 The behavior DSL and the endpoint DSL read a validate tag through the same
 package, `internal/validation/rule`. Thus they give the same constraints, and
@@ -361,16 +410,15 @@ broadcast. A job that osapi cannot send is a 500. On one host, the API answers
 with 409; `ErrUnsupported` is a `skipped` row. Before osapi-io/osapi#1021, a not
 found on a method with no key, such as a create whose object is not in the
 Object Store, was a 500, and not managed and not installed were a 404 that said
-"not found". The hand-written domains still answer all three with 404, through
-`apierr` (osapi-io/osapi#1020). Until osapi-io/osapi#989, a single host that
-failed a job was a 500 that said the job could not be sent. Thus the agent's
-message did not get to the caller.
+"not found". Until osapi-io/osapi#989, a single host that failed a job was a 500
+that said the job could not be sent. Thus the agent's message did not get to the
+caller.
 
 An earlier version served each method through one handler that read the
 definition when osapi started. It worked. But you could not open, debug or test
 one endpoint alone, and the HTTP tests were a loop that no file named. A
 generated handler for each method gives each endpoint a file and a test file,
-which is the shape of the hand-written domains.
+which was the shape of the hand-written domains.
 
 **The agent.** `internal/agent/processor_behavior.go` builds the provider of
 each behavior one time at startup, for the platform of the agent. It uses what
@@ -443,27 +491,28 @@ Inside, the same conventions apply:
   the generated mock of the fake host both satisfy it.
 - The errors that a provider returns and that the API answers differently are in
   `internal/behavior`: `ErrUnsupported`, `ErrNotFound`, `ErrNotManaged` and
-  `ErrNotInstalled`. `internal/provider` gives the hand-written providers the
-  same values under its own names. `behavior spec get` lists each one, with what
-  the API answers and when to return it, under "Errors a provider returns". A
-  test fails on an exported error with no entry there.
+  `ErrNotInstalled`. `internal/provider` gives the same values under its own
+  names to the providers that the agent uses for its own facts, under
+  `internal/provider/node`. `behavior spec get` lists each one, with what the
+  API answers and when to return it, under "Errors a provider returns". A test
+  fails on an exported error with no entry there.
 - The file-state record, `managedfile.State`, and its key,
   `managedfile.StateKey`, belong to `managedfile`, the behavior that owns
-  managed files. The hand-written providers and the controller read them from
-  there. A write of a file changes when the content, the mode or the owner
-  changes. It also changes when osapi deployed the path with other metadata:
-  then only the record changes, as for a cron entry with a new schedule and the
-  same content (osapi-io/osapi#1106). A file that has the content and no record,
-  or an undeployed record, does not change.
+  managed files. The file endpoints of the controller read them from there. A
+  write of a file changes when the content, the mode or the owner changes. It
+  also changes when osapi deployed the path with other metadata: then only the
+  record changes, as for a cron entry with a new schedule and the same content
+  (osapi-io/osapi#1106). A file that has the content and no record, or an
+  undeployed record, does not change.
 
 Permissions and sudo also come from the definitions. `internal/authtoken` makes
-the known permissions, and those of each built-in role, from the hand-written
-lists and the methods of each registered behavior. The persona roles get a
-behavior's permissions by a rule: `admin` gets each one, `read` gets each read,
-`automation` gets each read and write, and `operator` gets each read and
-execute, except the permissions that are admin only.
-[Permissions](permissions.md) has each role, and the permissions that are admin
-only and why.
+the known permissions, and those of each built-in role, from a short list in
+`internal/authtoken`, the methods of each endpoint group and the methods of each
+registered behavior. The persona roles get a behavior's permissions by a rule:
+`admin` gets each one, `read` gets each read, `automation` gets each read and
+write, and `operator` gets each read and execute, except the permissions that
+are admin only. [Permissions](permissions.md) has each role, and the permissions
+that are admin only and why.
 
 The preflight of the agent checks each program that a behavior declares with
 `Sudo`, together with its own list. At startup, the agent also finds each
@@ -502,23 +551,16 @@ their own `behavior` category, with operations `behavior.<name>.<method>`. Its
 `gen/api.yaml` joins the main spec. Thus the SDK client, the UI client and the
 API docs cover it.
 
-A behavior that replaces a hand-written domain deletes that domain in the same
-change. The two never run side by side: osapi has no `/api/next` and no
-`osapi client next`. Delete the hand-written domain, and fix what fails:
+Each behavior that replaced a hand-written domain deleted that domain in the
+same change. The two never ran side by side: osapi has no `/api/next` and no
+`osapi client next`. [Built-in behaviors](built-in-behaviors.md) has the
+decisions of each move.
 
-- `TestNoRouteIsServedTwice` in `internal/behaviors/all` fails while a behavior
-  has the same route as a hand-written spec. It names the directory of that
-  domain.
-- `TestEveryCommandIsAttached` names each hand-written command that has the name
-  of a behavior command.
-- The compiler names the processor and each test that passes its provider.
-- `behavior-gen-check` fails until `just generate` has joined the spec and made
-  the clients from it again.
-
-The joined spec then changes, and `TestJoinedSpec` in `internal/apicontract`
-fails. Its golden diff is the change to the API. Write it again with `-update`,
-and read it. The cutover of sysctl kept each operation, path, permission and
-response code, and added the `prefix` of list and the `managed` of each entry.
+A change to the routes of a behavior changes the joined spec, and
+`TestJoinedSpec` in `internal/apicontract` fails. Its golden diff is the change
+to the API. Write it again with `-update`, and read it.
+`TestEveryCommandIsAttached` in `internal/behaviors/all` fails when a behavior
+command is not attached to the command tree.
 
 ## Generated, and committed
 
@@ -571,6 +613,20 @@ with kin-openapi. It found an object field whose `example` was a string, which a
 strict tool rejects. The builder now writes the example of an object or a list
 as its JSON.
 
+After osapi generates the spec, nothing else holds the spec to the server. Thus
+two more checks do it:
+
+- The integration tests send each request and each response through a proxy that
+  validates it against the joined spec, with `openapi3filter` of kin-openapi
+  (`test/integration/spec_test.go`). A request or a response that does not agree
+  with the spec fails the run. A request that no operation describes fails only
+  when the server serves it. The first runs found an object `example` written as
+  a string, and DNS that answered `null` where its spec has a list.
+- `just spec-client-check`, one of the slow checks of `just test`, runs
+  oapi-codegen with its default options on the joined spec into a scratch
+  package, and compiles the client. Thus the spec also works for the generator
+  of a different person.
+
 The name of a behavior and its Go package are two names. The name is the route,
 the command, the permission and the docs page. The Go package is where the
 definition lives, and every generator reads it from the package of the types,
@@ -592,17 +648,16 @@ The generator joins the spec of each behavior itself, not through
 `redocly join`. This is the start of the removal of that tool. The docs site
 builds an "API (next)" reference from it, next to the current reference.
 
-`gen/cli.go` puts the docs of each method on its cobra command, as a person puts
-them on a hand-written command. `.Describe` is the `Short`, `.Explain` is the
-`Long`, and the `Example`s are the command lines of the `Example`, each under
-its doc as a `#` line: the group's `.Example(flags, doc)`. The
-`reference.Permission` annotation has the permission of the method, and the
-`reference.Result` annotation has what each example does on the host and the
-refusals. Thus `just cli-docs-generate` writes the CLI page of a behavior
-command as it writes the page of a hand-written command, and a behavior has no
-page of its own for each method. The output of a command is not on the page: the
-same renderer prints each result, and the `output.md` page of the CLI reference
-shows it one time.
+`gen/cli.go` puts the docs of each method on its cobra command. `.Describe` is
+the `Short`, `.Explain` is the `Long`, and the `Example`s are the command lines
+of the `Example`, each under its doc as a `#` line: the group's
+`.Example(flags, doc)`. The `reference.Permission` annotation has the permission
+of the method, and the `reference.Result` annotation has what each example does
+on the host and the refusals. Thus `just cli-docs-generate` writes the CLI page
+of a behavior command as it writes the page of each other command, and a
+behavior has no page of its own for each method. The output of a command is not
+on the page: the same renderer prints each result, and the `output.md` page of
+the CLI reference shows it one time.
 
 `just behavior-gen-check`, which `just test` runs, generates the files again. It
 fails if any of them changed. Thus a behavior that somebody edits without
@@ -761,9 +816,7 @@ The one setting of sysctl is `behaviors.sysctl.dir`, the directory where it
 writes its conf files. Before, this was a constant in the Debian provider. A
 provider builder reads settings from the host that it gets,
 `host.Settings[Settings](h)`, because the builder cannot name the variable of
-the behavior in its own initializer. The provider of the hand-written sysctl
-domain, built in `createSysctlProvider`, reads the same setting. Thus the two
-write to the same directory.
+the behavior in its own initializer.
 
 ## The host a provider gets
 
@@ -857,7 +910,7 @@ from the stack of the call. The fix sends a behavior that manages a file to
 managedfile, and a building block to `atomicfile.Write`, `Remove` or `Chmod`.
 
 The generated HTTP tests split the cases of each method as the handler tests of
-the hand-written domains do: `Test<Method>` for the answers,
+the hand-written domains did: `Test<Method>` for the answers,
 `Test<Method>ValidationHTTP` for the 400s and `Test<Method>RBACHTTP` for the
 tokens. `internal/behavior/dispatch/servertest` runs the rows. Fix a failed
 generated test in the definition or the generator, never in `gen/`.
@@ -921,10 +974,10 @@ On the fake host, each filesystem, command and store call fails in turn. Each
 store read also returns a damaged record in turn: not JSON, empty JSON, and a
 file state record with empty metadata.
 
-The examples and refusals of sysctl get to 150 of the 152 statements of its
-Debian provider. Its 1,820 lines of hand-written tests get to 152. The two that
-remain are a JSON encoding error that a struct of strings cannot make. Only the
-test seam of the hand-written tests can get to it.
+When sysctl moved, its examples and refusals got to 150 of the 152 statements of
+its Debian provider. Its 1,820 lines of hand-written tests got to 152. The two
+that remained were a JSON encoding error that a struct of strings cannot make.
+Only the test seam of the hand-written tests could get to it.
 
 ```sh
 go test ./internal/behaviors/sysctl -run TestBehaviorPublicTestSuite/TestExamples -coverprofile=c.out && go tool cover -func=c.out | grep debian.go
@@ -1050,10 +1103,9 @@ was readable by each user on the host, and the session stopped and did not write
 it.
 
 The Debian provider of sysctl writes and removes its conf files through it. The
-hand-written sysctl domain builds its own `managedfile` provider. Thus the two
-write the same files with the same records. The code moved out of sysctl without
-changes. The hand-written sysctl provider tests confirm this. They did not
-change, except two marshal-failure cases that moved with the code.
+code moved out of sysctl without changes. The sysctl provider tests confirmed
+this. They did not change, except two marshal-failure cases that moved with the
+code.
 
 A behavior is internal when two things are true. An operator would never call it
 from the CLI or the API. It is a piece of work that other behaviors share, such
@@ -1064,9 +1116,12 @@ that requires it yet, and `behavior validate` would fail it.
 Shared work becomes an internal behavior at its second use. When one behavior
 does something, that is its own code. When a second behavior needs the same
 thing, it becomes a behavior that the two require. The build-a-behavior skill
-asks this question before somebody writes a behavior.
-[The migration plan](behavior-migration.md#internal-behaviors-the-migration-extracts)
-lists the candidates that the hand-written domains share.
+asks this question before somebody writes a behavior. Three internal behaviors
+exist now. `managedfile` writes a file that osapi owns. It came out of sysctl,
+and each behavior that owns a file on a host requires it. `object` reads an
+object from the Object Store. The service, file, schedule and certificate
+behaviors require the two. `netplan` writes and applies a file under
+`/etc/netplan`, and the dns, interface and route behaviors require it.
 
 A chain across hosts or steps, where the output of one method is the input of
 the next, is a workflow. It stays with osapi-orchestrator.
@@ -1266,8 +1321,8 @@ Redaction matches names, as the denylist does. If you tag a field `value` as
 secret, osapi redacts each request field with the name `value`, in each
 behavior. Give a secret field a name that tells what it has.
 
-The value still comes as a CLI flag, as the `--password` of a hand-written
-domain does. A read from standard input or a prompt is not built.
+The value still comes as a CLI flag, such as the `--password` of `user create`.
+A read from standard input or a prompt is not built.
 
 ## Not built yet
 
@@ -1275,4 +1330,4 @@ The SDK knows routes, not behaviors. It has a generic `Client.Request` to any
 API path. Its typed services, for example `client.Sysctl`, are hand-written over
 the client that oapi-codegen generates from the spec. To generate those typed
 services from the spec too, after the spec of each behavior joins the main spec,
-is a later step in [the migration plan](behavior-migration.md).
+is osapi-io/osapi#732.

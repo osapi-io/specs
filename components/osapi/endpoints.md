@@ -502,5 +502,6 @@ an endpoint group too.
 ## What this page does not cover
 
 The middleware and the auth model are in [permissions](permissions.md). The
-generator of behaviors is in [behaviors](behaviors.md). The order of the domains
-that become behaviors is in [the migration](behavior-migration.md).
+generator of behaviors is in [behaviors](behaviors.md). Why each behavior that
+osapi ships operates as it does is in
+[built-in behaviors](built-in-behaviors.md).

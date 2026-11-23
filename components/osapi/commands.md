@@ -1,40 +1,49 @@
 # Commands
 
-Partly built: the command layer, the DSL, `token`, the commands that teach the
-DSL, and the output from the output type (osapi-io/osapi#901, #902 and #903).
-The other local groups are not built. Each command of the `osapi` binary comes
-from a definition in Go, as each endpoint and each behavior does. The definition
-gives the cobra command, its flags, its help, its page, its checks and its
-tests. Endpoints and behaviors get their commands from this layer. Thus one DSL
-makes every command, and `cmd/` has only the root and the wiring.
+Built (osapi-io/osapi#901 to #904, #914 to #918 and #934). Each command of the
+`osapi` binary comes from a definition in Go, as each endpoint and each behavior
+does. The definition gives the cobra command, its flags, its help, its page, its
+checks and its tests. Endpoints and behaviors get their commands from this
+layer. Thus one DSL makes every command, and `cmd/` has only the root and the
+wiring.
 
 The issue is osapi-io/osapi#900.
 
 ## Why
 
-`cmd/` has 178 files. 121 of them are the commands of the node domains that are
-not behaviors yet. They go as each domain moves
-([the plan](behavior-migration.md)). The other 57 stay, and a person writes each
-one:
+When this plan was written, `cmd/` had 178 files. 121 of them were the commands
+of the node domains, which went as each domain became a
+[behavior](behaviors.md). A person wrote each of the other 57:
 
 | Kind                                    | Files | Examples                                                                                           |
 | --------------------------------------- | ----: | -------------------------------------------------------------------------------------------------- |
 | Commands that run on the local machine  |    40 | `token generate`, `config validate`, `nats server start`, `agent start`, `behavior new`, `version` |
 | Code of the CLI for the endpoint groups |    17 | the renderer of `client agent list`, `client agent status`, `client nats status`                   |
 
-A command that a person writes gets no check. Nothing tells that a required flag
-is marked, that the help has an example, that a value is checked, or that the
-name obeys [the CLI rules](cli.md). An endpoint and a behavior get these checks
-from their definitions. A local command gets none.
+Now `cmd/` has 14 files. Each local command is a group under
+`internal/cli/commands/`, and each node command comes from a behavior. `cmd/`
+keeps the root, the parents `agent`, `cli`, `client`, `client node`,
+`client node network`, `controller` and `nats`, and the wiring that gives each
+local group its deps in `commands.go` and `process_deps.go`. It also keeps
+`reference.go`, which makes the reference pages of the docs site from the output
+of the list and get commands, the build version, and two tests of the command
+tree.
 
-The skill has the same gap. An agent learns the endpoint DSL from
+The rest of this section tells why the layer was built.
+
+A command that a person wrote got no check. Nothing told that a required flag
+was marked, that the help had an example, that a value was checked, or that the
+name obeyed [the CLI rules](cli.md). An endpoint and a behavior got these checks
+from their definitions. A local command got none.
+
+The skill had the same gap. An agent learned the endpoint DSL from
 `osapi controller endpoint spec` and `validate`, and the behavior DSL from
-`osapi behavior spec` and `validate`. Nothing teaches it to add a local command.
+`osapi behavior spec` and `validate`. Nothing taught it to add a local command.
 
-The CLI layer is in the code already, in the wrong place.
-`internal/controller/endpoint/command` is the runtime of each generated command,
-and `internal/controller/endpoint/gen/commandgen` writes them. Behaviors use
-them through the endpoint layer. No command outside the two DSLs uses them.
+The CLI layer was in the code already, in the wrong place.
+`internal/controller/endpoint/command` was the runtime of each generated
+command, and `internal/controller/endpoint/gen/commandgen` wrote them. Behaviors
+used them through the endpoint layer. No command outside the two DSLs used them.
 
 ## Three layers
 
@@ -295,8 +304,8 @@ Each check has its rule and its fix, as for endpoints.
    `cli-docs`, is `osapi cli docs generate`: a group under `cli` that gets the
    root command as a dep and writes the CLI reference pages. Thus each local
    command comes from a definition. `cmd/` keeps the root, the wiring and the
-   parents of hand-written commands. The `client node` commands go with
-   [the behavior migration](behavior-migration.md).
+   parents of hand-written commands. The `client node` commands come from
+   [behaviors](behaviors.md).
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's
@@ -361,5 +370,4 @@ log of the config is still written in its setup.
 - The rules for names, flags and output: [the CLI](cli.md).
 - The endpoint and behavior DSLs: [endpoints](endpoints.md) and
   [behaviors](behaviors.md).
-- The node domain commands, which go with
-  [the behavior migration](behavior-migration.md).
+- The node commands, which come from [behaviors](behaviors.md).

@@ -306,8 +306,8 @@ exists for this.
 [The job system](job-system.md) tells how work gets to a provider, what occurs
 when the same job comes two times, and what the four result statuses mean.
 
-[Building a domain](domains.md) tells what a contributor adds when a new domain
-needs a provider, and the seven other artifacts that come with it.
+[Behaviors](behaviors.md) tells what a contributor writes for a new behavior,
+and what osapi generates from its definition.
 
 ______________________________________________________________________
 

@@ -108,8 +108,8 @@ the server said, not what the SDK parsed.
 Thus a method cannot return a bare value, also where a bare value is sufficient.
 The envelope makes `--json` possible without a second code path. A collection
 returns `Response[Collection[T]]`, not `Response[[]T]`.
-[Building a domain](domains.md) gives the same reason for the shape that a
-broadcast returns.
+[Behaviors](behaviors.md#how-a-behavior-is-served) gives the same reason for the
+`{job_id, results[]}` envelope that one host and a broadcast both return.
 
 ## The SDK knows routes, not behaviors
 
@@ -140,9 +140,9 @@ them and does not repeat them.
 
 ## Where this connects
 
-[Building a domain](domains.md) tells what generates the specification of the
-SDK. It also tells why the SDK cannot see a domain that is not in the combined
-file.
+[Behaviors](behaviors.md#generated-and-committed) tells what generates the
+specification of the SDK, and the checks that hold the joined specification to
+the server.
 
 The client of the UI comes from **the same** combined specification, through a
 different generator. [The embedded UI](ui.md) describes it.
