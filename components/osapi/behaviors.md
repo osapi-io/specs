@@ -515,25 +515,26 @@ write, and `operator` gets each read and execute, except the permissions that
 are admin only. [Permissions](permissions.md) has each role, and the permissions
 that are admin only and why.
 
-The preflight of the agent checks each program that a behavior declares with
-`Sudo`, together with its own list. At startup, the agent also finds each
-program that a behavior declares with `Runs` or `Sudo` and that the host does
-not have. It looks for a `Runs` program on its `PATH`, and for a `Sudo` program
-on its `PATH` and in `/usr/local/sbin`, `/usr/sbin` and `/sbin`, because sudo
-finds a program there. The agent logs a warning for each missing program, and
-reports the list as `missing_programs` in its registration. `agent get` and
-`agent list` show it (osapi-io/osapi#1139). A program declared on a method
-counts only on a platform where the method runs. A behavior that has no provider
-for a platform runs nothing there, so it needs no program there. Thus an agent
-on Fedora does not ask for the `apt-get` of a behavior that has only a Debian
-provider. `hostname` declares `hostnamectl` on `update`, so an agent on macOS
-does not ask for it. A missing program fails only that behavior, so it does not
-stop the agent. Nobody edits either list for a behavior. The fake host fails an
-example that runs a program without its declaration, and counts the programs
-that the required behaviors declare. The integration test `TestPrograms` reads
-`missing_programs` from each agent that the suite targets, and fails when one is
-not empty. Thus on CI it checks the runner, and against the lab it checks each
-VM, not the machine that runs `go test`.
+The preflight of the agent checks only the programs that the behaviors declare
+with `Sudo` on the platform of the host. The agent has no list of its own
+(osapi-io/osapi#1180). At startup, the agent also finds each program that a
+behavior declares with `Runs` or `Sudo` and that the host does not have. It
+looks for a `Runs` program on its `PATH`, and for a `Sudo` program on its `PATH`
+and in `/usr/local/sbin`, `/usr/sbin` and `/sbin`, because sudo finds a program
+there. The agent logs a warning for each missing program, and reports the list
+as `missing_programs` in its registration. `agent get` and `agent list` show it
+(osapi-io/osapi#1139). A program declared on a method counts only on a platform
+where the method runs. A behavior that has no provider for a platform runs
+nothing there, so it needs no program there. Thus an agent on Fedora does not
+ask for the `apt-get` of a behavior that has only a Debian provider. `hostname`
+declares `hostnamectl` on `update`, so an agent on macOS does not ask for it. A
+missing program fails only that behavior, so it does not stop the agent. Nobody
+edits either list for a behavior. The fake host fails an example that runs a
+program without its declaration, and counts the programs that the required
+behaviors declare. The integration test `TestPrograms` reads `missing_programs`
+from each agent that the suite targets, and fails when one is not empty. Thus on
+CI it checks the runner, and against the lab it checks each VM, not the machine
+that runs `go test`.
 
 The paths and the records that a behavior changes are declared the same way. The
 fake host fails an example that writes, removes or changes the mode of a path
