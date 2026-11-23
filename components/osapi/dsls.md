@@ -89,7 +89,7 @@ refuses one of an input field.
 
 `declarations()` reads the permissions from `dsl.All()`: the `Permissions` of
 each DSL that serves the API. A rule gives the built-in roles their permissions,
-and `AdminOnly()` keeps a permission from `write` and `read`.
+and `AdminOnly()` keeps a permission from `operator`, `automation` and `read`.
 [Permissions](permissions.md) has the rule. The generator of the SDK constants
 in `internal/authtoken/gen` and `RegistryOperations`, which gives the permission
 of each operation of the UI, read `dsl.All()` too. Thus a new DSL with API

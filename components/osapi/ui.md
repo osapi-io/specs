@@ -156,7 +156,7 @@ A token in `localStorage` from an earlier session gets no check. If the server
 refuses it, each page shows an error until the person signs out.
 
 The permission model of the UI is the model of osapi. The roles claim uses the
-permissions and the three roles that the API checks.
+permissions and the six built-in roles that the API checks.
 [Permissions](permissions.md) describes them. The UI does not keep its own list.
 `go generate ./internal/behaviors/all` writes `ui/src/lib/permissions.gen.ts`
 from `AllPermissions` and `RolePermissions` in `internal/authtoken`, with every

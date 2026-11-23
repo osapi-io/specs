@@ -62,7 +62,7 @@ operating system.
 | [The docs site](docs-site.md)               | What the sections of the docs site hold, and which pages are generated from the binary: each reference page is the output of a command                                   |
 | [The CLI](cli.md)                           | A thin shell over the SDK: one command per endpoint, two inherited flags, command and flag names, shared renderers, and the output style                                 |
 | [Running commands](exec.md)                 | The five ways to run a command, why ten minutes is a maximum, and where a secret goes                                                                                    |
-| [Permissions](permissions.md)               | The 37 permissions, the three roles, and why a direct permission replaces them                                                                                           |
+| [Permissions](permissions.md)               | The permissions, the six built-in roles, and why a direct permission replaces them                                                                                       |
 | [The audit trail](audit.md)                 | What osapi records, why redaction is a denylist, and what a read does not record                                                                                         |
 | [Configuration](configuration.md)           | Where a value comes from, and how secrets stay out of the log                                                                                                            |
 | [Observability](observability.md)           | Tracing across the queue, metrics on their own port, conditions                                                                                                          |

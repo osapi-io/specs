@@ -2,8 +2,9 @@
 
 osapi records each request to an authenticated endpoint. It records who made the
 request, what the request asked for, what came back, and which job it made.
-`audit:read` is one of the seven [permissions](permissions.md) that `write` does
-not have. Thus `admin` can see these records, and `write` cannot.
+`audit:read` is an admin-only [permission](permissions.md). Only `admin` and
+`auditor` have it. Thus these two roles can see these records, and the other
+roles cannot.
 
 ## What an entry holds
 
@@ -149,7 +150,8 @@ cannot show all of the jobs that one call made.
 
 ## Where this connects
 
-[Permissions](permissions.md) has `audit:read`, and why only `admin` has it.
+[Permissions](permissions.md) has `audit:read`, and why only `admin` and
+`auditor` have it.
 
 [Running commands](exec.md) has the `stdin` field that redaction protects, and
 why a secret goes there and not into an argument.

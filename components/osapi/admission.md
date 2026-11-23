@@ -54,9 +54,10 @@ with no record in the state that the decision needs, answers 404. When PKI is
 off (`controller.pki.enabled`), each route answers 503, and the error names the
 setting.
 
-`admin` has the two permissions. `write` and `read` have only `admission:read`.
-Admission decides which machines can run jobs. Thus it is a separate permission,
-not part of `agent:write`, and a token that can drain agents cannot admit one.
+`admin` has the two permissions. `operator`, `automation` and `read` have only
+`admission:read`. `auditor` and `observer` have neither. Admission decides which
+machines can run jobs. Thus it is a separate permission, not part of
+`agent:write`, and a token that can drain agents cannot admit one.
 [Permissions](permissions.md) has the roles.
 
 ## Admit needs the fingerprint from the machine
