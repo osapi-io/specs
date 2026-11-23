@@ -120,9 +120,12 @@ facts of the agent through `host.Host.Facts`. The CLI takes the vars as
 directories of the family on Linux, and the system keychains on macOS. Each CA
 has its subject, its SHA-256 fingerprint and its expiry. On Linux, `create` and
 `update` deploy an uploaded object as `osapi-<name>.crt` through the `object`
-and `managedfile` behaviors, and rebuild the trust store. On macOS, the writes
-report `skipped`. The hand-written domain wrote only on the Debian family, and
-listed only the names of the files.
+and `managedfile` behaviors, and rebuild the trust store. This includes SUSE,
+which has its own provider: it writes to `/etc/pki/trust/anchors` and runs
+`update-ca-certificates` (osapi-io/osapi#1122). On macOS the writes report
+`skipped`. osapi does not support Alpine, where the writes also report
+`skipped`. The hand-written domain wrote only on the Debian family, and listed
+only the names of the files.
 
 The routes do not have the `/ca` segment of the hand-written domain:
 `/api/node/{hostname}/certificate` and
