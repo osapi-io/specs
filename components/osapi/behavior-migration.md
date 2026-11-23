@@ -234,6 +234,15 @@ behavior in its group. `--group` now does this.
      ([permissions](permissions.md#the-built-in-roles)). A template object reads
      the facts of the agent through `host.Host.Facts`, which this move added.
      The CLI takes the vars as `--vars key=value`, not `--var`.
+   - User moved (osapi-io/osapi#992), after the group. Its `create` and `passwd`
+     hash the password on the controller, so the job has only the hash. The
+     password route is `POST /user/{name}/passwd`, an action that always reports
+     a change, and `passwd` is a word of `command.Actions`. The user behavior
+     reads through gohai's users collector on each platform, and changes users
+     on the Debian family. Its writes and `passwd` are `AdminOnly()`, because
+     `user:write` is admin only: an account reaches root. The SSH keys stay
+     hand-written until they move under user with `behavior.Of`
+     (osapi-io/osapi#993).
 9. Stop using the term `provider`. Rewrite [providers](providers.md) and
    [building a domain](domains.md) for behaviors. Delete this page when nothing
    in it is still a plan.
