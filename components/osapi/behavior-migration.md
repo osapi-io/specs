@@ -329,9 +329,9 @@ in the facts of the agent; the behavior has no list of them. The interface name
 rule, `interface_name`, is in the shared registry, because dns, interface and
 route each use it. With routes, no hand-written code reads or writes netplan.
 The others fit now: certificate. Log (osapi-io/osapi#1105), ping
-(osapi-io/osapi#1110) and NTP (osapi-io/osapi#1104) moved. The "Not yet" list
-of the build-a-behavior skill is this table. Thus an agent that gets a request
-for one of these says so, and does not add code around the platform.
+(osapi-io/osapi#1110) and NTP (osapi-io/osapi#1104) moved. The "Not yet" list of
+the build-a-behavior skill is this table. Thus an agent that gets a request for
+one of these says so, and does not add code around the platform.
 
 The cutover of a domain deletes its hand-written handler tests. Thus each case
 in them must go somewhere first:
