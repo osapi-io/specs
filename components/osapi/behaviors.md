@@ -673,7 +673,9 @@ and runs its tests. Thus the scaffold cannot fall behind the checks that each
 behavior must pass. A new check in `behaviortest` that the scaffold does not
 obey fails CI. Before this check, the scaffold wrote a file through `h.FS`, and
 did not declare it with `behavior.Writes`. Thus a new behavior failed its own
-tests (osapi#781).
+tests (osapi#781). The check also writes a behavior with
+`--requires managedfile`. Its tests must fail only on the rule `used`, because
+no example calls managedfile until the author writes the call.
 
 ## Telemetry every method gets
 
@@ -709,6 +711,7 @@ osapi behavior spec get                                  # each part of the DSL,
 osapi behavior validate                                  # every definition against the rules, each with its fix
 osapi behavior create --name motd --description "x"      # write a new behavior's layout
 osapi behavior create --group network --name neighbors --description "x"  # under a group
+osapi behavior create --name ntpconf --description "x" --requires managedfile  # wired to a block
 ```
 
 Each one takes `--json`. Values come as flags, as in all of the [CLI](cli.md).
@@ -1001,10 +1004,17 @@ var Behavior = behavior.Register(behavior.Define(
 Generic work goes in a building block: an internal behavior that does one job,
 such as managedfile for a file that osapi manages. `behavior spec get` tells
 when to use one and when to make one, and lists each building block in the
-binary. The wiring is written by hand today, in three places: `Requires`,
-`host.Require` in the builder, and `Call` in the provider. osapi-io/osapi#764
-has the next steps: scaffolding the wiring, workflows across hosts, and
-behaviors that call outside APIs.
+binary. The wiring is in three places: `Requires`, `host.Require` in the
+builder, and `Call` in the provider.
+`osapi behavior create --requires <behavior>[,<behavior>...]` writes the first
+two, and a field of the provider for each behavior that it names. The comment on
+the field shows the `Call` to write. The provider test gives a mock of each
+required provider, and tests that the builder declines a host that does not have
+one. The author writes only the calls. Until an example makes a call, the tests
+of the behavior fail the rule `used`, and its message tells the author what to
+add. A name that the registry does not have, or a name given two times, is
+refused. Workflows across hosts are osapi-io/osapi-orchestrator#151. Behaviors
+that call outside APIs are osapi-io/osapi#1064.
 
 - **Building.** `host.Build` builds the provider of each required behavior
   first, for the same host. It puts the provider in the host that the requiring
