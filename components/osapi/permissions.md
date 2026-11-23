@@ -8,29 +8,50 @@ needs.
 
 ```
 agent:read     sysctl:write    command:execute
-job:read       network:write   command:shell
-health:read    file:write      container:execute
-audit:read     container:write container:exec ...
+job:read       dns:write       command:shell
+health:read    file:write      docker:execute
+audit:read     docker:write    docker:exec ...
 ```
 
 The resource is the domain of the endpoint. The verb is what the endpoint does
 to it, and it is not always `read` or `write`. `command:execute`,
-`command:shell`, `container:execute` and `container:exec` exist because to run
+`command:shell`, `docker:execute` and `docker:exec` exist because to run
 something is not the same as to change something. Thus a role can get one
 without the other.
 
 A [behavior](behaviors.md) does not declare permissions. osapi makes the
 permission of each method from the definition:
 
-- the resource is the top-level group, or the name of the behavior when it has
-  no group
+- the resource is the name of the behavior, also when the behavior is in a group
 - the verb is `read` for a `Read` method, `write` for a `Write` method,
   `execute` for an `Action`, such as a service restart, and the verb of
   `.PermitAs(verb)` for an `Action` that has it: `exec` for docker exec, and
   `shell` for command shell, whose `.Shell()` is `.PermitAs(behavior.VerbShell)`
 
-The `get` of sysctl needs `sysctl:read`. dns under `network` needs
-`network:read`, the same as now. `osapi behavior get --name <name>` lists them.
+The `get` of sysctl needs `sysctl:read`. dns under `network` needs `dns:read`.
+`osapi behavior get --name <name>` lists them.
+
+A group puts a behavior in the route and the command tree. It does not put it in
+a permission. Thus a role can get `dns:write` and not `interface:write`. A
+behavior name is unique in the registry, so two behaviors cannot make the same
+permission. A child, such as route under interface, has the permission of its
+parent: a route needs `interface:write`.
+
+The behaviors in a group had the permission of the group before this rule. The
+permissions of the groups changed to these:
+
+| Was                 | Is                                |
+| ------------------- | --------------------------------- |
+| `network:read`      | `dns:read`, `interface:read`      |
+| `network:write`     | `dns:write`, `interface:write`    |
+| `network:execute`   | `connectivity:execute`            |
+| `container:read`    | `docker:read`, `image:read`       |
+| `container:write`   | `docker:write`, `image:write`     |
+| `container:execute` | `docker:execute`, `image:execute` |
+| `container:exec`    | `docker:exec`                     |
+| `log:read`          | `entry:read`, `source:read`       |
+
+A custom role that named a permission of a group must name the new permissions.
 
 Thus a domain that moves to a behavior can change its permission. The node reads
 were all `node:read`. As behaviors, each has its own: `uptime:read`, `os:read`,
@@ -96,7 +117,7 @@ that needs it is marked `AdminOnly()`:
 | ---------------------------------------------- | ------------------------------------------------------ |
 | `command:shell`                                | a shell                                                |
 | `command:execute`                              | `AdminOnly()` on command exec: any command on the host |
-| `container:exec`                               | its verb: docker exec runs any command in a container  |
+| `docker:exec`                                  | its verb: docker exec runs any command in a container  |
 | `user:write`                                   | an account or an SSH key reaches root                  |
 | `schedule:write`                               | a cron entry runs a command as any user                |
 | `admission:write`, `agent:write`, `audit:read` | `AdminOnly()` on the endpoint groups                   |
@@ -111,16 +132,14 @@ Each method that needs a permission marks `AdminOnly()` the same.
 `authtoken.Check` fails when they do not agree, because one permission cannot be
 admin only on one method and not on another.
 
-An action can have a verb of its own, with `.PermitAs(verb)`. The container
-behaviors need it (osapi-io/osapi#1136). docker start and stop, and image pull,
-are actions under the `container` group, so they share `container:execute`, and
-the `operator` role gets it. docker exec runs any command in a container. With
-`.PermitAs(behavior.VerbExec)`, its permission is `container:exec`, which only
-the admin role gets. Without it, exec shares `container:execute`, and
-`authtoken.Check` makes start, stop and pull admin only too, because one
-permission cannot be admin only on one method and not on another. A permission
-for each behavior in a group (osapi-io/osapi#1115) does not separate them:
-`docker:execute` still has start, stop and exec.
+An action can have a verb of its own, with `.PermitAs(verb)`. The docker
+behavior needs it (osapi-io/osapi#1136). docker start and stop are actions of
+the `docker` behavior, so they share `docker:execute`, and the `operator` role
+gets it. docker exec runs any command in a container. With
+`.PermitAs(behavior.VerbExec)`, its permission is `docker:exec`, which only the
+admin role gets. Without it, exec shares `docker:execute`, and `authtoken.Check`
+makes start and stop admin only too, because one permission cannot be admin only
+on one method and not on another.
 
 `.PermitAs` takes only a verb that only the admin role gets: `VerbShell` or
 `VerbExec`. A verb that a different role gets, such as `VerbWrite`, does not
@@ -133,17 +152,15 @@ install scripts, and a sysctl value can weaken the kernel. Thus give
 `automation` only to a program that you trust as root, and say so where it is
 configured. osapi does not hide this behind the role's name.
 
-`read` keeps `log:read`, `file:read` and `process:read`, which can show a
+`read` keeps `entry:read`, `file:read` and `process:read`, which can show a
 secret: a log line, the content of a file, the arguments of a process. A
 dashboard gets `observer`, which reads no log, file or command output.
 
 `trace:read` is in `operator`, `automation`, `auditor` and `read`. A trace shows
 the hosts, operations and errors of a request, the same as the job.
 
-Not covered yet: a permission for each behavior in a group (`network:write`
-covers dns, interface and route, osapi-io/osapi#1115), a token limited to some
-hosts (osapi-io/osapi#1116), and a workflow that acts for a user
-(osapi-io/osapi#1114).
+Not covered yet: a token limited to some hosts (osapi-io/osapi#1116), and a
+workflow that acts for a user (osapi-io/osapi#1114).
 
 ## How a token resolves to a permission set
 

@@ -237,9 +237,10 @@ each command through `h.Exec`.
   `agent.command.enabled` is true: `h.CommandEnabled` has that setting.
   `RunPrivilegedCmdFull` gives `exec` the standard output, the standard error
   and the exit code. An exit code that is not 0 is a result, not a failure.
-- `exec` has `.PermitAs(behavior.VerbExec)`, so its permission is
-  `container:exec`, which only the admin role gets. `start`, `stop` and `pull`
-  keep `container:execute`, which the operator role gets (osapi-io/osapi#1136).
+- `exec` has `.PermitAs(behavior.VerbExec)`, so its permission is `docker:exec`,
+  which only the admin role gets. `start` and `stop` keep `docker:execute`, and
+  the `pull` of image has `image:execute`. The operator role gets both
+  (osapi-io/osapi#1136, osapi-io/osapi#1115).
 
 The write examples run on the container `osapitest`, from `alpine:3.20`.
 
@@ -255,8 +256,8 @@ the Debian family only.
 
 Each filter goes to `journalctl` in one argument with its option, such as
 `--unit=nginx.service`. The generated probe found that a value that starts with
-`-` got to `journalctl` as an option. The permission is `log:read`, the name of
-the group.
+`-` got to `journalctl` as an option. The permissions are `entry:read` and
+`source:read`, the names of the behaviors (osapi-io/osapi#1115).
 
 ## NTP
 
