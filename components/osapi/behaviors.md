@@ -1164,9 +1164,10 @@ The other typed values:
 - **An area** of the UI is an `AreaName`, such as `AreaHardware`. `Areas` lists
   them, and `behavior validate` already refused an area outside it.
 - **A content type** is `client.ContentType`: `ContentRaw` or `ContentTemplate`.
-  The SDK's `FileDeployOpts`, `Stored` in an example, the file provider, the
-  agent and the file endpoints use the constants. The value that a header or a
-  form carries is a string, and the conversion is at that boundary.
+  The SDK's `FileDeployOpts`, `Stored` in an example, the file behavior, the
+  file provider, the agent and the file endpoints use the constants. The value
+  that a header or a form carries is a string, and the conversion is at that
+  boundary.
 
 Two tests in `internal/dslcheck` keep the DSLs typed. They apply to the behavior
 DSL, the endpoint DSL and the command DSL:
