@@ -127,7 +127,7 @@ it, through the CLI runtime that makes the path of a behavior from its
 definition.
 
 Before the cutover of a behavior, its routes have no typed SDK method. After the
-cutover, its spec joins the main spec. Thus the client that oapi-codegen
+cutover, its spec is part of the full spec. Thus the client that oapi-codegen
 generates covers it like each other domain. Then the typed services above can
 come from the spec, and nobody needs to write them by hand.
 
@@ -141,8 +141,8 @@ them and does not repeat them.
 ## Where this connects
 
 [Behaviors](behaviors.md#generated-and-committed) tells what generates the
-specification of the SDK, and the checks that hold the joined specification to
-the server.
+specification of the SDK, and the checks that hold the full specification to the
+server.
 
 The client of the UI comes from **the same** combined specification, through a
 different generator. [The embedded UI](ui.md) describes it.

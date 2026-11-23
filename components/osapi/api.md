@@ -2,7 +2,7 @@
 
 Each operation of the osapi API obeys the same rules: its status codes, its
 error body, the shape of a list, and its name. This page states the rules.
-`TestConventions`, in `internal/apicontract`, reads the joined spec and fails on
+`TestConventions`, in `internal/apicontract`, reads the full spec and fails on
 an operation that breaks one.
 
 The CLI has its own page, [The CLI](cli.md). The two pages agree: a CLI command
@@ -146,14 +146,15 @@ schema lists each reason, with what it means:
 
 The generated routes take the reason from the error that the method maps
 (`endpoint.NotFound`, `.Conflict(...).Because(endpoint.ReasonNotManaged)`). The
-hand-written handlers take it from `apierr`, and the error handler of the API
-takes it from the status. The agent already names the cause of a failed job
-(`internal/job/errors.go`), and the reason carries it to the caller. A test
-fails when `endpoint.Reasons` and the enum of the schema differ, or when the
-schema does not say what a reason means. A reason is the type `endpoint.Reason`,
-and `Because` takes one. Go converts an untyped string literal to the type. Thus
-`endpoint validate` checks each error that a method maps, under the rule
-`reason`, and refuses a reason outside `endpoint.Reasons`.
+token check gives `unauthorized` or `forbidden`, and the error handler of the
+API takes the reason from the status. The agent already names the cause of a
+failed job (`internal/job/errors.go`), and the reason carries it to the caller.
+`endpoint.ErrorSchema` makes the schema from `endpoint.Reasons` and
+`endpoint.ReasonDocs`, so the enum has each reason in order, with what it means.
+A test fails when a reason has no text in `endpoint.ReasonDocs`. A reason is the
+type `endpoint.Reason`, and `Because` takes one. Go converts an untyped string
+literal to the type. Thus `endpoint validate` checks each error that a method
+maps, under the rule `reason`, and refuses a reason outside `endpoint.Reasons`.
 
 Two answers changed with the reason. A not found on a method with no key, such
 as a create whose object is not in the Object Store, was a 500. Not managed and
@@ -162,8 +163,8 @@ had an integer `code`, which repeated the status, and almost nothing set it.
 
 ## The test
 
-`TestConventions` checks the joined spec,
-`internal/controller/api/gen/api.yaml`. It fails when:
+`TestConventions` checks the full spec, `internal/controller/api/gen/api.yaml`.
+It fails when:
 
 - an operationId starts with a small letter
 - an operation answers 202

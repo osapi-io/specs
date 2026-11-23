@@ -108,8 +108,8 @@ var Group = endpoint.Register(endpoint.Define(
 - **A group** is one name, such as `agent`. It is the first segment of each
   path, the CLI group, and the default permissions `agent:read` and
   `agent:write`. `Title` and `Tag` keep the title and the tag of the
-  hand-written spec. The joined spec puts the title in front of each tag, and
-  the UI's client files get their names from the result. Thus the move does not
+  hand-written spec. The full spec puts the title in front of each tag, and the
+  UI's client files get their names from the result. Thus the move does not
   rename them.
 
 - **A method** is `Get`, `Post`, `Put` or `Delete`, with its input and output
@@ -196,8 +196,9 @@ var Group = endpoint.Register(endpoint.Define(
   names what it was called with. Any other error is a 500, and is logged.
 
 - **`Doc[T]("...")`** describes a named type, and **`example:"..."`** gives a
-  field an example. The join fails when two specs define one schema in different
-  words, so a group that shares a schema with another spec copies them.
+  field an example. The generator fails when two groups define one schema in
+  different words, so a group that shares a schema with another group copies
+  them.
 
 - **`.Command(short, long)`** and **`.Example("--flag value")`** give the CLI
   command its own help, for a person at a shell, and its examples. Each input
@@ -246,15 +247,48 @@ It writes these:
 | `docs/docs/sidebar/usage/cli/client/<group>/`         | the CLI pages, from cobra                                     |
 | `ui/src/lib/permissions.gen.ts`                       | the permissions of the group                                  |
 
-The joined spec then has the endpoints and the behaviors, and no hand-written
-part.
+## The full spec
 
-`just generate` runs this generator and the generator of behaviors first. Then
-it joins the spec. Then it runs the rest of `go generate`. The SDK client is
-generated from the joined spec, in the same `go generate` pass as the specs of
-the groups. If the join came first, it would read the old specs of the groups.
-Then one run would leave the joined spec and the SDK stale, and a second run
-would be necessary (osapi#829).
+`internal/controller/api/gen/api.yaml` is the full spec of the API. The SDK
+client, the UI client, the API docs and `internal/apicontract` read it. No part
+of it is written by hand (osapi#833).
+
+`internal/behavior/gen/group` writes it, in the `go generate` step of
+`internal/behaviors/all`. That step builds the spec of each endpoint group that
+the controller serves and of each behavior. `specgen.Full`, in
+`internal/controller/endpoint/gen/specgen`, then joins them:
+
+- The info is the info of the API: the title "osapi", its tagline, the version,
+  the contact and the license. A constant in `specgen` holds it.
+- The endpoint groups come first, then the behaviors. Each set is in the order
+  of the directory of its spec.
+- Each group keeps its own part in that order: its tag, its paths and its
+  schemas. The tag gets the title of its group in front, with `_` for each
+  space, such as `Agent_Management_API_agent_operations`. `x-tagGroups` puts the
+  tag under that title.
+- `ErrorResponse` is the first schema. `endpoint.ErrorSchema` builds it from
+  `endpoint.Reasons` and `endpoint.ReasonDocs`. Thus the schema has each reason
+  that the server sends, with what it means.
+- Two groups that serve one path are an error. Two groups that give one schema
+  or one parameter two shapes are an error too. A schema that two groups give
+  the same shape is in the spec one time.
+
+The spec of each group is in `gen/api.yaml` of the group too. That spec has its
+own copy of `ErrorResponse`. Thus it is complete, and the generated tests of a
+behavior validate each answer against it.
+
+The SDK client is generated in `pkg/sdk/client/gen`. `go generate ./...` runs
+that package after `internal/behaviors/all`, so it reads the new spec. Thus
+`just generate` runs `go generate` one time, and one run leaves nothing stale.
+
+`behavior-gen-check` runs `go generate ./internal/behaviors/all`, and fails when
+a spec of a behavior or the full spec changed.
+
+Before osapi#833, `just generate` joined the specs with `redocly join`. The join
+read a hand-written components spec, which had the info and `ErrorResponse`. The
+generator writes the same spec: a comparison of the two, with the keys sorted,
+found no difference. The join also added `servers: []` to each path. The
+generator does not add it. An empty list on a path has no effect.
 
 ## The commands
 
@@ -319,9 +353,9 @@ hand-written specs stay, and keep serving the API, until then.
    and the hand-written spec and handler of the group are deleted. The commands
    come from the definition too.
 7. **The whole spec, at each step.** Built.
-   `internal/apicontract/testdata/joined.golden` is the contract of the joined
-   spec, and a test holds the joined spec to it. Each pull request that moves a
-   group must leave the joined spec equal to that file. Thus a difference that
+   `internal/apicontract/testdata/joined.golden` is the contract of the full
+   spec, and a test holds the full spec to it. Each pull request that moves a
+   group must leave the full spec equal to that file. Thus a difference that
    falls between the groups also fails, such as a shared schema that changes
    shape. A change to the API that is wanted, such as a new endpoint, writes the
    file again in the same pull request (`-update`), so the diff shows it. When
@@ -335,16 +369,14 @@ accept a line that differs on purpose, with its reason. The agent row accepts
 none, and it went when the hand-written agent spec was deleted.
 
 When the agent group switched, `TestJoinedSpec` passed without `-update`: the
-contract of the API did not change. The Go SDK made from the joined spec is the
+contract of the API did not change. The Go SDK made from the full spec is the
 same, byte for byte. The UI client has the same exports, with its fields in the
 order of kin-openapi. The prose of the agent group's API pages changed: the
 generated 400 and 500 have one description each, not one for each operation.
 
-`redocly join` takes the title and the description of the joined spec from the
-first file that it reads. The join reads the components spec first, so the API
-has its own title, "osapi", and its tagline, whatever the order of the groups
-(osapi#798). Before, the API had the title of the first group, "Agent Management
-API".
+The full spec has the title of the API, "osapi", and its tagline, whatever the
+order of the groups (osapi#798). Before, the API had the title of the first
+group, "Agent Management API".
 
 ## The order
 

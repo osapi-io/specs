@@ -225,7 +225,7 @@ refuses `Of` with `Under`, a parent with no keyed method, and a parent that is
 not registered. The `key` rule also refuses a key whose name in the spec is the
 name of a row type: the request parameter of the key `part` of a behavior
 `zzpart` and a row type `Part` are both `ZzpartPart`, and oapi-codegen fails on
-the joined spec. A throwaway parent and child found that before any real child
+the full spec. A throwaway parent and child found that before any real child
 existed.
 
 The `route` behavior is the first child: a route is under its interface,
@@ -550,19 +550,19 @@ paths for the write access of a privileged step.
 
 osapi serves a behavior under `/api` and `osapi client node`. Its jobs are in
 their own `behavior` category, with operations `behavior.<name>.<method>`. Its
-`gen/api.yaml` joins the main spec. Thus the SDK client, the UI client and the
-API docs cover it.
+spec is part of the full spec ([endpoints](endpoints.md#the-full-spec)). Thus
+the SDK client, the UI client and the API docs cover it.
 
 Each behavior that replaced a hand-written domain deleted that domain in the
 same change. The two never ran side by side: osapi has no `/api/next` and no
 `osapi client next`. [Built-in behaviors](built-in-behaviors.md) has the
 decisions of each move.
 
-A change to the routes of a behavior changes the joined spec, and
-`TestJoinedSpec` in `internal/apicontract` fails. Its golden diff is the change
-to the API. Write it again with `-update`, and read it.
-`TestEveryCommandIsAttached` in `internal/behaviors/all` fails when a behavior
-command is not attached to the command tree.
+A change to the routes of a behavior changes the full spec, and `TestJoinedSpec`
+in `internal/apicontract` fails. Its golden diff is the change to the API. Write
+it again with `-update`, and read it. `TestEveryCommandIsAttached` in
+`internal/behaviors/all` fails when a behavior command is not attached to the
+command tree.
 
 ## Generated, and committed
 
@@ -575,7 +575,7 @@ writes:
 | `internal/behaviors/<name>/gen/api_<method>.go`          | the method's handler and the decoder for its typed input                                                                            |
 | `internal/behaviors/<name>/gen/cli.go`                   | the behavior's commands, from its group, by the endpoint layer's command writer                                                     |
 | `internal/behaviors/<name>/gen/*_public_test.go`         | a test for each of those files, described under the tests below                                                                     |
-| `internal/behaviors/<name>/gen/api.yaml`                 | the behavior's spec, which `just generate` joins into the main one                                                                  |
+| `internal/behaviors/<name>/gen/api.yaml`                 | the behavior's spec, which is also part of the full spec                                                                            |
 | `internal/behaviors/all/gen/gen.go`                      | the import of every behavior's generated code: its routes and commands                                                              |
 | `docs/docs/sidebar/reference/behaviors/<name>/<name>.md` | the behavior's page: `behavior get` and `method get` as markdown ([The docs site](docs-site.md))                                    |
 | `ui/src/lib/blocks.gen.ts`                               | a block of the Configure page for each method that the API serves, from `internal/behavior/uiblocks/gen` ([The embedded UI](ui.md)) |
@@ -602,32 +602,33 @@ behavior are values that no marker can hold.
 
 The spec of a behavior comes from the endpoint layer. The generator writes
 `gen/group.go`: the behavior as an endpoint group, with a request type and a
-response type for each method. Then `internal/behavior/gen/spec`, the second
+response type for each method. Then `internal/behavior/gen/group`, the second
 `go:generate` step, builds the spec of each group with the endpoint layer's
-builder. Thus the wording, the error responses and the validate tags of a
-behavior's spec are the same as an endpoint's, from the same code
-([endpoints](endpoints.md#behaviors-on-endpoints)). The builder uses the
-`openapi3` types of kin-openapi, the library that oapi-codegen uses to read
-specs. A test loads each written spec back and validates it. The keys are in the
-order of kin-openapi, which is alphabetical, not the order that a person uses.
-`TestJoinedSpecIsValid`, in `internal/apicontract`, validates the joined spec
-with kin-openapi. It found an object field whose `example` was a string, which a
-strict tool rejects. The builder now writes the example of an object or a list
-as its JSON.
+builder. The same step writes the full spec of the API
+([endpoints](endpoints.md#the-full-spec)). Thus the wording, the error responses
+and the validate tags of a behavior's spec are the same as an endpoint's, from
+the same code ([endpoints](endpoints.md#behaviors-on-endpoints)). The builder
+uses the `openapi3` types of kin-openapi, the library that oapi-codegen uses to
+read specs. A test loads each written spec back and validates it. The keys are
+in the order of kin-openapi, which is alphabetical, not the order that a person
+uses. `TestJoinedSpecIsValid`, in `internal/apicontract`, validates the full
+spec with kin-openapi. It found an object field whose `example` was a string,
+which a strict tool rejects. The builder now writes the example of an object or
+a list as its JSON.
 
 After osapi generates the spec, nothing else holds the spec to the server. Thus
 two more checks do it:
 
 - The integration tests send each request and each response through a proxy that
-  validates it against the joined spec, with `openapi3filter` of kin-openapi
+  validates it against the full spec, with `openapi3filter` of kin-openapi
   (`test/integration/spec_test.go`). A request or a response that does not agree
   with the spec fails the run. A request that no operation describes fails only
   when the server serves it. The first runs found an object `example` written as
   a string, and DNS that answered `null` where its spec has a list.
 - `just spec-client-check`, one of the slow checks of `just test`, runs
-  oapi-codegen with its default options on the joined spec into a scratch
-  package, and compiles the client. Thus the spec also works for the generator
-  of a different person.
+  oapi-codegen with its default options on the full spec into a scratch package,
+  and compiles the client. Thus the spec also works for the generator of a
+  different person.
 
 The name of a behavior and its Go package are two names. The name is the route,
 the command, the permission and the docs page. The Go package is where the
@@ -645,10 +646,6 @@ rule is the same for each Go file that osapi writes: jen builds it, not a
 template. The move from templates did not change the output. For a behavior with
 no group and for a behavior under a group, each file was the same, byte for
 byte.
-
-The generator joins the spec of each behavior itself, not through
-`redocly join`. This is the start of the removal of that tool. The docs site
-builds an "API (next)" reference from it, next to the current reference.
 
 `gen/cli.go` puts the docs of each method on its cobra command. `.Describe` is
 the `Short`, `.Explain` is the `Long`, and the `Example`s are the command lines
@@ -1348,5 +1345,4 @@ A read from standard input or a prompt is not built.
 The SDK knows routes, not behaviors. It has a generic `Client.Request` to any
 API path. Its typed services, for example `client.Sysctl`, are hand-written over
 the client that oapi-codegen generates from the spec. To generate those typed
-services from the spec too, after the spec of each behavior joins the main spec,
-is osapi-io/osapi#732.
+services from the full spec too is osapi-io/osapi#732.

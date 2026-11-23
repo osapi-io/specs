@@ -229,20 +229,18 @@ checks the permission of the operation that it calls, and no other.
 `go generate ./internal/authtoken/gen/operations` writes
 `ui/src/lib/operations.gen.ts`: the permission of each operation, by the name of
 its function in the generated client. The endpoint groups and the behaviors give
-their operations from their definitions. The hand-written domains give theirs
-from their own specs, `internal/controller/api/node/*/gen/api.yaml`, because
-such a spec is the only definition of its domain. The generator does not read
-the joined spec, which is output. A test in `internal/behaviors/all` fails when
-the two sources do not agree with the joined spec. `BLOCK_OPERATIONS` in
-`ui/src/lib/permissions.ts` names the operation that each of these blocks calls,
-and the permission of the block comes from that file. A behavior block takes its
-permission from `blocks.gen.ts`. TypeScript fails the build on an operation that
-the spec does not have, and a Go test fails when the file is stale. Before
-osapi-io/osapi#1006 the map gave each block a permission by hand, and three were
-wrong after the package and status behaviors had their own permissions: the
-index refresh and the check for updates asked for `package:*`, not
-`updatepackages:*`, and the node status asked for `node:read`, not
-`status:read`.
+their operations from their definitions. No hand-written spec is left
+(osapi#833). The generator does not read the full spec, which is output. A test
+in `internal/behaviors/all` fails when the definitions do not agree with the
+full spec. `BLOCK_OPERATIONS` in `ui/src/lib/permissions.ts` names the operation
+that each of these blocks calls, and the permission of the block comes from that
+file. A behavior block takes its permission from `blocks.gen.ts`. TypeScript
+fails the build on an operation that the spec does not have, and a Go test fails
+when the file is stale. Before osapi-io/osapi#1006 the map gave each block a
+permission by hand, and three were wrong after the package and status behaviors
+had their own permissions: the index refresh and the check for updates asked for
+`package:*`, not `updatepackages:*`, and the node status asked for `node:read`,
+not `status:read`.
 
 The panel refuses a block that has no permission that it knows. The chip of such
 a block is disabled and has a lock, as for a role that does not have the
@@ -425,7 +423,7 @@ not render a page. Thus a click-through in the lab is still necessary
 ## Where this connects
 
 [Behaviors](behaviors.md#generated-and-committed) tells what the client comes
-*from*, and the checks that hold the joined specification to the server.
+*from*, and the checks that hold the full specification to the server.
 
 ______________________________________________________________________
 
