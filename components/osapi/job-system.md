@@ -115,6 +115,50 @@ An operation that runs longer than `AckWait` is **not** delivered again during
 the work, because the agent extends the deadline while the work runs. The
 keepalive in `internal/agent/handler.go` does that.
 
+### An idle consumer goes away
+
+Each consumer of an agent is durable, and its name has the machine ID of the
+agent: `query_direct_<id>`, `modify_label_group_web_<id>`. An agent has six or
+more. `agent.consumer.inactive_threshold` sets the `InactiveThreshold` of each,
+24h by default. NATS removes a consumer that has no fetch for that time. An
+agent that starts again in that time continues with the same consumers.
+
+Before osapi-io/osapi#1154 the consumers had no threshold. Thus a host that got
+a new machine ID, such as a rebuilt VM, kept its old consumers in `osapi-JOBS`.
+In the lab, 125 old machine IDs filled the limit of 1000 consumers, and no agent
+could make its consumers.
+
+The agent makes each consumer with `CreateOrUpdate` each time it starts. Thus a
+consumer that had no threshold gets it at the next start of its agent. An old
+consumer whose agent does not start again has no threshold. It stays until a
+person removes it.
+
+**Keep the threshold at or above `nats.stream.max_age`.** A consumer that NATS
+removed is made again with `DeliverAll`, and it gets each job that is still in
+the stream. When the threshold is longer than the stream keeps a job, those are
+only the jobs that came while the agent was away. A brand-new host replays the
+stream in all cases (osapi-io/osapi#1169).
+
+A drained agent does not fetch. Thus a drain that is longer than the threshold
+removes the consumers of the agent, and the undrain makes them again.
+
+### An agent without its consumers
+
+When the agent cannot make or bind a consumer, for example when the stream has
+its maximum number of consumers, it logs the error, reports the
+`ConsumersUnavailable` condition, and tries again each 10 seconds. The reason of
+the condition gives the number of consumers that do not run and the error of one
+of them. The condition clears when each consumer runs, or when a drain stops
+them. `startConsumer` in `internal/agent/consumer.go` does this.
+
+The scheduling state stays `Ready`. The state is the drain state that an
+operator sets, and the controller reads it to decide which agents must answer a
+broadcast. The condition is the signal that the agent is not ready. A broadcast
+still waits for the agent and shows a `timeout` row when it does not answer, so
+the result does not lose the host without a signal. Before osapi-io/osapi#1154
+the agent logged the error and reported nothing, and each job failed with
+`500 the job could not be sent`.
+
 ## Three limits, bounding different things
 
 Operators misunderstand this part most often.

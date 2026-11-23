@@ -395,6 +395,10 @@ the agent logs a warning and reports the `DrainStuck` condition, amber in the
 CLI and the UI, and goes on heartbeating. An undrain that comes while the agent
 is still `Draining` applies once the drain has finished.
 
+An agent that cannot make or bind its job consumers reports the
+`ConsumersUnavailable` condition and stays `Ready`. Refer to
+[an agent without its consumers](job-system.md#an-agent-without-its-consumers).
+
 `osapi client health status`, and the `status` command of `agent`, `controller`
 and `nats`, print the components from their type, as each command does
 ([the CLI](cli.md#output-comes-from-the-output-type)). Each sub-component is a
