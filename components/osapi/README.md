@@ -57,7 +57,7 @@ operating system.
 | [Admission](admission.md)                   | Which machines can join, the four states, and why admit needs the fingerprint from the machine                                                                           |
 | [Agent identity](agent-identity.md)         | Enrollment, signatures, rotation, and why targeting needs verification                                                                                                   |
 | [The embedded UI](ui.md)                    | The dashboard in the binary, and what it does not verify                                                                                                                 |
-| [The Go SDK](sdk.md)                        | What a service must do, the five naming rules, and the seven methods that break them                                                                                     |
+| [The Go SDK](sdk.md)                        | How the typed services are generated from the spec, where each name comes from, and what is still written by hand                                                        |
 | [The API conventions](api.md)               | Status codes, the error body, the shape of a list, names, and the test that holds each operation to them                                                                 |
 | [The docs site](docs-site.md)               | What the sections of the docs site hold, and which pages are generated from the binary: each reference page is the output of a command                                   |
 | [The CLI](cli.md)                           | A thin shell over the SDK: one command per endpoint, two inherited flags, command and flag names, shared renderers, and the output style                                 |
