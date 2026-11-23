@@ -57,7 +57,6 @@ return the exit status:
 | `systemctl show`     | exits 0, with `LoadState=not-found`              |
 | `systemctl start`    | exits 5                                          |
 | `userdel`, `usermod` | exit 6                                           |
-| Docker API           | a not-found error, that the SDK's helper detects |
 
 A raw exit status tells the user only that something failed. On 19 November
 2026, `package get` on a host without nginx answered `exit status 1`, and
@@ -144,8 +143,9 @@ person wrote by hand. `sysctl` is the example. Only the prefix prevents it from
 writing over the work of an operator.
 
 **A provider that calls an external API.** It has no platform variants. It
-checks availability when osapi makes it, not on the first use.
-`internal/provider/container` is the example.
+checks availability when osapi makes it, not on the first use. No provider does
+this now: `internal/provider/container`, which called the Docker Engine API, was
+deleted when the container behaviors replaced it (osapi-io/osapi#994).
 
 ## Platform selection happens outside the provider
 
