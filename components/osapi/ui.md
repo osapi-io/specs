@@ -68,7 +68,8 @@ The shared components that each page uses for the same thing:
 | a job                   | `JobView` in `components/domain/job-detail.tsx`, as `job get`        |
 | a time, age or duration | `lib/format.ts`                                                      |
 | a pick from a list      | `Picker` in `components/ui/popover.tsx`, with a hook for the list    |
-| a choice in a row       | `components/ui/chip.tsx`                                             |
+| a list of words         | `components/ui/tag-input.tsx`                                        |
+| a read, write or action | `KindMark` in `components/domain/method-kind.tsx`                    |
 | a text field            | `Input`, with an `icon`, and `Textarea` in `components/ui/input.tsx` |
 | a checkbox              | `components/ui/checkbox.tsx`                                         |
 | a load for a form       | `hooks/use-load.ts`, under each resource hook such as `useObjects`   |
@@ -93,14 +94,14 @@ formatter of its own. A field has the name that the CLI gives it, such as
 the same resource. A result's summary line is `2 hosts: 1 ok, 1 skipped`, then
 the whole job ID in gray, as the CLI prints it. A job ID is never cut.
 
-**A result links its job and its trace.** On the Configure page, each block that
-ran shows a line under its card with the job and the trace of its call, whole,
-each with a copy button (`RunLinks` in `components/domain/run-links.tsx`). A
-click on the job opens `/admin/jobs/<id>`, which shows the detail of that job
-above the list. A click on the trace opens `/admin/traces/<id>`. The trace comes
-from the `traceresponse` header of the answer, which the controller sets on each
-answer and the CLI reads for its trace line (`lib/trace.ts`). A block that
-failed keeps its trace too. The links are `IdBadge`s, with no underline.
+**A result links its job and its trace.** On the Plans page, each step that ran
+shows a line under its card with the job and the trace of its call, whole, each
+with a copy button (`RunLinks` in `components/domain/run-links.tsx`). A click on
+the job opens `/admin/jobs/<id>`, which shows the detail of that job above the
+list. A click on the trace opens `/admin/traces/<id>`. The trace comes from the
+`traceresponse` header of the answer, which the controller sets on each answer
+and the CLI reads for its trace line (`lib/trace.ts`). A step that failed keeps
+its trace too. The links are `IdBadge`s, with no underline.
 
 **The Audit page shows the changes first.** The list hides the reads at first,
 because the UI's own polling reads fill the log, and an operator looks for a
@@ -174,134 +175,201 @@ detail of an audit entry shows the scope that the entry records. The UI does not
 hide a host outside the scope. The controller refuses a request to it with 403.
 [Permissions](permissions.md#a-tokens-target-scope) tells the rule.
 
-The registry of behaviors makes a block of the Configure page for each method of
-each behavior that the API serves. `go generate ./internal/behaviors/all` runs
-`internal/behavior/uiblocks/gen`, which writes `ui/src/lib/blocks.gen.ts`. The
-type of a block is the behavior and the method, such as `route-create`. Each
-block has:
+## The catalog of the behaviors
 
-- the fields of the input of the method. Each field has its place in the request
-  (the path, the query or the body), its kind, its doc as the hint, whether it
-  is required, the values of a `oneof` rule, and whether it is a secret.
-- the HTTP method and the path of the route.
-- the permission of the method.
-- the area of the behavior, from `behavior.Area` in its definition.
-- the fields of the rows that the method answers, as the CLI's output reads
-  them: the label, the `render` tag, and the fields of an object or of a list of
-  objects.
+The registry of behaviors makes the catalog of the UI.
+`go generate ./internal/behaviors/all` runs `internal/behavior/uicatalog/gen`,
+which writes `ui/src/lib/catalog.gen.ts`. The catalog has each behavior that the
+API serves, and each internal behavior. Each behavior has:
 
-The Configure page makes the form, the request and the result card from this
-file. `BehaviorBlockForm` shows a text field for each string, number or list,
-and a checkbox for each flag. The block is ready when each required field has a
-value. `runBehavior` in `ui/src/lib/behavior-block.ts` puts each field in its
-place and calls the route. `GenericRowsResult` in `result-card.tsx` groups the
-rows by host and shows each field of the output by its label. It formats a value
-by its `render` tag, as the CLI does: bytes as a size, such as 1.9 GB, a time in
-the one format, and a flag as yes or no. An object is one line, such as
+- its name, its title from its definition, such as "Package updates", its area,
+  its doc and its parent, such as `user` for `sshkey`.
+- the platforms of its providers, such as `debian` and `darwin`.
+- the behaviors that it calls and the behaviors that call it, and its chain, as
+  `osapi behavior chain list` prints it.
+- its methods.
+
+Each method has:
+
+- its kind: `read`, `write` or `action`. The kind is the verb of the permission
+  of the method: `read`, `write`, or a verb of an action (`execute`, `shell` or
+  `exec`).
+- its doc and its long doc.
+- the HTTP method and the path of its route, and its permission. An internal
+  behavior has no route and no permission.
+- the platforms that it runs on: the platforms that its `On` limits it to, else
+  each platform of the behavior.
+- its input and output types, with their fields, as `osapi behavior get` shows
+  them: `UpdateInput { interface_name*, servers }`.
+- the fields of its input. Each field has its place in the request (the path,
+  the query or the body), its kind, its doc, whether it is required, the values
+  of a `oneof` rule, and whether it is a secret.
+- the fields of the rows that it answers, as the CLI's output reads them: the
+  label, the `render` tag, and the fields of an object or of a list of objects.
+- its calls: the calls that its examples make to other behaviors, under the call
+  that made them, each one time. `behaviortest.Chains` runs each example on a
+  fake host and records the calls, as `osapi behavior chain get` does.
+- its examples, with their input and output. A secret of an input is
+  `[redacted]`.
+
+`catalog.gen.ts` also has `AREAS`, which the generator writes from `area.All`:
+the name and the label of each area, in order. A Go test fails when the file is
+stale. The pages read the catalog only through `useCatalog()` in
+`ui/src/hooks/use-catalog.ts`. Thus, when the controller serves the catalog
+later (osapi#1064), only the hook changes. `ui/src/lib/catalog-index.ts` indexes
+the catalog: the behaviors by name, the sections of the Behaviors page by area,
+and the definition of each step that a plan can run. The pages that read the
+catalog load it when a person first opens one of them, because the catalog is
+most of the size of the UI.
+
+Before osapi-io/osapi#1197 the generator was `internal/behavior/uiblocks`. It
+wrote `blocks.gen.ts`, with a block of the Configure page for each method: the
+form, the route, the permission and the columns. It did not write the kind, the
+platforms, the chain or the examples. Thus the page showed a method as a verb
+only, such as "Update". It did not show what the method changes, the permission
+that it needs, the platforms that it runs on, or the behaviors that it calls.
+
+## The Behaviors page
+
+`/behaviors` lists the behaviors by area, in the order of `AREAS`. An area with
+no behavior, such as `fleet`, has no section. The three levels look different:
+
+- An area is a section heading.
+- A behavior is a row: its title, its name, its doc, the behaviors that it
+  calls, and a mark for each method. The mark is `R` for a read, `W` for a write
+  and `A` for an action. A behavior with a parent is after its parent, with an
+  arrow, so "User SSH key" is after "User".
+- A method is on the page of its behavior only.
+
+The marks use colors of the logo, not the status colors: gray for a read, the
+blue of the logo for a write, and magenta for an action. A write is not a
+warning. A mark is faint when the role of the viewer does not have the
+permission of the method. A behavior whose methods the role cannot run has a
+lock. The filter matches each word of the query in the title, the name, the doc
+or a method of a behavior, so `dns update` and `dns.update` both find DNS. The
+internal behaviors are last, in their own section, because a plan cannot run
+them.
+
+`/behaviors/<name>` is the page of a behavior, as `osapi behavior get` and
+`osapi behavior chain get` print it. It shows the area, the parent, the
+platforms, the behaviors that the behavior calls and that call it, and each
+method in a card. The card of a method has its kind, its doc, its input and
+output types and its route, its permission with whether the role of the viewer
+has it, its platforms, a disruption when the method has one, its chain as a
+tree, and its examples. **Add to plan** adds the method to the plan as a step.
+It is disabled when the role does not have the permission. A link such as
+`/behaviors/dns#update` opens the page at the card of the method. Each call of a
+chain links to the page of its behavior.
+
+## Plans
+
+`/plans/new` is the composer. A plan is a list of steps that run in order. A
+step has the shape of a step of a workflow file ([Workflows](workflows.md)):
+`run`, the method as `behavior.method`, such as `dns.update`; `target`; and
+`with`, the input of the method. `ui/src/lib/plan.ts` has the model, as pure
+functions that `bun test` checks. `PlanProvider` keeps the plan while the person
+moves between pages. Thus a method that a person adds from the page of its
+behavior is a step on the Plans page.
+
+The list at the left has each area, then each behavior of the area, then the
+methods of the behavior. A click on a behavior opens it; a click on a method
+adds a step. A filter opens each behavior that matches. A method that the role
+cannot run is disabled and has a lock. The list stays in view as the plan grows,
+and scrolls on its own when it is taller than the window.
+
+The card of a step has its place in the plan, and the title of its behavior and
+its method, such as "DNS · Update". It also has the input and output types of
+the method, the behaviors that the method calls, its kind and its status. A step
+can move up and down. The form of a step comes from the input of its method:
+
+- A field with the values of a `oneof` rule is a select.
+- A list is a field of tags. Enter, a comma or a space adds a tag.
+- A flag is a checkbox, and an object is JSON.
+- Another field takes text or a `@fact.` reference.
+- The doc of each field stays under the field, so it does not go when a person
+  types.
+
+A new read starts with the target `_all`. A new write or action has no target.
+The card asks for the hosts, and the step is pending, until it has a target. Run
+does not run a pending step. Before osapi-io/osapi#1166 each new block of the
+Configure page started with `_all`, also a reboot or a delete. Thus a person who
+applied with no look changed each host.
+
+Above the steps, a preflight shows what the plan needs:
+
+- each permission of its steps, and whether the role of the viewer has it. The
+  controller makes the same check on each call.
+- each host of a target where a method does not run. The preflight reads the
+  platform of a host from the name of its distribution, because the agent does
+  not report the family that gohai detects (osapi#1224). A method that runs on
+  `linux` runs on each Linux host and not on macOS, as the agent resolves a
+  provider.
+- the count of steps that wait for input or a target.
+
+The preflight refuses nothing. **Run** runs each step that can run, in order,
+and continues after a step fails. Each step that ran shows its job and its
+trace, its result, and the chain of calls of its job on each host. The bar with
+Run is pinned to the bottom of the window. After a run, the bar says what the
+run did, such as `3 ran: 3 ok`, and has Clear, to start over, and Run again.
+
+**Export YAML** shows the plan as a workflow file, read only, with a button that
+copies it. A step with no target has a comment in place of its target. A secret
+is `<secret>`. The UI does not save a plan. Save comes with workflow files.
+Before osapi-io/osapi#1197 the Configure page had saved stacks, which were mock
+data behind a flag, and a Save that wrote to the console.
+
+The Object Store area of the list has four steps that run on the controller:
+`objectstore.list`, `objectstore.upload`, `objectstore.delete` and
+`objectstore.stale`. They are not behaviors, so they are not on the Behaviors
+page. They take no target. Each names the operation that it calls in
+`catalog-index.ts`, and its permission comes from
+`ui/src/lib/operations.gen.ts`, which
+`go generate ./internal/authtoken/gen/operations` writes. TypeScript fails the
+build on an operation that the spec does not have. A workflow cannot run them
+yet, so the YAML has them as a comment. The audit log is not in the list. The
+Audit page, at `/admin/audit`, lists, opens and exports the entries.
+
+A step is refused when its permission is not one that the UI knows. `permitted`
+in `ui/src/lib/permissions.ts` allows a permission only when it is in the
+generated list of permissions and the role has it. Before osapi-io/osapi#1161
+the panel of the Configure page enabled a block that had no permission. Command
+exec and ping had no entry, so a role that cannot run a command saw both
+enabled.
+
+The result of a method groups its rows by host and shows each field of the
+output by its label (`GenericRowsResult` in `result-card.tsx`). It formats a
+value by its `render` tag, as the CLI does: bytes as a size, such as 1.9 GB, a
+time in the one format, and a flag as yes or no. An object is one line, such as
 `total 1.9 GB, free 843.7 MB, used 253.2 MB`. A list of objects, such as the
 disks of a host, is one line for each item under the row. A host whose one row
-is only a list counts the items: `4 disks`. Thus a new method of a behavior gets
-its block, and a changed input or output changes its block, with no change to
-the UI. A Go test fails when the file is stale.
+is only a list counts the items: `4 disks`. No behavior has a card of its own.
+Thus a new method gets its step, and a changed input or output changes its step,
+with no change to the UI. Before osapi-io/osapi#1027 the blocks of disk, memory
+and status had hand-written cards. Before osapi-io/osapi#1007 each behavior
+block had a hand-written form, call and card. The cards of packages and services
+read the nested lists of the hand-written domains after those became behaviors,
+and showed "0 packages" on each row (osapi-io/osapi#972, #1018). A click-through
+in the lab found them, which a type check of the UI does not
+([AGENTS.md](../../AGENTS.md#use-the-lab)).
 
-Some behavior of the generic block is not clear from the code:
+Some behavior of a request is not clear from the code:
 
 - The request keeps `@` and `:` in a path key. The controller reads a path key
   as the client sends it. Thus an escaped `@fact.` reference does not resolve,
   and the controller refuses it.
 - A flag goes in the request only after a person sets it. Thus a flag that
   nobody touched keeps the default of the API.
-- A refusal (a status of 400 or more) puts the block in its error state, with
-  the `error` and the `reason` of the answer.
-- A behavior's blocks go in the area of the Add Block panel that its
-  `behavior.Area` names. `blocks.gen.ts` also has `AREAS`, which
-  `internal/behavior/uiblocks` writes from `area.All`: the name and the label of
-  each area, in order. `BLOCK_AREAS` in `ui/src/hooks/use-stack.ts` is `AREAS`
-  with the blocks of each area, and the panel has no tab for an area with no
-  block, such as `fleet` and `audit`. The area of a hand-written block is an
-  `AreaName`, the union that `blocks.gen.ts` writes, so TypeScript fails the
-  build for an area that is not in `area.All`. [Areas](endpoints.md#areas) tells
-  where the areas come from.
-- In an area, a behavior's blocks are in a category with the title of the
-  behavior, from its definition, such as "Package updates". The UI has no list
-  of names of its own. A hand-written block gives the label of its category. The
-  categories are in the order of the commands of the CLI, so "User SSH key" is
-  after "User", and "Interface route" is after "Interface".
-
-No behavior block has a card of its own. Until osapi-io/osapi#1027 the blocks of
-disk, memory and status had hand-written cards, and a person placed each
-behavior in a group by hand. The cards showed sizes from bytes and the fields of
-objects. The `render` and `label` tags of the output, which the CLI already
-read, say the same, so the generic card shows them now. Before
-osapi-io/osapi#1007 each behavior block had a hand-written form, call and card.
-The cards of packages and services read the nested lists of the hand-written
-domains after those became behaviors, and showed "0 packages" on each row
-(osapi-io/osapi#972, #1018). A click-through in the lab found them, which a type
-check of the UI does not ([AGENTS.md](../../AGENTS.md#use-the-lab)).
-
-A block that a person writes by hand, such as a cron job or a file upload,
-checks the permission of the operation that it calls, and no other.
-`go generate ./internal/authtoken/gen/operations` writes
-`ui/src/lib/operations.gen.ts`: the permission of each operation, by the name of
-its function in the generated client. The endpoint groups and the behaviors give
-their operations from their definitions. No hand-written spec is left
-(osapi#833). The generator does not read the full spec, which is output. A test
-in `internal/behaviors/all` fails when the definitions do not agree with the
-full spec. `BLOCK_OPERATIONS` in `ui/src/lib/permissions.ts` names the operation
-that each of these blocks calls, and the permission of the block comes from that
-file. A behavior block takes its permission from `blocks.gen.ts`. TypeScript
-fails the build on an operation that the spec does not have, and a Go test fails
-when the file is stale. Before osapi-io/osapi#1006 the map gave each block a
-permission by hand, and three were wrong after the package and status behaviors
-had their own permissions: the index refresh and the check for updates asked for
-`package:*`, not `updatepackages:*`, and the node status asked for `node:read`,
-not `status:read`.
-
-The hand-written blocks are the blocks of the Object Store (`object-list`,
-`object-upload`, `object-delete` and `object-stale`), in the area `objectstore`.
-The Configure page has no block of the audit log. The Audit page, at
-`/admin/audit`, lists, opens and exports the entries. Before osapi-io/osapi#1208
-the panel had an Audit tab with the same three operations.
-
-The panel refuses a block that has no permission that it knows. The chip of such
-a block is disabled and has a lock, as for a role that does not have the
-permission. The type of a hand-written block is a key of `BLOCK_OPERATIONS`.
-Thus TypeScript fails the build for a hand-written block that has no operation.
-Before osapi-io/osapi#1161 the panel enabled a block that had no permission.
-Command exec and ping had no entry, so a role that cannot run a command saw both
-enabled. The controller refused the request with 403, thus the error was in the
-UI only. The panel also showed power reboot and shutdown two times: a
-hand-written copy and the behavior block.
-
-The Configure page keeps the stack and its controls in reach. The panel of
-blocks stays in view as the stack grows, and scrolls on its own when it is
-taller than the window. A new block gets the focus, which brings it into view.
-The bar with Apply is pinned to the bottom of the window. After Apply the stack
-keeps each block and its result. The bar then says what the run did, such as
-`3 applied: 3 ok`, and has Clear, to start over, and Run again, which makes the
-stack ready to apply again. A selected chip has the border and fill that a chip
-under the pointer has, a little stronger, and white text. It has no colored
-line, and it is not green, because green is a status (osapi-io/osapi#1043). The
-block that has the focus has the border that a card under the pointer has, not a
-blue ring. A block with a status keeps the border of its status.
-
-A new block of a behavior that writes or runs an action has no target. The card
-asks for the hosts. Apply does not run the block, and the card shows it as
-pending, until it has a target. A read starts with `_all`. A block that runs on
-the controller, such as a file upload, keeps `_all` and does not use it. Before
-osapi-io/osapi#1166 each new block started with `_all`, also a reboot or a
-delete. Thus a person who applied with no look changed each host. The chip and
-the card of each block show whether the block is a read, a write or an action.
-The mark is the verb of the permission of the block: `read`, `write`, or a verb
-of an action (`execute`, `shell` or `exec`).
+- A refusal (a status of 400 or more) puts the step in its error state, with the
+  `error` and the `reason` of the answer.
 
 `JobView` shows the chain of calls of a job, as `osapi client job get` does. For
 each host that answered with steps, its Chain section shows each call as
 `behavior.method`, under the call that made it. Each call has `changed`, the
 error of a call that failed, and its duration. A job that has `chain` lines and
-no steps shows the lines. The Jobs page and the job panel of a Configure result
-both use `JobView`. Before osapi-io/osapi#1162 the UI did not show the steps
-that the job API returns.
+no steps shows the lines. The Jobs page and the job panel of a step's result
+both use `JobView`. Under the result of a step, `JobChain` shows the same tree
+with no click. Before osapi-io/osapi#1162 the UI did not show the steps that the
+job API returns.
 
 ## Color: one palette with the CLI
 
@@ -437,8 +505,8 @@ The UI has its own checks: `just react-lint`, `just react-test`,
 `just react-unit` runs `bun test` on the `src/**/*.test.ts` files of the UI. bun
 runs the tests itself, with no test package, and `tsconfig.test.json` checks
 their types. It is one of the quick checks of `just test`, so CI runs it. The
-tests read the logic of the pages, such as the permission of a block. They do
-not render a page. Thus a click-through in the lab is still necessary
+tests read the logic of the pages, such as the permission of a step. They do not
+render a page. Thus a click-through in the lab is still necessary
 ([AGENTS.md](../../AGENTS.md#use-the-lab)).
 
 ## Where this connects
