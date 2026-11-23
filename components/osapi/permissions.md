@@ -9,14 +9,14 @@ needs.
 ```
 agent:read     sysctl:write    command:execute
 job:read       network:write   command:shell
-health:read    file:write      docker:execute
-audit:read     docker:write    ...
+health:read    file:write      container:execute
+audit:read     container:write ...
 ```
 
 The resource is the domain of the endpoint. The verb is what the endpoint does
 to it, and it is not always `read` or `write`. `command:execute`,
-`command:shell` and `docker:execute` exist because to run something is not the
-same as to change something. Thus a role can get one without the other.
+`command:shell` and `container:execute` exist because to run something is not
+the same as to change something. Thus a role can get one without the other.
 
 A [behavior](behaviors.md) does not declare permissions. osapi makes the
 permission of each method from the definition:
@@ -90,13 +90,14 @@ A permission is admin only when its verb is `shell`, when a method that needs it
 is marked `AdminOnly()`, or when it is one of the hand-written domains' admin
 permissions in `builtinAdminOnly`:
 
-| Admin only                                     | Why                                        |
-| ---------------------------------------------- | ------------------------------------------ |
-| `command:shell`                                | a shell                                    |
-| `command:execute`, `docker:execute`            | any command, on the host or in a container |
-| `user:write`                                   | an account or an SSH key reaches root      |
-| `schedule:write`                               | a cron entry runs a command as any user    |
-| `admission:write`, `agent:write`, `audit:read` | `AdminOnly()` on the endpoint groups       |
+| Admin only                                     | Why                                                        |
+| ---------------------------------------------- | ---------------------------------------------------------- |
+| `command:shell`                                | a shell                                                    |
+| `command:execute`                              | any command on the host                                    |
+| `container:execute`                            | `AdminOnly()`: docker exec runs any command in a container |
+| `user:write`                                   | an account or an SSH key reaches root                      |
+| `schedule:write`                               | a cron entry runs a command as any user                    |
+| `admission:write`, `agent:write`, `audit:read` | `AdminOnly()` on the endpoint groups                       |
 
 `schedule:write` is admin only from `AdminOnly()` on the create, update and
 delete methods of the schedule behavior (osapi-io/osapi#1106), not from
@@ -105,6 +106,14 @@ delete methods of the schedule behavior (osapi-io/osapi#1106), not from
 A behavior or a group that takes over a hand-written domain marks the same
 methods `AdminOnly()`, and `authtoken.Check` fails until it does, because one
 permission cannot be admin only on one method and not on another.
+
+The container behaviors show the cost (osapi-io/osapi#994). docker exec, which
+runs any command in a container, is an action, so its permission is
+`container:execute`. docker start and stop, and image pull, are actions under
+the same group, so they share that permission. Thus each of them is marked
+`AdminOnly()`, and the `operator` role cannot start or stop a container. A
+permission for each action, or for each behavior in a group
+(osapi-io/osapi#1115), would give an operator start and stop without exec.
 
 `file:write`, `package:write` and `sysctl:write` stay with `automation`. Each of
 them can reach root: a file can be a unit or a sudoers entry, a package runs

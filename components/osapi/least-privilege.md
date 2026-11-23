@@ -189,19 +189,21 @@ on, a command runs as the user of the agent. Under this plan, that user is
 Either operation is a root shell for a job sender when the agent is root. It is
 a shell as `osapi` when the agent is not.
 
-**Later: a behavior, like the others.** Command exec and docker exec become
-behaviors. Command exec declares one privileged step, marked `RootEquivalent()`.
-To let commands run as root, an admin installs the sudoers file that
+Docker exec is a behavior now: the `exec` action of the `docker` behavior
+(osapi-io/osapi#994). Its permission is `container:execute`, and it is
+`AdminOnly()`. It reads `h.CommandEnabled` and refuses the call when
+`agent.command.enabled` is false. It runs `docker exec` with sudo, as each write
+of the behavior does.
+
+**Later: a behavior, like the others.** Command exec becomes a behavior. It
+declares one privileged step, marked `RootEquivalent()`. To let commands run as
+root, an admin installs the sudoers file that
 `behavior get --name command --section sudoers` renders. That file is the
-opt-in. Without it, no command runs as root, whatever a job asks. Docker exec
-needs no sudoers rule: access to the Docker socket is already root-equivalent,
-and its docs page says so.
+opt-in. Without it, no command runs as root, whatever a job asks.
 
-This waits for two platform changes. The "Not yet" list of the build-a-behavior
-skill names both:
-
-- action methods, because `exec` is not create, update or delete
-- the `execute` permission Until then, `agent.command.enabled` is the switch.
+The two platform changes that it waited for are built: action methods, because
+`exec` is not create, update or delete, and the `execute` permission of an
+action. Until command exec is a behavior, `agent.command.enabled` is the switch.
 
 A missing typed operation becomes its own behavior. It is validated and safe to
 run twice, so it is a better answer than command exec.
@@ -264,8 +266,7 @@ harder to render. polkit, as above.
 6. One customer page that replaces `architecture/security.md`'s privilege part
    and `features/agent-hardening.md`, whose sudoers examples grant root.
 7. The skills.
-8. Command exec and docker exec as behaviors, after action methods and the
-   `execute` permission exist.
+8. Command exec as a behavior. Docker exec is one (osapi-io/osapi#994).
 
 Two problems found during this work are fixed. The agent no longer replaces a
 key that it cannot read (osapi #695). `osapi client agent delete` removes the

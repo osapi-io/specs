@@ -53,6 +53,18 @@ writes that change it. It still runs on each family, because the family selects
 only writes. Ohai is the test when it is not clear: a read that Ohai has no
 plugin for, and that a daemon or a remote index answers, is not gohai's.
 
+The `docker` collector is an exception to this rule. The Docker daemon answers
+it, and Ohai has no plugin for it, but the owner of osapi decided that osapi
+reads containers through gohai (osapi-io/osapi#994). The reason is that a
+container on a host is a fact for each caller of gohai, as a package is, not
+only state that osapi manages. One collector also gives one shape and one fake
+host for the tests, and the docker and image behaviors of osapi read it. The
+collector runs `docker version`, `docker ps -a --no-trunc`, one `docker inspect`
+for each container, and `docker images`. It returns the names of the environment
+variables of a container, never their values, because the values often hold
+secrets (osapi-io/gohai#327). A host where `docker version` does not answer has
+no docker facts.
+
 ## What each collector is, from the binary
 
 `gohai.Collectors()` describes each built-in collector, and `gohai collector`

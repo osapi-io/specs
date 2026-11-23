@@ -263,12 +263,12 @@ yet. Each is a platform change. This page designs it before somebody builds it.
 Each one unblocks a set of domains. Action methods, such as `service restart`,
 and the Object Store on `host.Host` are built (osapi-io/osapi#985). A resource
 under another is built with `behavior.Of` (osapi-io/osapi#986). Thus they are
-not in the table. A container's images are at `/container/docker/image/{image}`,
-which is not under a container, so they need no `Of`:
+not in the table. Docker exec moved with the container behaviors
+(osapi-io/osapi#994), so it is not in the table either:
 
-| Missing                                                     | Operations                          | Blocks             |
-| ----------------------------------------------------------- | ----------------------------------- | ------------------ |
-| The `execute` and `shell` permissions beside read and write | command exec and shell, docker exec | command, container |
+| Missing                                                     | Operations             | Blocks  |
+| ----------------------------------------------------------- | ---------------------- | ------- |
+| The `execute` and `shell` permissions beside read and write | command exec and shell | command |
 
 Power is a behavior (osapi-io/osapi#1111). `reboot` and `shutdown` are actions,
 so their permission is `power:execute`, and the `operator` role has it. On the
@@ -380,6 +380,26 @@ path segment, so `10.0.0.0%2F8` has no route. The routes of the whole host are
 in the facts of the agent; the behavior has no list of them. The interface name
 rule, `interface_name`, is in the shared registry, because dns, interface and
 route each use it. With routes, no hand-written code reads or writes netplan.
+Containers are two behaviors under `container` (osapi-io/osapi#994): `docker`,
+at `/api/node/{hostname}/container/docker`, and `image`, at
+`/api/node/{hostname}/container/image`. Their reads go through gohai's docker
+collector, which is an exception to gohai's rule for a daemon's state
+([collectors](../gohai/collectors.md#what-gohai-reads)). Their writes run the
+docker CLI with sudo, not the Docker Engine API, because a provider runs each
+command through `h.Exec`. create sends the environment on docker's standard
+input with `--env-file /dev/stdin`, so that no value is in the arguments, which
+each user of the host can read. A container or an image that the host has
+already is not made or pulled again, and reports `changed: false`. A pull
+compares the image ID before and after it. exec is an action marked `.Always()`.
+The agent refuses it unless `agent.command.enabled` is true: `h.CommandEnabled`
+carries that setting, and `RunPrivilegedCmdFull` gives exec the standard output,
+the standard error and the exit code. An exit code that is not 0 is a result,
+not a failure. Each action of the two behaviors is `AdminOnly()`, because exec
+shares `container:execute` with start, stop and pull
+([permissions](permissions.md)). The permissions `docker:read`, `docker:write`
+and `docker:execute` are gone. The write examples run on the container
+`osapitest`, from `alpine:3.20`.
+
 Log (osapi-io/osapi#1105), ping (osapi-io/osapi#1110), NTP (osapi-io/osapi#1104)
 and certificate (osapi-io/osapi#1108) moved. The "Not yet" list of the
 build-a-behavior skill is this table. Thus an agent that gets a request for one
@@ -428,12 +448,12 @@ by hand, the next `just generate` writes over the change. The file stays in git,
 so that a reviewer can read the diff. `just behavior-gen-check`, which
 `just test` runs, generates the files again and fails on each difference.
 
-**Not everything fits the template.** File upload, `docker exec` and command
-execution stream data, or take multipart bodies. The generated handlers cover a
-request that has one typed input and one typed output for each host. A behavior
-that needs more keeps a hand-written handler for that one method. The definition
-says so explicitly, not by omission. That handler registers its own route next
-to the generated routes.
+**Not everything fits the template.** File upload and command execution stream
+data, or take multipart bodies. The generated handlers cover a request that has
+one typed input and one typed output for each host. A behavior that needs more
+keeps a hand-written handler for that one method. The definition says so
+explicitly, not by omission. That handler registers its own route next to the
+generated routes.
 
 **Path parameters lose their validation tags in strict-server generation.** That
 is why `node/sysctl/validate.go` states `required,min=1,sysctl_key` again now.
@@ -446,10 +466,10 @@ Nothing breaks in osapi-orchestrator until somebody updates the pin. Then
 `pkg/orchestrator/ops.go` breaks for each migrated behavior. Each migration
 merges with an orchestrator change next to it.
 
-**The docker domain does not obey the naming.** The names of its operations look
-like `docker.create.execute`. It moves last, and the move fixes their names. The
-certificate domain also dispatched under its own category, as
-`certificate.ca.list`. The move to a behavior fixed it.
+**The docker domain did not obey the naming.** The names of its operations
+looked like `docker.create.execute`. The move to the docker and image behaviors
+fixed them (osapi-io/osapi#994). The certificate domain also dispatched under
+its own category, as `certificate.ca.list`. The move to a behavior fixed it.
 
 ## Not covered here
 

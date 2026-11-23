@@ -171,8 +171,6 @@ These choices are deliberate:
 - **The health endpoints and the files of the UI have no spans.** A probe and
   the UI call them each few seconds, and their traces hide the traces of the
   jobs.
-- **The startup ping of Docker has no span.** On a host without Docker, it is an
-  error with no request behind it.
 
 Two tests hold the tree at the one place where it crosses a process: the headers
 of the NATS message. The test in `internal/job/client` checks that `job.publish`
