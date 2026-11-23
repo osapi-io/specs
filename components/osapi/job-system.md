@@ -28,14 +28,17 @@ The definition holds the job's ID, its created time, its NATS subject, the
 target that the request gave (`_all`, a hostname or a label) and its operation.
 The job list and `osapi client job get` show the target from it, not the one
 host that answered. A job stored before targets were kept has none, and the API
-gives the host that answered. The answer of `GET /api/job/{id}` has the
-responses and the agent states as lists sorted by hostname, each with its
-hostname, and the operation as its `type` and its `data`. With PKI on, the
-controller writes the definition inside a signed envelope. Each reader of the
-definition, the list, the detail and a retry included, takes the envelope's
-payload and checks its signature with the controller's key first. A reader that
-parsed the envelope as the definition would find no created time and no
-operation.
+gives the host that answered. A token with a target scope sees only the jobs
+whose stored target is in its scope. Thus a list for a scoped token reads the
+definition of each job before it counts and pages them, and an unscoped list
+reads only its page. [Permissions](permissions.md#a-tokens-target-scope) has the
+rule. The answer of `GET /api/job/{id}` has the responses and the agent states
+as lists sorted by hostname, each with its hostname, and the operation as its
+`type` and its `data`. With PKI on, the controller writes the definition inside
+a signed envelope. Each reader of the definition, the list, the detail and a
+retry included, takes the envelope's payload and checks its signature with the
+controller's key first. A reader that parsed the envelope as the definition
+would find no created time and no operation.
 
 osapi records the status as **events that it only adds**. It does not change a
 field. Thus the history of a job stays after the job. Later, a reader can see

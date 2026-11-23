@@ -277,9 +277,27 @@ retry without a target goes to `_any`, so a scoped token must name a target. The
 middleware puts the scope in the context of the request, and `authtoken.InScope`
 reads it there. The audit entry records the scope.
 
-The scope limits where a token acts. It does not limit the reads of the
-controller, such as the jobs, the traces and the audit log. osapi-io/osapi#1188
-has that decision.
+The scope also limits what the token reads of the jobs, the traces and the audit
+log (osapi-io/osapi#1188). `authtoken.Sees` has the rule. A token without a
+scope sees each record. A scoped token sees a record only when the record has a
+target and `authtoken.InScope` accepts that target:
+
+- **A job** has the target that its definition stores.
+- **An audit entry** has the `{hostname}` of a `/api/node/{hostname}/` path. The
+  endpoint reads it from the path that the entry records, so an old entry needs
+  no change. An entry of a request with no target, such as `GET /api/job`, has
+  no target.
+- **A trace** has each `osapi.target` that its spans record. The token sees the
+  trace only when a span records a target and each target is in the scope.
+
+**The rule fails closed.** A record with no target, or with the target `_all` or
+`_any`, is hidden from a scoped token, because it can tell about hosts outside
+the scope. A list leaves out each hidden record, and its totals and status
+counts include only the records that the token sees. A get of a hidden record
+gets 404, the same as a record that does not exist. A delete or a retry of a
+hidden job also gets 404, because for the token the job does not exist. A retry
+checks its new target first, so its 403 does not tell whether the old job
+exists.
 
 ## What checks it
 
