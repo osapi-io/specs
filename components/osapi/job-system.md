@@ -133,11 +133,24 @@ consumer that had no threshold gets it at the next start of its agent. An old
 consumer whose agent does not start again has no threshold. It stays until a
 person removes it.
 
-**Keep the threshold at or above `nats.stream.max_age`.** A consumer that NATS
-removed is made again with `DeliverAll`, and it gets each job that is still in
-the stream. When the threshold is longer than the stream keeps a job, those are
-only the jobs that came while the agent was away. A brand-new host replays the
-stream in all cases (osapi-io/osapi#1169).
+**A new consumer gets only the jobs that come after it.** The agent makes each
+consumer with `DeliverNew`. Thus a new host, a new machine ID or a new label
+does not run the jobs that the stream kept from before the consumer existed. A
+durable consumer keeps its position. Thus an agent that starts again with the
+same consumers gets the jobs that came while it was away. A start time on the
+agent cannot do that, so the deliver policy is the start point
+(osapi-io/osapi#1169).
+
+**Keep the threshold at or above `nats.stream.max_age`.** Then the consumer of
+an agent that is away stays while the stream keeps a job for it. A consumer that
+NATS removed is made again with `DeliverNew`, and the agent does not get the
+jobs that came while it was away.
+
+NATS does not change the deliver policy of a consumer that exists. When
+`CreateOrUpdateConsumer` fails, the job client looks at the consumer that
+exists. If its deliver policy is different, such as a consumer that an earlier
+build made with `DeliverAll`, the client removes the consumer, makes it again
+and logs a warning. Thus an upgraded agent gets its consumers with no person.
 
 A drained agent does not fetch. Thus a drain that is longer than the threshold
 removes the consumers of the agent, and the undrain makes them again.
