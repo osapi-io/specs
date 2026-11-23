@@ -245,8 +245,8 @@ verify it. When the UI hides something, that does not protect it.
 
 ## Where this connects
 
-[Building a domain](domains.md) tells how to add a domain. It also tells where
-to register a new permission, and why a handler wraps its own middleware.
+[Behaviors](behaviors.md#how-a-behavior-is-served) tells how the permissions of
+a behavior come from its definition, and how the persona roles get them.
 
 [The embedded UI](ui.md) tells what the UI does with the roles claim, and why
 its decode is not a verification.

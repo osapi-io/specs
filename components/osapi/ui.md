@@ -389,9 +389,8 @@ Docusaurus build for its documentation.
 
 ## Where this connects
 
-[Building a domain](domains.md) tells what the client comes *from*. It also
-tells why the client cannot see a domain that is not in the combined
-specification.
+[Behaviors](behaviors.md#generated-and-committed) tells what the client comes
+*from*, and the checks that hold the joined specification to the server.
 
 ______________________________________________________________________
 

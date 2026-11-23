@@ -77,7 +77,11 @@ It sends the agent to the sources that cannot become incorrect. It does not copy
 them:
 
 - `go doc ./internal/behavior` for the options of the definition
-- `osapi behavior create` for the layout
+- `osapi behavior create` for the layout. The first design kept templates in the
+  references of the skill, for the agent to copy. The build showed that the
+  templates were a second copy of the layout, which people must keep current by
+  hand. Thus the layout exists one time, in the command, and
+  `just behavior-scaffold-check` builds and tests what it writes.
 - `behavior get` and `validate` for what registered
 - `internal/behaviors/sysctl` as the reference
 
@@ -110,6 +114,10 @@ describes itself. Thus the skill sends an agent to `behavior list`,
 `behavior get` and `go doc` to learn what each behavior, building block and
 option is, and to believe them over the skill.
 
+osapi has no MCP server for the same reason. The registry makes one easy to
+write. But the CLI help and `behavior get` are sufficient for an agent, and a
+second interface is a second thing to keep consistent.
+
 If a capability is not there, the agent reports the gap. The skill does not list
 gaps before they occur. For example, the `apptoken` eval found that
 `managedfile` could not set the owner of a file. After the fix, `behavior get`
@@ -139,14 +147,30 @@ thing, and what does "already done" look like.
 
 The "Not yet" list names what a behavior cannot express. An example is an action
 method that streams. When an agent gets a request for one, it says so and stops.
-It does not add code around the platform. This list is the same as the blockers
-in [the migration plan](behavior-migration.md), and it becomes shorter as people
-build them.
+It does not add code around the platform. The list becomes shorter as people
+build the items. [Behaviors](behaviors.md#not-built-yet) has the parts of the
+platform that are not built yet.
 
 `test/skills/build-a-behavior/` has the requests that measure the skill, and
 `run.sh`. They test the skill, so they are not part of it, and the binary does
 not have them. `run.sh` runs each request in a new session and checks the result
 with commands. Nobody reads the result to check it.
+
+The requests cover these cases:
+
+- a served behavior
+- a behavior that runs a program with sudo and declares refusals
+- an internal behavior that a different behavior requires
+- a behavior for one platform
+- a secret input
+- a behavior in a group
+- a request that the platform cannot express. It passes when the skill says so.
+- a request that is not clear enough to build. It passes when the skill asks.
+
+The first run of the internal behavior found that the fake host could not model
+state that a program keeps. `PrintsAfter` now does this. The build of the
+grouped behavior found that `osapi behavior create` could not write a behavior
+in its group. `--group` now does this.
 
 The tool loads `SKILL.md` when a request matches its description. A reference
 loads only when the routing table sends the agent to it. Thus a session pays

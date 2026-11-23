@@ -13,9 +13,8 @@ The issue is osapi-io/osapi#900.
 ## Why
 
 `cmd/` has 178 files. 121 of them are the commands of the node domains that are
-not behaviors yet. They go as each domain moves
-([the plan](behavior-migration.md)). The other 57 stay, and a person writes each
-one:
+not behaviors yet. They go as each domain moves ([behaviors](behaviors.md)). The
+other 57 stay, and a person writes each one:
 
 | Kind                                    | Files | Examples                                                                                           |
 | --------------------------------------- | ----: | -------------------------------------------------------------------------------------------------- |
@@ -295,8 +294,8 @@ Each check has its rule and its fix, as for endpoints.
    `cli-docs`, is `osapi cli docs generate`: a group under `cli` that gets the
    root command as a dep and writes the CLI reference pages. Thus each local
    command comes from a definition. `cmd/` keeps the root, the wiring and the
-   parents of hand-written commands. The `client node` commands go with
-   [the behavior migration](behavior-migration.md).
+   parents of hand-written commands. The `client node` commands come from
+   [behaviors](behaviors.md).
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's
@@ -361,5 +360,4 @@ log of the config is still written in its setup.
 - The rules for names, flags and output: [the CLI](cli.md).
 - The endpoint and behavior DSLs: [endpoints](endpoints.md) and
   [behaviors](behaviors.md).
-- The node domain commands, which go with
-  [the behavior migration](behavior-migration.md).
+- The node commands, which come from [behaviors](behaviors.md).

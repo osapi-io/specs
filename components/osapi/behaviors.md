@@ -14,9 +14,10 @@ parts of each method from that definition:
 
 Nobody writes these by hand in each layer.
 
-Behaviors replace [providers](providers.md), one domain at a time. sysctl is the
-first. [The migration plan](behavior-migration.md) has the order of the others,
-and the parts that are not built yet.
+Each operation on a node is a behavior now. Behaviors replaced the hand-written
+domains, one domain at a time, from sysctl to command (osapi-io/osapi#1113).
+[Built-in behaviors](built-in-behaviors.md) tells why each behavior that osapi
+ships operates as it does.
 
 ## Why
 
@@ -140,6 +141,18 @@ The permission prefix is the group when there is one, and the name of the
 behavior when there is no group. Thus `dns` under `network` needs
 `network:read`, as it does now.
 
+The names of the methods are verbs, because they become the commands.
+`behavior validate` refuses a read with a name that is not `list`, `get` or
+`status`, and a write with a name that is not `create`, `update` or `delete`. A
+write with a different name is an action, such as `restart`, and its name must
+be one of the actions of the CLI. For a synonym, such as `remove` or `add`, the
+refusal gives the standard verb.
+
+Thus no method creates an item and also updates it. `create` is `POST`, and
+`update` is `PUT`. The split gives 404 a meaning. When `update` answers 404, the
+item that the caller wanted to change does not exist. One method that creates
+and updates cannot tell the caller that.
+
 The things that the controller answers itself (audit, jobs, admission and
 health) are not behaviors, and have no placement. They never go to a host.
 
@@ -150,6 +163,40 @@ get to it.
 `internal/behaviors/behavior.go` has `Path`, `HTTPMethod`, `Permission` and
 `Command`. They change a definition into those four values. For sysctl, they
 give the same routes and permissions that the hand-written API serves now.
+
+## The name of a behavior
+
+The name of a behavior is the thing that it manages, not the tool that does the
+work. The NTP behavior is `ntp`, and chrony does its work. The behavior that
+runs jobs on a schedule is `schedule`, and cron does its work. If the name is
+the tool, the name becomes incorrect when a different tool does the work. Then
+the route, the permission and the command change together, and a change to the
+route breaks each caller. Do not use an abbreviation as a name: the behavior is
+`memory`, not `mem`.
+
+One question decides if the tool is in the route: does the caller select the
+tool, or does the host?
+
+A caller selects a container runtime. A person decided to run Docker, and wants
+to address it directly. Thus the runtime is a behavior in the `container` group,
+at `/container/docker`. A Podman behavior can go next to it, at
+`/container/podman`, and the two can be on one host.
+
+A caller does not select a package manager. The host selected it before. A
+request to a fleet to install a package cannot depend on which hosts use apt.
+Thus the route is `/package`, and the provider of each platform runs the tool of
+that platform. `ntp` and `schedule` are the same.
+
+An error in either direction has a cost:
+
+- If the route has a tool that the caller did not select, one call cannot go to
+  the full fleet.
+- If the route does not have a tool that the caller selected, the caller cannot
+  address two runtimes on one host.
+
+The name is the same in the route, the command and the docs page. The Go package
+can have a different name, when the name is a Go keyword
+([generated, and committed](#generated-and-committed)).
 
 ## A resource under another
 
@@ -570,6 +617,20 @@ order of kin-openapi, which is alphabetical, not the order that a person uses.
 with kin-openapi. It found an object field whose `example` was a string, which a
 strict tool rejects. The builder now writes the example of an object or a list
 as its JSON.
+
+After osapi generates the spec, nothing else holds the spec to the server. Thus
+two more checks do it:
+
+- The integration tests send each request and each response through a proxy that
+  validates it against the joined spec, with `openapi3filter` of kin-openapi
+  (`test/integration/spec_test.go`). A request or a response that does not agree
+  with the spec fails the run. A request that no operation describes fails only
+  when the server serves it. The first runs found an object `example` written as
+  a string, and DNS that answered `null` where its spec has a list.
+- `just spec-client-check`, one of the slow checks of `just test`, runs
+  oapi-codegen with its default options on the joined spec into a scratch
+  package, and compiles the client. Thus the spec also works for the generator
+  of a different person.
 
 The name of a behavior and its Go package are two names. The name is the route,
 the command, the permission and the docs page. The Go package is where the
@@ -1064,9 +1125,12 @@ that requires it yet, and `behavior validate` would fail it.
 Shared work becomes an internal behavior at its second use. When one behavior
 does something, that is its own code. When a second behavior needs the same
 thing, it becomes a behavior that the two require. The build-a-behavior skill
-asks this question before somebody writes a behavior.
-[The migration plan](behavior-migration.md#internal-behaviors-the-migration-extracts)
-lists the candidates that the hand-written domains share.
+asks this question before somebody writes a behavior. Three internal behaviors
+exist now. `managedfile` writes a file that osapi owns. It came out of sysctl,
+and each behavior that owns a file on a host requires it. `object` reads an
+object from the Object Store. The service, file, schedule and certificate
+behaviors require the two. `netplan` writes and applies a file under
+`/etc/netplan`, and the dns, interface and route behaviors require it.
 
 A chain across hosts or steps, where the output of one method is the input of
 the next, is a workflow. It stays with osapi-orchestrator.
@@ -1275,4 +1339,4 @@ The SDK knows routes, not behaviors. It has a generic `Client.Request` to any
 API path. Its typed services, for example `client.Sysctl`, are hand-written over
 the client that oapi-codegen generates from the spec. To generate those typed
 services from the spec too, after the spec of each behavior joins the main spec,
-is a later step in [the migration plan](behavior-migration.md).
+is osapi-io/osapi#732.

@@ -110,19 +110,19 @@ The skills here answer questions about all of the repositories. They also have
 the operational knowledge for work in them.
 
 No skill lists what it describes. `org-status` gets the repository list from
-GitHub each time it runs. `add-a-domain` finds its reference domain in the
-codebase. `document` reads the component pages that exist, not a table of them.
+GitHub each time it runs. `build-a-behavior` sends the agent to `behavior list`
+in osapi. `document` reads the component pages that exist, not a table of them.
 An inventory in a skill is correct on the day that somebody writes it. It is
 incorrect after the next change, and nothing shows that change.
 
-| Skill                                                   | Answers                                                                                                               |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| [document](.claude/skills/document/README.md)           | Where a design goes, what the page looks like, and if a page already covers it                                        |
-| [org-status](.claude/skills/org-status/README.md)       | Open pull requests, Dependabot updates, security alerts, CI status, and the merge queue across [osapi-io]             |
-| [add-a-domain](.claude/skills/add-a-domain/SKILL.md)    | How to add an osapi domain. A pointer: the osapi binary has the skill (`osapi skill get --name add-a-domain`)         |
-| [release](.claude/skills/release/README.md)             | If a repository needs a tag, which number it gets, and if the tag will publish                                        |
-| [work-an-issue](.claude/skills/work-an-issue/README.md) | How to take an issue to a merged pull request: if the problem still occurs, its size, the fix and its test            |
-| [ste-100](.claude/skills/ste-100/README.md)             | How to write and check pages in ASD-STE100 Simplified Technical English, the sentence rules that each page here obeys |
+| Skill                                                        | Answers                                                                                                               |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| [document](.claude/skills/document/README.md)                | Where a design goes, what the page looks like, and if a page already covers it                                        |
+| [org-status](.claude/skills/org-status/README.md)            | Open pull requests, Dependabot updates, security alerts, CI status, and the merge queue across [osapi-io]             |
+| [build-a-behavior](.claude/skills/build-a-behavior/SKILL.md) | How to build an osapi behavior. A pointer: the osapi binary has the skill (`osapi skill get --name build-a-behavior`) |
+| [release](.claude/skills/release/README.md)                  | If a repository needs a tag, which number it gets, and if the tag will publish                                        |
+| [work-an-issue](.claude/skills/work-an-issue/README.md)      | How to take an issue to a merged pull request: if the problem still occurs, its size, the fix and its test            |
+| [ste-100](.claude/skills/ste-100/README.md)                  | How to write and check pages in ASD-STE100 Simplified Technical English, the sentence rules that each page here obeys |
 
 Each skill uses the [Agent Skills] format. A short `SKILL.md` sends the agent to
 the correct reference file. An agent reads a reference file only when the

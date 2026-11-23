@@ -125,8 +125,9 @@ its bucket. An empty bucket turns its role off, and the check skips it. The
 Object Store buckets are compared only with each other, because NATS keeps them
 in different streams from the KV buckets.
 
-[Building a domain](domains.md) describes the same validator for request input.
-Thus a custom rule that you register for one is also available to the other.
+[Behaviors](behaviors.md#types-become-json-schema) describes the same validator
+for request input. Thus a custom rule that you register for one is also
+available to the other.
 
 ## Secrets are masked before the config is logged
 

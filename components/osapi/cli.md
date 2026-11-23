@@ -663,8 +663,8 @@ returns.
 [The job system](job-system.md) tells what `_any`, `_all` and a label selector
 resolve to.
 
-[Building a domain](domains.md) tells what a contributor adds when a new domain
-needs commands, together with the seven other artifacts.
+[Behaviors](behaviors.md#how-a-behavior-is-served) tells how the commands of a
+behavior come from its definition, with its route and its part of the spec.
 
 ______________________________________________________________________
 

@@ -237,8 +237,8 @@ operation idempotent.
 [Agent identity](agent-identity.md) tells about response signatures, and how the
 controller knows that an answer came from the agent that it addressed.
 
-[Building a domain](domains.md) tells how to add an operation to a domain, and
-which of the four job-client methods to call.
+[Behaviors](behaviors.md#how-a-behavior-is-served) tells how the generated
+handler of a method queues its job, on one host or on each host of the target.
 
 ______________________________________________________________________
 
