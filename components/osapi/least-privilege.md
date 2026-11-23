@@ -221,11 +221,11 @@ escape it finds becomes a probe in `behavior validate`.
 They stay as they are and need root. An audit of them under `User=osapi` and
 `ProtectSystem=strict` found the reads work, and most writes do not:
 
-| Works unprivileged                                                                                                        | Fails                                                                                    |
-| ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Reads: services, NTP, timezone, packages, DNS, routes, logs; ping where `net.ipv4.ping_group_range` has the agent's group | cron (`/etc/cron.d`), service unit files (`/etc/systemd/system`)                         |
-| hostname, timezone, power and service actions, through sudo over D-Bus                                                    | certificates (`/usr/local/share/ca-certificates`), NTP sources (`/etc/chrony/sources.d`) |
-| process signal, with `CAP_KILL`                                                                                           | netplan (`/etc/netplan`, `/run`), packages, users and groups, SSH keys (`ProtectHome`)   |
+| Works unprivileged                                                                                                        | Fails                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Reads: services, NTP, timezone, packages, DNS, routes, logs; ping where `net.ipv4.ping_group_range` has the agent's group | cron (`/etc/cron.d`), service unit files (`/etc/systemd/system`)                       |
+| hostname, timezone, power and service actions, through sudo over D-Bus                                                    | NTP sources (`/etc/chrony/sources.d`)                                                  |
+| process signal, with `CAP_KILL`                                                                                           | netplan (`/etc/netplan`, `/run`), packages, users and groups, SSH keys (`ProtectHome`) |
 
 A ping needs no sudo rule and no capability, but the group of the agent must be
 in `net.ipv4.ping_group_range`. The agent sends it on an ICMP datagram socket,

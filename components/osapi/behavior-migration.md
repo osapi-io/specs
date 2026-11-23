@@ -300,6 +300,20 @@ GNU `stat` (osapi-io/osapi#1119). A deploy with no mode keeps the mode of a file
 that is there, and gives a new file 0644. The owner and the group are names, not
 numeric ids.
 
+Certificate authorities are the `certificate` behavior (osapi-io/osapi#1108).
+gohai's `ca_certificates` collector reads the trust store on every platform: the
+directories of the family on Linux, and the system keychains on macOS. Each CA
+has its subject, its SHA-256 fingerprint and its expiry. On Linux, create and
+update deploy an uploaded object as `osapi-<name>.crt` through the `object` and
+`managedfile` behaviors, and rebuild the trust store. The hand-written domain
+wrote only on the Debian family, and listed only the names of the files. The
+routes lose their `/ca` segment: `/api/node/{hostname}/certificate` and
+`/api/node/{hostname}/certificate/{name}`. The commands do not change. On macOS,
+the writes report `skipped`, as the hand-written domain did. A `get` takes a
+name that a path segment can hold. The router does not decode `%2F`, so a name
+with a slash, such as the Debian system CA `mozilla/ISRG_Root_X1`, is in `list`
+only. The rule `ca_name` refuses a slash and a `%`.
+
 Interfaces are the `interface` behavior under `network` (osapi-io/osapi#989),
 whose Go package is `iface` because `interface` is a Go keyword. gohai reads
 each interface on every platform. A write on the Debian family goes only under
@@ -328,10 +342,10 @@ path segment, so `10.0.0.0%2F8` has no route. The routes of the whole host are
 in the facts of the agent; the behavior has no list of them. The interface name
 rule, `interface_name`, is in the shared registry, because dns, interface and
 route each use it. With routes, no hand-written code reads or writes netplan.
-The others fit now: certificate. Log (osapi-io/osapi#1105), ping
-(osapi-io/osapi#1110) and NTP (osapi-io/osapi#1104) moved. The "Not yet" list of
-the build-a-behavior skill is this table. Thus an agent that gets a request for
-one of these says so, and does not add code around the platform.
+Log (osapi-io/osapi#1105), ping (osapi-io/osapi#1110), NTP (osapi-io/osapi#1104)
+and certificate (osapi-io/osapi#1108) moved. The "Not yet" list of the
+build-a-behavior skill is this table. Thus an agent that gets a request for one
+of these says so, and does not add code around the platform.
 
 The cutover of a domain deletes its hand-written handler tests. Thus each case
 in them must go somewhere first:
@@ -394,9 +408,10 @@ Nothing breaks in osapi-orchestrator until somebody updates the pin. Then
 `pkg/orchestrator/ops.go` breaks for each migrated behavior. Each migration
 merges with an orchestrator change next to it.
 
-**The certificate domain does not obey the naming.** It serves `/api/node/...`,
-but dispatches under its own category. The names of the docker operations look
-like `docker.create.execute`. They move last, and the move fixes their names.
+**The docker domain does not obey the naming.** The names of its operations look
+like `docker.create.execute`. It moves last, and the move fixes their names. The
+certificate domain also dispatched under its own category, as
+`certificate.ca.list`. The move to a behavior fixed it.
 
 ## Not covered here
 
