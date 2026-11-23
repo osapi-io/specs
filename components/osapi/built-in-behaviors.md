@@ -88,15 +88,19 @@ type, and the stale list of the controller reads the object from that record.
 - An `update` that writes the same file again reports `changed: false`.
 - An undeploy removes the file through `managedfile`, which keeps the record and
   marks it undeployed.
-- `status` compares the file with the checksum in the record.
+- `status` compares the file with the checksum in the record. It reports
+  `in-sync`, `drifted`, `missing` for a deployed file that is gone, or
+  `unmanaged` for a path that osapi did not deploy or undeployed. It refuses a
+  directory with a 400 (osapi-io/osapi#1174).
 - A deploy with no content type uses the content type of the object.
 - A deploy with no mode keeps the mode of a file that is there, and gives a new
   file 0644.
 - The owner and the group are names, not numeric IDs.
 
 The upload, list, get and delete of objects stay with the file endpoints of the
-controller ([endpoints](endpoints.md)). macOS has no file deploy, because
-`managedfile` reads the owner with GNU `stat` (osapi-io/osapi#1119).
+controller ([endpoints](endpoints.md)). `file` and `managedfile` run on macOS
+too. There, `managedfile` reads the owner with BSD `stat -f %Su:%Sg`, because
+BSD `stat` does not have `-c` (osapi-io/osapi#1119).
 
 ## Schedules
 

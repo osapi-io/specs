@@ -63,11 +63,12 @@ A raw exit status tells the user only that something failed. On 19 November
 `systemctl show` made an `inactive` service from a unit that did not exist.
 
 **The sentinel is how the API knows.** The agent names the cause of a failure as
-a code (`classifyProviderError`): `not_found`, `not_managed`, `not_installed` or
-`unsupported`. The code goes in the stored response, and the job client makes it
-`job.ErrNotFound` again. Then a handler answers 404 (`apierr.IsMissing`). An
-error that does not wrap a sentinel becomes a 500. Until 19 November 2026 the
-stored response did not keep the code, so each missing item answered 500.
+a code (`classifyProviderError`): `not_found`, `not_managed`, `not_installed`,
+`invalid` or `unsupported`. The code goes in the stored response, and the job
+client makes it `job.ErrNotFound` again. Then a handler answers 404
+(`apierr.IsMissing`). An error that does not wrap a sentinel becomes a 500.
+Until 19 November 2026 the stored response did not keep the code, so each
+missing item answered 500.
 
 ## osapi owns the state, so drift gets overwritten
 
@@ -259,7 +260,7 @@ context. Name the attempted operation, and let the wrap give the rest.
 implementation in a message that a CLI user reads. It becomes untrue when the
 implementation changes. `user set password` stays true.
 
-The four sentinels are the exception. They stay exactly as they are, because
+The five sentinels are the exception. They stay exactly as they are, because
 callers compare them with `errors.Is`. Nobody reads them:
 
 ```go
@@ -267,6 +268,7 @@ ErrUnsupported  = errors.New("operation not supported on this OS family")
 ErrNotFound     = errors.New("not found")
 ErrNotManaged   = errors.New("not managed by osapi")
 ErrNotInstalled = errors.New("not installed")
+ErrInvalid      = errors.New("invalid input")
 ```
 
 On each path that has a cause, wrap with `%w`. This is necessary. If an error

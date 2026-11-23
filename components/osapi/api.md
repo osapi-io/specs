@@ -132,17 +132,17 @@ the problem. `reason` is the cause, a word that a program branches on. `error`
 is the message for a person, and its words can change between releases. The
 schema lists each reason, with what it means:
 
-| `reason`          | Status | Means                                                                    |
-| ----------------- | ------ | ------------------------------------------------------------------------ |
-| `invalid_request` | 400    | the request breaks a rule, such as a missing field                       |
-| `unauthorized`    | 401    | no token, or a token that is not valid                                   |
-| `forbidden`       | 403    | the token does not have the permission                                   |
-| `not_found`       | 404    | the host or osapi does not have what the request names                   |
-| `not_managed`     | 409    | the item is there, but osapi did not deploy it, so it does not change it |
-| `not_installed`   | 409    | the host does not have a program that the request needs                  |
-| `conflict`        | 409    | the state of the item blocks the request                                 |
-| `unavailable`     | 503    | a part that osapi depends on is down, such as NATS                       |
-| `server_error`    | 500    | the controller failed; its log has the cause                             |
+| `reason`          | Status | Means                                                                      |
+| ----------------- | ------ | -------------------------------------------------------------------------- |
+| `invalid_request` | 400    | the request breaks a rule, such as a missing field, or the host refuses it |
+| `unauthorized`    | 401    | no token, or a token that is not valid                                     |
+| `forbidden`       | 403    | the token does not have the permission                                     |
+| `not_found`       | 404    | the host or osapi does not have what the request names                     |
+| `not_managed`     | 409    | the item is there, but osapi did not deploy it, so it does not change it   |
+| `not_installed`   | 409    | the host does not have a program that the request needs                    |
+| `conflict`        | 409    | the state of the item blocks the request                                   |
+| `unavailable`     | 503    | a part that osapi depends on is down, such as NATS                         |
+| `server_error`    | 500    | the controller failed; its log has the cause                               |
 
 The generated routes take the reason from the error that the method maps
 (`endpoint.NotFound`, `.Conflict(...).Because(endpoint.ReasonNotManaged)`). The
