@@ -109,7 +109,7 @@ the tags for authors. This page records why the design is as it is.
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `behavior.Node`                         | The work runs on a host, through the job system. It is the only placement                                                                                                                                                                                                                                                                                                                                                   |
 | `behavior.Of(user.Behavior)`            | Puts the items under an item of another behavior: `/api/node/{hostname}/user/{name}/sshkey`, `osapi client node user sshkey`. Each input has the parent's key, which goes in the path before the method's own. The permissions are the parent's. Not with `Under`; `behavior validate` refuses that, a parent with no key, and a parent that is not registered                                                              |
-| `behavior.Area(behavior.AreaHardware)`  | Puts a served behavior in an area of the UI, an `AreaName` constant: the group of the Add Block panel of the Configure page. `behavior validate` refuses a behavior with API and no area                                                                                                                                                                                                                                    |
+| `behavior.Area(area.Hardware)`          | Puts a served behavior in an area, a constant of `internal/area`: the tab of the Add Block panel of the Configure page, the folder of its SDK page and its section of the SDK menu. [Areas](endpoints.md#areas) tells what an area decides. `behavior validate` refuses a behavior with API and no area                                                                                                                     |
 | `behavior.Under(behavior.GroupNetwork)` | Nests the behavior: `/api/node/{hostname}/network/dns`, `osapi client node network dns`. The group is also the prefix of the permissions. `behavior validate` refuses a group outside `KnownGroups()`                                                                                                                                                                                                                       |
 | `Read`                                  | `GET`, the `<group>:read` permission, no `changed` in the result                                                                                                                                                                                                                                                                                                                                                            |
 | `Write`                                 | `POST`, or `PUT` for `update` and `DELETE` for `delete`, and the `<group>:write` permission                                                                                                                                                                                                                                                                                                                                 |
@@ -1354,8 +1354,8 @@ The other typed values:
   Thus a misspelled group made a new route, a new command and a new permission,
   and the role rule granted the permission. `behavior validate` refuses a group
   outside `KnownGroups()`, under the rule `name`.
-- **An area** of the UI is an `AreaName`, such as `AreaHardware`. `Areas` lists
-  them, and `behavior validate` already refused an area outside it.
+- **An area** is an `area.Name` of `internal/area`, such as `area.Hardware`.
+  `area.All` lists them, and `behavior validate` refuses an area outside it.
 - **A content type** is `client.ContentType`: `ContentRaw` or `ContentTemplate`.
   `Stored` in an example, the file behavior, the file provider, the agent and
   the file endpoints use the constants. The value that a header or a form
@@ -1382,8 +1382,8 @@ DSL, the endpoint DSL and the command DSL:
   each permission as a literal, because the constant of a new permission is
   written after the routes, from the registry that the routes register in.
 
-`behavior new` writes `Under(behavior.GroupNetwork)` and
-`Area(behavior.AreaConfig)`, and it refuses a group outside `KnownGroups()`.
+`behavior new` writes `Under(behavior.GroupNetwork)` and `Area(area.Config)`,
+and it refuses a group outside `KnownGroups()`.
 
 Redaction matches names, as the denylist does. If you tag a field `value` as
 secret, osapi redacts each request field with the name `value`, in each

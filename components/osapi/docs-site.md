@@ -170,9 +170,12 @@ config. `docs/src/navbar.ts` reads the pages of a folder when the site builds,
 in the order of their `sidebar_position`, with the title of each page.
 
 - **Features** has each page of `sidebar/features`, except its index.
-- **SDK** has the overview of the client and the page of each service of
-  `sidebar/sdk/client`, in one list, then the platform pages and the link to the
-  orchestrator.
+- **SDK** has the overview of the client, then a section for each folder of
+  `sidebar/sdk/client`, with the page of each service in it. The label and the
+  order of a section come from the `_category_.json` of its folder, which
+  `internal/sdk/gen` writes from the areas of the spec
+  ([areas](endpoints.md#areas)). Then it has the platform pages and the link to
+  the orchestrator.
 - **Behaviors** has the page of each behavior under `reference/behaviors`, which
   the registry generates.
 
