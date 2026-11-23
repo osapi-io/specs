@@ -125,6 +125,7 @@ the tags for authors. This page records why the design is as it is.
 | `behavior.Sudo("prog")`                 | A program the provider runs with sudo, which the agent's preflight checks                                                                                                                                                                                                                                                                                      |
 | `behavior.Runs("prog")`                 | A program the provider runs without sudo; the agent warns at startup when it is missing                                                                                                                                                                                                                                                                        |
 | `behavior.RunsOnPlatform(p, "prog")`    | A program the provider runs on platform `p` only, such as `vm_stat` on darwin; a Linux host is not asked for it                                                                                                                                                                                                                                                |
+| `behavior.SudoOnPlatform(p, "prog")`    | A program that the provider of platform `p` runs with sudo, such as `update-ca-certificates` on debian and `update-ca-trust` on linux. It holds on each host that this provider serves, so linux does not hold on debian when debian has its own provider                                                                                                      |
 | `behavior.RunsIfPresent("prog")`        | A program the provider runs only when the host has it, such as `zfs`; the agent and the integration test do not ask for it                                                                                                                                                                                                                                     |
 | `.On(p...)`                             | Limits one method to some of the platforms. On any other platform, that method reports `skipped`, and its examples do not run there                                                                                                                                                                                                                            |
 | `.Sudo`, `.Runs` on a method            | A program that only this method runs. A host needs it only where the method runs                                                                                                                                                                                                                                                                               |
@@ -966,6 +967,21 @@ has a record of. The prefix alone is not sufficient: the agent's own unit is
 `osapi-agent.service`, and on the lab a delete of the service `agent` would have
 stopped the agent.
 
+`certificate` is the second (osapi-io/osapi#1108). It writes the PEM of an
+object as `osapi-<name>.crt` in the local directory of the family, the directory
+that gohai's `ca_certificates` collector reads:
+`/usr/local/share/ca-certificates` on the Debian family and
+`/etc/pki/ca-trust/source/anchors` on the RHEL family. Then it rebuilds the
+trust store with `update-ca-certificates` or `update-ca-trust`. The directory
+comes from gohai's `cacertificates.LayoutFor`, so a CA that osapi writes is a CA
+that gohai reads. A CA that osapi deployed reads by its name, with `managed`, as
+a service does. Thus `managedfile` has a provider for `PlatformLinux` too, not
+only for the Debian family: its writes are the same on each Linux family. The
+behavior declares each program with `SudoOnPlatform`, so a Debian host is not
+asked for `update-ca-trust`. SUSE and Alpine run `update-ca-certificates`
+through the linux provider, which does not declare it. Thus they read only
+(osapi-io/osapi#1122).
+
 A read takes the same name as a write. `list` and `get` show a service that
 osapi deployed by the name it was deployed with, such as `app`, not by the name
 of its unit, `osapi-app`, and set `managed`. `get` finds it by either name. A
@@ -977,10 +993,10 @@ units. Thus a `get app` after `create app` was not found, and a person had to
 know the prefix.
 
 `managedfile` is the first internal behavior. It writes files on a host, and
-keeps a record of them in `file-state`. A caller sets the mode, owner and group
-of the file. A caller can also mark content as a secret. Then the record keeps
-no checksum of it, because somebody can recover a short secret from its SHA-256
-by guessing.
+keeps a record of them in `file-state`. It operates on each Linux family. A
+caller sets the mode, owner and group of the file. A caller can also mark
+content as a secret. Then the record keeps no checksum of it, because somebody
+can recover a short secret from its SHA-256 by guessing.
 
 It reads ownership with `stat` and sets it with `chown` through sudo, which
 `managedfile` declares. Thus the fake host tests it like each other command. The
@@ -1147,13 +1163,13 @@ secret redacted, as for each other method.
 
 A value that the DSL selects from a fixed set is a named type with constants, as
 `Verb` is. A platform is a `PlatformName`: `PlatformLinux`, `PlatformDarwin` or
-`PlatformDebian`. `Platform`, `On`, `RunsOnPlatform` and `OnPlatform` take one.
-Go converts an untyped string literal to a named type. Thus
-`Platform("debain", ...)` compiles, and `behavior validate` is the guard: under
-the rule `platform`, it fails a name outside `KnownPlatforms()`. Before this
-rule, `Platform("debain", ...)` fell back to the linux provider, and a behavior
-with no linux provider skipped each method on Debian with no error. To name a
-new family of gohai, add its constant to `KnownPlatforms` first.
+`PlatformDebian`. `Platform`, `On`, `RunsOnPlatform`, `SudoOnPlatform` and
+`OnPlatform` take one. Go converts an untyped string literal to a named type.
+Thus `Platform("debain", ...)` compiles, and `behavior validate` is the guard:
+under the rule `platform`, it fails a name outside `KnownPlatforms()`. Before
+this rule, `Platform("debain", ...)` fell back to the linux provider, and a
+behavior with no linux provider skipped each method on Debian with no error. To
+name a new family of gohai, add its constant to `KnownPlatforms` first.
 
 The other typed values:
 
