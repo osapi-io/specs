@@ -153,11 +153,10 @@ platform that are not built yet.
 
 The requests that measure the skill are in its `evals/` directory, with
 `run.sh`: `internal/skills/resources/dev-skills/build-a-behavior/evals/` in
-osapi. Each skill keeps all of its files in its directory, and
-`internal/skills` embeds the full directory. Thus the binary has the evals too,
-but `osapi init` does not install them. `run.sh` runs each request in a new
-session and checks the result with commands. Nobody reads the result to check
-it.
+osapi. Each skill keeps all of its files in its directory, and `internal/skills`
+embeds the full directory. Thus the binary has the evals too, but `osapi init`
+does not install them. `run.sh` runs each request in a new session and checks
+the result with commands. Nobody reads the result to check it.
 
 The requests cover these cases:
 
