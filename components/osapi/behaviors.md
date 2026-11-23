@@ -434,7 +434,11 @@ Inside, the same conventions apply:
 - The file-state record, `managedfile.State`, and its key,
   `managedfile.StateKey`, belong to `managedfile`, the behavior that owns
   managed files. The hand-written providers and the controller read them from
-  there.
+  there. A write of a file changes when the content, the mode or the owner
+  changes. It also changes when osapi deployed the path with other metadata:
+  then only the record changes, as for a cron entry with a new schedule and the
+  same content (osapi-io/osapi#1106). A file that has the content and no record,
+  or an undeployed record, does not change.
 
 Permissions and sudo also come from the definitions. `internal/authtoken` makes
 the known permissions, and those of each built-in role, from the hand-written
