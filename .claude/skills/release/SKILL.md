@@ -49,8 +49,8 @@ gh api "repos/osapi-io/$r/compare/<latest-tag>...main" \
   --jq '.commits[].commit.message | split("\n")[0]' | grep '^feat'
 ```
 
-Then read the list and ask which of those changed what a consumer can call.
-A `feat:` that adds a justfile recipe or a coverage gate is a patch. A `feat:`
+Then read the list and ask which of those changed what a consumer can call. A
+`feat:` that adds a justfile recipe or a coverage gate is a patch. A `feat:`
 that adds an exported function is a minor bump.
 
 A count gives the opposite result, and it did. nats-client had seven `feat:`
@@ -79,9 +79,9 @@ gh api "repos/osapi-io/$r/contents/.github/workflows/release.yml" --jq .content 
   | base64 -d | grep -n 'GITHUB_TOKEN:'
 ```
 
-It must read `${{ secrets.GITHUB_TOKEN }}`. A `secrets.GH_PAT` here is a bug.
-No repository in this organization publishes outside itself, so none of them
-needs a personal token:
+It must read `${{ secrets.GITHUB_TOKEN }}`. A `secrets.GH_PAT` here is a bug. No
+repository in this organization publishes outside itself, so none of them needs
+a personal token:
 
 ```bash
 gh api "repos/osapi-io/$r/contents/.goreleaser.yaml" --jq .content | base64 -d \

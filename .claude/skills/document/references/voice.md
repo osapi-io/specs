@@ -38,8 +38,8 @@ sound technical, write it again.
 
 ## Sentences follow STE
 
-Each sentence follows ASD-STE100 Simplified Technical English: one word for
-one thing, short sentences, the active voice, commands for steps. The
+Each sentence follows ASD-STE100 Simplified Technical English: one word for one
+thing, short sentences, the active voice, commands for steps. The
 [ste-100 skill](../../ste-100/SKILL.md) holds the rules. This page decides what
 a document says; STE decides how each sentence says it, and wins where they
 disagree on a sentence.

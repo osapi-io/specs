@@ -22,8 +22,7 @@ run 'just go-mod' and commit the result
 ```
 
 It no-ops in a repository with no `examples/`, so it is safe to run across all
-of
-them.
+of them.
 
 A committed module can be untidy while CI is green. The reason: `just test`
 calls `go-mod`, which tidies, but CI does that in a temporary checkout. CI
@@ -47,10 +46,8 @@ That is noise, not a change.
 ## The go directive
 
 A nested module declares its own, and nothing keeps it in step with the root.
-Six
-gohai examples sat at `go 1.25.7` against a root of `1.26.0`. The rule in
-[the charter](../../../../CONSTITUTION.md) applies to these
-files too.
+Six gohai examples sat at `go 1.25.7` against a root of `1.26.0`. The rule in
+[the charter](../../../../CONSTITUTION.md) applies to these files too.
 
 ```bash
 find ~/git/osapi-io/$r -name go.mod -not -path '*/.worktrees/*' \
@@ -61,8 +58,7 @@ find ~/git/osapi-io/$r -name go.mod -not -path '*/.worktrees/*' \
 toolchain. Thus this is a check, not a separate fix.
 
 Exclude `.worktrees/`. Another agent may have a branch checked out there, and
-its
-modules are not this repository's to tidy.
+its modules are not this repository's to tidy.
 
 ## Do not compile the examples to check them
 

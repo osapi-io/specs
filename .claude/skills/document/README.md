@@ -11,30 +11,29 @@ is the same page all three times. The skill covers the page.
 
 You install nothing. The skill is in this repository. Each agent that reads
 skills finds it when it works from the repository root. The checks it runs need
-[mise] and
-[just].
+[mise] and [just].
 
 ## Usage
 
 Ask in plain language, or invoke it directly with `/document`.
 
-| Ask                                              | You get                                                                 |
-| ------------------------------------------------ | ----------------------------------------------------------------------- |
-| "document how job retries work"                   | The right component, the existing page if there is one, and a draft      |
-| "where does the subject naming convention go?"   | A component page or `ARCHITECTURE.md`, with the reason                   |
+| Ask                                                   | You get                                                             |
+| ----------------------------------------------------- | ------------------------------------------------------------------- |
+| "document how job retries work"                       | The right component, the existing page if there is one, and a draft |
+| "where does the subject naming convention go?"        | A component page or `ARCHITECTURE.md`, with the reason              |
 | "the ten-minute timeout is a ceiling, not a fallback" | The page corrected, with what it said and how you found out         |
-| "review permissions.md against the house voice"   | The tells, quoted, with rewrites                                        |
+| "review permissions.md against the house voice"       | The tells, quoted, with rewrites                                    |
 
 ## What it does
 
 There are six steps, in order:
 
 1. Find if the page exists.
-1. Put the subject in its location.
-1. Find what is true from the code, not from the existing prose.
-1. Write it.
-1. Link it from the index of the component.
-1. Run the checks and `unslop`.
+2. Put the subject in its location.
+3. Find what is true from the code, not from the existing prose.
+4. Write it.
+5. Link it from the index of the component.
+6. Run the checks and `unslop`.
 
 Know the placement test without the skill. Ask if the subject is how one
 repository operates, or an agreement that two repositories must keep. The first

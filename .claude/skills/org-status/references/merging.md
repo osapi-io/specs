@@ -31,10 +31,10 @@ describes:
   Thus it reports a human pull request, and never merges it from here.
 - It merges a pull request when its checks pass, if it has no lockfile or module
   file in common with a pull request that merged before it.
-- It puts the others in sequence. It sends `@dependabot rebase`, then
-  `recreate` if a conflict stays or Dependabot ignores it. Then it vets again,
-  because a rebase can move a bump to a newer release. Then it waits for the
-  checks, and merges.
+- It puts the others in sequence. It sends `@dependabot rebase`, then `recreate`
+  if a conflict stays or Dependabot ignores it. Then it vets again, because a
+  rebase can move a bump to a newer release. Then it waits for the checks, and
+  merges.
 - It compares each pull request with what merged on the base branch after the
   pull request was built. Thus a merge by hand, or in an earlier run, still
   forces the rebase.
@@ -133,8 +133,8 @@ git fetch origin "refs/heads/<branch>" && git checkout -B <tmp> FETCH_HEAD
 ```
 
 **After you push to the branch, use `@dependabot rebase`.** It applies the bump
-again on the current default branch, and keeps the commits that you added,
-for example the tidy above.
+again on the current default branch, and keeps the commits that you added, for
+example the tidy above.
 
 `@dependabot recreate` builds the branch again from the start, and **discards**
 those commits. Thus you must do each manual fix again on the new head. Use it
@@ -155,8 +155,8 @@ done
 
 The `length > 0` is necessary. Immediately after a push, GitHub has no check
 runs. Thus the array is empty, and `all` over an empty array is always true.
-Without that guard, the loop stops immediately and reports "no checks
-reported". That looks exactly like a repository with no CI.
+Without that guard, the loop stops immediately and reports "no checks reported".
+That looks exactly like a repository with no CI.
 
 ## A rebase does not fix a red bump
 
@@ -196,6 +196,5 @@ step. It looks like output, but it tells nothing.
 - **Merge, rebase or check out a pull request that nobody vetted.**
 - **Merge red.** A bump is a convenience. A broken default branch is not.
 - **Merge a human PR that nobody read**, only because a sweep listed it as
-  green.
-  Report that it is ready, and let the reader decide.
+  green. Report that it is ready, and let the reader decide.
 - **Force past a failed required check.**

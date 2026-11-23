@@ -30,12 +30,12 @@ gh issue list --repo "osapi-io/$r" --state open --limit 100 \
 ```
 
 Labels carry the type (`bug`, `enhancement`, `chore`), the part of the
-repository (`component/...`), and whether the work waits (`blocked`) or came from
-other work (`side-finding`). [Labels](../../../../CONTRIBUTING.md#labels) has the
-set. Leave out the issues labelled `architecture` when you report the work that
-is left, unless the user asks for them. Only the owner starts them. No label
-says whether anyone has started. An open issue without a type
-label is a finding: label it.
+repository (`component/...`), and whether the work waits (`blocked`) or came
+from other work (`side-finding`). [Labels](../../../../CONTRIBUTING.md#labels)
+has the set. Leave out the issues labelled `architecture` when you report the
+work that is left, unless the user asks for them. Only the owner starts them. No
+label says whether anyone has started. An open issue without a type label is a
+finding: label it.
 
 ## What is already in hand
 
@@ -113,5 +113,5 @@ gh issue close "$n" --repo "osapi-io/$r" --comment "Fixed in #<pr>."
 ```
 
 Something exploitable is never opened as an issue at all. It is a draft
-advisory,
-which only maintainers can read. [audit.md](audit.md#reporting) has the command.
+advisory, which only maintainers can read. [audit.md](audit.md#reporting) has
+the command.

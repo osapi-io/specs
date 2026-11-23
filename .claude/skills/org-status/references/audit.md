@@ -176,13 +176,13 @@ vulnerable version stays there, and the alert count still shows zero. Compare
 the lockfiles that `deps.sh` found with the ecosystems that `dependabot.yml`
 declares:
 
-| Lockfile | Ecosystem it needs |
-| --- | --- |
-| `go.sum` | `gomod` |
-| `bun.lock` | `bun` |
-| `package-lock.json` | `npm` |
-| `.github/workflows/*.yml` | `github-actions` |
-| `Dockerfile` | `docker` |
+| Lockfile                  | Ecosystem it needs |
+| ------------------------- | ------------------ |
+| `go.sum`                  | `gomod`            |
+| `bun.lock`                | `bun`              |
+| `package-lock.json`       | `npm`              |
+| `.github/workflows/*.yml` | `github-actions`   |
+| `Dockerfile`              | `docker`           |
 
 If no entry covers the directory of a lockfile, that is a finding. Name the
 directory.
@@ -214,12 +214,12 @@ grep -LE '^\s*permissions:' ~/git/osapi-io/*/.github/workflows/*.y*ml
 
 What each kind of workflow here needs:
 
-| Workflow | Permissions |
-| --- | --- |
-| tests, lint, report card, docs build | `contents: read` |
-| commit lint | `contents: read`, `pull-requests: read` |
-| stale | `actions: write`, `issues: write`, `pull-requests: write` |
-| delete merged branch | `contents: write` |
+| Workflow                             | Permissions                                               |
+| ------------------------------------ | --------------------------------------------------------- |
+| tests, lint, report card, docs build | `contents: read`                                          |
+| commit lint                          | `contents: read`, `pull-requests: read`                   |
+| stale                                | `actions: write`, `issues: write`, `pull-requests: write` |
+| delete merged branch                 | `contents: write`                                         |
 
 ## Reporting
 

@@ -33,20 +33,20 @@ never merge, and `gh search prs --owner osapi-io` counts them.
 
 ## 2. Route
 
-| The user asks | Read |
-| --- | --- |
-| Open PRs, what is waiting, whose they are, Dependabot bumps | [pull-requests.md](references/pull-requests.md), then [vetting.md](references/vetting.md) for each |
-| Is this PR safe, could it be a typosquat or a hijacked release, can I approve it | [vetting.md](references/vetting.md) |
-| Merge them, land the bumps, rebase and merge | [merging.md](references/merging.md) |
-| Have we been hacked, exploited or compromised, do we depend on anything malicious, are cooldowns set | [audit.md](references/audit.md) |
-| Open issues, what is left to work, what a tracker still lists | [issues.md](references/issues.md) |
-| Any alerts, vulnerabilities, anything leaked | [security.md](references/security.md) |
-| What to do about an alert, are we exposed, a pasted `/security` URL | [triage.md](references/triage.md) |
-| Fix it, dismiss them, open the bump | [triage.md](references/triage.md), then act |
-| Is CI green, is anything failing or unreleased, are we on the right Go | [quality.md](references/quality.md) |
-| Any stale branches, can we delete any, what is left over | [branches.md](references/branches.md) |
-| Are the examples out of date, do nested modules need tidying or bumping | [modules.md](references/modules.md) |
-| A sweep, or no clear category | [audit.md](references/audit.md) first, then the rest in this order, vetting every open PR |
+| The user asks                                                                                        | Read                                                                                               |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Open PRs, what is waiting, whose they are, Dependabot bumps                                          | [pull-requests.md](references/pull-requests.md), then [vetting.md](references/vetting.md) for each |
+| Is this PR safe, could it be a typosquat or a hijacked release, can I approve it                     | [vetting.md](references/vetting.md)                                                                |
+| Merge them, land the bumps, rebase and merge                                                         | [merging.md](references/merging.md)                                                                |
+| Have we been hacked, exploited or compromised, do we depend on anything malicious, are cooldowns set | [audit.md](references/audit.md)                                                                    |
+| Open issues, what is left to work, what a tracker still lists                                        | [issues.md](references/issues.md)                                                                  |
+| Any alerts, vulnerabilities, anything leaked                                                         | [security.md](references/security.md)                                                              |
+| What to do about an alert, are we exposed, a pasted `/security` URL                                  | [triage.md](references/triage.md)                                                                  |
+| Fix it, dismiss them, open the bump                                                                  | [triage.md](references/triage.md), then act                                                        |
+| Is CI green, is anything failing or unreleased, are we on the right Go                               | [quality.md](references/quality.md)                                                                |
+| Any stale branches, can we delete any, what is left over                                             | [branches.md](references/branches.md)                                                              |
+| Are the examples out of date, do nested modules need tidying or bumping                              | [modules.md](references/modules.md)                                                                |
+| A sweep, or no clear category                                                                        | [audit.md](references/audit.md) first, then the rest in this order, vetting every open PR          |
 
 ## 3. Report
 

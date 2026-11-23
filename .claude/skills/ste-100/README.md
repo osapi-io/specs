@@ -12,12 +12,12 @@ skills finds it when it works from the repository root.
 
 Ask in plain language, or invoke it directly with `/ste-100`.
 
-| Ask | You get |
-| --- | --- |
-| `rewrite this page in STE` | The page in STE, with the terms it settled on |
+| Ask                                | You get                                                     |
+| ---------------------------------- | ----------------------------------------------------------- |
+| `rewrite this page in STE`         | The page in STE, with the terms it settled on               |
 | `check this procedure against STE` | Each sentence that breaks a rule, the rule, and its rewrite |
-| `write the install steps in STE` | A procedure: commands, one instruction a sentence |
-| `is this warning STE?` | The warning rewritten: command first, then the risk |
+| `write the install steps in STE`   | A procedure: commands, one instruction a sentence           |
+| `is this warning STE?`             | The warning rewritten: command first, then the risk         |
 
 ## How it works
 
@@ -34,15 +34,15 @@ skill applies the rules and the one-word, one-meaning principle without it.
 
 ## Documentation
 
-| File | Covers |
-| --- | --- |
-| [SKILL.md](SKILL.md) | Classifying text, routing, the report shape |
-| [references/words.md](references/words.md) | One word, one meaning; common words; technical names and verbs; phrasal verbs; noun clusters |
-| [references/sentences.md](references/sentences.md) | Length, one topic, verb forms, -ing forms, voice, articles, lists |
-| [references/procedures.md](references/procedures.md) | Commands, one instruction a sentence, conditions, notes, numbered steps |
-| [references/descriptions.md](references/descriptions.md) | Main point first, one topic, six sentences, naming who acts |
-| [references/safety.md](references/safety.md) | Warnings and cautions: command first, then the risk |
-| [references/checking.md](references/checking.md) | Reviewing existing text and reporting what breaks a rule |
+| File                                                     | Covers                                                                                       |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [SKILL.md](SKILL.md)                                     | Classifying text, routing, the report shape                                                  |
+| [references/words.md](references/words.md)               | One word, one meaning; common words; technical names and verbs; phrasal verbs; noun clusters |
+| [references/sentences.md](references/sentences.md)       | Length, one topic, verb forms, -ing forms, voice, articles, lists                            |
+| [references/procedures.md](references/procedures.md)     | Commands, one instruction a sentence, conditions, notes, numbered steps                      |
+| [references/descriptions.md](references/descriptions.md) | Main point first, one topic, six sentences, naming who acts                                  |
+| [references/safety.md](references/safety.md)             | Warnings and cautions: command first, then the risk                                          |
+| [references/checking.md](references/checking.md)         | Reviewing existing text and reporting what breaks a rule                                     |
 
 Format details are in the [Agent Skills specification].
 

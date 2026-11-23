@@ -10,9 +10,10 @@ import? '.just/remote/just.just'
 # No documentation site, so md formats every markdown file in the repository.
 md_site_dir := ""
 
-# Everything in this repository is markdown somebody wrote, so only the skills
-# are excluded from formatting: .claude, by the shared recipe, and .agents/skills,
-# which links to .claude/skills for Codex.
+# Everything in this repository is markdown somebody wrote, the skills in
+# .claude/skills too, so md formats all of it. .agents/skills links to
+# .claude/skills for Codex, so it is excluded to format each file one time.
+md_agent_exclude := ""
 md_extra_excludes := "--exclude '**/.agents/**'"
 
 # --- Fetch ---

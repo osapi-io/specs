@@ -33,11 +33,11 @@ read the first page always writes the second.
 Ask whether the subject is **how one repository behaves** or **an agreement two
 of them must both keep**.
 
-| Subject                                                    | Goes in                    |
-| ---------------------------------------------------------- | -------------------------- |
-| How one repository behaves                                 | `components/<name>/`       |
-| Something two repositories must agree on                   | `ARCHITECTURE.md`          |
-| A rule every repository follows                            | `CONSTITUTION.md`          |
+| Subject                                  | Goes in              |
+| ---------------------------------------- | -------------------- |
+| How one repository behaves               | `components/<name>/` |
+| Something two repositories must agree on | `ARCHITECTURE.md`    |
+| A rule every repository follows          | `CONSTITUTION.md`    |
 
 Job retry logic is the operation of osapi. osapi and osapi-orchestrator both
 depend on the subject names, but neither owns them. Thus they go in
@@ -81,8 +81,7 @@ What a page does, in order of what a reader needs:
 
 What never appears: requirement identifiers, "MUST", user stories, acceptance
 scenarios, or commentary about the document. `just check-docs` fails on the
-first
-four.
+first four.
 
 ## 5. Link it
 

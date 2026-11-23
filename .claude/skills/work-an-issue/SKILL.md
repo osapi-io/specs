@@ -115,9 +115,9 @@ GitHub reads it.
 
 ## 4. Fix it, with the test that proves it
 
-The test comes with the fix, in the same commit. It must be a test that fails
-on the code before the fix. A test that you write after the fix, against the
-fixed code, only proves that the code does what it now does.
+The test comes with the fix, in the same commit. It must be a test that fails on
+the code before the fix. A test that you write after the fix, against the fixed
+code, only proves that the code does what it now does.
 
 For a flake, the test must fail on the old code each time that it runs enough
 times, not one time in fifty. For a missing guard, the test uses the input that
@@ -126,8 +126,7 @@ got through.
 Add nothing else. If you find an unrelated problem, it gets its own issue in the
 repository where its fix goes, with the command that found it
 ([Tracking](../../../CONSTITUTION.md#tracking)). A larger change hides the fix
-in
-a diff about a different subject. This organization makes this error most
+in a diff about a different subject. This organization makes this error most
 often.
 
 ## 5. Verify
@@ -137,10 +136,9 @@ mise exec -- go test -cover ./<each package that you changed>
 ```
 
 Run only the checks that can find a problem in the change, as
-[Check a change](../../../AGENTS.md#check-a-change) tells. CI runs the full
-gate on the pull request. The full suite of osapi takes approximately ten
-minutes, so do not run it. In specs, `mise exec -- just test` is fast, and it is
-the gate.
+[Check a change](../../../AGENTS.md#check-a-change) tells. CI runs the full gate
+on the pull request. The full suite of osapi takes approximately ten minutes, so
+do not run it. In specs, `mise exec -- just test` is fast, and it is the gate.
 
 Always run tools through `mise`. A bare `just` runs the version that is
 installed globally. A change to a nested module under `examples/` also needs
@@ -216,6 +214,5 @@ gh issue close "$n" --repo "osapi-io/$r" --comment "Fixed in #<pr>."
    because it does not occur now. Never close it only to make a list shorter.
 5. **An archived repository is read-only.** `osapi-ui` and `osapi-sdk` refuse
    each write, also the close of a pull request. Thus nobody can work on an
-   issue
-   there without an unarchive first. A person must decide to bring the
+   issue there without an unarchive first. A person must decide to bring the
    repository back. You do not make that decision.

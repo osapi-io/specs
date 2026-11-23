@@ -136,12 +136,12 @@ only when somebody asks about a specific alert.
 Each verdict ends its block with the words that act on it, in quotes, exactly as
 the reader must type them:
 
-| Verdict | Action line |
-| --- | --- |
-| UPGRADE AVAILABLE | `-> say "bump <package>" to open the PR` |
-| NOT AFFECTED | `-> say "dismiss the <package> alerts" to close all <n> as not_used` |
-| EXPOSED, NO PATCH | `-> your call: narrow, replace, or accept. No upgrade exists.` |
-| ALREADY DISMISSED | no action line |
+| Verdict           | Action line                                                          |
+| ----------------- | -------------------------------------------------------------------- |
+| UPGRADE AVAILABLE | `-> say "bump <package>" to open the PR`                             |
+| NOT AFFECTED      | `-> say "dismiss the <package> alerts" to close all <n> as not_used` |
+| EXPOSED, NO PATCH | `-> your call: narrow, replace, or accept. No upgrade exists.`       |
+| ALREADY DISMISSED | no action line                                                       |
 
 The verdict tells the reader what is true. The action line tells the reader what
 to type. Without it, the report becomes a status board, and the reader must ask

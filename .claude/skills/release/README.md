@@ -18,22 +18,22 @@ authenticated against [osapi-io], and a checkout of the repository to release.
 
 Ask in plain language, or invoke it directly with `/release`.
 
-| Ask                                           | You get                                                           |
-| --------------------------------------------- | ----------------------------------------------------------------- |
-| "release gohai"                                | Whether it needs one, the number with the reasoning, and the tag   |
-| "why does the badge say no releases?"          | Usually a tag that landed while the workflow failed to publish     |
-| "why does go get give me a pseudo-version?"    | Usually a tag the module proxy rejects, like `v1.0`                |
-| "can we re-tag that, it was the wrong number?" | No, and what the checksum database does to anyone who tries        |
+| Ask                                            | You get                                                          |
+| ---------------------------------------------- | ---------------------------------------------------------------- |
+| "release gohai"                                | Whether it needs one, the number with the reasoning, and the tag |
+| "why does the badge say no releases?"          | Usually a tag that landed while the workflow failed to publish   |
+| "why does go get give me a pseudo-version?"    | Usually a tag the module proxy rejects, like `v1.0`              |
+| "can we re-tag that, it was the wrong number?" | No, and what the checksum database does to anyone who tries      |
 
 ## What it does
 
 There are five steps:
 
 1. Find if a tag is necessary.
-1. Select the number. Read what merged to decide.
-1. Check that the workflow can authenticate.
-1. Push the tag.
-1. Confirm that the version got to the Go module proxy.
+2. Select the number. Read what merged to decide.
+3. Check that the workflow can authenticate.
+4. Push the tag.
+5. Confirm that the version got to the Go module proxy.
 
 ## What it is for
 

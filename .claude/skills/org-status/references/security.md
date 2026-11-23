@@ -49,9 +49,8 @@ them separately turns one decision into three.
 The page a human wants is `https://github.com/osapi-io/<repo>/security`. Print
 that, bare.
 
-An alert and a Dependabot PR are different things. An alert says a
-vulnerability applies. A PR says a newer version exists. Either can exist
-without the other.
+An alert and a Dependabot PR are different things. An alert says a vulnerability
+applies. A PR says a newer version exists. Either can exist without the other.
 
 ## Code scanning alerts
 
@@ -76,7 +75,7 @@ fi
 ```
 
 The `|| true` is important. `gh api` exits with a value that is not zero on a
-404. Under `set -e`, that stops the full loop. The other repositories get no
+404\. Under `set -e`, that stops the full loop. The other repositories get no
 query, and nothing says that they were skipped.
 
 ## Secret scanning alerts
@@ -91,8 +90,7 @@ The same array check applies. The endpoint returns 404 when secret scanning is
 off for the repository.
 
 Each finding here is urgent. Do not paste the secret into the conversation.
-Report the repository, the alert URL, and the secret type from
-`.secret_type`.
+Report the repository, the alert URL, and the secret type from `.secret_type`.
 
 ## Permissions
 

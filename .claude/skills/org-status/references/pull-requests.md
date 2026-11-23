@@ -41,8 +41,7 @@ gh pr list --repo "osapi-io/$r" --state open \
   `UNKNOWN` means that GitHub still calculates it. Query again. Do not report it
   as a problem.
 - `reviewDecision`: an empty string means that nobody asked for or gave a
-  review.
-  `APPROVED` means it is ready to merge.
+  review. `APPROVED` means it is ready to merge.
 - `createdAt`: sort the oldest first. Age is the signal.
 
 ## Checks on a PR

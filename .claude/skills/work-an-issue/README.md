@@ -11,9 +11,8 @@ arrow: its blocks end with `→ say "fix 179"`, and this is what that phrase run
 
 You install nothing. The skill is in this repository. Each agent that reads
 skills finds it when it works from the repository root. It needs the [gh] CLI
-authenticated
-against [osapi-io], a checkout of the repository the issue belongs to, and
-[mise] for the recipes.
+authenticated against [osapi-io], a checkout of the repository the issue belongs
+to, and [mise] for the recipes.
 
 ## Usage
 
@@ -21,7 +20,7 @@ Ask in plain language, or invoke it directly with `/work-an-issue`.
 
 | Ask                              | You get                                                            |
 | -------------------------------- | ------------------------------------------------------------------ |
-| "fix nats-client 179"            | Reproduction, the fix with its test, a pull request that closes it  |
+| "fix nats-client 179"            | Reproduction, the fix with its test, a pull request that closes it |
 | "what would it take to fix 179?" | The sizing decision and the cause, without a branch                |
 | an issue URL pasted on its own   | The same, for whichever repository it belongs to                   |
 | "pick up the oldest open bug"    | The issue read first, then worked or reported as already fixed     |
@@ -31,11 +30,11 @@ Ask in plain language, or invoke it directly with `/work-an-issue`.
 There are six steps:
 
 1. Read the issue and its comments.
-1. Make sure that the problem still occurs.
-1. Decide if it is a direct fix or a Spec Kit feature.
-1. Make a branch.
-1. Fix it, with the test that proves it.
-1. Close it through the pull request.
+2. Make sure that the problem still occurs.
+3. Decide if it is a direct fix or a Spec Kit feature.
+4. Make a branch.
+5. Fix it, with the test that proves it.
+6. Close it through the pull request.
 
 ## What it is for
 

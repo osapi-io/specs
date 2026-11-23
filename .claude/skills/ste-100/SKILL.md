@@ -16,23 +16,23 @@ machine translation.
 
 ## 1. Classify the text
 
-A **procedure** tells the reader what to do. A **description** says what a
-thing is or how it works. A **safety instruction** warns. Each has its own
-rules. Thus classify each paragraph before you write it. Never put two kinds in
-one paragraph.
+A **procedure** tells the reader what to do. A **description** says what a thing
+is or how it works. A **safety instruction** warns. Each has its own rules. Thus
+classify each paragraph before you write it. Never put two kinds in one
+paragraph.
 
 ## 2. Route
 
 Load only the reference the text needs.
 
-| The text has | Read |
-| --- | --- |
-| Any words at all: terms, verbs, names, noun clusters | [words.md](references/words.md) |
-| Sentences: length, voice, tense, -ing forms, lists | [sentences.md](references/sentences.md) |
-| Steps the reader follows | [procedures.md](references/procedures.md) |
-| Explanation of how something is or works | [descriptions.md](references/descriptions.md) |
-| A warning or a caution | [safety.md](references/safety.md) |
-| A request to check, review or score existing text | [checking.md](references/checking.md) |
+| The text has                                         | Read                                          |
+| ---------------------------------------------------- | --------------------------------------------- |
+| Any words at all: terms, verbs, names, noun clusters | [words.md](references/words.md)               |
+| Sentences: length, voice, tense, -ing forms, lists   | [sentences.md](references/sentences.md)       |
+| Steps the reader follows                             | [procedures.md](references/procedures.md)     |
+| Explanation of how something is or works             | [descriptions.md](references/descriptions.md) |
+| A warning or a caution                               | [safety.md](references/safety.md)             |
+| A request to check, review or score existing text    | [checking.md](references/checking.md)         |
 
 Writing a whole page means words, sentences, and the one for each kind of text
 it holds.

@@ -17,11 +17,11 @@ Name the thing that does the action, where you can.
 
 Not STE:
 
-> In order to make it possible for operators to see what the system is doing
-> at any point in time, a number of mechanisms have been put in place,
-> including the audit log.
+> In order to make it possible for operators to see what the system is doing at
+> any point in time, a number of mechanisms have been put in place, including
+> the audit log.
 
 STE:
 
-> The audit log records every request. An operator uses it to see who changed
-> a host, and when.
+> The audit log records every request. An operator uses it to see who changed a
+> host, and when.

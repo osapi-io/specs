@@ -19,11 +19,11 @@ machine.
 
 Every pull request ends with one of three verdicts:
 
-| Verdict | Means | What happens |
-| --- | --- | --- |
-| CLEAN | every check below passed | may be reported as ready |
-| LOOK | something a person has to read | report it with the reason; never merge it from a sweep |
-| STOP | a signal of tampering | report it first, do not approve, merge, rebase or check out |
+| Verdict | Means                          | What happens                                                |
+| ------- | ------------------------------ | ----------------------------------------------------------- |
+| CLEAN   | every check below passed       | may be reported as ready                                    |
+| LOOK    | something a person has to read | report it with the reason; never merge it from a sweep      |
+| STOP    | a signal of tampering          | report it first, do not approve, merge, rebase or check out |
 
 ## Run it
 
@@ -54,8 +54,8 @@ gh api "/repos/$repo/pulls/$n/commits" --paginate \
   --jq '.[] | "\(.sha[:8])\t\(.author.login // "none")\t\(.committer.login // "none")\t\(.commit.verification.verified)"'
 ```
 
-A commit Dependabot made reads `dependabot[bot]  web-flow  true`, meaning
-GitHub committed and signed it.
+A commit Dependabot made reads `dependabot[bot]  web-flow  true`, meaning GitHub
+committed and signed it.
 
 - **STOP** when the title reads like a bump and the author is not
   `app/dependabot`, or when a `dependabot/` branch comes from a fork. Both are
@@ -73,15 +73,14 @@ A bump changes a small, fixed set of files. Anything outside it is not a bump.
 gh pr view "$n" --repo "$repo" --json files -q '.files[].path'
 ```
 
-| Branch | Allowed |
-| --- | --- |
-| `dependabot/go_modules/...` | `go.mod` and `go.sum`, at the root or under `examples/` |
-| `dependabot/github_actions/...` | `.github/workflows/*.yml`, `uses:` lines only |
+| Branch                                              | Allowed                                                           |
+| --------------------------------------------------- | ----------------------------------------------------------------- |
+| `dependabot/go_modules/...`                         | `go.mod` and `go.sum`, at the root or under `examples/`           |
+| `dependabot/github_actions/...`                     | `.github/workflows/*.yml`, `uses:` lines only                     |
 | `dependabot/bun/...`, `dependabot/npm_and_yarn/...` | `package.json` and its lockfile, in the directory the entry names |
 
 **STOP** for any other path on a Dependabot branch. For a workflow bump, read
-the
-diff and confirm every changed line is a `uses:` line:
+the diff and confirm every changed line is a `uses:` line:
 
 ```bash
 gh pr diff "$n" --repo "$repo" | grep -E '^[-+][^-+]' | grep -vE '^[-+]\s+(- )?uses: '
@@ -216,8 +215,8 @@ gh api "/repos/$owner/$repo/git/ref/tags/$tag" --jq .object.sha
 ```
 
 - **STOP** when the owner or repository changed, or the tag does not exist.
-- **STOP** when GitHub has an advisory against the action and the new version
-  is in its range:
+- **STOP** when GitHub has an advisory against the action and the new version is
+  in its range:
 
 ```bash
 gh api "/advisories?ecosystem=actions&affects=$owner/$repo" --jq '.[] | "\(.ghsa_id)\t\(.vulnerabilities[0].vulnerable_version_range)\t\(.summary[:70])"'
@@ -237,14 +236,14 @@ is never better than LOOK until somebody reads it. Vetting tells where to read
 first. These paths run code in CI or on the machine of a maintainer. The report
 names each change to them:
 
-| Path | Why |
-| --- | --- |
-| `.github/workflows/`, `.github/actions/` | runs in CI with the repository's token |
-| `justfile`, `.just/`, `.mise.toml` | runs on every `just test`, locally and in CI |
-| `go.mod` `replace` and `tool` lines | swaps code, or adds a binary the gate runs |
-| `//go:generate` lines | runs on `go generate` |
-| `Dockerfile`, `scripts/`, any `*.sh` | runs during a build |
-| any binary file | cannot be read |
+| Path                                     | Why                                          |
+| ---------------------------------------- | -------------------------------------------- |
+| `.github/workflows/`, `.github/actions/` | runs in CI with the repository's token       |
+| `justfile`, `.just/`, `.mise.toml`       | runs on every `just test`, locally and in CI |
+| `go.mod` `replace` and `tool` lines      | swaps code, or adds a binary the gate runs   |
+| `//go:generate` lines                    | runs on `go generate`                        |
+| `Dockerfile`, `scripts/`, any `*.sh`     | runs during a build                          |
+| any binary file                          | cannot be read                               |
 
 In a workflow, these are a **STOP** until a maintainer reads them:
 

@@ -26,20 +26,20 @@ that they act on.
 
 Ask in plain language, or invoke it directly with `/org-status`.
 
-| Ask | You get |
-| --- | --- |
-| `any open PRs?` `anything waiting on review?` | Every open PR, human and bot separated, oldest first |
-| `any dependabot PRs?` | Just the version bumps |
-| `what issues are open?` `what is left to work?` | Open issues per repository, minus the ones a pull request already closes |
-| `any security alerts?` `is CI green?` | Alert counts, default-branch health, Go version drift |
-| `any stale branches?` | Remote branches classified by whether deleting them loses work |
-| `are the examples out of date?` | Nested modules Dependabot does not watch |
-| `any open PRs in gohai?` | Only the repositories you name |
-| a pasted `/security` URL, `are we exposed?` | A triage verdict for that repository |
-| `fix it` `dismiss them` `bump it` | The fix for that verdict, shown before it runs |
-| `is #631 safe?` `could any PR be malicious?` | A vetting verdict: provenance, files, typosquats, release age, known-malicious versions |
+| Ask                                                          | You get                                                                                                                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `any open PRs?` `anything waiting on review?`                | Every open PR, human and bot separated, oldest first                                                                                                    |
+| `any dependabot PRs?`                                        | Just the version bumps                                                                                                                                  |
+| `what issues are open?` `what is left to work?`              | Open issues per repository, minus the ones a pull request already closes                                                                                |
+| `any security alerts?` `is CI green?`                        | Alert counts, default-branch health, Go version drift                                                                                                   |
+| `any stale branches?`                                        | Remote branches classified by whether deleting them loses work                                                                                          |
+| `are the examples out of date?`                              | Nested modules Dependabot does not watch                                                                                                                |
+| `any open PRs in gohai?`                                     | Only the repositories you name                                                                                                                          |
+| a pasted `/security` URL, `are we exposed?`                  | A triage verdict for that repository                                                                                                                    |
+| `fix it` `dismiss them` `bump it`                            | The fix for that verdict, shown before it runs                                                                                                          |
+| `is #631 safe?` `could any PR be malicious?`                 | A vetting verdict: provenance, files, typosquats, release age, known-malicious versions                                                                 |
 | `have we been hacked?` `do we depend on anything malicious?` | A compromise audit: access, commit authors, every lockfile against OSV, Action advisories, release tags, then missing cooldowns and unwatched lockfiles |
-| `merge the open PRs` `work the queue` | The merge order, a rebase for each bump, and a verdict for anything red |
+| `merge the open PRs` `work the queue`                        | The merge order, a rebase for each bump, and a verdict for anything red                                                                                 |
 
 Reading is the default. Two paths write, and they differ in what they ask of
 you.
@@ -68,8 +68,8 @@ the category you asked about, and nothing else enters context.
 Issues and task lists answer different questions. Thus the skill does not treat
 them in the same way. An issue is an intent that nobody works on. The Spec Kit
 task list tracks work in progress. The skill reports an issue with an open pull
-request as in progress, not as remaining work. [The
-constitution](../../../CONSTITUTION.md#tracking) states the division.
+request as in progress, not as remaining work.
+[The constitution](../../../CONSTITUTION.md#tracking) states the division.
 
 Alerts are triaged, not counted. Dependabot knows a vulnerable version is in
 `go.mod`; it does not know whether the vulnerable code runs. Each alert resolves
@@ -85,22 +85,22 @@ cause before you queue anything.
 
 ## Documentation
 
-| File | Covers |
-| --- | --- |
-| [SKILL.md](SKILL.md) | Repository resolution, routing, the output shape |
-| [references/pull-requests.md](references/pull-requests.md) | Open PRs, author filtering, draft and mergeable and review state |
-| [references/issues.md](references/issues.md) | Open issues, what a pull request already has in hand, trackers, closing one |
-| [references/security.md](references/security.md) | Dependabot, code-scanning and secret-scanning alerts, required scopes |
-| [references/triage.md](references/triage.md) | The four verdicts, how to establish each, the fix for each |
-| [references/branches.md](references/branches.md) | Classifying remote branches as merged, abandoned, active or protected |
-| [references/modules.md](references/modules.md) | Nested `examples/` modules: tidiness, go directive, dependency bumps |
-| [references/quality.md](references/quality.md) | Default-branch checks, Go version drift, named workflows, release state |
-| [references/vetting.md](references/vetting.md) | Supply-chain checks on a pull request: impersonation, stray files, typosquats, release age, known-malicious versions |
-| [references/audit.md](references/audit.md) | Signs of compromise across the org, and the defences that should be in place |
-| [scripts/deps.sh](scripts/deps.sh) | Every locked dependency of a repository, from `go.sum`, `bun.lock` and `package-lock.json` |
-| [scripts/osv-malicious.sh](scripts/osv-malicious.sh) | Asks OSV about a dependency list and flags malicious or hijacked versions |
-| [scripts/resembles.py](scripts/resembles.py) | Flags module paths that resemble one already depended on |
-| [references/merging.md](references/merging.md) | Merge order, Dependabot rebases, waiting on checks, why a rebase cannot fix a red bump |
+| File                                                       | Covers                                                                                                               |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| [SKILL.md](SKILL.md)                                       | Repository resolution, routing, the output shape                                                                     |
+| [references/pull-requests.md](references/pull-requests.md) | Open PRs, author filtering, draft and mergeable and review state                                                     |
+| [references/issues.md](references/issues.md)               | Open issues, what a pull request already has in hand, trackers, closing one                                          |
+| [references/security.md](references/security.md)           | Dependabot, code-scanning and secret-scanning alerts, required scopes                                                |
+| [references/triage.md](references/triage.md)               | The four verdicts, how to establish each, the fix for each                                                           |
+| [references/branches.md](references/branches.md)           | Classifying remote branches as merged, abandoned, active or protected                                                |
+| [references/modules.md](references/modules.md)             | Nested `examples/` modules: tidiness, go directive, dependency bumps                                                 |
+| [references/quality.md](references/quality.md)             | Default-branch checks, Go version drift, named workflows, release state                                              |
+| [references/vetting.md](references/vetting.md)             | Supply-chain checks on a pull request: impersonation, stray files, typosquats, release age, known-malicious versions |
+| [references/audit.md](references/audit.md)                 | Signs of compromise across the org, and the defences that should be in place                                         |
+| [scripts/deps.sh](scripts/deps.sh)                         | Every locked dependency of a repository, from `go.sum`, `bun.lock` and `package-lock.json`                           |
+| [scripts/osv-malicious.sh](scripts/osv-malicious.sh)       | Asks OSV about a dependency list and flags malicious or hijacked versions                                            |
+| [scripts/resembles.py](scripts/resembles.py)               | Flags module paths that resemble one already depended on                                                             |
+| [references/merging.md](references/merging.md)             | Merge order, Dependabot rebases, waiting on checks, why a rebase cannot fix a red bump                               |
 
 Format details are in the [Agent Skills specification].
 

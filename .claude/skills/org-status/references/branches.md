@@ -25,12 +25,12 @@ done
 
 There are four results. Only the first is safe without a question to the reader:
 
-| Signal | Meaning | Action |
-| --- | --- | --- |
-| PR `MERGED` | the work is in | safe to delete |
-| `ahead_by` 0, no PR | nothing the default branch lacks | safe to delete |
-| PR `CLOSED` | abandoned, and deleting discards it | report, ask first |
-| PR `OPEN` | active | leave alone |
+| Signal              | Meaning                             | Action            |
+| ------------------- | ----------------------------------- | ----------------- |
+| PR `MERGED`         | the work is in                      | safe to delete    |
+| `ahead_by` 0, no PR | nothing the default branch lacks    | safe to delete    |
+| PR `CLOSED`         | abandoned, and deleting discards it | report, ask first |
+| PR `OPEN`           | active                              | leave alone       |
 
 ## Two traps
 
