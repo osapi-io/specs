@@ -167,7 +167,14 @@ fails the build on a permission that Go does not have. A hand copy came before
 it, and it was out of date: it had `cron:*`, `hostname:*` and `group:*`, which
 no token has, and did not have `schedule:*` (osapi-io/osapi#749). The published
 site also tells what each role permits for an *operator*, because a person who
-configures a role looks there.
+configures a role looks there. The same file has `BUILT_IN_ROLES`, the built-in
+roles in order with the description of each, from `authtoken.RoleDescription`,
+for the role switch and the Roles page.
+
+These `.gen.ts` files are a second channel beside the spec and the SDK, and a
+file that the build fixes cannot show a behavior that an extension adds at run
+time. osapi-io/osapi#1256 replaces them with one served catalog endpoint that
+the UI reads through the generated client.
 
 A page, its link in the Admin menu and each control that writes check the API
 operation that they call, not a permission. `useAuth().canCall("getAdmissions")`
@@ -314,8 +321,10 @@ Above the steps, a preflight shows what the plan needs:
 - each host of a target where a method does not run. The preflight reads the
   platform of a host from `os_info.family` of the agent list. The agent reports
   there the family that it picks providers by, from gohai's `family.Detect`
-  (osapi#1224). A method that runs on `linux` runs on each Linux host and not on
-  macOS, as the agent resolves a provider.
+  (osapi#1224). The catalog gives each method `runsOn`: the host platforms that
+  it runs on, from `Behavior.RunsOnHost`, the rule that the agent itself calls,
+  and `*` for a Linux host whose platform gohai has no family for. The UI does
+  not copy the rule (osapi#1235).
 - the count of steps that wait for input or a target.
 
 The preflight refuses nothing. **Run** runs each step that can run, in order,
@@ -514,12 +523,25 @@ says so.
 
 The UI has its own checks: `just react-lint`, `just react-test`,
 `just react-unit` and the Docusaurus build for its documentation.
-`just react-unit` runs `bun test` on the `src/**/*.test.ts` files of the UI. bun
-runs the tests itself, with no test package, and `tsconfig.test.json` checks
-their types. It is one of the quick checks of `just test`, so CI runs it. The
-tests read the logic of the pages, such as the permission of a step. They do not
-render a page. Thus a click-through in the lab is still necessary
+`just react-unit` runs `bun test` on the `src/**/*.test.ts` and
+`src/**/*.test.tsx` files of the UI, and `tsconfig.test.json` checks their
+types. It is one of the quick checks of `just test`, so CI runs it. bun preloads
+happy-dom (`src/test/dom.ts`), so a test renders a component or a hook with
+React Testing Library, and `src/test/cleanup.ts` unmounts it after each test.
+The tests cover the logic of the pages, the shared hooks and the shared
+components. They do not render a whole page against the API. Thus a
+click-through in the lab is still necessary
 ([AGENTS.md](../../AGENTS.md#use-the-lab)).
+
+A page reads the API through `usePolling` (`ui/src/hooks/use-polling.ts`): it
+calls at once and then at each interval, while `enabled`, and it drops an answer
+that comes after the page left or after its inputs changed. A page passes
+`enabled: canCall(operation)`, so a role that the API refuses sends no request.
+Before, the Jobs, Audit and Admission pages polled each 10 seconds and got a 403
+for a refused role (osapi-io/osapi#1236). `useJob` reads one job. A value that
+the API gives as an enum, such as a job status or an agent state, comes from the
+orval client's constants, such as `GetJobsStatus`, not a typed string
+(osapi-io/osapi#1234).
 
 ## Where this connects
 
