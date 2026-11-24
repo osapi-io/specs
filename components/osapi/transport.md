@@ -162,15 +162,16 @@ Three things can surprise you:
 - **The key is the data.** If the key is lost, or a different key is set, NATS
   cannot load the streams, and the setup of osapi fails to create them again.
   The server does not start, and the files stay on the disk. Keep a copy of the
-  key with the backup of `store_dir`, but not in the same location.
+  key apart from the backup of `store_dir`.
 
-**To rotate the key**, give the server the new key and the old key together:
-
-1. Set `old_key_file` to the path of the current key.
-2. Set `key_file` to a new path, and run `osapi nats key create`.
-3. Restart the server. NATS reads each store with the old key and writes it
-   again with the new key. This is `JetStreamOldKey` in NATS.
-4. Remove `old_key_file` from the config, and remove the old file.
+**osapi does not rotate the key.** The rotation of NATS is `JetStreamOldKey`:
+the server starts with the new key and the old key, and writes the store again
+with the new key. In NATS v2.15.3, the store of a durable consumer opens its key
+only with the new key. Thus a stream with a durable consumer does not load, and
+the `JOBS` stream has durable consumers. A KV bucket rotates, and `JOBS` does
+not. [nats-server #8884](https://github.com/nats-io/nats-server/issues/8884)
+reports it, and [osapi #1274](https://github.com/osapi-io/osapi/issues/1274)
+adds `old_key_file` when NATS fixes it.
 
 The key protects the files from a person who reads the disk or a backup. It does
 not protect a value from a NATS user, because the server decrypts each message
