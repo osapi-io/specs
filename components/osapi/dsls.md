@@ -100,8 +100,8 @@ A `secret.Value` holds a reference, `secret://<vault>/<key>`, or a literal
 value. `IsReference` tells which. `String`, `Format`, `MarshalJSON` and
 `LogValue` give the reference, or `[redacted]` for a literal. Only `Reveal`
 gives the value. A provider calls it only where it gives the value to a
-command's standard input, an environment or a file. [Secrets](secrets.md) has
-the plan for the vaults that a reference names.
+command's standard input, an environment or a file. [Vaults](vaults.md) has the
+vaults that a reference names.
 
 What each part of a DSL does with a `secret.Value` field:
 
@@ -123,14 +123,12 @@ The CLI sends the request, and the job client queues the job, with
 marshals its value. Each other marshal of the input gives the reference or
 `[redacted]`.
 
-Until the vaults exist, two limits apply:
+The route of each method resolves a reference from its vault before the handler
+gets the input ([Vaults](vaults.md#how-a-route-resolves-a-reference)). One limit
+applies until the controller seals a value:
 
-- **No reference resolves.** The route of each method refuses a reference with
-  400, because the vault that it names does not exist. Thus a literal value from
-  standard input is the only value that operates now. Resolution is
-  osapi-io/osapi#1244.
-- **The job has the literal value.** JetStream and the job KV keep it, as they
-  kept a value with the tag. A `.Before` step that changes the value, such as to
+- **The job has the value.** JetStream and the job KV keep it, also when the
+  request gave a reference. A `.Before` step that changes the value, such as to
   the hash of a password, keeps it out of the job
   ([Behaviors](behaviors.md#a-step-on-the-controller)). The sealed values of
   osapi-io/osapi#1247 remove this limit.

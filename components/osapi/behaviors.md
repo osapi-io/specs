@@ -1312,8 +1312,8 @@ publications, and you edit nothing outside the directory of the behavior:
 
 A provider gets the value with `Reveal`, where it gives the value to a command's
 standard input, an environment or a file. [Secrets](dsls.md#secrets) has what
-each of the three DSLs does with the type, and the limits until the vaults
-exist.
+each of the three DSLs does with the type, and the limit until the controller
+seals a value.
 
 The audit redacts by name, as the denylist does. If you give a field with the
 name `value` the type, osapi redacts each request field with the name `value`,

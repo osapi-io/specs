@@ -220,12 +220,48 @@ readable.
 write `key_file`. A key in an environment variable is rotated outside osapi.
 They also refuse a vault of a type that is not `nats`.
 
+## How a route resolves a reference
+
+Built in osapi-io/osapi#1244. `Serve` in `internal/controller/endpoint/server`
+resolves each reference of the input before it calls the handler of the method.
+Thus each method of the behavior DSL and of the endpoint DSL resolves a
+reference, with no code in the method. The controller gives the server its
+vaults as `server.Secrets`. `secrets.go` does these steps, in this order:
+
+1. **Find the vault.** Each reference has the form `secret://<vault>/<key>`, a
+   key that `CheckKey` accepts, and a vault of `controller.secrets.vaults`. If
+   not, the request gets 400.
+2. **Check the limits of use.** The token has the permission `secret:use`. The
+   host of the route is in the `targets` of each vault that has targets. If not,
+   the request gets 403. A route with no host, such as a method that runs on the
+   controller, gets no secret from a vault with targets. A target such as `_all`
+   is not in the targets, as it is not in a target scope. The middleware refused
+   a host outside the target scope of the token before this step.
+3. **Read each value.** `secret.Resolve` reads each value from its vault, and
+   puts it in place of the reference. A key that the vault does not have gives
+   400\. A vault that does not answer gives 500, and the controller logs the
+   cause.
+4. **Validate the values.** `Valid` checks the input again, so each value obeys
+   the `validate` tags of its field, such as `no_linebreak` on a password.
+
+The limits come before the read. Thus a caller without `secret:use` does not
+learn if a key exists, and the controller reads no value that it does not use.
+Each refusal gives the reference, never the value.
+
+The middleware puts the permissions of the token in the context of the request
+with `authtoken.WithPermissions`. `authtoken.Granted` reads them.
+
+The handler gets the value. A `.Before` step runs on the value, and the job
+keeps the value that the step leaves. The audit entry keeps the reference,
+because the audit records the body of the request. A span never records a
+secret. A chain record on the agent has `[redacted]`, because the job has the
+value. The sealed values of osapi-io/osapi#1247 keep the value out of the job.
+
 ## What this page does not cover
 
 - The `secret` endpoint group, and who may read or write a secret
   ([osapi #1243](https://github.com/osapi-io/osapi/issues/1243)).
-- The resolution of a reference in a request, and the seal to an agent.
-  [Secrets](secrets.md) has the plan.
+- The seal of a value to an agent. [Secrets](secrets.md) has the plan.
   [Configuration](configuration.md#a-secret-can-be-a-reference-to-a-vault) has
   the references in the config, which `Set.Resolve` resolves.
 - JetStream encryption at rest, with its own key and `osapi nats key create`.
