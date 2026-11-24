@@ -53,13 +53,13 @@ code, the pages and the examples cannot name a method in two ways.
 
 The generator keeps no list of names. It takes each one from the spec:
 
-| Name    | From                                                   | Example                           |
-| ------- | ------------------------------------------------------ | --------------------------------- |
-| service | the words of the group's path, to the group's own word | `NetworkDNS` for `/network/dns`   |
-| method  | the operation's `x-osapi-method` extension             | `Get`, `Drain`, `Liveness`        |
-| type    | the schema of an answer                                | `NetworkDnsEntry`                 |
-| input   | the service and the method                             | `NetworkDNSUpdateInput`           |
-| field   | the property, with Go initialisms                      | `SearchDomains`, `JobID`, `Min15` |
+| Name    | From                                                   | Example                                 |
+| ------- | ------------------------------------------------------ | --------------------------------------- |
+| service | the words of the group's path, to the group's own word | `PackageUpdates` for `/package/updates` |
+| method  | the operation's `x-osapi-method` extension             | `Get`, `Drain`, `Liveness`              |
+| type    | the schema of an answer                                | `DnsEntry`                              |
+| input   | the service and the method                             | `DNSUpdateInput`                        |
+| field   | the property, with Go initialisms                      | `SearchDomains`, `JobID`, `Min15`       |
 
 The endpoint layer writes `x-osapi-method` on each operation: the name of the
 method in the definition of its group or behavior. It writes `x-osapi-group` on
@@ -67,8 +67,8 @@ each tag: the name of the group, which is the word of the path that the service
 name stops at. The name of the tag for a person, `x-displayName`, is the title
 of the behavior, such as "Package updates". Thus the service name does not come
 from that title. The CLI command has the same name. Thus
-`osapi client node network dns get` is `c.NetworkDNS.Get`. To change a name,
-change it in the definition.
+`osapi client node dns get` is `c.DNS.Get`. To change a name, change it in the
+definition.
 
 A group of a node that has the name of a group of the controller gets `Node` in
 front: the file behavior is `NodeFile`, next to `File`, the Object Store.
@@ -76,9 +76,8 @@ front: the file behavior is `NodeFile`, next to `File`, the Object Store.
 This replaces the five naming rules and the seven renames that this page had
 before. Those rules came from the methods that people wrote. Some generated
 names differ: `Health.GetLiveness` is `Health.Liveness` again, and
-`Docker.RemoveImage` is `ContainerImage.Delete`. The definition is the one place
-that names an operation, and nobody else uses the SDK, so the change has no
-shim.
+`Docker.RemoveImage` is `Image.Delete`. The definition is the one place that
+names an operation, and nobody else uses the SDK, so the change has no shim.
 
 ## Every method has the same shape
 
@@ -87,11 +86,11 @@ struct, `<Service><Method>Input`. The input has a field for each other key of
 the path, with the `json` tag `-`, then a field for each property of the body.
 
 ```go
-func (s *NetworkDNSService) Update(
+func (s *DNSService) Update(
     ctx context.Context,
     hostname string,
-    input NetworkDNSUpdateInput,
-) (*Response[Collection[NetworkDnsResult]], error)
+    input DNSUpdateInput,
+) (*Response[Collection[DnsResult]], error)
 ```
 
 One struct, not a list of arguments, because a write has many optional fields
@@ -140,9 +139,9 @@ generated method for a multipart form.
 The same `go generate` run writes a program for each service,
 `examples/sdk/client/<service>.go`. The program has a function for each example,
 which calls the method with the input of the example and prints the answer as
-JSON. Give the name of an example to run it, such as
-`go run network_dns.go update`. The target of a node is `OSAPI_TARGET`, `_any`
-by default, not the host of the example. `examples-check` compiles each program.
+JSON. Give the name of an example to run it, such as `go run dns.go update`. The
+target of a node is `OSAPI_TARGET`, `_any` by default, not the host of the
+example. `examples-check` compiles each program.
 
 `just sdk-docs-generate` writes a page for each service under
 `docs/docs/sidebar/sdk`, in the folder of its area, such as `fleet/agent.md`.

@@ -316,7 +316,7 @@ endpoint group had no area. Thus the SDK pages were one list.
 | `software`    | Software     | behaviors                                                                            |
 | `config`      | Config       | behaviors                                                                            |
 | `node`        | Node         | behaviors                                                                            |
-| `logs`        | Logs         | behaviors: log entry and log source                                                  |
+| `logs`        | Logs         | behaviors: log and log source                                                        |
 | `networking`  | Networking   | behaviors                                                                            |
 | `security`    | Security     | behaviors                                                                            |
 | `containers`  | Containers   | behaviors                                                                            |
@@ -328,9 +328,9 @@ endpoint group had no area. Thus the SDK pages were one list.
 
 `objectstore` has the Object Store only. Until osapi-io/osapi#1208 its name was
 `files`, but the `file` behavior, which deploys an object to a host, is in
-`config`. `logs` is after `node`, because log entry and log source were in
-`node` before. `audit` and `fleet` have no behavior, thus the Behaviors page of
-the UI has no section for them ([the UI](ui.md)).
+`config`. `logs` is after `node`, because the log and its sources were in `node`
+before. `audit` and `fleet` have no behavior, thus the Behaviors page of the UI
+has no section for them ([the UI](ui.md)).
 
 A behavior declares its area with `behavior.Area`, and an endpoint group with
 `endpoint.Area`. The generated group of a behavior gets the area of the

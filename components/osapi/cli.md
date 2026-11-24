@@ -134,9 +134,10 @@ second moved the client groups (osapi-io/osapi#1257): `facts keys list` to
 `agent facts list` (`GET /api/agent/facts`), `telemetry trace get` to
 `trace get` (`GET /api/trace/{id}`), and `controller status`, `nats status` and
 `agent status` to `health status --component controller|nats|agent`. The
-`facts`, `controller` and `nats` endpoint groups went. The third moves the node
-paths: the behaviors without category words, the area help headings, `file get`,
-`package updates` and `user password update`. The `secret`, `vault` and
+`facts`, `controller` and `nats` endpoint groups went. The third moved the node
+paths (osapi-io/osapi#1258): the behaviors without category words, the area help
+headings, `file get`, `package updates` and `user password update`
+([node paths](#node-paths-moved-on-24-november-2026)). The `secret`, `vault` and
 `nats key` commands come with secret management (osapi-io/osapi#1065), not with
 these moves.
 
@@ -189,7 +190,7 @@ a deploy writes each path as root, and `file:write` stays with `automation`.
 
 A command is `<resource> <verb>`. A noun that is used as a command becomes a
 filter on `list`, or a resource with its own verbs under it: `file stale list`,
-`package list --updates`, `log source list`, `user password update`,
+`package updates list`, `log source list`, `user password update`,
 `agent facts list`. Do not use synonyms. Use `delete`, never `remove` or `rm`.
 Use `create`, never `add` or `new`. Use `get`, never `describe` or `show`.
 
@@ -294,6 +295,36 @@ aliases:
 | `cli docs generate`, `cli docs dsl generate`, `cli docs reference generate` | `dsl docs generate`, one command                         |
 | `nats server start`                                                         | `nats start`                                             |
 | `agent admission get`                                                       | `agent key fingerprint`                                  |
+
+### Node paths, moved on 24 November 2026
+
+The node paths moved, with no aliases (osapi-io/osapi#1258). Each behavior is
+directly under `node`, by its own name, and nested only under a parent behavior.
+Each path moved with its command, such as `/api/node/{hostname}/dns`:
+
+| Was                                                    | Now                                            |
+| ------------------------------------------------------ | ---------------------------------------------- |
+| `client node network dns`                              | `client node dns`                              |
+| `client node network interface`, with `route` under it | `client node interface`, with `route` under it |
+| `client node network connectivity`                     | `client node connectivity`                     |
+| `client node container docker`                         | `client node docker`                           |
+| `client node container image`                          | `client node image`                            |
+| `client node log entry list`                           | `client node log list`                         |
+| `client node file status`                              | `client node file get`                         |
+| `client node updatepackages list`, `update`            | `client node package updates list`, `update`   |
+| `client node user passwd`                              | `client node user password update`             |
+
+The names that come from the paths moved too: the operation IDs, the names of
+the schemas, the SDK services and the API tags. `NetworkDnsEntry` is `DnsEntry`,
+and the SDK service `NetworkDNS` is `DNS`. The permissions `entry:read` and
+`source:read` became `log:read`, `updatepackages:read` and
+`updatepackages:write` became `package:read` and `package:write`, and
+`user:execute` went ([permissions](permissions.md)).
+
+`osapi client node --help` lists the behaviors under the label of their area, in
+the order of `area.All`, with cobra command groups. `GroupByArea` in
+`internal/cli/command` sets them from the area of each endpoint group, so no
+person types a heading.
 
 ### Required flags
 

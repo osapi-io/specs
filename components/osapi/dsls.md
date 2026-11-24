@@ -73,7 +73,7 @@ Tests hold each table to the code:
 Go converts an untyped string literal to a named string type. Thus a type alone
 does not refuse a misspelled value: `behavior.Platform("debain", ...)` compiles.
 Each typed value also has a validate rule that refuses a value outside its set,
-such as `KnownPlatforms()`, `KnownGroups()` and `KnownParents()`. The sweeps of
+such as `KnownPlatforms()` and `KnownParents()`. The sweeps of
 osapi-io/osapi#1062 and osapi-io/osapi#1072 gave the DSLs these types.
 `internal/dslcheck` has two guards (osapi-io/osapi#1078): a test that fails on a
 new bare `string` in the exported API of a DSL that its allowlist does not give
