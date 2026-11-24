@@ -547,18 +547,24 @@ looks for a `Runs` program on its `PATH`, and for a `Sudo` program on its `PATH`
 and in `/usr/local/sbin`, `/usr/sbin` and `/sbin`, because sudo finds a program
 there. The agent logs a warning for each missing program, and reports the list
 as `missing_programs` in its registration. `agent get` and `agent list` show it
-(osapi-io/osapi#1139). A program declared on a method counts only on a platform
-where the method runs. A behavior that has no provider for a platform runs
-nothing there, so it needs no program there. Thus an agent on Fedora does not
-ask for the `apt-get` of a behavior that has only a Debian provider. `hostname`
-declares `hostnamectl` on `update`, so an agent on macOS does not ask for it. A
-missing program fails only that behavior, so it does not stop the agent. Nobody
-edits either list for a behavior. The fake host fails an example that runs a
-program without its declaration, and counts the programs that the required
-behaviors declare. The integration test `TestPrograms` reads `missing_programs`
-from each agent that the suite targets, and fails when one is not empty. Thus on
-CI it checks the runner, and against the lab it checks each VM, not the machine
-that runs `go test`.
+(osapi-io/osapi#1139). The agent finds the list again on each heartbeat
+(osapi-io/osapi#1290). Thus a program that a person installs after the start,
+also with `osapi client node package create`, leaves the list at the next
+heartbeat, and the agent does not have to restart. The agent logs a warning for
+a program that goes missing, and an info line for a program that it finds. The
+check is a look up on the `PATH` and in three directories for each program, so
+it costs little at the interval of the heartbeat. A program declared on a method
+counts only on a platform where the method runs. A behavior that has no provider
+for a platform runs nothing there, so it needs no program there. Thus an agent
+on Fedora does not ask for the `apt-get` of a behavior that has only a Debian
+provider. `hostname` declares `hostnamectl` on `update`, so an agent on macOS
+does not ask for it. A missing program fails only that behavior, so it does not
+stop the agent. Nobody edits either list for a behavior. The fake host fails an
+example that runs a program without its declaration, and counts the programs
+that the required behaviors declare. The integration test `TestPrograms` reads
+`missing_programs` from each agent that the suite targets, and fails when one is
+not empty. Thus on CI it checks the runner, and against the lab it checks each
+VM, not the machine that runs `go test`.
 
 The paths and the records that a behavior changes are declared the same way. The
 fake host fails an example that writes, removes or changes the mode of a path

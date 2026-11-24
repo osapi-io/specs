@@ -197,15 +197,29 @@ interface behavior adds that the netplan of the host does not have
 `dummy-devices`. Each VM of the lab has netplan 1.1.2.
 
 The write examples run on `osapi0`, a dummy, and set no gateway. A default route
-through `osapi0` would take the traffic of the host. The integration suite makes
-`osapi0` through osapi before the write examples:
-`osapi client node interface create --name osapi0 --type dummy`. It makes it
-again after each interface example, because that example deletes it. At the end,
-the suite deletes `osapi0` if the suite made it. Thus the CI runner and a lab VM
-need no setup of their own for these examples. The suite also installs chrony
-through osapi, for the ntp examples. The CI job still installs chrony before the
-agent starts, because the agent reads its missing programs only when it starts
-(osapi-io/osapi#1290).
+through `osapi0` would take the traffic of the host. The suite makes `osapi0`
+again after each interface example, because that example deletes it.
+
+The integration suite prepares its own target through osapi, the same on the CI
+runner and on a lab VM. With `OSAPI_INTEGRATION_WRITE_BEHAVIORS=1`, `TestMain`
+does these steps after the agent is up and before the tests:
+
+- `osapi client node sysctl update` sets `net.ipv4.ping_group_range` to
+  `0 2147483647`, for the ping examples.
+- `osapi client node package create --name chrony`, for the ntp examples.
+- `osapi client node interface create --name osapi0 --type dummy`, for the dns,
+  interface and route examples.
+
+Each step changes nothing when the target has it. Then the suite waits for a
+heartbeat of the agent after the steps. The agent finds its missing programs
+again on each heartbeat (osapi-io/osapi#1290), so `TestPrograms` sees chrony. At
+the end, the suite puts back what it changed: the old value of the parameter,
+and no `osapi0`. It does not remove chrony. The CI job has only the steps of the
+toolchain and `just go-unit-int`. Before, the job set the parameter, installed
+chrony, made `osapi0` and emptied `/etc/skel` with shell steps, and the lab VMs
+did not have `osapi0` (osapi-io/osapi-lab#52). The job wait of the suite is 2m
+(osapi-io/osapi#1272), which is longer than the copy of the large `/etc/skel` of
+the runner for a new home.
 
 **route** (osapi-io/osapi#990, osapi-io/osapi#998) is under the interface, with
 `behavior.Of`: `osapi client node interface route`, at
