@@ -22,20 +22,19 @@ without the other.
 A [behavior](behaviors.md) does not declare permissions. osapi makes the
 permission of each method from the definition:
 
-- the resource is the name of the behavior, also when the behavior is in a group
+- the resource is the name of the behavior, or of its parent for a child
 - the verb is `read` for a `Read` method, `write` for a `Write` method,
   `execute` for an `Action`, such as a service restart, and the verb of
   `.PermitAs(verb)` for an `Action` that has it: `exec` for docker exec, and
   `shell` for command shell, whose `.Shell()` is `.PermitAs(behavior.VerbShell)`
 
-The `get` of sysctl needs `sysctl:read`. dns under `network` needs `dns:read`.
+The `get` of sysctl needs `sysctl:read`, and the `get` of dns needs `dns:read`.
 `osapi dsl behavior get --name <name>` lists them.
 
-A group puts a behavior in the route and the command tree. It does not put it in
-a permission. Thus a role can get `dns:write` and not `interface:write`. A
-behavior name is unique in the registry, so two behaviors cannot make the same
-permission. A child, such as route under interface, has the permission of its
-parent: a route needs `interface:write`.
+A role can get `dns:write` and not `interface:write`. A behavior name is unique
+in the registry, so two behaviors cannot make the same permission. A child, such
+as route under interface, has the permission of its parent: a route needs
+`interface:write`, and the sources of the log need `log:read`.
 
 The behaviors in a group had the permission of the group before this rule. The
 permissions of the groups changed to these:
@@ -52,6 +51,18 @@ permissions of the groups changed to these:
 | `log:read`          | `entry:read`, `source:read`       |
 
 A custom role that named a permission of a group must name the new permissions.
+
+The groups went in osapi-io/osapi#1258, and three behaviors became children of a
+different behavior. Their permissions changed to the parent's:
+
+| Was                                           | Is                                       |
+| --------------------------------------------- | ---------------------------------------- |
+| `entry:read`, `source:read`                   | `log:read`                               |
+| `updatepackages:read`, `updatepackages:write` | `package:read`, `package:write`          |
+| `user:execute`                                | `user:write`, for `user password update` |
+
+The roles do not change. `updatepackages:write` was in `admin` and `automation`,
+as `package:write` is. `user:execute` and `user:write` were both admin only.
 
 Thus a domain that moves to a behavior can change its permission. The node reads
 were all `node:read`. As behaviors, each has its own: `uptime:read`, `os:read`,
@@ -152,7 +163,7 @@ install scripts, and a sysctl value can weaken the kernel. Thus give
 `automation` only to a program that you trust as root, and say so where it is
 configured. osapi does not hide this behind the role's name.
 
-`read` keeps `entry:read`, `file:read` and `process:read`, which can show a
+`read` keeps `log:read`, `file:read` and `process:read`, which can show a
 secret: a log line, the content of a file, the arguments of a process. A
 dashboard gets `observer`, which reads no log, file or command output.
 

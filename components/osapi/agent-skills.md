@@ -163,14 +163,15 @@ The requests cover these cases:
 - a behavior that requires `managedfile`, and does not copy it
 - a behavior for the `linux` platform
 - a secret input
-- a behavior in a group
+- a behavior under a parent behavior
 - a request that the platform cannot express. It passes when the skill says so.
 - a request that is not clear enough to build. It passes when the skill asks.
 
 The first run of the internal behavior found that the fake host could not model
-state that a program keeps. `PrintsAfter` now does this. The build of the
-grouped behavior found that `osapi dsl behavior create` could not write a
-behavior in its group. `--group` now does this.
+state that a program keeps. `PrintsAfter` now does this. The build of a behavior
+in a group found that `osapi dsl behavior create` could not write a behavior in
+its group, and `--group` did this. osapi-io/osapi#1258 removed the groups and
+`--group`. The eval now builds a child of the interface, with `Of`.
 
 The tool loads `SKILL.md` when a request matches its description. A reference
 loads only when the routing table sends the agent to it. Thus a session pays

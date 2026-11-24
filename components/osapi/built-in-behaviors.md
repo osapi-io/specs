@@ -43,14 +43,22 @@ Packages are two behaviors (osapi-io/osapi#964). `package` reads through gohai
 on each platform, and installs and removes with `apt-get` on the Debian family.
 Its Go package is `packages`, because `package` is a Go keyword.
 
-`updatepackages` lists and refreshes the package index with apt. The index is
-what the repositories have, not a fact about the host, so gohai does not read
-it. A refresh reports `changed: true` only when the Release file of a repository
-under `/var/lib/apt/lists` changed. The apt module of Ansible reports a change
-on each update that runs, from the time stamp, and has `cache_valid_time` to
-skip one. That breaks the rule that a second identical call changes nothing. The
-`Get:` lines of `apt-get` do not tell either, because the CI runner prints them
-on each run.
+`updates` lists and refreshes the package index with apt. It is under the
+collection of `package`, with `behavior.Under`:
+`osapi client node package updates list|update`, at
+`/api/node/{hostname}/package/updates`. Its permissions are `package:read` and
+`package:write`, the parent's. The refresh stays a write, so `package:write`
+stays with `automation`. An `install` action would give it `package:execute`,
+which the operator role gets (the decision of the owner, 24 November 2026, in
+osapi-io/osapi#1258). Until osapi-io/osapi#1258 it was the behavior
+`updatepackages`, with the permissions `updatepackages:read` and
+`updatepackages:write`. The index is what the repositories have, not a fact
+about the host, so gohai does not read it. A refresh reports `changed: true`
+only when the Release file of a repository under `/var/lib/apt/lists` changed.
+The apt module of Ansible reports a change on each update that runs, from the
+time stamp, and has `cache_valid_time` to skip one. That breaks the rule that a
+second identical call changes nothing. The `Get:` lines of `apt-get` do not tell
+either, because the CI runner prints them on each run.
 
 ## Services
 
@@ -140,9 +148,11 @@ such as the Debian system CA `mozilla/ISRG_Root_X1`, is in `list` only. The rule
 
 ## Network
 
-The network group has dns, interface, route and connectivity. The rule
-`interface_name` is in the shared registry, because dns, interface and route
-each use it. No hand-written code reads or writes netplan.
+The networking area has dns, interface, route and connectivity. Each is directly
+under `node`, and route is under interface. Until osapi-io/osapi#1258 they were
+under a `network` group, such as `/network/dns`. The rule `interface_name` is in
+the shared registry, because dns, interface and route each use it. No
+hand-written code reads or writes netplan.
 
 **dns** (osapi-io/osapi#988). gohai reads it on each platform. It writes through
 `netplan`, an internal behavior that writes a file under `/etc/netplan`,
@@ -169,10 +179,10 @@ counted the interfaces let the write through. The write examples run on
 A default route through `osapi0` would take the traffic of the runner.
 
 **route** (osapi-io/osapi#990, osapi-io/osapi#998) is under the interface, with
-`behavior.Of`: `osapi client node network interface route`, at
-`/api/node/{hostname}/network/interface/{name}/route`. gohai reads the routes of
-an interface on each platform. A write on the Debian family goes only under the
-own definition of the interface, as for interfaces. It refuses a default route,
+`behavior.Of`: `osapi client node interface route`, at
+`/api/node/{hostname}/interface/{name}/route`. gohai reads the routes of an
+interface on each platform. A write on the Debian family goes only under the own
+definition of the interface, as for interfaces. It refuses a default route,
 because the interface behavior sets the gateway.
 
 Each call is one route, as `ip route add` and `ip route del` are, with a flag
@@ -187,13 +197,13 @@ segment, so `10.0.0.0%2F8` has no route. The routes of the whole host are in the
 facts of the agent, and the behavior has no list of them.
 
 **connectivity** has the `ping` action (osapi-io/osapi#1110):
-`osapi client node network connectivity ping --address <ip>`, at
-`POST /api/node/{hostname}/network/connectivity/ping`. A behavior named `ping`
-with an action `ping` gives the command `network ping ping`. Thus the behavior
-has the name of what it reports. The provider runs the `ping` of the host
-through `h.Exec` (iputils on Linux, `ping` and `ping6` on macOS) and reads its
-summary. The agent does not use the pro-bing library, so the examples run on the
-fake host. A host that does not answer is 100% loss, not an error.
+`osapi client node connectivity ping --address <ip>`, at
+`POST /api/node/{hostname}/connectivity/ping`. A behavior named `ping` with an
+action `ping` gives the command `ping ping`. Thus the behavior has the name of
+what it reports. The provider runs the `ping` of the host through `h.Exec`
+(iputils on Linux, `ping` and `ping6` on macOS) and reads its summary. The agent
+does not use the pro-bing library, so the examples run on the fake host. A host
+that does not answer is 100% loss, not an error.
 
 ## Users, groups and SSH keys
 
@@ -203,14 +213,24 @@ the Debian family. Its permissions are `group:read` and `group:write`, the name
 of the behavior, not `user:read` and `user:write`. A custom role that named
 `user:write` for groups must name `group:write`.
 
-`user` moved after the group (osapi-io/osapi#992). Its `create` and `passwd`
-hash the password on the controller, so the job has only the hash
+`user` moved after the group (osapi-io/osapi#992). Its `create` hashes the
+password on the controller, so the job has only the hash
 ([a step on the controller](behaviors.md#a-step-on-the-controller)). The
-password route is `POST /user/{name}/passwd`, an action that always reports a
-change. `passwd` is a word of `command.Actions`. The behavior reads through the
-users collector of gohai on each platform, and changes users on the Debian
-family. Its writes and `passwd` are `AdminOnly()`, because an account gets to
-root.
+behavior reads through the users collector of gohai on each platform, and
+changes users on the Debian family. Its writes are `AdminOnly()`, because an
+account gets to root.
+
+`password` is under `user`, with `behavior.Of` (osapi-io/osapi#1258):
+`osapi client node user password update`, at
+`PUT /api/node/{hostname}/user/{name}/password`. It requires `user`, to find the
+user, and sets the password with `chpasswd -e`, from the hash that its
+controller step makes. Its permission is `user:write`, the parent's, and it is
+`AdminOnly()`, as each write of `user` is. It was the action `user passwd`, at
+`POST /user/{name}/passwd`, with the permission `user:execute`, which went with
+it. An `update` must change nothing when it runs a second time with the same
+input. A password cannot do that: each call gets a new salt, so the hash is new,
+and the host cannot compare a password with its hash. Thus `behavior validate`
+permits `.Always()` on an `update`, as on an action, and the tests run it once.
 
 `sshkey` is under `user`, with `behavior.Of` (osapi-io/osapi#993):
 `osapi client node user sshkey`. It reads through the ssh collector of gohai,
@@ -220,9 +240,10 @@ are not built-in permissions now.
 
 ## Containers
 
-Containers are two behaviors under `container` (osapi-io/osapi#994): `docker`,
-at `/api/node/{hostname}/container/docker`, and `image`, at
-`/api/node/{hostname}/container/image`. Their reads go through the docker
+Containers are two behaviors (osapi-io/osapi#994): `docker`, at
+`/api/node/{hostname}/docker`, and `image`, at `/api/node/{hostname}/image`.
+Until osapi-io/osapi#1258 they were under the `container` group, at
+`/container/docker` and `/container/image`. Their reads go through the docker
 collector of gohai, which is an exception to the rule of gohai for the state of
 a daemon ([collectors](../gohai/collectors.md#what-gohai-reads)). Their writes
 run the docker CLI with sudo, not the Docker Engine API, because a provider runs
@@ -246,18 +267,21 @@ The write examples run on the container `osapitest`, from `alpine:3.20`.
 
 ## Logs
 
-The log domain became two behaviors under the `log` group (osapi-io/osapi#1105):
-`entry`, at `/api/node/{hostname}/log/entry`, and `source`, at
-`/api/node/{hostname}/log/source`. A query of the journal and a query of one
-unit are one `list` with a `unit` filter. journald gives the journal, so both
-behaviors read with `journalctl`, and say so with `.NotAFact`. They run on each
-Linux host, and skip in a container and on macOS. The hand-written domain ran on
-the Debian family only.
+The log domain became two behaviors (osapi-io/osapi#1105): `log`, at
+`/api/node/{hostname}/log`, and `source`, under the collection of the log with
+`behavior.Under`, at `/api/node/{hostname}/log/source`. Until
+osapi-io/osapi#1258 the entries were the behavior `entry`, under a `log` group,
+at `/log/entry`. A query of the journal and a query of one unit are one `list`
+with a `unit` filter. journald gives the journal, so both behaviors read with
+`journalctl`, and say so with `.NotAFact`. They run on each Linux host, and skip
+in a container and on macOS. The hand-written domain ran on the Debian family
+only.
 
 Each filter goes to `journalctl` in one argument with its option, such as
 `--unit=nginx.service`. The generated probe found that a value that starts with
-`-` got to `journalctl` as an option. The permissions are `entry:read` and
-`source:read`, the names of the behaviors (osapi-io/osapi#1115).
+`-` got to `journalctl` as an option. The permission is `log:read`, for the
+entries and the sources. It was `entry:read` and `source:read` until
+osapi-io/osapi#1258 (osapi-io/osapi#1115).
 
 ## NTP
 
