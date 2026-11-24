@@ -1318,8 +1318,7 @@ publications, and you edit nothing outside the directory of the behavior:
 
 A provider gets the value with `Reveal`, where it gives the value to a command's
 standard input, an environment or a file. [Secrets](dsls.md#secrets) has what
-each of the three DSLs does with the type, and the limit until the controller
-seals a value.
+each of the three DSLs does with the type, and how the job carries a value.
 
 The audit redacts by name, as the denylist does. If you give a field with the
 name `value` the type, osapi redacts each request field with the name `value`,
@@ -1361,12 +1360,10 @@ behavior fail on it.
 ## A step on the controller
 
 A secret that the agent must not see in plain text, such as a password, cannot
-travel in the job. The input of a behavior is the data of its job, and NATS and
-the job KV keep that data. A `secret.Value` field stays out of the audit log and
-the spans, but not out of NATS, until osapi-io/osapi#1247 seals it. Thus a
-method that takes such a secret declares a controller step with `.Before(fn)`.
-The function is `func(ctx context.Context, in In) (In, error)`, on the input
-type of the method.
+travel in the job. The job client seals a `secret.Value` field for the target
+agents when PKI is on, but each target agent opens it. Thus a method that takes
+such a secret declares a controller step with `.Before(fn)`. The function is
+`func(ctx context.Context, in In) (In, error)`, on the input type of the method.
 
 The generated route calls the step through `dispatch.Run`, on the controller,
 before it queues the job. The step runs in a span of its own,
@@ -1376,14 +1373,11 @@ the SHA-512 crypt hash that `chpasswd -e` takes. `internal/password` has the
 hash. The `create` of the user behavior and the `update` of the password
 behavior each have a step.
 
-Two rules keep the plain secret out of the job:
-
-- **Each `secret.Value` field is empty after the step.** If a secret field is
-  not empty, `RunBefore` fails, and osapi does not queue the job. Thus a step
-  that forgets to clear the password does not leak it.
-- **A field that the step fills has the tag `before:"set"`.** The request, the
-  command and the block of the UI do not have it, so a caller cannot send a hash
-  directly.
+The step clears the plain secret. A secret field that the step leaves set goes
+to the job sealed for the target agents, when PKI is on, and is not refused
+(osapi-io/osapi#1247). A field that the step fills has the tag `before:"set"`.
+The request, the command and the block of the UI do not have it, so a caller
+cannot send a hash directly.
 
 Under the rule `before`, `behavior validate` checks the step:
 
