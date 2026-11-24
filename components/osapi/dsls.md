@@ -124,13 +124,12 @@ marshals its value. Each other marshal of the input gives the reference or
 `[redacted]`.
 
 The route of each method resolves a reference from its vault before the handler
-gets the input ([Vaults](vaults.md#how-a-route-resolves-a-reference)). With PKI
-on, the job client seals each value with `secret.PlainFunc`, and the dispatch of
-the agent opens it with `secret.Map`
-([Job system](job-system.md#a-secret-in-the-definition-is-sealed)). With PKI
-off, JetStream and the job KV keep the value. A `.Before` step that changes the
-value, such as to the hash of a password, keeps it out of the job in each case
-([Behaviors](behaviors.md#a-step-on-the-controller)).
+gets the input ([Vaults](vaults.md#how-a-route-resolves-a-reference)). The job
+client seals each value with `secret.PlainFunc`, and the dispatch of the agent
+opens it with `secret.Map`
+([Job system](job-system.md#a-secret-in-the-definition-is-sealed)). A `.Before`
+step that changes the value, such as to the hash of a password, keeps it out of
+the job in each case ([Behaviors](behaviors.md#a-step-on-the-controller)).
 
 ## Permissions
 

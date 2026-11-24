@@ -139,20 +139,24 @@ tell these causes apart:
 - an incorrect signature
 - a key store that osapi cannot reach
 
-## Enabling it on a live fleet
+## Always on
 
-You can switch enforcement on each side separately: `ControllerPKI.Enabled` for
-the controller, `AgentPKI.Enabled` for the agent. **When PKI is off, osapi
-operates exactly as it did before the key store existed.**
+PKI is always on (osapi-io/osapi#1307). `controller.pki.enabled` and
+`agent.pki.enabled` do not exist, and the config check refuses them as unknown
+keys. The controller always runs admission and signs each job. The agent always
+enrolls at its first start and verifies each job. An agent takes no job until
+the controller admits it. `controller.pki.auto_admit` stays, `false` by default,
+for a test fleet such as the lab and the integration suite.
 
-`GET /agent` reports `key_stored` and `verified` for each agent. Thus you can
-enable PKI in stages:
+The default key directories differ: `/etc/osapi/pki` for the controller and
+`/etc/osapi/pki/agent` for the agent. The agent keeps the public key of the
+controller as `controller.pub` in its directory, and the controller keeps its
+own key with the same name in its directory. With one directory, an agent on the
+controller host read the key of the controller as its own enrollment, and never
+asked to join.
 
-1. Turn on one side.
-2. See which agents osapi will refuse.
-3. Enroll them again.
-4. Complete the change at a time that you select, not at the time that you
-   changed a flag.
+`GET /agent` reports `key_stored` and `verified` for each agent. An upgrade of
+an agent that has no stored key, or no X25519 key, makes it enroll again.
 
 ## What this is not
 

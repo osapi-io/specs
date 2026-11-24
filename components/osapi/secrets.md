@@ -23,10 +23,10 @@ Each kind of secret has its own solution, and none of them is a store:
 - The route of each method resolves a reference from its vault, after the limits
   of use. [Vaults](vaults.md#how-a-route-resolves-a-reference) has it.
 
-- With PKI on, the job client seals each secret of a job to its target agents,
-  and the dispatch of the agent opens it.
-  [Job system](job-system.md#a-secret-in-the-definition-is-sealed) has it. With
-  PKI off, the job has the value as plain text.
+- The job client seals each secret of a job to its target agents, and the
+  dispatch of the agent opens it.
+  [Job system](job-system.md#a-secret-in-the-definition-is-sealed) has it. PKI
+  is always on (osapi-io/osapi#1307), so no secret goes in a job as plain text.
 
 ## Who the design protects against
 

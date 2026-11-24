@@ -1361,8 +1361,8 @@ behavior fail on it.
 
 A secret that the agent must not see in plain text, such as a password, cannot
 travel in the job. The job client seals a `secret.Value` field for the target
-agents when PKI is on, but each target agent opens it. Thus a method that takes
-such a secret declares a controller step with `.Before(fn)`. The function is
+agents, but each target agent opens it. Thus a method that takes such a secret
+declares a controller step with `.Before(fn)`. The function is
 `func(ctx context.Context, in In) (In, error)`, on the input type of the method.
 
 The generated route calls the step through `dispatch.Run`, on the controller,
@@ -1374,7 +1374,7 @@ hash. The `create` of the user behavior and the `update` of the password
 behavior each have a step.
 
 The step clears the plain secret. A secret field that the step leaves set goes
-to the job sealed for the target agents, when PKI is on, and is not refused
+to the job sealed for the target agents, and is not refused
 (osapi-io/osapi#1247). A field that the step fills has the tag `before:"set"`.
 The request, the command and the block of the UI do not have it, so a caller
 cannot send a hash directly.
