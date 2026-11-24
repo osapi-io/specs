@@ -14,19 +14,20 @@ the docs page `development/dsl/new-dsl.md` points to the skill, and
 
 ## The parts
 
-| Part         | Where it is                                    | What it holds                                                   |
-| ------------ | ---------------------------------------------- | --------------------------------------------------------------- |
-| Spec         | `guide.Spec` in `internal/guide`               | a term for each exported part of the DSL: what it does, when    |
-| Checks       | `guide.Checks` in `internal/guide`             | each rule of validate, what it requires, and its fix            |
-| Registry     | `dsl.Register` in `internal/dsl`               | each DSL with its command, skill, page, permissions, operations |
-| Commands     | `dsl.Commands()`                               | the commands that each DSL has, listed below                    |
-| Typed values | named types and constants in the DSL package   | each value from a fixed set, with a validate rule               |
-| Tag keys     | `command.KnownTags`, `command.TagKeys`         | the struct tag keys that the three DSLs read                    |
-| Permissions  | `Permissions` of each registered DSL           | the permission of each method that the API serves               |
-| Generation   | `genfile.Writer` in `internal/cli/command/gen` | the files of a run, written only when the whole run succeeds    |
-| Checks of CI | `go-generate-check`, `*-scaffold-check`        | generated files that match, and a scaffold that passes its test |
-| Docs page    | `dslPages` in `cmd/commands.go`                | the page under `development/dsl/` that the spec writes          |
-| Skill        | `internal/skills/resources/dev-skills/`        | judgment only; it sends an agent to `spec get` and `validate`   |
+| Part         | Where it is                                    | What it holds                                                    |
+| ------------ | ---------------------------------------------- | ---------------------------------------------------------------- |
+| Spec         | `guide.Spec` in `internal/guide`               | a term for each exported part of the DSL: what it does, when     |
+| Checks       | `guide.Checks` in `internal/guide`             | each rule of validate, what it requires, and its fix             |
+| Registry     | `dsl.Register` in `internal/dsl`               | each DSL with its command, skill, page, permissions, operations  |
+| Commands     | `dsl.Commands()`                               | the commands that each DSL has, listed below                     |
+| Typed values | named types and constants in the DSL package   | each value from a fixed set, with a validate rule                |
+| Tag keys     | `command.KnownTags`, `command.TagKeys`         | the struct tag keys that the three DSLs read                     |
+| Secrets      | `secret.Value` in `internal/secret`            | the type of an input that holds a secret, with the rule `secret` |
+| Permissions  | `Permissions` of each registered DSL           | the permission of each method that the API serves                |
+| Generation   | `genfile.Writer` in `internal/cli/command/gen` | the files of a run, written only when the whole run succeeds     |
+| Checks of CI | `go-generate-check`, `*-scaffold-check`        | generated files that match, and a scaffold that passes its test  |
+| Docs page    | `dslPages` in `cmd/commands.go`                | the page under `development/dsl/` that the spec writes           |
+| Skill        | `internal/skills/resources/dev-skills/`        | judgment only; it sends an agent to `spec get` and `validate`    |
 
 ## The shared commands
 
@@ -84,6 +85,55 @@ Go reads a struct tag only by its exact key. Thus a misspelled key does nothing,
 and no compiler reports it. The three DSLs use one list, `command.KnownTags`.
 The command DSL refuses an unknown key of an output field, and the behavior DSL
 refuses one of an input field.
+
+## Secrets
+
+A secret is a type, not a tag. `internal/secret` has `secret.Value`. An input
+field of this type is a secret in each of the three DSLs. A map of secrets is
+`map[string]secret.Value`, such as the environment of a container. Before
+osapi-io/osapi#1240, the tag `secret:"true"` marked a secret. A tag with a typo
+made the field an ordinary field, and nothing reported it (osapi-io/osapi#1062).
+A type cannot have a typo. The key `secret` is not in `command.KnownTags`. Thus
+a field that still has the tag fails the rule `tag`.
+
+A `secret.Value` holds a reference, `secret://<vault>/<key>`, or a literal
+value. `IsReference` tells which. `String`, `Format`, `MarshalJSON` and
+`LogValue` give the reference, or `[redacted]` for a literal. Only `Reveal`
+gives the value. A provider calls it only where it gives the value to a
+command's standard input, an environment or a file. [Secrets](secrets.md) has
+the plan for the vaults that a reference names.
+
+What each part of a DSL does with a `secret.Value` field:
+
+| Part                  | What it does                                                                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spec of the API       | `type: string`, `format: password`, `writeOnly: true` and `x-osapi-secret: true`. The description says that it takes `secret://<vault>/<key>`. A map has this schema for each value.                    |
+| `validate`            | refuses a secret field with `telemetry:"attr"`, and a secret field in the path or the query of a route, because a URL goes in logs. One rule, `secret`, in each DSL.                                    |
+| `dslcheck`            | `TestSecretsAreTyped` fails on a `string` input field whose JSON name is on the audit denylist, unless `testdata/secrets.txt` gives a reason. This finds a missing type.                                |
+| CLI                   | the flag takes a reference, or `-` to read the value from standard input. It refuses a literal value, because the shell history keeps it. A map flag takes `NAME=secret://...`.                         |
+| SDK                   | a field of type `string`, from the spec. The SDK sends a literal or a reference as it gets it.                                                                                                          |
+| `method get` and docs | the description of the field, from the spec.                                                                                                                                                            |
+| Audit                 | the summary redacts each field name that has the type in a behavior or an endpoint group, with the fixed denylist of `internal/audit`. It keeps a reference, such as `secret://default/registry-token`. |
+| Spans                 | never record the field.                                                                                                                                                                                 |
+| Chain records         | `MarshalJSON` gives the reference, or `[redacted]`, at each depth of the input.                                                                                                                         |
+| UI                    | the catalog marks the field as a secret. The form shows a password input, and a plan shows `<secret>`. A picker of references is not built ([Secrets](secrets.md#the-parts), part 9).                   |
+
+The CLI sends the request, and the dispatch of a behavior sends the job, with
+`secret.Plain`. It gives a copy of the input in which each `secret.Value`
+marshals its value. Each other marshal of the input gives the reference or
+`[redacted]`.
+
+Until the vaults exist, two limits apply:
+
+- **No reference resolves.** The route of each method refuses a reference with
+  400, because the vault that it names does not exist. Thus a literal value from
+  standard input is the only value that operates now. Resolution is
+  osapi-io/osapi#1244.
+- **The job has the literal value.** JetStream and the job KV keep it, as they
+  kept a value with the tag. A `.Before` step that changes the value, such as to
+  the hash of a password, keeps it out of the job
+  ([Behaviors](behaviors.md#a-step-on-the-controller)). The sealed values of
+  osapi-io/osapi#1247 remove this limit.
 
 ## Permissions
 

@@ -441,10 +441,10 @@ the method that did the work. The span has `osapi.behavior.name`, `.method`,
 
 osapi adds two kinds of input field as `osapi.behavior.input.<field>`: the field
 that the method names with `.Key`, and each field with the tag
-`telemetry:"attr"`. It adds no other field, and never a field with the tag
-`secret:"true"`. Thus a password cannot get into a trace by accident.
-managedfile tags `path`, because its methods have no `.Key`. Thus the span of a
-file write that sysctl causes shows the file.
+`telemetry:"attr"`. It adds no other field, and never a field of type
+`secret.Value`. Thus a password cannot get into a trace by accident. managedfile
+tags `path`, because its methods have no `.Key`. Thus the span of a file write
+that sysctl causes shows the file.
 
 The same wrapper makes three metrics, through the meter provider of the agent:
 
