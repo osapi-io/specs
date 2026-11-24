@@ -20,9 +20,8 @@ start, or if it cannot configure JetStream, and the start command calls
 `LogFatal`. Thus a controller that cannot start a bus does not start in a
 degraded state.
 
-You can also start the bus alone. `osapi nats server start` runs the same
-function without a controller. A deployment uses this to separate the bus from
-the API.
+You can also start the bus alone. `osapi nats start` runs the same function
+without a controller. A deployment uses this to separate the bus from the API.
 
 ## What lives on it
 

@@ -1,10 +1,10 @@
 # Agent skills
 
 The osapi binary has the skills that an agent needs to operate osapi.
-`osapi init` writes them into a repository. The skills are short on purpose.
-They tell the agent to ask the binary, through `osapi help --json` and
-`osapi behavior get --json`. They do not have a copy of the docs, because a copy
-is incorrect after the next release.
+`osapi skill install` writes them into a repository. The skills are short on
+purpose. They tell the agent to ask the binary, through `osapi help --json` and
+`osapi dsl behavior get --json`. They do not have a copy of the docs, because a
+copy is incorrect after the next release.
 
 This page covers the skills that operate hosts and osapi. The skill that builds
 a new behavior is in the osapi repository, because a new behavior is a change to
@@ -51,8 +51,8 @@ A third skill changes osapi. The binary also has it, in
 `internal/skills/resources/dev-skills/build-a-behavior/`. The binary is the only
 source of the skill. No repository keeps a copy.
 
-`osapi init` does not install it, because only a checkout of osapi can build a
-behavior. `osapi skill` serves each embedded skill:
+`osapi skill install` does not install it, because only a checkout of osapi can
+build a behavior. `osapi skill` serves each embedded skill:
 
 ```sh
 osapi skill list                                         # each embedded skill
@@ -77,8 +77,8 @@ It sends the agent to the sources that cannot become incorrect. It does not copy
 them:
 
 - `go doc ./internal/behavior` for the options of the definition
-- `osapi behavior create` for the layout. The first design kept templates in the
-  references of the skill, for the agent to copy. The build showed that the
+- `osapi dsl behavior create` for the layout. The first design kept templates in
+  the references of the skill, for the agent to copy. The build showed that the
   templates were a second copy of the layout, which people must keep current by
   hand. Thus the layout exists one time, in the command, and
   `just behavior-scaffold-check` builds and tests what it writes.
@@ -150,9 +150,10 @@ build the items.
 The requests that measure the skill are in its `evals/` directory, with
 `run.sh`: `internal/skills/resources/dev-skills/build-a-behavior/evals/` in
 osapi. Each skill keeps all of its files in its directory, and `internal/skills`
-embeds the full directory. Thus the binary has the evals too, but `osapi init`
-does not install them. `run.sh` runs each request in a new session and checks
-the result with commands. Nobody reads the result to check it.
+embeds the full directory. Thus the binary has the evals too, but
+`osapi skill install` does not install them. `run.sh` runs each request in a new
+session and checks the result with commands. Nobody reads the result to check
+it.
 
 The requests cover these cases:
 
@@ -168,8 +169,8 @@ The requests cover these cases:
 
 The first run of the internal behavior found that the fake host could not model
 state that a program keeps. `PrintsAfter` now does this. The build of the
-grouped behavior found that `osapi behavior create` could not write a behavior
-in its group. `--group` now does this.
+grouped behavior found that `osapi dsl behavior create` could not write a
+behavior in its group. `--group` now does this.
 
 The tool loads `SKILL.md` when a request matches its description. A reference
 loads only when the routing table sends the agent to it. Thus a session pays
@@ -180,8 +181,8 @@ only for the part that it uses.
 `SKILL.md` has four rules:
 
 1. Run `osapi help <command> --json` before a command, and
-   `osapi behavior method get --name <behavior> --method <method> --json` before
-   a request. Do not use memory.
+   `osapi dsl behavior method get --name <behavior> --method <method> --json`
+   before a request. Do not use memory.
 2. Give `--json` to each command, and match a failure on its `code`. Exit 2
    means that the call was incorrect, and a second try does not help.
 3. Read the target with `get` or `list` before an update or a delete.
@@ -207,12 +208,12 @@ The rules of the `osapi` skill use
 of those is a change to what the skill says. Make the two changes in the same
 pull request.
 
-## `osapi init`
+## `osapi skill install`
 
 ```sh
-osapi init                              # claude, in the current directory
-osapi init --tool claude --tool codex   # both tools
-osapi init --path ./ops-repo --json
+osapi skill install                              # claude, in the current directory
+osapi skill install --tool claude --tool codex   # both tools
+osapi skill install --path ./ops-repo --json
 ```
 
 For each tool, it writes the skills to the directory that the tool reads. It
@@ -225,27 +226,27 @@ also writes a short section in the file that the tool reads in each session:
 
 The section is between `<!-- osapi:begin -->` and `<!-- osapi:end -->`. It names
 the version, tells the agent to use the skill, and gives the first two rules
-again. `init` writes again only what is between the markers. When there are no
-markers, it adds the section at the end. Thus the instructions of the repository
-stay after each run.
+again. `skill install` writes again only what is between the markers. When there
+are no markers, it adds the section at the end. Thus the instructions of the
+repository stay after each run.
 
-A second run of `init` is the upgrade. It reports each file as `created`,
-`updated`, `unchanged` or `removed`. It removes a file in the skill directory of
-osapi that this version does not ship. Thus a renamed reference with old advice
-does not stay. Other skills in the same directory do not belong to osapi, and
-`init` does not touch them.
+A second run of `skill install` is the upgrade. It reports each file as
+`created`, `updated`, `unchanged` or `removed`. It removes a file in the skill
+directory of osapi that this version does not ship. Thus a renamed reference
+with old advice does not stay. Other skills in the same directory do not belong
+to osapi, and `skill install` does not touch them.
 
-`init` needs no config file and no controller. The installer is
+`skill install` needs no config file and no controller. The installer is
 `internal/skills`. It writes through the same filesystem abstraction as the rest
 of the CLI, so its tests run in memory.
 
 ## What will surprise somebody
 
 **The skill and the binary can be different on a different machine.** The skill
-in a repository comes from the `osapi` that last ran `init`. An agent that runs
-a newer `osapi` reads older advice until somebody runs `init` again. The section
-in the instructions file names the version that wrote it. That is the only
-signal.
+in a repository comes from the `osapi` that last ran `skill install`. An agent
+that runs a newer `osapi` reads older advice until somebody runs `skill install`
+again. The section in the instructions file names the version that wrote it.
+That is the only signal.
 
 **Codex reads `.agents/skills`, not `.codex/`.** That is the path of the shared
 agent-skills layout. swamp also writes it for Codex.

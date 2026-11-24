@@ -454,7 +454,7 @@ The same wrapper makes three metrics, through the meter provider of the agent:
 | `osapi_behavior_duration_seconds` | how long each call took, by behavior and method      |
 | `osapi_behavior_changes_total`    | writes that changed the host, by behavior and method |
 
-`osapi behavior get --name <name>` prints the span and metric names of a
+`osapi dsl behavior get --name <name>` prints the span and metric names of a
 behavior. It also prints which inputs osapi records.
 
 ## Conditions are a yes or no, not a number

@@ -115,8 +115,8 @@ body. `GET /api/node/{hostname}/file/status?path=...` was a POST with a body.
 - **operationId** is Pascal case, such as `GetJobs` or `DeleteAgent`. The UI
   client gets its function names from it. The Go SDK gets its names from the
   `x-osapi-method` extension. The endpoint DSL makes this name when a method
-  does not set one, and `osapi controller endpoint validate` refuses a name that
-  starts with a small letter.
+  does not set one, and `osapi dsl endpoint validate` refuses a name that starts
+  with a small letter.
 - **Response schemas of a node operation** use the names that the behavior DSL
   gives: `...CollectionResponse` for a list, `...GetResponse`,
   `...CreateResponse`, `...UpdateResponse` and `...DeleteResponse`. A

@@ -37,8 +37,8 @@ a host, and nothing covered the work on the controller.
 is a part of the platform. A user of osapi does not define one. Thus the
 endpoint has its own name, its own package and its own commands. The
 `build-a-behavior` skill does not make endpoints. The skill for endpoints is a
-dev skill only, which `osapi skill` serves to a checkout of osapi. `osapi init`
-does not install it.
+dev skill only, which `osapi skill` serves to a checkout of osapi.
+`osapi skill install` does not install it.
 
 Later, a behavior builds on the endpoint layer.
 [Behaviors on endpoints](#behaviors-on-endpoints) tells how.
@@ -71,7 +71,7 @@ Some things are not API operations, and stay code:
 - the metrics server of each component, with its own `/health` and
   `/health/ready`
 - the commands that run on the local machine: `agent start`, `controller start`,
-  `nats server`, `start`, `config`, `token`, `behavior`, `skill`, `init`,
+  `nats start`, `start`, `config`, `controller token`, `dsl`, `skill`,
   `version`. Their pages are already generated from cobra.
   [Commands](commands.md) plans a definition for each of them, in the layer that
   the endpoint DSL embeds.
@@ -156,7 +156,7 @@ var Group = endpoint.Register(endpoint.Define(
   `x-oapi-codegen-extra-tags`. The rules are the behavior DSL's, from
   `internal/validation/rule`; [behaviors](behaviors.md) has them. Each rule of
   each input field has a `.Fails(doc, input)` that breaks it, as a behavior's
-  refusals do, and `controller endpoint validate` names a rule that has none.
+  refusals do, and `dsl endpoint validate` names a rule that has none.
 
 - An optional field of a write's body, with `omitempty` in its validate tag, has
   `omitempty` in its `json` tag too, also inside the type that `in:"body"`
@@ -191,10 +191,10 @@ var Group = endpoint.Register(endpoint.Define(
   client and the admission store, as interfaces. The controller gives one at
   startup, in `internal/controller/handlers.go`. A test gives the mockgen mocks
   of the group's `mocks/`, never a fake written by hand. It is the place of the
-  host in a behavior. `controller endpoint spec get` lists each service that a
-  `Deps` takes now (`Jobs`, `Store`, `Objects`, `States`, `Health`, `Traces`)
-  under "What a Deps takes". A test fails on a field of a `Deps` that has no
-  entry there.
+  host in a behavior. `dsl endpoint spec get` lists each service that a `Deps`
+  takes now (`Jobs`, `Store`, `Objects`, `States`, `Health`, `Traces`) under
+  "What a Deps takes". A test fails on a field of a `Deps` that has no entry
+  there.
 
 - **`.Handle(fn)`** sets the function of a method,
   `func(ctx, Deps, In) (Out, error)`. `Validate` checks the signature. A handler
@@ -358,9 +358,9 @@ behavior. The area goes from the definition to these outputs:
 - **The feature pages.** The feature pages are in a folder for each area, with a
   `_category_.json` that a person writes from `area.All`
   ([the docs site](docs-site.md#the-feature-pages)).
-- **The catalogs.** `osapi behavior list` and `osapi controller endpoint list`
-  show the area of each behavior and each group. The reference pages of the
-  behaviors and the endpoints show these tables.
+- **The catalogs.** `osapi dsl behavior list` and `osapi dsl endpoint list` show
+  the area of each behavior and each group. The reference pages of the behaviors
+  and the endpoints show these tables.
 
 Thus a change to `area.All` changes each output in the same `just generate`.
 `behavior-gen-check`, `sdk-gen-check`, `cli-docs-gen-check` and the Go test of
@@ -377,12 +377,12 @@ generator does not add it. An empty list on a path has no effect.
 The commands are under the process that the endpoints belong to:
 
 ```sh
-osapi controller endpoint list                                 # the groups and their methods
-osapi controller endpoint get --name agent                     # the routes, permissions and operationIds
-osapi controller endpoint openapi get --name agent             # the group's part of the spec, as YAML
-osapi controller endpoint spec get                             # each part of the DSL, and when to use it
-osapi controller endpoint validate                             # the rules of each definition, each with its fix
-osapi controller endpoint create --name x --description "..."  # a new group that passes its tests
+osapi dsl endpoint list                                 # the groups and their methods
+osapi dsl endpoint get --name agent                     # the routes, permissions and operationIds
+osapi dsl endpoint openapi get --name agent             # the group's part of the spec, as YAML
+osapi dsl endpoint spec get                             # each part of the DSL, and when to use it
+osapi dsl endpoint validate                             # the rules of each definition, each with its fix
+osapi dsl endpoint create --name x --description "..."  # a new group that passes its tests
 ```
 
 `spec` and `validate --help` come from the tables of the `internal/guide`
@@ -393,9 +393,9 @@ cannot fall behind the code. `spec` also lists what is not built yet, so an
 agent stops there.
 
 `new` writes a group with a list and a get, an empty `Deps`, its types and the
-tests of its methods, and registers it, as `osapi behavior create` does for a
-behavior. An empty `Deps` needs no wiring in the controller, so the group works
-once it is generated. Its first field makes the controller give it, in
+tests of its methods, and registers it, as `osapi dsl behavior create` does for
+a behavior. An empty `Deps` needs no wiring in the controller, so the group
+works once it is generated. Its first field makes the controller give it, in
 `internal/controller/handlers.go`. `just endpoint-scaffold-check` writes a group
 in a copy of the checkout, generates it, and runs its tests and the
 controller's.
@@ -415,8 +415,8 @@ hand-written specs stay, and keep serving the API, until then.
    each schema property: the path, the verb, the operationId, the tags, the
    auth, each parameter, the request body and each response with its schema. A
    difference fails the test, unless the row accepts it with its reason.
-3. **The prose.** `osapi controller endpoint openapi get --name agent` prints
-   the generated spec, to read next to the hand-written spec. A person reads the
+3. **The prose.** `osapi dsl endpoint openapi get --name agent` prints the
+   generated spec, to read next to the hand-written spec. A person reads the
    descriptions and the examples. The test does not compare them.
 4. **The CLI.** Built for the agent group. The help of each generated command,
    as JSON (`--help --json`), was compared with the help of the hand-written
@@ -426,8 +426,8 @@ hand-written specs stay, and keep serving the API, until then.
    `.Use("list")` names apart from the group's own `list`. The CLI pages gained
    the permission of each command.
 5. **Golden files.** The generated files of the first group have golden copies,
-   as the files of `osapi behavior create` have. A change to the generator shows
-   as a diff of what it writes.
+   as the files of `osapi dsl behavior create` have. A change to the generator
+   shows as a diff of what it writes.
 6. **The handlers last.** Built for the agent group. The methods are written.
    Each case of the hand-written handler tests moved into a test of the method,
    on mocks of `Deps`, or into an HTTP test through the generated routes, for

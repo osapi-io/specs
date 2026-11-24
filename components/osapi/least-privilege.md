@@ -112,11 +112,11 @@ methods. `--section` prints one part of `get`, so the default output stays a
 short summary and never prints the files:
 
 ```sh
-osapi behavior get --name sysctl                       # the summary, with a short Privileges part
-osapi behavior get --name sysctl --section privileges  # the steps, what they write, run and refuse
-osapi behavior get --name sysctl --section sudoers     # the sudoers file, styled to read
-osapi behavior get --name sysctl --section systemd     # the drop-in, styled to read
-osapi behavior get --name sysctl --section sudoers --json
+osapi dsl behavior get --name sysctl                       # the summary, with a short Privileges part
+osapi dsl behavior get --name sysctl --section privileges  # the steps, what they write, run and refuse
+osapi dsl behavior get --name sysctl --section sudoers     # the sudoers file, styled to read
+osapi dsl behavior get --name sysctl --section systemd     # the drop-in, styled to read
+osapi dsl behavior get --name sysctl --section sudoers --json
 # {"path": "/etc/sudoers.d/osapi-sysctl", "content": "..."}
 ```
 
@@ -137,12 +137,12 @@ config, so its output depends only on the binary and the flags.
 The admin installs them. The agent never writes its own grants.
 
 ```sh
-osapi behavior get --name sysctl --section sudoers --json | jq -r '.content' > /tmp/osapi-sysctl
+osapi dsl behavior get --name sysctl --section sudoers --json | jq -r '.content' > /tmp/osapi-sysctl
 sudo visudo -cf /tmp/osapi-sysctl
 sudo install -m 0440 -o root -g root /tmp/osapi-sysctl /etc/sudoers.d/osapi-sysctl
 
 sudo mkdir -p /etc/systemd/system/osapi-agent.service.d
-osapi behavior get --name sysctl --section systemd --json | jq -r '.content' \
+osapi dsl behavior get --name sysctl --section systemd --json | jq -r '.content' \
   | sudo tee /etc/systemd/system/osapi-agent.service.d/osapi-sysctl.conf
 sudo systemctl daemon-reload && sudo systemctl restart osapi-agent
 ```

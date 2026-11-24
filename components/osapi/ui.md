@@ -129,8 +129,9 @@ The file extension enforces the hook rule. Each file in `ui/src/hooks/` is
 ## Authentication, and the difference to know
 
 The UI uses the same JWT as the rest of osapi. A token comes from
-`osapi token generate`. You paste it into the sign-in page, or you give it
-through the environment. The UI sends it as a bearer header on each request.
+`osapi controller token generate`. You paste it into the sign-in page, or you
+give it through the environment. The UI sends it as a bearer header on each
+request.
 
 **The UI decodes that token, but it does not verify it.** It reads the roles
 claim to decide what to show. The server verifies the token on each request.
@@ -197,7 +198,7 @@ API serves, and each internal behavior. Each behavior has:
   its doc and its parent, such as `user` for `sshkey`.
 - the platforms of its providers, such as `debian` and `darwin`.
 - the behaviors that it calls and the behaviors that call it, and its chain, as
-  `osapi behavior chain list` prints it.
+  `osapi dsl chain list` prints it.
 - its methods.
 
 Each method has:
@@ -210,8 +211,8 @@ Each method has:
   behavior has no route and no permission.
 - the platforms that it runs on: the platforms that its `On` limits it to, else
   each platform of the behavior.
-- its input and output types, with their fields, as `osapi behavior get` shows
-  them: `UpdateInput { interface_name*, servers }`.
+- its input and output types, with their fields, as `osapi dsl behavior get`
+  shows them: `UpdateInput { interface_name*, servers }`.
 - the fields of its input. Each field has its place in the request (the path,
   the query or the body), its kind, its doc, whether it is required, the values
   of a `oneof` rule, and whether it is a secret.
@@ -219,7 +220,7 @@ Each method has:
   label, the `render` tag, and the fields of an object or of a list of objects.
 - its calls: the calls that its examples make to other behaviors, under the call
   that made them, each one time. `behaviortest.Chains` runs each example on a
-  fake host and records the calls, as `osapi behavior chain get` does.
+  fake host and records the calls, as `osapi dsl chain get` does.
 - its examples, with their input and output. A secret of an input is
   `[redacted]`.
 
@@ -261,14 +262,14 @@ or a method of a behavior, so `dns update` and `dns.update` both find DNS. The
 internal behaviors are last, in their own section, because a plan cannot run
 them.
 
-`/behaviors/<name>` is the page of a behavior, as `osapi behavior get` and
-`osapi behavior chain get` print it. It shows the area, the parent, the
-platforms, the behaviors that the behavior calls and that call it, and each
-method in a card. The card of a method has its kind, its doc, its input and
-output types and its route, its permission with whether the role of the viewer
-has it, its platforms, a disruption when the method has one, its chain as a
-tree, and its examples. **Add to plan** adds the method to the plan as a step.
-It is disabled when the role does not have the permission. A link such as
+`/behaviors/<name>` is the page of a behavior, as `osapi dsl behavior get` and
+`osapi dsl chain get` print it. It shows the area, the parent, the platforms,
+the behaviors that the behavior calls and that call it, and each method in a
+card. The card of a method has its kind, its doc, its input and output types and
+its route, its permission with whether the role of the viewer has it, its
+platforms, a disruption when the method has one, its chain as a tree, and its
+examples. **Add to plan** adds the method to the plan as a step. It is disabled
+when the role does not have the permission. A link such as
 `/behaviors/dns#update` opens the page at the card of the method. Each call of a
 chain links to the page of its behavior.
 

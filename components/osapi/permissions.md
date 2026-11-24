@@ -29,7 +29,7 @@ permission of each method from the definition:
   `shell` for command shell, whose `.Shell()` is `.PermitAs(behavior.VerbShell)`
 
 The `get` of sysctl needs `sysctl:read`. dns under `network` needs `dns:read`.
-`osapi behavior get --name <name>` lists them.
+`osapi dsl behavior get --name <name>` lists them.
 
 A group puts a behavior in the route and the command tree. It does not put it in
 a permission. Thus a role can get `dns:write` and not `interface:write`. A
@@ -206,8 +206,9 @@ Declare the method. The permission and its roles come from the definition:
 
 To keep a permission from each role but `admin`, mark the method `.AdminOnly()`,
 in the behavior DSL or the endpoint DSL. Each method that needs the permission
-must agree. `osapi token roles get --name <role>` shows what a role gets.
-`osapi behavior spec get` and `osapi endpoint spec get` teach the same rule.
+must agree. `osapi controller role get --name <role>` shows what a role gets.
+`osapi dsl behavior spec get` and `osapi dsl endpoint spec get` teach the same
+rule.
 
 `AllPermissions()` and `RolePermissions(role)` make their result on each call,
 not one time. A behavior or a group registers in the `init` of its own package,
@@ -235,13 +236,14 @@ method marks a permission `AdminOnly()` and another method does not.
 
 A custom role in `controller.api.security.roles` is a name and a list of
 permissions, for each deployment. The config does not load when a permission of
-a custom role is not one that osapi knows. `osapi token generate --roles`
-accepts a built-in role or a custom role of the config.
+a custom role is not one that osapi knows.
+`osapi controller token generate --roles` accepts a built-in role or a custom
+role of the config.
 
 An operator who configures a custom role looks for the list of permissions. The
 authentication page of the published site had that list as a table that people
-updated by hand. It now points to `osapi token roles list`. That command prints
-the list from the binary, so it cannot be out of date.
+updated by hand. It now points to `osapi controller role list`. That command
+prints the list from the binary, so it cannot be out of date.
 
 **Select by the possible damage, not by the endpoint group.** If two operations
 can do different amounts of damage, they need two permissions, also if their
@@ -253,9 +255,9 @@ shape is the same. That is why `command:shell` is separate from
 A role applies to each host. A token can also have a target scope, the `targets`
 claim, so that a team can act only on its own hosts. The scope is a list of
 hostnames and labels, such as `web-01` and `group:web`.
-`osapi token generate -t` sets it. A token without targets acts on each host.
-The `target_scope` rule refuses `_all`, `_any` and `_local` in a scope, because
-they are not hosts.
+`osapi controller token generate -t` sets it. A token without targets acts on
+each host. The `target_scope` rule refuses `_all`, `_any` and `_local` in a
+scope, because they are not hosts.
 
 `validation.InScope` compares a target with the scope:
 

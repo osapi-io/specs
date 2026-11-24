@@ -26,7 +26,7 @@ Use the most common word with its first dictionary meaning.
 ## Technical names and technical verbs
 
 A technical name is allowed as it is: a command, a flag, a file, a field, a
-product. Write it in code format: `osapi init`, `--target`, `osapi.yaml`.
+product. Write it in code format: `osapi skill install`, `--target`, `osapi.yaml`.
 
 A technical verb is allowed only where no common verb says it: deploy, compile,
 mount. Do not use one where a common verb works.

@@ -22,9 +22,9 @@ of the node domains, which went as each domain became a
 
 Now `cmd/` has 14 files. Each local command is a group under
 `internal/cli/commands/`, and each node command comes from a behavior. `cmd/`
-keeps the root, the parents `agent`, `cli`, `client`, `client node`,
-`client node network`, `controller` and `nats`, and the wiring that gives each
-local group its deps in `commands.go` and `process_deps.go`. It also keeps
+keeps the root, the parents `agent`, `client`, `client node`,
+`client node network`, `controller`, `dsl` and `nats`, and the wiring that gives
+each local group its deps in `commands.go` and `process_deps.go`. It also keeps
 `reference.go`, which makes the reference pages of the docs site from the output
 of the list and get commands, the build version, and two tests of the command
 tree.
@@ -112,8 +112,8 @@ Each group of local commands has its own directory, as each endpoint group has.
 The 40 files hold these groups: `agent`, `behavior`, `config`, `controller`,
 `init`, `nats`, `skill`, `start`, `token` and `version`. Three of the files are
 shared code, not commands: `guide.go`, `metrics_server.go` and `shutdown.go`.
-They go to `internal/cli`. `behavior` and `controller endpoint` are commands
-about the DSLs. They stay beside the DSLs that they read, as now.
+They go to `internal/cli`. `dsl behavior` and `dsl endpoint` are commands about
+the DSLs. They stay beside the DSLs that they read, as now.
 
 A group has no code for its output. Each command prints from the output type of
 its method ([the CLI](cli.md#output-comes-from-the-output-type)). No command has
@@ -121,7 +121,8 @@ a renderer.
 
 ## The definition
 
-The token group, as `internal/cli/commands/token/token.go` has it, cut short:
+The token group, as `internal/cli/commands/token/token.go` had it before its
+roles moved to `controller role`, cut short:
 
 ```go
 var Group = command.Register(command.Define(
@@ -150,16 +151,16 @@ var Group = command.Register(command.Define(
   `Under(command.ParentController)` puts a group under a different command. A
   parent is a `command.Parent` constant. Attach makes a word that has no
   command, so a misspelled parent was a new command at the root, and
-  `osapi cli command validate` refuses a word outside `KnownParents()`. `Flat()`
+  `osapi dsl command validate` refuses a word outside `KnownParents()`. `Flat()`
   makes the group add no word: each method is a command under the group's
   parent, the root or the words of `Under`. Thus `version` is a flat group at
   the root, and its method `version` is `osapi version`. A command that stands
   alone under a parent that holds other things, such as
   `osapi controller start`, is a flat group `Under` `controller`. The group's
-  name stays its identity, for its package and for `cli command get --name`.
+  name stays its identity, for its package and for `dsl command get --name`.
   Where the command goes, `Under`, and whether the group adds a word, `Flat`,
   are two settings, so nothing is inferred from a name.
-- **An example** names the flags of its command. `osapi cli command validate`
+- **An example** names the flags of its command. `osapi dsl command validate`
   refuses a flag that the command does not have, under the rule `help`: the flag
   of a field of the input (its `flag` tag, else its json name), its `short`
   letter, a field of the struct that `in:"body"` names, a config key that `Flag`
@@ -167,7 +168,7 @@ var Group = command.Register(command.Define(
   the flags of an input, as the command generator declares them. A misspelled
   flag made a docs page show a command that fails.
 - **A method** is one command, with its input and output types. `.Sub("roles")`
-  puts it under a word of its own, so `list` above is `token roles list`. A
+  puts it under a word of its own, so `list` above was `token roles list`. A
   method is its `Sub` and its name, so a group can have `get` and `spec get`.
   `SubDoc("roles", "...")` is the one line of help of the `roles` command. Each
   input field is a flag, named for its json name with `_` as `-`. A field has a
@@ -198,7 +199,7 @@ var Group = command.Register(command.Define(
   them with `command.Provide(token.Group, func() token.Deps {...})` in
   `cmd/commands.go`, which then calls `command.AttachLocal`. A group whose Deps
   has fields and no Provide fails when it runs. An empty Deps needs no wiring.
-  `cli command spec get` lists each type that a `Deps` field has, under "What a
+  `dsl command spec get` lists each type that a `Deps` field has, under "What a
   Deps takes", with how a test replaces it: `memfs.New()` for `avfs.VFS`,
   `fstest.MapFS` for `fs.FS`, a value for the config, a function for a
   `func(...)` field, and a mockgen mock for an interface. A test fails on a
@@ -220,7 +221,7 @@ group is `command.Group`. The endpoint types implement both.
 | File                                       | Has                                                        |
 | ------------------------------------------ | ---------------------------------------------------------- |
 | `internal/cli/commands/<group>/gen/cli.go` | a cobra command for each method, its flags, help and run   |
-| `internal/cli/command/testdata/scaffold/`  | the golden files of `osapi cli command new`                |
+| `internal/cli/command/testdata/scaffold/`  | the golden files of `osapi dsl command create`             |
 | `internal/cli/commands/all/gen/gen.go`     | the registration of each group                             |
 | `docs/docs/sidebar/usage/cli/<group>/`     | the CLI pages, from cobra, with the output of each example |
 
@@ -232,11 +233,11 @@ code.
 The commands are under the binary that they belong to:
 
 ```sh
-osapi cli command list                      # the groups and their commands
-osapi cli command get --name token          # the commands of a group, their flags and checks
-osapi cli command spec                      # each part of the DSL, and when to use it
-osapi cli command validate                  # the rules of each definition, each with its fix
-osapi cli command new --name x --description "..."  # a new group that passes its tests
+osapi dsl command list                                 # the groups and their commands
+osapi dsl command get --name "controller token"        # the commands of a group, their flags and checks
+osapi dsl command spec get                             # each part of the DSL, and when to use it
+osapi dsl command validate                             # the rules of each definition, each with its fix
+osapi dsl command create --name x --description "..."  # a new group that passes its tests
 ```
 
 `spec` and `validate --help` come from the tables of `internal/guide`, as the
@@ -245,20 +246,23 @@ test fails on an exported option of the DSL with no term in `command.Spec`, and
 on a rule of `Validate` with no check. Thus the skill learns the DSL from the
 binary, and the help cannot fall behind the code.
 
-`osapi cli command list` shows each command of the binary, also the commands of
+`osapi dsl command list` shows each command of the binary, also the commands of
 the endpoints and the behaviors, and which layer made each one.
 
 ## The checks
 
-`osapi cli command validate` fails a definition when:
+`osapi dsl command validate` fails a definition when:
 
 - an input field has no validate tag, or no `doc`
 - a rule of an input field has no `.Fails` that breaks it
 - a command has no `Short`, or a method with input has no `Example`
 - a value is a positional argument (`Args` is always `cobra.NoArgs`)
 - the last word of a command is not a CRUD verb or a listed action, as
-  `TestCommandShape` checks today; a command of the root is a word of
-  `command.Roots` instead
+  `TestCommandShape` checks today
+- the first word of a command is not a group of `command.RootGroups`, or the
+  group is under `client`, which is only the API; a command of the root is a
+  leaf of `command.RootGroups` (rule `root`, from the
+  [placement rules](cli.md#where-a-command-goes))
 - a flag name is not the json name of its field
 - the handler does not have the signature of the method
 - a `.Sub` segment that makes a command of its own has no `SubDoc`, so its help
@@ -319,7 +323,12 @@ Each check has its rule and its fix, as for endpoints.
    root command as a dep and writes the CLI reference pages. Thus each local
    command comes from a definition. `cmd/` keeps the root, the wiring and the
    parents of hand-written commands. The `client node` commands come from
-   [behaviors](behaviors.md).
+   [behaviors](behaviors.md). On 24 November 2026 the
+   [placement rules](cli.md#where-a-command-goes) moved these local commands:
+   `token` is `controller token` and `controller role`, `init` is
+   `skill install`, `agent admission get` is `agent key fingerprint`,
+   `nats server start` is `nats start`, the DSL commands are under `dsl`, and
+   the three `cli docs` commands are one, `dsl docs generate`.
 5. **Output from the output type.** Built (osapi-io/osapi#903), as
    [the CLI](cli.md#output-comes-from-the-output-type) says. The behavior
    layer's `Columns` and its formats moved to the command layer, so a behavior's
@@ -340,11 +349,10 @@ Each check has its rule and its fix, as for endpoints.
 
 ## Processes
 
-A process is a command that runs until a signal, such as
-`osapi nats server start`. It has no input and no output type. It writes log
-lines, which `.Logs` puts on its page. The DSL declares it with
-`command.Process("start").Setup(fn)`, and the generated command calls
-`command.Serve`, in `internal/cli/command/process.go`.
+A process is a command that runs until a signal, such as `osapi nats start`. It
+has no input and no output type. It writes log lines, which `.Logs` puts on its
+page. The DSL declares it with `command.Process("start").Setup(fn)`, and the
+generated command calls `command.Serve`, in `internal/cli/command/process.go`.
 
 One context goes through each command. `cmd.Execute` makes it, cancels it on the
 first `SIGINT` or `SIGTERM`, and gives it to cobra. A command reads it as

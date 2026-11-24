@@ -30,21 +30,21 @@ builds osapi reads the grammar of a DSL.
 Each page under Reference is the output of the `list` or `get` command that
 shows the same thing, written as markdown:
 
-| Page                         | Is the output of                                                              |
-| ---------------------------- | ----------------------------------------------------------------------------- |
-| Behaviors, and each behavior | `osapi behavior list`; `osapi behavior get`, and `method get` for each method |
-| Chains, and each chain       | `osapi behavior chain list`; `osapi behavior chain get`                       |
-| Endpoints, and each group    | `osapi controller endpoint list`; `osapi controller endpoint get`             |
-| CLI, and each local group    | `osapi cli command list`; `osapi cli command get`                             |
+| Page                         | Is the output of                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------- |
+| Behaviors, and each behavior | `osapi dsl behavior list`; `osapi dsl behavior get`, and `method get` for each method |
+| Chains, and each chain       | `osapi dsl chain list`; `osapi dsl chain get`                                         |
+| Endpoints, and each group    | `osapi dsl endpoint list`; `osapi dsl endpoint get`                                   |
+| CLI, and each local group    | `osapi dsl command list`; `osapi dsl command get`                                     |
 
-`osapi cli docs reference generate` calls the handler of each command with the
-same dependencies that the CLI gives it, then prints the output with
-`command.Render` and a markdown printer, `cli.Markdown`. The terminal prints
-through the same `Render` with its own printer. Thus a page and its command show
-the same headings, key-value blocks and tables, and a field that a command adds
-is on its page with no other change. The first version of the behavior pages was
-a separate page builder. It showed less than `behavior get`, and nothing held
-the two together.
+`osapi dsl docs generate` calls the handler of each command with the same
+dependencies that the CLI gives it, then prints the output with `command.Render`
+and a markdown printer, `cli.Markdown`. The terminal prints through the same
+`Render` with its own printer. Thus a page and its command show the same
+headings, key-value blocks and tables, and a field that a command adds is on its
+page with no other change. The first version of the behavior pages was a
+separate page builder. It showed less than `behavior get`, and nothing held the
+two together.
 
 A page links what it names. The rule of each page says which column or label is
 a link: the name of a behavior to its page, the behaviors that it uses or that
@@ -85,10 +85,10 @@ The CLI reference does not group by area. Its pages follow the commands, such as
 
 ## The DSL pages
 
-`osapi cli docs dsl generate` writes a page for each DSL under
-`development/dsl/`: the behavior DSL, chains, the endpoint DSL and the command
-DSL. Each page is the spec that the `spec get` command of the DSL prints, in the
-same order. `guide.Spec.Markdown` writes it.
+`osapi dsl docs generate` writes a page for each DSL under `development/dsl/`:
+the behavior DSL, chains, the endpoint DSL and the command DSL. Each page is the
+spec that the `spec get` command of the DSL prints, in the same order.
+`guide.Spec.Markdown` writes it.
 
 ## The look
 
@@ -161,8 +161,7 @@ code into a colored span. Thus the page shows what a terminal shows, and
 page stays a `.md` file, because the build drops raw HTML in a `.md` page.
 
 A page that a person wrote shows the same screens with a marker, which
-`osapi cli docs reference generate` fills from the first example of a behavior's
-method:
+`osapi dsl docs generate` fills from the first example of a behavior's method:
 
 ```markdown
 <!-- osapi:output sysctl list web-01 mac-01:skipped web-02:failed -->
@@ -282,8 +281,8 @@ shows:
 <!-- /osapi:config -->
 ```
 
-`osapi cli docs reference generate` writes the table between the two markers,
-and keeps the rest of the page. Thus `just cli-docs-generate` writes it, and
+`osapi dsl docs generate` writes the table between the two markers, and keeps
+the rest of the page. Thus `just cli-docs-generate` writes it, and
 `cli-docs-gen-check` fails when a key changes and its table does not.
 
 A key with no default in `config.Defaults` gets its value from
