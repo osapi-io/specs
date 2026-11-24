@@ -25,6 +25,11 @@ for the decisions. The prefixes of pending and admitted are older than the word
 admission. They stay, because a new name would orphan the keys that a running
 controller has. `internal/controller/admission/store.go` reads the four.
 
+The type of the four states is `types.AdmissionState`, in `pkg/sdk/types`. The
+states cross the API: the `state` filter of the list and the state of each
+record use the type. Thus the spec has one `AdmissionState` schema, and the SDK
+and the UI use it.
+
 One machine can have more than one record at a time. A revoked machine that asks
 again has a `revoked.` record and an `enrollment.` record. The store returns one
 record for each machine, in this order: pending, admitted, rejected, revoked.
