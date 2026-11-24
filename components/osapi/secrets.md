@@ -1,7 +1,7 @@
 # Secrets
 
-A plan, not built. This page records where the secrets of osapi live, how the
-three DSLs take one, how a value gets to the agent that uses it, and how a
+A plan, built in part. This page records where the secrets of osapi live, how
+the three DSLs take one, how a value gets to the agent that uses it, and how a
 secret rotates. Each part moves into the page of its subject when it is built,
 and this page goes when the last part is built.
 [osapi #1065](https://github.com/osapi-io/osapi/issues/1065) has the decision.
@@ -15,15 +15,16 @@ Each kind of secret has its own solution, and none of them is a store:
   the controller logs its config.
 - The PKI keys are files in `key_dir`. [Agent identity](agent-identity.md) has
   their rotation.
-- A behavior input tagged `secret:"true"` stays out of the audit log, the spans
-  and the chain records. [Behaviors](behaviors.md#secret-inputs) has the tag.
+- A behavior input of type `secret.Value` stays out of the audit log, the spans
+  and the chain records. [Secrets](dsls.md#secrets) has the type.
 
-The tag does not keep a value out of NATS. The input of a behavior is the data
+The type does not keep a value out of NATS. The input of a behavior is the data
 of its job, and JetStream and the job KV keep that data. A `.Before` step solves
 this when the agent needs only a value made from the secret, such as the hash of
 a password. It does not solve it when the agent uses the secret as it is.
-`docker.create` and `docker.exec` take `env`, tagged secret, with no step. Thus
-an API token in a container's environment sits in JetStream as plain text now.
+`docker.create` and `docker.exec` take `env`, a map of secrets, with no step.
+Thus an API token in a container's environment sits in JetStream as plain text
+now.
 
 ## Who the design protects against
 
@@ -66,35 +67,14 @@ of a key.
 
 ## A secret in the DSLs
 
-A secret is a type, not a tag. `internal/secret` has `secret.Value`. An input
-field of this type is a secret in each of the three DSLs, and the `secret` tag
-goes. A tag with a typo makes the field an ordinary field, and nothing reports
-it ([osapi #1062](https://github.com/osapi-io/osapi/issues/1062)). A type cannot
-have a typo.
+Built in osapi-io/osapi#1240. A secret is the type `secret.Value`, not a tag.
+[The parts that each DSL shares](dsls.md#secrets) has what each part of the
+three DSLs does with it, and the limits until the vaults exist.
+[Behaviors](behaviors.md#secret-inputs) has the rule `secret` of the behavior
+DSL.
 
-A `secret.Value` holds a reference or a literal value. Its `String`, `Format`,
-`MarshalJSON` and `LogValue` give `[redacted]`. Only `Reveal` gives the bytes.
-The resolver, the vault and the dispatch of the agent call it. A provider calls
-it only where it gives the value to a command's standard input, an environment
-or a file. A map of secrets is `map[string]secret.Value`, such as the
-environment of a container.
-
-What each part of a DSL ([The parts that each DSL shares](dsls.md)) does with a
-`secret.Value` field:
-
-| Part                    | What it does                                                                                                                                                                       |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Spec of the API         | `type: string`, `format: password`, `writeOnly: true` and `x-osapi-secret: true`. The description says that it takes `secret://<vault>/<key>`.                                     |
-| `validate`              | refuses a secret field with `telemetry:"attr"`, with `in:"path"` or `in:"query"` (a URL goes in logs), or as the key of a chain record. One rule, `secret`, in each DSL.           |
-| `dslcheck`              | fails on a `string` field whose JSON name is on the audit denylist (`password`, `token`, `secret` and the others), unless its allowlist gives a reason. This finds a missing type. |
-| CLI                     | the flag takes a reference, or `-` to read the value from standard input. It refuses a literal value, because the shell history keeps it. A map flag takes `NAME=secret://...`.    |
-| SDK                     | a field of type `string` with a doc comment that it takes a reference. The SDK sends a literal or a reference as it gets it.                                                       |
-| `method get` and docs   | marks the field as a secret, with the two forms that it takes.                                                                                                                     |
-| Audit, spans and chains | record the reference, such as `secret://default/registry-token`, or `[redacted]` for a literal. A literal value never reaches a record.                                            |
-| UI                      | a secret field takes a reference from a picker, next to the `@fact.` picker. A plan holds only references. The UI does not keep a value, and an exported plan has no value in it.  |
-
-A command of the command DSL calls no API. Thus a command that uses a secret
-resolves the reference itself, from the vaults of its config.
+Not built: a command of the command DSL that uses a secret resolves the
+reference itself, from the vaults of its config. A command calls no API.
 `osapi controller token generate` is one: it reads the signing keys from the
 config, and each value can be a reference.
 
@@ -155,18 +135,11 @@ behavior gives each agent credentials for the vault, and the agent then reads
 each secret that the vault has. The design gives an agent only the values of its
 job, so the vault stays on the controller.
 
-A chain moves the value, not the vault. A parent behavior calls its children on
-the agent, in the same job. Thus a `secret.Value` field of a parent goes to a
-child as each other field does. For example, `certificate.create` takes a
-private key and gives it to `managedfile.update` as the content of the file. The
-controller resolves and seals the key one time, for the top method. The agent
-opens it one time, and each method of the chain gets the opened value. The chain
-records show the reference, not the value.
-
-`behavior validate` checks the type across a chain: a parent that gives a
-`secret.Value` to a child field of a different type fails under the rule
-`secret`. Thus a chain cannot change a secret into an ordinary string, which the
-child then records.
+The rest is built in osapi-io/osapi#1240:
+[Secrets in a chain](behaviors.md#secrets-in-a-chain) has how a value moves from
+a parent to a child, and the check of its type. Not built: the controller
+resolves and seals the value one time, for the top method, and the agent opens
+it one time, for each method of the chain.
 
 ## What the agent knows
 
@@ -311,8 +284,8 @@ Do not put a value in a command, a plan or a file.
 
 Each part is an issue in osapi, in this order:
 
-01. `secret.Value` in `internal/secret`, in place of the `secret` tag, with the
-    `secret` rule in each DSL and the `dslcheck` guard.
+01. Built: `secret.Value` in `internal/secret`, in place of the `secret` tag,
+    with the `secret` rule in each DSL and the `dslcheck` guard.
 02. Built: the `Vault` interface, the `nats` type, the `controller.secrets`
     config, and `osapi controller vault key create --name default` and `rotate`
     ([Vaults](vaults.md)).

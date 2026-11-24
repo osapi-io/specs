@@ -389,8 +389,8 @@ The platform, not the schema, reads two more tags:
   also records the field that the method names with `.Key`, without the tag.
   Thus a trace shows the item that each call changed, such as
   `key=vm.swappiness`. osapi records no other field. Thus by default, a password
-  or the content of a file cannot get into a trace. A field with the tag
-  `secret:"true"` is never recorded, also when it is the key.
+  or the content of a file cannot get into a trace. A `secret.Value` field is
+  never recorded, and `behavior validate` refuses it as the key.
 - `template:"vars"` marks a string input as a Go template. Its `.Vars` are in
   the input field `vars`, a `map[string]string`, which the CLI takes as
   `--vars key=value`. A template reads `.Facts`, `.Vars` and `.Hostname`, the
@@ -1195,9 +1195,9 @@ behavior makes it (osapi-io/osapi#1000).
 fake host that `go test` uses, and `behavior.Call` records each call under the
 call that made it: the behavior, the method, the input, and the output or the
 error. `behavior.Record` gives the context that collects the steps. Thus the
-tree shows what the code does now, and it cannot be stale. A field with the tag
-`secret:"true"` shows as `[redacted]`. `behaviortest.Chains` runs the examples,
-in the binary as in the tests.
+tree shows what the code does now, and it cannot be stale. A `secret.Value`
+field shows as its reference, or `[redacted]`. `behaviortest.Chains` runs the
+examples, in the binary as in the tests.
 
 A real job records its chain with the same mechanism. The job handler of the
 agent gives the processor a context from `behavior.Record`, so each
@@ -1212,16 +1212,16 @@ ubuntu-1: (netplan get, netplan update (changed) → managedfile update (changed
 ```
 
 `client.FormatSteps` writes the line. A run records no input and no output. An
-input is redacted only by its top-level `secret` tags, an output is not
-redacted, and the content of a managed file can be large. The request and the
-response of the job have the input and the output of the method at the top. The
-format is the one that a behavior of an extension returns (osapi-io/osapi#1064).
-The job view of the UI shows the tree of each host, one row for each call
-(osapi-io/osapi#1162). The trace has a span `behavior.<name>.<method>` for each
-call, under the span of the call that made it. The audit entry records the tree
-of each host that answered before the request returned, also when a step failed
-(osapi-io/osapi#1193). `osapi client audit get` prints the chain line, and the
-audit view of the UI shows the tree with the component of the job view.
+output is not redacted, and the content of a managed file can be large. The
+request and the response of the job have the input and the output of the method
+at the top. The format is the one that a behavior of an extension returns
+(osapi-io/osapi#1064). The job view of the UI shows the tree of each host, one
+row for each call (osapi-io/osapi#1162). The trace has a span
+`behavior.<name>.<method>` for each call, under the span of the call that made
+it. The audit entry records the tree of each host that answered before the
+request returned, also when a step failed (osapi-io/osapi#1193).
+`osapi client audit get` prints the chain line, and the audit view of the UI
+shows the tree with the component of the job view.
 [The audit trail](audit.md#the-steps-come-from-the-job-client-at-request-time)
 has why the entry records the tree at request time.
 
@@ -1290,38 +1290,78 @@ with no logic.
 
 ## Secret inputs
 
-Tag an input field that has a secret, for example a password or an API key, with
-`secret:"true"`. The tag does three things. Thus osapi keeps the secret of a
-behavior out of all records and publications, and you edit nothing outside the
-directory of the behavior:
+Give an input field that has a secret, for example a password or an API key, the
+type `secret.Value` of `internal/secret`. A map of secrets is
+`map[string]secret.Value`, such as the `env` of `docker create`. The type does
+these things. Thus osapi keeps the secret of a behavior out of all records and
+publications, and you edit nothing outside the directory of the behavior:
 
-- **Audit.** The audit summary redacts each field name that is tagged secret in
-  any registered behavior, together with the fixed denylist in `internal/audit`.
-  Without the tag, osapi stores a field with the name `passphrase` as it came,
+- **Audit.** The audit summary redacts each field name that has the type in any
+  registered behavior, together with the fixed denylist in `internal/audit`.
+  Without the type, osapi stores a field with the name `passphrase` as it came,
   because the denylist matches names and does not have that name.
-- **Spec.** The schema of the field has `format: password` and
-  `writeOnly: true`. Thus a generated client and the API reference treat it as a
-  secret.
-- **Telemetry.** osapi never records it on a span. `behavior validate` fails a
-  field that is tagged both `secret` and `telemetry:"attr"`, under the rule
-  `secret`.
+- **Spec.** The schema of the field has `format: password`, `writeOnly: true`
+  and `x-osapi-secret: true`, and its description says that it takes
+  `secret://<vault>/<key>`. Thus a generated client and the API reference treat
+  it as a secret.
+- **Telemetry.** osapi never records it on a span.
+- **Chains.** A step records the reference, or `[redacted]`.
+- **CLI.** The flag takes a reference, or `-` to read the value from standard
+  input, such as `--password -` of `user create`. It refuses a literal value. An
+  example whose input has a literal shows `-` on its command line, and its
+  generated CLI test gives the value on standard input.
 
-Go reads a tag only by its exact key and value. Thus `secret:"True"`, or the key
-`secrte`, makes the field an ordinary field, and nothing reports it. Under the
-rule `tag`, `behavior validate` fails each field of an input, nested fields too,
-that has a tag key outside `command.KnownTags`. It fails each field of an input
-or an output that has a `secret` value other than `true`, or a `telemetry` value
-other than `attr`. The command DSL checks the keys of an output, with the same
-list, under the rule `output`. Thus one list of tag keys serves the three DSLs.
+A provider gets the value with `Reveal`, where it gives the value to a command's
+standard input, an environment or a file. [Secrets](dsls.md#secrets) has what
+each of the three DSLs does with the type, and the limits until the vaults
+exist.
+
+The audit redacts by name, as the denylist does. If you give a field with the
+name `value` the type, osapi redacts each request field with the name `value`,
+in each behavior. Give a secret field a name that tells what it has.
+
+Under the rule `secret`, `behavior validate` fails:
+
+- a secret field with `telemetry:"attr"`;
+- a secret field that the method names with `.Key`, because the route carries it
+  in its path;
+- a secret field of a read, because the route carries it in its query.
+
+A URL goes in the logs of each proxy, so a secret goes only in the body.
+
+Go reads a tag only by its exact key and value. Thus `telemetry:"atr"`, or the
+key `telemetri`, does nothing, and nothing reports it. Under the rule `tag`,
+`behavior validate` fails each field of an input, nested fields too, that has a
+tag key outside `command.KnownTags`. It fails each field of an input or an
+output that has a `telemetry` value other than `attr`. The command DSL checks
+the keys of an output, with the same list, under the rule `output`. Thus one
+list of tag keys serves the three DSLs. The key `secret` is not on the list: a
+field with the old tag `secret:"true"` fails.
+
+### Secrets in a chain
+
+A chain moves the value, not the vault. A parent behavior calls its children on
+the agent, in the same job. Thus a `secret.Value` field of a parent goes to a
+child as each other field does. The chain records show the reference, or
+`[redacted]`, at each depth of the input.
+
+A parent must give a secret to a child field that is a `secret.Value` too. A
+child field of a different type, such as a `string`, records the value: in its
+chain record, in its span, or in the audit of a different route. The examples
+show what a parent gives. Thus when `behaviortest.Chains` runs them, a value of
+a secret field of the parent in a field of a child that is not a secret fails
+under the rule `secret`. `chain validate` reports it, and the tests of the
+behavior fail on it.
 
 ## A step on the controller
 
 A secret that the agent must not see in plain text, such as a password, cannot
 travel in the job. The input of a behavior is the data of its job, and NATS and
-the job KV keep that data. A field with the tag `secret:"true"` stays out of the
-audit log and the spans, but not out of NATS. Thus a method that takes such a
-secret declares a controller step with `.Before(fn)`. The function is
-`func(ctx context.Context, in In) (In, error)`, on the input type of the method.
+the job KV keep that data. A `secret.Value` field stays out of the audit log and
+the spans, but not out of NATS, until osapi-io/osapi#1247 seals it. Thus a
+method that takes such a secret declares a controller step with `.Before(fn)`.
+The function is `func(ctx context.Context, in In) (In, error)`, on the input
+type of the method.
 
 The generated route calls the step through `dispatch.Run`, on the controller,
 before it queues the job. The step runs in a span of its own,
@@ -1333,9 +1373,9 @@ behavior each have a step.
 
 Two rules keep the plain secret out of the job:
 
-- **Each field with the tag `secret:"true"` is empty after the step.** If a
-  secret field is not empty, `RunBefore` fails, and osapi does not queue the
-  job. Thus a step that forgets to clear the password does not leak it.
+- **Each `secret.Value` field is empty after the step.** If a secret field is
+  not empty, `RunBefore` fails, and osapi does not queue the job. Thus a step
+  that forgets to clear the password does not leak it.
 - **A field that the step fills has the tag `before:"set"`.** The request, the
   command and the block of the UI do not have it, so a caller cannot send a hash
   directly.
@@ -1403,10 +1443,3 @@ DSL, the endpoint DSL and the command DSL:
   after the routes, from the registry that the routes register in.
 
 `behavior new` writes `Area(area.Config)`.
-
-Redaction matches names, as the denylist does. If you tag a field `value` as
-secret, osapi redacts each request field with the name `value`, in each
-behavior. Give a secret field a name that tells what it has.
-
-The value still comes as a CLI flag, such as the `--password` of `user create`.
-A read from standard input or a prompt is not built.

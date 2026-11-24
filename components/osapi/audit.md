@@ -65,14 +65,17 @@ There are eleven names.
 body for the deployer. Without the list, osapi stores all of the two.
 
 A behavior adds to the list, and you do not edit the list. osapi also redacts
-each input field that the behavior tags `secret:"true"`, by name.
-[Behaviors](behaviors.md#secret-inputs) describes this. The fixed list is for
-the hand-written domains.
+each input field of type `secret.Value`, of each behavior and each endpoint
+group, by name. A `secret://` reference in a redacted field stays, so the entry
+shows which secret the request used. [Secrets](dsls.md#secrets) describes this.
+The fixed list is for the hand-written domains.
 
 **osapi stores a field that is not on the list as it came.** If a domain adds
-`api_key`, `passphrase`, `credentials` or `bearer`, osapi redacts none of them,
-and nothing in the build tells you. When you add a field with a secret, add its
-name here. No test fails if you forget.
+`api_key`, `passphrase`, `credentials` or `bearer` as a `string`, osapi redacts
+none of them, and nothing in the build tells you. Give a field with a secret the
+type `secret.Value`. The other direction has a guard: `TestSecretsAreTyped` in
+`internal/dslcheck` fails on a `string` input field of a DSL with a name on the
+list, unless its allowlist gives a reason.
 
 **Nothing leaks now.** The list covers each field with a secret in the request
 body of each domain:

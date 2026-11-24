@@ -165,13 +165,15 @@ var Group = endpoint.Register(endpoint.Define(
   check of its writes. admission's `reason` was the one field that broke it.
 
 - The rules after `dive` are each item's: `max=10,dive,max=255` is at most 10
-  items of at most 255 characters, in the server and in the spec. A field tagged
-  `secret:"true"` is write-only, with the password format, in the spec.
-  `TestRefusals`, in `internal/controller/endpoints/all`, sends each one through
-  the routes and expects 400 with `{"error": "..."}`. The route is the only
-  place a handler runs, so the route's check holds for every call.
-  `TestHandlersRunFromRoutes`, in the same package, fails a call of a handler
-  from other code, as `behaviortest` fails a direct call of a behavior's method.
+  items of at most 255 characters, in the server and in the spec. A
+  `secret.Value` field is write-only, with the password format, in the spec.
+  Under the rule `secret`, `endpoint validate` refuses one in the path or the
+  query ([Secrets](dsls.md#secrets)). `TestRefusals`, in
+  `internal/controller/endpoints/all`, sends each one through the routes and
+  expects 400 with `{"error": "..."}`. The route is the only place a handler
+  runs, so the route's check holds for every call. `TestHandlersRunFromRoutes`,
+  in the same package, fails a call of a handler from other code, as
+  `behaviortest` fails a direct call of a behavior's method.
 
 - **`ID`** keeps the operationId of the hand-written spec. The UI client gets
   its names from it. Thus the move does not change a name that the UI calls. The
