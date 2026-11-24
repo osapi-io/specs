@@ -315,8 +315,10 @@ the table, because nats-client records it.
 The overview of the client of the SDK and its guidelines are written by hand.
 The page of each service of the SDK is generated, from the spec and the source
 of the SDK: [the SDK](sdk.md#the-examples-and-the-pages-are-generated) tells
-how. The role table of the configuration page is generated, as the config tables
-are, between `<!-- osapi:roles -->` markers.
+how. The role table is generated, as the config tables are, between
+`<!-- osapi:roles -->` markers on the authentication page. Until osapi#1231, no
+page had the markers, so the table was not on the site (osapi#1229). The UI
+pages link to it, and keep no table of their own.
 
 A feature page explains a feature, and links to the generated page of each
 behavior that it uses for the permission, the platforms and the route of each
