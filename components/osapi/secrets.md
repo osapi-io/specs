@@ -172,9 +172,10 @@ credentials of the agent stay in its config file or its environment.
 
 Three limits apply to each reference in a request. All three must pass:
 
-- **The permission `secret:use`.** The built-in roles get it under the rule of
-  [Permissions](permissions.md): `admin`, `operator` and `automation` have it,
-  and `read`, `auditor` and `observer` do not.
+- **The permission `secret:use`.** `admin` and `automation` have it. A secret
+  goes into a write that changes the configuration of a host, and `automation`
+  is the role that writes. `operator` runs actions, such as a restart, and no
+  action takes a secret. `read`, `auditor` and `observer` do not have it.
 - **The target scope of the token.** It limits the hosts, as for each other
   request ([Permissions](permissions.md#a-tokens-target-scope)).
 - **The targets of the vault.** A vault can name the targets that its secrets go
