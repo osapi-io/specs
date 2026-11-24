@@ -122,7 +122,7 @@ osapi
     file        list | get | upload | update | delete | stale list
     health      liveness | ready | status [--component]
     job         list | get | retry | delete
-    secret      list | get | update | delete | vault list
+    secret      list | get | update | delete | reveal | vault list
     trace       get
     node        <behavior> …   (each behavior by its name; help grouped by area)
 ```
@@ -181,13 +181,13 @@ There is one verb for each meaning:
 An action that is not one of those keeps the verb that tells what it does:
 `start` and `stop`, `enable` and `disable`, `drain` and `undrain`, `exec`,
 `shell`, `ping`, `reboot`, `shutdown`, `signal`, `pull`, `install` and
-`uninstall`, `retry`, `export`, `upload`, `accept` and `reject`, `validate`, and
-`rotate` for a key. A paired action keeps its pair. An action of a behavior has
-the permission `<name>:execute`. Thus a change that must keep the `write`
-permission is `create`, `update` or `delete`, also when a different verb tells
-it better. The deploy of a file is `node file update`, and its undeploy is
-`node file delete`: a deploy writes each path as root, and `file:write` stays
-with `automation`.
+`uninstall`, `retry`, `export`, `upload`, `accept` and `reject`, `validate`,
+`rotate` for a key, and `reveal` for the value of a secret, which `get` does not
+give. A paired action keeps its pair. An action of a behavior has the permission
+`<name>:execute`. Thus a change that must keep the `write` permission is
+`create`, `update` or `delete`, also when a different verb tells it better. The
+deploy of a file is `node file update`, and its undeploy is `node file delete`:
+a deploy writes each path as root, and `file:write` stays with `automation`.
 
 A command is `<resource> <verb>`. A noun that is used as a command becomes a
 filter on `list`, or a resource with its own verbs under it: `file stale list`,

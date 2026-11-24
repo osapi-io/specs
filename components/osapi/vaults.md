@@ -284,20 +284,41 @@ the Object Store is. Thus it is a group of the endpoint DSL, not a new DSL, and
 it gets each generated part: the spec, the routes, the SDK service, the CLI
 commands and their pages.
 
-| Method | Path                        | Permission     | CLI                              |
-| ------ | --------------------------- | -------------- | -------------------------------- |
-| GET    | `/api/secret`               | `secret:read`  | `osapi client secret vault list` |
-| GET    | `/api/secret/{vault}`       | `secret:read`  | `osapi client secret list`       |
-| GET    | `/api/secret/{vault}/{key}` | `secret:read`  | `osapi client secret get`        |
-| PUT    | `/api/secret/{vault}/{key}` | `secret:write` | `osapi client secret update`     |
-| DELETE | `/api/secret/{vault}/{key}` | `secret:write` | `osapi client secret delete`     |
+| Method | Path                              | Permission      | CLI                              |
+| ------ | --------------------------------- | --------------- | -------------------------------- |
+| GET    | `/api/secret`                     | `secret:read`   | `osapi client secret vault list` |
+| GET    | `/api/secret/{vault}`             | `secret:read`   | `osapi client secret list`       |
+| GET    | `/api/secret/{vault}/{key}`       | `secret:read`   | `osapi client secret get`        |
+| PUT    | `/api/secret/{vault}/{key}`       | `secret:write`  | `osapi client secret update`     |
+| DELETE | `/api/secret/{vault}/{key}`       | `secret:write`  | `osapi client secret delete`     |
+| GET    | `/api/secret/{vault}/{key}/value` | `secret:reveal` | `osapi client secret reveal`     |
 
-**No method gives a value.** Each answer is the metadata of a key: its vault,
-its key, its version, when it changed and who changed it. `get` finds the key in
-`List`, not with `Get`, so the controller does not decrypt a value to answer.
+**Only `reveal` gives a value.** Each other answer is the metadata of a key: its
+vault, its key, its version, when it changed and who changed it. `get` finds the
+key in `List`, not with `Get`, so the controller does not decrypt a value to
+answer.
+
+`reveal` is for a tool that needs the value itself, such as ansible, as
+`swamp vault get` and the read of HashiCorp Vault are (osapi-io/osapi#1309):
+
+- It needs `secret:reveal`, which only `admin` has. The method marks it
+  `AdminOnly()`, so a custom role gets it only when it names it. `automation`
+  does not get it: a request of `automation` gives a reference, and the
+  controller resolves it.
+
+- The CLI prints only the value, with no heading and no trace line, so a pipe
+  gets the value. `--json` prints `{"value": "..."}`. The output field is
+  `render:"body"`, and a printed body has no trace line after it.
+
+- The audit log records each call, as each GET: the caller, its roles, and the
+  path, which has the vault and the key. The audit records no answer, so the
+  value is not in it. No log line and no span records an answer either.
+
+- The UI has no button for it.
 
 - `vault list` gives each vault of `controller.secrets.vaults`, with its type,
   its targets, and `answers`: true when the vault gave a list of its keys.
+
 - `update` writes the value as the next version of the key, or as version 1 of a
   new key, and answers 200 with the metadata. The body is `{"value": "..."}`, a
   `secret.Value` of at most 64 KiB. The route puts the subject of the token in
@@ -306,6 +327,7 @@ its key, its version, when it changed and who changed it. `get` finds the key in
   ([How a route resolves a reference](#how-a-route-resolves-a-reference)). Thus
   `update` with `secret://default/other` copies the value of that key, and needs
   `secret:use`.
+
 - A vault that the config does not name is 404, and so is a key that is not in
   its vault. A vault name and a key are letters, digits, `-` and `_`, the rule
   `resource_name`. A vault name has 64 characters at most, and a key 128, as the
@@ -331,13 +353,15 @@ the path fields of a key in order, for `/api/secret/{vault}/{key}`.
 
 The permissions and the roles that get them:
 
-| Permission     | Roles                                     | Why                                                                  |
-| -------------- | ----------------------------------------- | -------------------------------------------------------------------- |
-| `secret:read`  | `admin`, `operator`, `automation`, `read` | the rule of the `read` verb. It gives names and metadata, no value   |
-| `secret:write` | `admin`, `automation`                     | the rule of the `write` verb                                         |
-| `secret:use`   | `admin`, `automation`                     | a secret goes into a write, and `automation` is the role that writes |
+| Permission      | Roles                                     | Why                                                                  |
+| --------------- | ----------------------------------------- | -------------------------------------------------------------------- |
+| `secret:read`   | `admin`, `operator`, `automation`, `read` | the rule of the `read` verb. It gives names and metadata, no value   |
+| `secret:write`  | `admin`, `automation`                     | the rule of the `write` verb                                         |
+| `secret:use`    | `admin`, `automation`                     | a secret goes into a write, and `automation` is the role that writes |
+| `secret:reveal` | `admin`                                   | admin only: it gives the value of a secret                           |
 
-`authtoken` declares `secret:use`, because no method of this group needs it. A
+`authtoken` declares `secret:use`, because no method of this group needs it. It
+declares `secret:reveal` too, because `reveal` names it with `.Permission`. A
 request needs it for each reference that it gives
 ([How a route resolves a reference](#how-a-route-resolves-a-reference)).
 
