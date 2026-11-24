@@ -317,11 +317,13 @@ each value encrypted in a JetStream KV bucket, `osapi-secrets`:
 - `osapi controller vault key create --name default` makes the vault key in
   `key_file`.
 
-osapi also turns on JetStream encryption at rest, with its own key.
-`osapi nats key create` makes that key, on the NATS host. That key protects each
-stream and bucket on the disk, not only the secrets, and NATS derives each
-account's key from it. It does not protect against a NATS user, which is why the
-vault encrypts each value too.
+JetStream encryption at rest is built
+([osapi #1242](https://github.com/osapi-io/osapi/issues/1242)).
+`nats.server.jetstream.key_file` turns it on, and `osapi nats key create` makes
+its key. That key protects each stream and bucket on the disk, not only the
+secrets. It does not protect against a NATS user, which is why the vault
+encrypts each value too.
+[The message bus](transport.md#the-streams-are-encrypted-on-the-disk) has it.
 
 ## References in the config
 
@@ -372,7 +374,7 @@ Each part is an issue in osapi, in this order:
 02. The `Vault` interface, the `nats` type, the `controller.secrets` config, and
     `osapi controller vault key create --name default` and `rotate`.
 03. JetStream encryption at rest, with its key in the config and
-    `osapi nats key create`.
+    `osapi nats key create`. Built: osapi #1242.
 04. The `secret` endpoint group and its area, `secret:read`, `secret:write` and
     `secret:use`, and the Secrets page of the UI.
 05. Resolution on the controller: the order above, the three limits of use, and

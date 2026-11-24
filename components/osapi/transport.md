@@ -125,6 +125,62 @@ buckets, and not more.
 a user does not need `nsc`. This work waits until the lab runs operator mode
 with `nsc`.
 
+## The streams are encrypted on the disk
+
+The embedded server can encrypt each stream and bucket that it keeps in
+`store_dir`. The key is a file that the config names:
+
+```yaml
+nats:
+  server:
+    store_dir: /var/lib/osapi/jetstream
+    jetstream:
+      key_file: /etc/osapi/nats/jetstream.key
+```
+
+`server.New` reads the file and sets `JetStreamKey` in the options of the
+server. NATS derives a key for each account from it, and encrypts each file
+store with ChaCha20-Poly1305, its default cipher. With no `key_file`, the server
+does not encrypt, as before.
+
+`osapi nats key create` makes the key, on the NATS host. It reads `key_file`
+from the config, writes 32 random bytes as hex to it with mode `0600`, and makes
+its directory with mode `0700`. It refuses to write a file that exists, because
+a new key in place of the old key makes each stream unreadable.
+
+```bash
+osapi nats key create -f /etc/osapi/osapi.yaml
+```
+
+Three things can surprise you:
+
+- **A store with no encryption becomes encrypted.** When a server with a key
+  starts on a `store_dir` that has plain files, NATS encrypts each block as it
+  loads it. You do not delete the store first.
+- **Only file storage is encrypted.** A stream or a bucket with
+  `storage: memory` is not on the disk, so the key does not apply to it.
+- **The key is the data.** If the key is lost, or a different key is set, NATS
+  cannot load the streams, and the setup of osapi fails to create them again.
+  The server does not start, and the files stay on the disk. Keep a copy of the
+  key with the backup of `store_dir`, but not in the same location.
+
+**To rotate the key**, give the server the new key and the old key together:
+
+1. Set `old_key_file` to the path of the current key.
+2. Set `key_file` to a new path, and run `osapi nats key create`.
+3. Restart the server. NATS reads each store with the old key and writes it
+   again with the new key. This is `JetStreamOldKey` in NATS.
+4. Remove `old_key_file` from the config, and remove the old file.
+
+The key protects the files from a person who reads the disk or a backup. It does
+not protect a value from a NATS user, because the server decrypts each message
+for each user that can read the stream. [Secrets](secrets.md) has the design
+that also encrypts each secret for its user.
+
+The key is for the embedded server only. A NATS server that osapi does not run
+has its own `jetstream { key }` setting, and `osapi nats setup` does not change
+it.
+
 ## Nothing on the bus is trusted because it arrived
 
 A job and a response both go as a `SignedEnvelope`, in `internal/job/types.go`.
@@ -168,11 +224,12 @@ To change any of the three, change the wrapper, not this repository.
 [The job system](job-system.md) tells what the bus carries, and why
 at-least-once delivery has an effect on all later steps.
 [Agent identity](agent-identity.md) tells what the signatures protect.
-[Configuration](configuration.md) tells where the namespace, the bucket names
-and the auth mode come from.
+[Configuration](configuration.md) tells where the namespace, the bucket names,
+the auth mode and the key of the store come from.
 
 ______________________________________________________________________
 
-Written from `internal/bus/server/server.go`, `internal/bus/setup.go`,
-`cmd/nats_setup.go`, `internal/bus/bus.go`, `internal/job/subjects.go`,
-`internal/job/config.go` and `internal/job/types.go`.
+Written from `internal/bus/server/server.go`, `internal/cli/commands/natskey/`,
+`internal/bus/setup.go`, `cmd/nats_setup.go`, `internal/bus/bus.go`,
+`internal/job/subjects.go`, `internal/job/config.go` and
+`internal/job/types.go`.
