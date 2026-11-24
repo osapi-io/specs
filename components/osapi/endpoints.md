@@ -52,6 +52,7 @@ The definitions must express each row before the first group moves.
 | --------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | agent     | list, pending, get, remove, accept, reject, drain, undrain | a key in the path (`{hostname}`); a fixed sub-path beside the key (`/agent/pending`), so the order of the routes is important; actions on the key (`/agent/{hostname}/drain`); query parameters (`machine_id`, `fingerprint`); 409 |
 | audit     | list, get, export                                          | pagination (`limit`, `offset`) and a total; an export of each entry                                                                                                                                                                |
+| catalog   | get                                                        | one document, not a list; an enum of the spec from a registry (`Permission`, `OperationID`); the permission `catalog:read`, which each built-in role has                                                                           |
 | facts     | keys                                                       | a permission of a different group (`agent:read`)                                                                                                                                                                                   |
 | file      | list, stale, get, upload, update, delete                   | a multipart upload; 201 with `Location`; 200 for a file that exists; 409; 503 when no Object Store is set                                                                                                                          |
 | health    | liveness, ready, status                                    | no auth for liveness and ready, which probes call; 503; the permission `health:read`                                                                                                                                               |
@@ -203,6 +204,16 @@ var Group = endpoint.Register(endpoint.Define(
   answers 404 or 409 with `endpoint.Errorf(sentinel, "...")`, so the message
   names what it was called with. Any other error is a 500, and is logged.
 
+- **`Enum[T](values)`** makes `T`, a named string type, a schema of the
+  components, with the values that `values` returns as its enum. `values` runs
+  when the spec is built, after each group and behavior registered. Thus the
+  generator of the endpoints imports the behaviors too. The catalog group gives
+  `client.Permission` the permissions of `authtoken.AllPermissions`, and
+  `OperationID` the operationId of each operation that needs a permission.
+  `orval` makes a union type of the values, and the SDK a string type. A
+  `validate:"oneof=..."` tag cannot have them, because a tag is fixed when the
+  code compiles, and the values come from the registries.
+
 - **`Doc[T]("...")`** describes a named type, and **`example:"..."`** gives a
   field an example. The generator fails when two groups define one schema in
   different words, so a group that shares a schema with another group copies
@@ -253,7 +264,6 @@ It writes these:
 | `internal/controller/endpoints/<group>/gen/decode.go` | a decoder for each method: path, query, body and validation   |
 | `internal/controller/endpoints/<group>/gen/cli.go`    | a CLI command for each method, its flags, help and permission |
 | `docs/docs/sidebar/usage/cli/client/<group>/`         | the CLI pages, from cobra                                     |
-| `ui/src/lib/permissions.gen.ts`                       | the permissions of the group                                  |
 
 ## The full spec
 
@@ -312,27 +322,27 @@ endpoint group had no area. Thus the SDK pages were one list.
 `internal/area` is the one source. It has a constant for each area, and
 `area.All` gives the label of each area in its order:
 
-| Area          | Label        | Has                                                                                  |
-| ------------- | ------------ | ------------------------------------------------------------------------------------ |
-| `services`    | Services     | behaviors                                                                            |
-| `software`    | Software     | behaviors                                                                            |
-| `config`      | Config       | behaviors                                                                            |
-| `node`        | Node         | behaviors                                                                            |
-| `logs`        | Logs         | behaviors: log and log source                                                        |
-| `networking`  | Networking   | behaviors                                                                            |
-| `security`    | Security     | behaviors                                                                            |
-| `containers`  | Containers   | behaviors                                                                            |
-| `objectstore` | Object Store | the `file` endpoint group, the Object Store                                          |
-| `command`     | Command      | behaviors                                                                            |
-| `hardware`    | Hardware     | behaviors                                                                            |
-| `audit`       | Audit        | the `audit` endpoint group                                                           |
-| `fleet`       | Fleet        | `agent`, `admission`, `job`, `health`, `controller`, `nats`, `facts` and `telemetry` |
+| Area          | Label        | Has                                                                                             |
+| ------------- | ------------ | ----------------------------------------------------------------------------------------------- |
+| `services`    | Services     | behaviors                                                                                       |
+| `software`    | Software     | behaviors                                                                                       |
+| `config`      | Config       | behaviors                                                                                       |
+| `node`        | Node         | behaviors                                                                                       |
+| `logs`        | Logs         | behaviors: log and log source                                                                   |
+| `networking`  | Networking   | behaviors                                                                                       |
+| `security`    | Security     | behaviors                                                                                       |
+| `containers`  | Containers   | behaviors                                                                                       |
+| `objectstore` | Object Store | the `file` endpoint group, the Object Store                                                     |
+| `command`     | Command      | behaviors                                                                                       |
+| `hardware`    | Hardware     | behaviors                                                                                       |
+| `audit`       | Audit        | the `audit` endpoint group                                                                      |
+| `fleet`       | Fleet        | `agent`, `admission`, `catalog`, `job`, `health`, `controller`, `nats`, `facts` and `telemetry` |
 
 `objectstore` has the Object Store only. Until osapi-io/osapi#1208 its name was
 `files`, but the `file` behavior, which deploys an object to a host, is in
-`config`. `logs` is after `node`, because the log and its sources were in `node`
-before. `audit` and `fleet` have no behavior, thus the Behaviors page of the UI
-has no section for them ([the UI](ui.md)).
+`config`. `logs` is after `node`, because log entry and log source were in
+`node` before. `audit` and `fleet` have no behavior, thus the Behaviors page of
+the UI has no section for them ([the UI](ui.md)).
 
 A behavior declares its area with `behavior.Area`, and an endpoint group with
 `endpoint.Area`. The generated group of a behavior gets the area of the
@@ -345,10 +355,9 @@ behavior. The area goes from the definition to these outputs:
 - **The API reference.** The OpenAPI plugin of the docs site groups the pages by
   `x-tagGroups`. Thus the API sidebar has the areas of the UI and the SDK pages
   ([the docs site](docs-site.md#the-api-reference)).
-- **The UI.** `internal/behavior/uicatalog` writes `area.All` as `AREAS` in
-  `ui/src/lib/catalog.gen.ts`. The Behaviors page has a section for each area
-  that has a behavior, and the list of steps of the Plans page has the same
-  areas ([the UI](ui.md)).
+- **The UI.** The catalog endpoint serves `area.All` as `areas`. The Behaviors
+  page has a section for each area that has a behavior, and the list of steps of
+  the Plans page has the same areas ([the UI](ui.md#the-catalog)).
 - **The SDK pages.** `internal/sdk/gen` reads the areas from the spec, and puts
   the page of each service in the folder of its area ([the Go SDK](sdk.md)).
 - **The reference pages.** The page of each behavior, each chain and each
@@ -364,8 +373,9 @@ behavior. The area goes from the definition to these outputs:
   and the endpoints show these tables.
 
 Thus a change to `area.All` changes each output in the same `just generate`.
-`behavior-gen-check`, `sdk-gen-check`, `cli-docs-gen-check` and the Go test of
-`catalog.gen.ts` fail when an output is stale.
+`behavior-gen-check`, `sdk-gen-check` and `cli-docs-gen-check` fail when an
+output is stale. The UI reads the areas at run time, so it has no output that
+can be stale.
 
 Before osapi#833, `just generate` joined the specs with `redocly join`. The join
 read a hand-written components spec, which had the info and `ErrorResponse`. The

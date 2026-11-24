@@ -141,12 +141,13 @@ Until the vaults exist, two limits apply:
 each DSL that serves the API. A rule gives the built-in roles their permissions,
 and `AdminOnly()` keeps a permission from `operator`, `automation` and `read`.
 [Permissions](permissions.md) has the rule. The generator of the SDK constants
-in `internal/authtoken/gen` and `RegistryOperations`, which gives the permission
-of each operation of the UI, read `dsl.All()` too. Thus a new DSL with API
-routes changes none of the three: it gives `Permissions` and `Operations` when
-it registers. A DSL with no API route, as the command DSL, gives neither.
-`dsl.All()` is in the order of the names, so the permissions of the behaviors
-come before those of the endpoint groups.
+in `internal/authtoken/gen` and `authtoken.Operations`, which gives the
+permission of each operation, read `dsl.All()` too. The catalog endpoint serves
+the result of `Operations` to the UI ([the UI](ui.md#the-catalog)). Thus a new
+DSL with API routes changes none of the three: it gives `Permissions` and
+`Operations` when it registers. A DSL with no API route, as the command DSL,
+gives neither. `dsl.All()` is in the order of the names, so the permissions of
+the behaviors come before those of the endpoint groups.
 
 ## Generation
 

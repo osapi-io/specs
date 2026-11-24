@@ -104,14 +104,14 @@ osapi has one built-in role for each kind of person or program that uses it
 permissions that osapi knows. No list of roles is written by hand, except the
 two short lists of `auditor` and `observer`.
 
-| Role         | Who                                  | Gets                                                             |
-| ------------ | ------------------------------------ | ---------------------------------------------------------------- |
-| `admin`      | the owner of the fleet               | each permission                                                  |
-| `operator`   | the person on call                   | each `read` and each `execute` permission that is not admin only |
-| `automation` | CI, or a workflow that changes hosts | each `read` and each `write` permission that is not admin only   |
-| `auditor`    | a person who audits                  | `audit:read`, `trace:read`, `job:read`, `health:read`            |
-| `read`       | a person who looks                   | each `read` permission that is not admin only                    |
-| `observer`   | a dashboard or a monitor             | `health:read`, `status:read`, `agent:read`                       |
+| Role         | Who                                  | Gets                                                                  |
+| ------------ | ------------------------------------ | --------------------------------------------------------------------- |
+| `admin`      | the owner of the fleet               | each permission                                                       |
+| `operator`   | the person on call                   | each `read` and each `execute` permission that is not admin only      |
+| `automation` | CI, or a workflow that changes hosts | each `read` and each `write` permission that is not admin only        |
+| `auditor`    | a person who audits                  | `audit:read`, `trace:read`, `job:read`, `health:read`, `catalog:read` |
+| `read`       | a person who looks                   | each `read` permission that is not admin only                         |
+| `observer`   | a dashboard or a monitor             | `health:read`, `status:read`, `agent:read`, `catalog:read`            |
 
 The verbs separate the two kinds of change. `write` changes what a host is
 configured to be: a file, a package, a sysctl value. `execute` makes something
@@ -169,6 +169,17 @@ dashboard gets `observer`, which reads no log, file or command output.
 
 `trace:read` is in `operator`, `automation`, `auditor` and `read`. A trace shows
 the hosts, operations and errors of a request, the same as the job.
+
+`catalog:read` is in each built-in role. The UI loads the catalog after sign-in
+and shows no page without it ([the UI](ui.md#the-catalog)). Thus each role that
+uses the UI needs it, `observer` too. It is the default permission of the GET of
+the `catalog` group, so the rule gives it to `operator`, `automation` and
+`read`, and the lists of `auditor` and `observer` name it. Two other choices
+were possible. `health:read` is in each built-in role too, but it names a
+different resource, and a role that may read the health could then read the
+catalog. An option of the endpoint DSL that lets each token call a method needs
+no permission, but the DSL does not have it, and a custom role could then not
+refuse the catalog. A custom role that uses the UI names `catalog:read`.
 
 Not covered yet: a token limited to some hosts (osapi-io/osapi#1116), and a
 workflow that acts for a user (osapi-io/osapi#1114).
@@ -228,11 +239,12 @@ roles imports the groups and the behaviors, as the binary does.
 
 `go generate ./internal/behaviors/all` writes the SDK's constants in
 `pkg/sdk/client/permissions.gen.go`, one `Perm` constant for each permission and
-one `Role` constant for each built-in role, and the UI's list in
-`ui/src/lib/permissions.gen.ts`. A test fails when either file is stale. A
-permission constant is `Perm`, then the resource and the verb with capitals,
-such as `PermDiskRead` for `disk:read`. `just cli-docs-generate` writes the role
-table of the configuration page of the docs site from `RolePermissions`.
+one `Role` constant for each built-in role. A test fails when the file is stale.
+A permission constant is `Perm`, then the resource and the verb with capitals,
+such as `PermDiskRead` for `disk:read`. The UI reads the permissions and the
+roles from the catalog endpoint, at run time ([the UI](ui.md#the-catalog)).
+`just cli-docs-generate` writes the role table of the configuration page of the
+docs site from `RolePermissions`.
 
 Before osapi-io/osapi#1059, an endpoint group's permission reached a role only
 when a person added it to `builtinPermissions` and to `builtinRolePermissions`,
