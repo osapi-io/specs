@@ -15,10 +15,11 @@ The issue is osapi#744.
 
 ## Why
 
-The controller has 25 operations, in seven groups. A person wrote each one four
-times: the spec, the handler, the service of the SDK and the CLI command. Each
-one comes from a definition now: agent (8), telemetry (1), audit (3), job (4),
-facts (1), health (3) and file (6).
+The controller has 34 operations, in nine groups. Before osapi#744, a person
+wrote each one four times: the spec, the handler, the service of the SDK and the
+CLI command. Each one comes from a definition now: admission (6), agent (5),
+audit (3), catalog (1), file (6), health (3), job (4), secret (5) and trace (1).
+`osapi dsl endpoint list` gives the groups and their methods.
 
 A new operation of the controller had no generator. Behaviors cover the work on
 a host, and nothing covered the work on the controller.
@@ -45,19 +46,20 @@ Later, a behavior builds on the endpoint layer.
 
 ## The inventory
 
-Each of the 25 operations is in this table, with what the DSL must say for it.
+Each of the 34 operations is in this table, with what the DSL must say for it.
 The definitions must express each row before the first group moves.
 
-| Group     | Operations                                                 | What the DSL needs for it                                                                                                                                                                                                          |
-| --------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| agent     | list, pending, get, remove, accept, reject, drain, undrain | a key in the path (`{hostname}`); a fixed sub-path beside the key (`/agent/pending`), so the order of the routes is important; actions on the key (`/agent/{hostname}/drain`); query parameters (`machine_id`, `fingerprint`); 409 |
-| audit     | list, get, export                                          | pagination (`limit`, `offset`) and a total; an export of each entry                                                                                                                                                                |
-| catalog   | get                                                        | one document, not a list; an enum of the spec from a registry (`Permission`, `OperationID`); the permission `catalog:read`, which each built-in role has                                                                           |
-| facts     | keys                                                       | a permission of a different group (`agent:read`)                                                                                                                                                                                   |
-| file      | list, stale, get, upload, update, delete                   | a multipart upload; 201 with `Location`; 200 for a file that exists; 409; 503 when no Object Store is set                                                                                                                          |
-| health    | liveness, ready, status                                    | no auth for liveness and ready, which probes call; 503; the permission `health:read`                                                                                                                                               |
-| job       | list, get, delete, retry                                   | a filter (`status`); 204 with no body; a JSON body; 201                                                                                                                                                                            |
-| telemetry | trace get                                                  | a permission with a different name (`trace:read`); 503 when the backend is not set                                                                                                                                                 |
+| Group     | Operations                               | What the DSL needs for it                                                                                                                                                                        |
+| --------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| admission | list, get, admit, reject, revoke, delete | a key in the path (`{machine_id}`); actions on the key (`/admission/{machine_id}/admit`); a query filter of the state; 409                                                                       |
+| agent     | facts, list, get, drain, undrain         | a fixed sub-path beside the key (`/agent/facts`), so the order of the routes is important; a key in the path (`{hostname}`); actions on the key (`/agent/{hostname}/drain`)                      |
+| audit     | list, get, export                        | pagination (`limit`, `offset`) and a total; an export of each entry                                                                                                                              |
+| catalog   | get                                      | one document, not a list; an enum of the spec from a registry (`Permission`, `OperationID`); the permission `catalog:read`, which each built-in role has                                         |
+| file      | list, stale, get, upload, update, delete | a multipart upload; 201 with `Location`; 200 for a file that exists; 409; 503 when no Object Store is set                                                                                        |
+| health    | liveness, ready, status                  | no auth for liveness and ready, which probes call; 503; the permission `health:read`                                                                                                             |
+| job       | list, get, delete, retry                 | a filter (`status`); 204 with no body; a JSON body; 201                                                                                                                                          |
+| secret    | vaults, list, get, update, delete        | a key of two fields in the path, `.Key("vault", "key")`; a command under a word that is not in the path, `.CommandSub("vault")`; a `secret.Value` in the body, which is never in a log or a span |
+| trace     | get                                      | a permission with a different name (`trace:read`); 503 when the backend is not set                                                                                                               |
 
 The 94 operations under `/api/node/{hostname}` are host work. They become
 behaviors, not endpoints.
