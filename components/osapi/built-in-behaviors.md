@@ -301,7 +301,7 @@ each command through `h.Exec`.
   `agent.command.enabled` is true: `h.CommandEnabled` has that setting.
   `RunPrivilegedCmdFull` gives `exec` the standard output, the standard error
   and the exit code. An exit code that is not 0 is a result, not a failure.
-- `exec` has `.PermitAs(behavior.VerbExec)`, so its permission is `docker:exec`,
+- `exec` has `.PermitAs(types.VerbExec)`, so its permission is `docker:exec`,
   which only the admin role gets. `start` and `stop` keep `docker:execute`, and
   the `pull` of image has `image:execute`. The operator role gets both
   (osapi-io/osapi#1136, osapi-io/osapi#1115).

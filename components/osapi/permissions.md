@@ -26,10 +26,15 @@ permission of each method from the definition:
 - the verb is `read` for a `Read` method, `write` for a `Write` method,
   `execute` for an `Action`, such as a service restart, and the verb of
   `.PermitAs(verb)` for an `Action` that has it: `exec` for docker exec, and
-  `shell` for command shell, whose `.Shell()` is `.PermitAs(behavior.VerbShell)`
+  `shell` for command shell, whose `.Shell()` is `.PermitAs(types.VerbShell)`
 
 The `get` of sysctl needs `sysctl:read`, and the `get` of dns needs `dns:read`.
 `osapi dsl behavior get --name <name>` lists them.
+
+The verbs are the `types.Verb` constants in `pkg/sdk/types`. The behavior DSL
+and the endpoint DSL make each permission with
+`types.NewPermission(resource, verb)`. Thus no permission is a string that code
+joins.
 
 A role can get `dns:write` and not `interface:write`. A behavior name is unique
 in the registry, so two behaviors cannot make the same permission. A child, such
@@ -148,15 +153,16 @@ An action can have a verb of its own, with `.PermitAs(verb)`. The docker
 behavior needs it (osapi-io/osapi#1136). docker start and stop are actions of
 the `docker` behavior, so they share `docker:execute`, and the `operator` role
 gets it. docker exec runs any command in a container. With
-`.PermitAs(behavior.VerbExec)`, its permission is `docker:exec`, which only the
+`.PermitAs(types.VerbExec)`, its permission is `docker:exec`, which only the
 admin role gets. Without it, exec shares `docker:execute`, and `authtoken.Check`
 makes start and stop admin only too, because one permission cannot be admin only
 on one method and not on another.
 
-`.PermitAs` takes only a verb that only the admin role gets: `VerbShell` or
-`VerbExec`. A verb that a different role gets, such as `VerbWrite`, does not
-need it, and `behavior validate` refuses it. Each verb is a `Verb` constant, so
-the roles know each verb. `authtoken` keeps the same verbs in `adminVerbs`.
+`.PermitAs` takes only a verb that only the admin role gets: `types.VerbShell`
+or `types.VerbExec`. A verb that a different role gets, such as
+`types.VerbWrite`, does not need it, and `behavior validate` refuses it. Each
+verb is a `types.Verb` constant, so the roles know each verb. `authtoken` keeps
+the same verbs in `adminVerbs`.
 
 `file:write`, `package:write` and `sysctl:write` stay with `automation`. Each of
 them can reach root: a file can be a unit or a sudoers entry, a package runs
