@@ -28,7 +28,7 @@ does not use swamp must also get this from osapi.
 
 The osapi binary has all of the behaviors in it: the name, the input type, the
 validation rules, the permission and the docs of each method.
-`osapi behavior get --json` prints them. Thus a workflow does not need to be
+`osapi dsl behavior get --json` prints them. Thus a workflow does not need to be
 code. It can be a file that names methods:
 
 ```yaml

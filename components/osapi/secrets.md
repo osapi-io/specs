@@ -95,8 +95,8 @@ What each part of a DSL ([The parts that each DSL shares](dsls.md)) does with a
 
 A command of the command DSL calls no API. Thus a command that uses a secret
 resolves the reference itself, from the vaults of its config.
-`osapi token generate` is one: it reads the signing key from the config, and
-that value can be a reference.
+`osapi controller token generate` is one: it reads the signing key from the
+config, and that value can be a reference.
 
 ## The order on the controller
 

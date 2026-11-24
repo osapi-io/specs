@@ -50,7 +50,7 @@ The same shapes occurred again and again in the codebase:
 
 The cost was clear, and it also blocked agents. An agent that had to add a
 domain had to copy all of it from convention. An agent that must use osapi had
-nothing to learn operations from, until `osapi init`, `help --json` and
+nothing to learn operations from, until `osapi skill install`, `help --json` and
 `behavior get` existed. Those read the definitions.
 
 ## What a definition is
@@ -299,10 +299,10 @@ from the `agent.list` of `job.publish`. A read from the cache calls nothing and
 opens no span.
 
 Each input field has a validate tag. A field with no limit has
-`validate:"omitempty"`. `behavior validate` and `controller endpoint validate`
-refuse an input field with no tag, with the same words. The spec carries the
-whole tag in `x-oapi-codegen-extra-tags`, on a parameter and on each property of
-a body, so a Go client made from the spec validates as the server does.
+`validate:"omitempty"`. `behavior validate` and `dsl endpoint validate` refuse
+an input field with no tag, with the same words. The spec carries the whole tag
+in `x-oapi-codegen-extra-tags`, on a parameter and on each property of a body,
+so a Go client made from the spec validates as the server does.
 
 ## A refusal runs as the agent runs it
 
@@ -578,7 +578,7 @@ writes:
 | `internal/behaviors/<name>/gen/api.yaml`                        | the behavior's spec, which is also part of the full spec                                                                                                               |
 | `internal/behaviors/all/gen/gen.go`                             | the import of every behavior's generated code: its routes and commands                                                                                                 |
 | `docs/docs/sidebar/reference/behaviors/<area>/<name>/<name>.md` | the behavior's page, in the folder of its area, or of `internal` for an internal behavior: `behavior get` and `method get` as markdown ([The docs site](docs-site.md)) |
-| `docs/docs/sidebar/reference/chains/<area>/<name>.md`           | the chain's page of a behavior that requires others, in the folder of its area: `behavior chain get` as markdown ([The docs site](docs-site.md))                       |
+| `docs/docs/sidebar/reference/chains/<area>/<name>.md`           | the chain's page of a behavior that requires others, in the folder of its area: `dsl chain get` as markdown ([The docs site](docs-site.md))                            |
 | `ui/src/lib/catalog.gen.ts`                                     | the catalog of the UI: each behavior and method, with its permission, platforms, chain and examples, from `internal/behavior/uicatalog/gen` ([The embedded UI](ui.md)) |
 
 osapi generates the code into files. It does not build it when it starts. Thus a
@@ -634,13 +634,13 @@ two more checks do it:
 The name of a behavior and its Go package are two names. The name is the route,
 the command, the permission and the docs page. The Go package is where the
 definition lives, and every generator reads it from the package of the types,
-not from the name. `osapi behavior create --package <go-package>` sets it. With
-no `--package`, it is the name. The scaffold refuses a name that is a Go
+not from the name. `osapi dsl behavior create --package <go-package>` sets it.
+With no `--package`, it is the name. The scaffold refuses a name that is a Go
 keyword, such as `package`, and asks for `--package`. It does not change a name
 to make it a Go name. Thus `--name package --package packages` serves `/package`
 from `internal/behaviors/packages/`.
 
-`osapi behavior create` also writes its first files with jen, in
+`osapi dsl behavior create` also writes its first files with jen, in
 `internal/behavior/scaffold_files.go`. Those files are not generated code. A
 person edits them from the first minute, so they do not go in `gen/`. But the
 rule is the same for each Go file that osapi writes: jen builds it, not a
@@ -670,12 +670,12 @@ not make it fail.
 This check names the behavior package that is below the target.
 
 `just behavior-scaffold-check`, also in `just test`, runs
-`osapi behavior create` in a copy of the checkout, generates the new behavior
-and runs its tests. Thus the scaffold cannot fall behind the checks that each
-behavior must pass. A new check in `behaviortest` that the scaffold does not
-obey fails CI. Before this check, the scaffold wrote a file through `h.FS`, and
-did not declare it with `behavior.Writes`. Thus a new behavior failed its own
-tests (osapi#781). The check also writes a behavior with
+`osapi dsl behavior create` in a copy of the checkout, generates the new
+behavior and runs its tests. Thus the scaffold cannot fall behind the checks
+that each behavior must pass. A new check in `behaviortest` that the scaffold
+does not obey fails CI. Before this check, the scaffold wrote a file through
+`h.FS`, and did not declare it with `behavior.Writes`. Thus a new behavior
+failed its own tests (osapi#781). The check also writes a behavior with
 `--requires managedfile`. Its tests must fail only on the rule `used`, because
 no example calls managedfile until the author writes the call.
 
@@ -706,14 +706,14 @@ These commands read the registry. They need no config file and no controller,
 because they describe the binary, not a fleet:
 
 ```sh
-osapi behavior list                                      # the behaviors and their methods
-osapi behavior get --name sysctl                         # surfaces, methods, types, settings, telemetry
-osapi behavior method get --name sysctl --method update  # one method in full
-osapi behavior spec get                                  # each part of the DSL, and when to use it
-osapi behavior validate                                  # every definition against the rules, each with its fix
-osapi behavior create --name motd --description "x"      # write a new behavior's layout
-osapi behavior create --group network --name neighbors --description "x"  # under a group
-osapi behavior create --name ntpconf --description "x" --requires managedfile  # wired to a block
+osapi dsl behavior list                                      # the behaviors and their methods
+osapi dsl behavior get --name sysctl                         # surfaces, methods, types, settings, telemetry
+osapi dsl behavior method get --name sysctl --method update  # one method in full
+osapi dsl behavior spec get                                  # each part of the DSL, and when to use it
+osapi dsl behavior validate                                  # every definition against the rules, each with its fix
+osapi dsl behavior create --name motd --description "x"      # write a new behavior's layout
+osapi dsl behavior create --group network --name neighbors --description "x"  # under a group
+osapi dsl behavior create --name ntpconf --description "x" --requires managedfile  # wired to a block
 ```
 
 Each one takes `--json`. Values come as flags, as in all of the [CLI](cli.md).
@@ -734,7 +734,7 @@ Each one takes `--json`. Values come as flags, as in all of the [CLI](cli.md).
 call in a provider and field tag, with what it does and when to use it. It also
 lists the generated paths, and what the platform cannot do yet. The table is
 `Spec` in `internal/behavior/spec.go`. How to build on other behaviors, and the
-building blocks in the binary, are in `behavior chain spec get`, which the chain
+building blocks in the binary, are in `dsl chain spec get`, which the chain
 layer owns. A test fails on an option, method, part of an example or field tag
 of the package without a term in one of the two.
 
@@ -745,10 +745,10 @@ lints and passes each test with 100% coverage. Thus the layout is stated one
 time, in code. An agent starts from a correct skeleton, not from a description
 of one.
 
-`osapi token roles list` lists each permission, and which roles give it, with
-the permissions of behaviors, as the binary has them. `--json` gives the input
-and output as JSON Schema. An agent reads that before it makes a request. Tables
-render through [the output style of the CLI](cli.md#output-style).
+`osapi controller role list` lists each permission, and which roles give it,
+with the permissions of behaviors, as the binary has them. `--json` gives the
+input and output as JSON Schema. An agent reads that before it makes a request.
+Tables render through [the output style of the CLI](cli.md#output-style).
 
 ## The rules validate checks
 
@@ -1008,15 +1008,15 @@ such as managedfile for a file that osapi manages. `behavior spec get` tells
 when to use one and when to make one, and lists each building block in the
 binary. The wiring is in three places: `Requires`, `host.Require` in the
 builder, and `Call` in the provider.
-`osapi behavior create --requires <behavior>[,<behavior>...]` writes the first
-two, and a field of the provider for each behavior that it names. The comment on
-the field shows the `Call` to write. The provider test gives a mock of each
-required provider, and tests that the builder declines a host that does not have
-one. The author writes only the calls. Until an example makes a call, the tests
-of the behavior fail the rule `used`, and its message tells the author what to
-add. A name that the registry does not have, or a name given two times, is
-refused. Workflows across hosts are osapi-io/osapi-orchestrator#151. Behaviors
-that call outside APIs are osapi-io/osapi#1064.
+`osapi dsl behavior create --requires <behavior>[,<behavior>...]` writes the
+first two, and a field of the provider for each behavior that it names. The
+comment on the field shows the `Call` to write. The provider test gives a mock
+of each required provider, and tests that the builder declines a host that does
+not have one. The author writes only the calls. Until an example makes a call,
+the tests of the behavior fail the rule `used`, and its message tells the author
+what to add. A name that the registry does not have, or a name given two times,
+is refused. Workflows across hosts are osapi-io/osapi-orchestrator#151.
+Behaviors that call outside APIs are osapi-io/osapi#1064.
 
 - **Building.** `host.Build` builds the provider of each required behavior
   first, for the same host. It puts the provider in the host that the requiring
@@ -1135,9 +1135,9 @@ code.
 
 A behavior is internal when two things are true. An operator would never call it
 from the CLI or the API. It is a piece of work that other behaviors share, such
-as writing a file or reloading a service. `osapi behavior create` always writes
-a behavior that an operator calls, because a new internal behavior has nothing
-that requires it yet, and `behavior validate` would fail it.
+as writing a file or reloading a service. `osapi dsl behavior create` always
+writes a behavior that an operator calls, because a new internal behavior has
+nothing that requires it yet, and `behavior validate` would fail it.
 
 Shared work becomes an internal behavior at its second use. When one behavior
 does something, that is its own code. When a second behavior needs the same
@@ -1160,7 +1160,7 @@ The behaviors that a behavior calls, and the ones that they call, are a chain:
 the behavior at its top. It is not declared on its own. `Requires` on each
 behavior makes it (osapi-io/osapi#1000).
 
-`osapi behavior chain` is a group of the command DSL, as `behavior` is:
+`osapi dsl behavior chain` is a group of the command DSL, as `behavior` is:
 
 | Command                       | Does                                                                                      |
 | ----------------------------- | ----------------------------------------------------------------------------------------- |

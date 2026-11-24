@@ -71,15 +71,15 @@ the key. A copy of that value proves nothing. The operator reads the fingerprint
 on the machine:
 
 ```bash
-osapi agent admission        # on the machine: machine ID, hostname, fingerprint
+osapi agent key fingerprint  # on the machine: machine ID, hostname, fingerprint
 osapi client admission admit --machine-id <id> --fingerprint SHA256:...
 ```
 
-`osapi agent admission` reads the key in `agent.pki.key_dir`, and makes the pair
-if there is none. When the two fingerprints are the same, the request came from
-the machine that the operator looked at, not from a different publisher on the
-bus. The controller calculates the fingerprint of the request from its public
-key. It does not use the fingerprint that the request states.
+`osapi agent key fingerprint` reads the key in `agent.pki.key_dir`, and makes
+the pair if there is none. When the two fingerprints are the same, the request
+came from the machine that the operator looked at, not from a different
+publisher on the bus. The controller calculates the fingerprint of the request
+from its public key. It does not use the fingerprint that the request states.
 
 A pending agent writes the same instruction to its log, with its machine ID and
 fingerprint, when it starts.

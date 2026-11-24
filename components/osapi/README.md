@@ -53,7 +53,7 @@ operating system.
 | [Providers](providers.md)                   | How the work occurs on the machine, the idempotency rule, the four patterns                                                                                              |
 | [Behaviors](behaviors.md)                   | A typed definition that the routes, permissions, CLI commands and schemas come from, and the rules that `behavior validate` checks                                       |
 | [Built-in behaviors](built-in-behaviors.md) | Why each behavior that osapi ships reads and writes as it does, and what tests on real hosts found                                                                       |
-| [Agent skills](agent-skills.md)             | The skill in the binary, what it tells an agent, and how `osapi init` installs and updates it                                                                            |
+| [Agent skills](agent-skills.md)             | The skill in the binary, what it tells an agent, and how `osapi skill install` installs and updates it                                                                   |
 | [Admission](admission.md)                   | Which machines can join, the four states, and why admit needs the fingerprint from the machine                                                                           |
 | [Agent identity](agent-identity.md)         | Enrollment, signatures, rotation, and why targeting needs verification                                                                                                   |
 | [The embedded UI](ui.md)                    | The dashboard in the binary, and what it does not verify                                                                                                                 |

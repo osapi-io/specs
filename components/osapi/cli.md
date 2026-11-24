@@ -46,6 +46,115 @@ help of the group and exited 0, and a typo looked like success.
 function returns a usage error for an unknown word, and prints the help when you
 run the group alone. `help --json` still reports that the group does not run.
 
+## Where a command goes
+
+The location of a command tells where it runs and what it touches. Thus a reader
+who knows the rule finds a command without a search. The owner approved these
+rules on 24 November 2026 (osapi-io/osapi#1239). Before that, the CLI had no
+rule: `token` and `init` were at the root, `endpoint` was under `controller`,
+and the commands that write the docs were under `cli`.
+
+### The rules
+
+1. **The root is a closed list.** Each word directly under `osapi` is in
+   `command.RootGroups`, with its purpose. `TestCommandShape` fails on any other
+   word. A new word is a decision of the owner, and this page records it.
+
+2. **A command goes where it runs and what it touches:**
+
+   | The command                                                   | Goes under                                      |
+   | ------------------------------------------------------------- | ----------------------------------------------- |
+   | goes through the API                                          | `client`. No other command uses the API.        |
+   | runs on this host, on the process or the files of a component | `controller`, `agent` or `nats`                 |
+   | runs on this host, on the config that each component reads    | `config`                                        |
+   | works on the definitions of osapi, for an author              | `dsl`                                           |
+   | works on the skills in the binary                             | `skill`                                         |
+   | acts on the whole binary or host                              | the root. Only `start` and `version` are there. |
+
+3. **Under `client`, the words follow the API path.** The group is the endpoint
+   group. `client node` has the behaviors, each by its own name, and nested only
+   under a parent behavior. There are no category words. The areas are help
+   headings in `osapi client node --help`, the same areas as the UI, the docs
+   and the SDK.
+
+4. **A command is `<resource> <verb>`**, from the [verbs](#verbs) and
+   `command.Actions`.
+
+5. **One fact has one command.**
+
+6. **A group with one resource has the name of that resource.** It has no
+   wrapper word.
+
+7. **Each DSL has the same commands**, under `dsl <name>`.
+
+8. **Each process is `<component> start`.** `start` alone starts each component.
+
+### The root
+
+| Word         | Purpose                                                                        |
+| ------------ | ------------------------------------------------------------------------------ |
+| `start`      | Start each component of osapi on this host                                     |
+| `version`    | Show the version of this binary                                                |
+| `controller` | Run the controller on this host, and work on its key, its tokens and its roles |
+| `agent`      | Run the agent on this host, and work on its key                                |
+| `nats`       | Run the embedded NATS server on this host, or prepare a NATS server            |
+| `config`     | List, get and validate the config that each component reads                    |
+| `skill`      | Show the agent skills in this binary, and install them into a repository       |
+| `dsl`        | Describe, check and document the definitions of osapi, for authors             |
+| `client`     | Call the API of the controller                                                 |
+
+### The tree
+
+```
+osapi
+  start                 each component on this host
+  version
+  controller  start | key fingerprint | token generate|validate | role list|get | vault key create|rotate
+  agent       start | key fingerprint
+  nats        start | setup | key create
+  config      list | get | validate
+  skill       list | get | install
+  dsl         behavior … | chain … | endpoint … | command … | docs generate
+  client
+    admission   list | get | admit | reject | revoke | delete
+    agent       list | get | drain | undrain | facts list
+    audit       list | get | export
+    file        list | get | upload | update | delete | stale list
+    health      liveness | ready | status [--component]
+    job         list | get | retry | delete
+    secret      list | get | update | delete | vault list
+    trace       get
+    node        <behavior> …   (each behavior by its name; help grouped by area)
+```
+
+The tree is the plan. Three pull requests build it, in sequence, because each
+edits the same registration lists. The first builds the rules, the root and the
+local commands ([moved on 24 November 2026](#moved-on-24-november-2026)). The
+second moves the client groups: `facts keys list` to `agent facts list`,
+`telemetry trace get` to `trace get`, and the `status` of each component to
+`health status --component`. The third moves the node paths: the behaviors
+without category words, the area help headings, `file get`, `package updates`
+and `user password update`. The `secret`, `vault` and `nats key` commands come
+with secret management (osapi-io/osapi#1065), not with these moves.
+
+### Where the rules are
+
+The rules are in three locations, and each one agrees with this page:
+
+- This page has the rules, the root and the tree.
+- `command.RootGroups`, in `internal/cli/command/validate.go`, has each word of
+  the root with its purpose. `command.DescribeRoot` gives each command of the
+  root its purpose as its help. Thus `osapi --help` and the CLI page of the docs
+  site list each word with its purpose from that one list, and nobody writes the
+  list by hand. `TestCommandShape` fails on a word of the root that is not in
+  the list, and on a help that is not its purpose.
+- The command DSL checks a local group against the rules. `RuleRoot` refuses a
+  group whose first word is not a group of `command.RootGroups`, a local group
+  under `client`, and a command of the root that is not `start` or `version`.
+  `osapi dsl command validate` reports it, and `osapi dsl command spec get`
+  states the rules under "Root(word) and RootGroups". The `build-a-command` dev
+  skill sends an author to them.
+
 ## Command and flag names
 
 The same rules name each command and flag. Thus a reader who knows one domain
@@ -81,12 +190,10 @@ filter on `list`, or a resource with its own verbs under it: `file stale list`,
 `facts keys list`. Do not use synonyms. Use `delete`, never `remove` or `rm`.
 Use `create`, never `add` or `new`. Use `get`, never `describe` or `show`.
 
-A command directly under `osapi` that does one thing for the tool itself, such
-as `osapi version` or `osapi init`, is not a resource and a verb. Each command
-line tool has these, as `kubectl version` and `git init` are. Its word is one of
-`command.Roots`, a short list that a person adds to as a decision, because the
-root is the first thing a person reads. `TestCommandShape` holds each command of
-the root to that list.
+A command directly under `osapi` that acts on the whole binary or host is not a
+resource and a verb. Each command line tool has these, as `kubectl version` is.
+Only `start` and `version` are such commands. They are the leaves of
+`command.RootGroups` ([where a command goes](#where-a-command-goes)).
 
 The verbs cost one natural name. `user ssh-key add` became `create`, which is
 less natural than "add a key". The change was made anyway, because one verb set
@@ -168,6 +275,23 @@ local groups too:
 | ------------- | ------------------ |
 | `token roles` | `token roles list` |
 
+### Moved on 24 November 2026
+
+The [placement rules](#where-a-command-goes) moved these local commands, with no
+aliases:
+
+| Was                                                                         | Now                                                      |
+| --------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `init`                                                                      | `skill install`                                          |
+| `token generate`, `token validate`                                          | `controller token generate`, `controller token validate` |
+| `token roles list`, `token roles get`                                       | `controller role list`, `controller role get`            |
+| `behavior ...`, `behavior chain ...`                                        | `dsl behavior ...`, `dsl chain ...`                      |
+| `controller endpoint ...`                                                   | `dsl endpoint ...`                                       |
+| `cli command ...`                                                           | `dsl command ...`                                        |
+| `cli docs generate`, `cli docs dsl generate`, `cli docs reference generate` | `dsl docs generate`, one command                         |
+| `nats server start`                                                         | `nats start`                                             |
+| `agent admission get`                                                       | `agent key fingerprint`                                  |
+
 ### Required flags
 
 `MarkFlagRequired` marks a required flag. `--help` and the CLI page show
@@ -177,9 +301,9 @@ flag whose help says it.
 ### Behaviors follow them by construction
 
 osapi generates the commands of a behavior from its method names.
-`osapi behavior validate` refuses a method with a synonym as its name (`remove`,
-`add`, `describe`, `show`, `rm`, `ls`, `new`, `destroy`), and names the verb to
-use. A read is `list`, `get` or `status`.
+`osapi dsl behavior validate` refuses a method with a synonym as its name
+(`remove`, `add`, `describe`, `show`, `rm`, `ls`, `new`, `destroy`), and names
+the verb to use. A read is `list`, `get` or `status`.
 
 ## Two flags every command inherits
 
@@ -312,8 +436,8 @@ results for each host, which the behavior runtime gives.
 **No command writes its own output.** A command that prints a different shape
 from its data changes its data. `token roles list` was a matrix of each
 permission against each role. It is now a table of the roles, and
-`token roles get` shows what one role grants. `audit export` wrote a file. It
-now prints the entries, and `--json > audit.json` keeps them.
+`controller role get` shows what one role grants. `audit export` wrote a file.
+It now prints the entries, and `--json > audit.json` keeps them.
 
 The DSL had a renderer, `command.Render(...).Because("...")`, for a shape that
 no output type gave. Each response that needed one changed instead, the last
@@ -321,8 +445,8 @@ when the controller began to answer the span tree of a trace
 (osapi-io/osapi#904). The renderer had no user, and it is removed
 (osapi-io/osapi#913). A tree is a list of the row's own type.
 
-`osapi cli command spec` teaches the tags. With `--json`, a command prints its
-output, and nothing renders it.
+`osapi dsl command spec get` teaches the tags. With `--json`, a command prints
+its output, and nothing renders it.
 
 ## Errors go through one handler
 
@@ -414,16 +538,15 @@ each problem read the same table. A test fails on a part of the DSL or a rule
 without an entry. Thus what the command tells cannot be different from what the
 code does.
 
-Five groups have them today. The behavior group has `osapi behavior spec get`
-and `osapi behavior validate`. The chain group has
-`osapi behavior chain spec get` and `osapi behavior chain validate`. The
-endpoint group has `osapi controller endpoint spec get` and
-`osapi controller endpoint validate`. The command group has
-`osapi cli command spec get` and `osapi cli command validate`. The config group
-has `osapi config list` and `config get` in place of `spec`, and
-`osapi config validate`. [The parts of a DSL](dsls.md) has what each DSL shares.
-A workflow DSL in osapi-orchestrator gets the same commands, from `guide` in a
-public package, in osapi-io/osapi#764.
+Five groups have them today. The behavior group has
+`osapi dsl behavior spec get` and `osapi dsl behavior validate`. The chain group
+has `osapi dsl chain spec get` and `osapi dsl chain validate`. The endpoint
+group has `osapi dsl endpoint spec get` and `osapi dsl endpoint validate`. The
+command group has `osapi dsl command spec get` and `osapi dsl command validate`.
+The config group has `osapi config list` and `config get` in place of `spec`,
+and `osapi config validate`. [The parts of a DSL](dsls.md) has what each DSL
+shares. A workflow DSL in osapi-orchestrator gets the same commands, from
+`guide` in a public package, in osapi-io/osapi#764.
 
 A skill keeps only judgment: what to ask the person, and which way to select. It
 sends the agent to these commands for each fact.
@@ -553,9 +676,9 @@ learns it in production.
 
 ### Showing a behavior
 
-`osapi behavior get --name <behavior>` is the one location where a reader sees
-the full contract of a behavior. It prints from its output type, as each command
-does:
+`osapi dsl behavior get --name <behavior>` is the one location where a reader
+sees the full contract of a behavior. It prints from its output type, as each
+command does:
 
 ```text
 Behavior:
@@ -601,11 +724,11 @@ Telemetry:
   `telemetry:"attr"`. The names come from `internal/behavior`. Thus the block
   cannot be different from what osapi records.
 
-`osapi behavior method get --name <behavior> --method <method>` shows one method
-in full: its route, permission and command, each input field with its type,
-constraints and description, the fields of its output, and its examples as input
-and output pairs. It is a command of its own because it prints a different thing
-from `get`.
+`osapi dsl behavior method get --name <behavior> --method <method>` shows one
+method in full: its route, permission and command, each input field with its
+type, constraints and description, the fields of its output, and its examples as
+input and output pairs. It is a command of its own because it prints a different
+thing from `get`.
 
 `--json` of `get` has the same content, with `uses` and `used_by` as lists of
 names, and the command, route and permission of each method. `--json` of
