@@ -228,6 +228,14 @@ With `OSAPI_INTEGRATION_WRITE_BEHAVIORS=1`, the write examples run on the VM,
 and the VM gets its state back after each one. The lab has no recipe of its own
 for this: `just go-unit-int` in osapi is the one entry point.
 
+The write examples need a host that is ready for them: an `osapi0` dummy
+interface for the interface, DNS and route examples, and chrony for the NTP
+examples. osapi's `test/integration/prepare-host.sh` makes a host ready, and
+does nothing when the host is ready already. CI runs it on its runner, and the
+lab's deploy runs the same script, from the osapi checkout that it deploys, on
+each Linux VM. Before this, the lab VMs had no `osapi0`, and 15 write examples
+failed there (osapi-io/osapi-lab#52).
+
 **Ansible, not a justfile of shell.** The first version was bash in the
 justfile. It had a render script for templates, an scp loop for the VMs and a
 sudo check written by hand. It also needed a copy of the repository on the hub,

@@ -175,8 +175,9 @@ The behavior refuses an interface that a match defines, such as the `all` of
 cloud-init. A static address under `all` changes each interface that the match
 takes, now and later. On the lab that match took one interface, so a check that
 counted the interfaces let the write through. The write examples run on
-`osapi0`, a dummy interface that the integration job makes, and set no gateway.
-A default route through `osapi0` would take the traffic of the runner.
+`osapi0`, a dummy interface that `test/integration/prepare-host.sh` makes on the
+runner and on the lab's VMs, and set no gateway. A default route through
+`osapi0` would take the traffic of the runner.
 
 **route** (osapi-io/osapi#990, osapi-io/osapi#998) is under the interface, with
 `behavior.Of`: `osapi client node interface route`, at
