@@ -139,19 +139,19 @@ JSON. Give the name of an example to run it, such as
 by default, not the host of the example. `examples-check` compiles each program.
 
 `just sdk-docs-generate` writes a page for each service under
-`docs/docs/sidebar/sdk/client`, in the folder of its area, such as
-`fleet/agent.md`. The service gets the `x-osapi-area` of its operations, and the
-generator fails when the operations of one service have two areas. It writes a
-`_category_.json` for each area that has a service, with the label and the order
-from `x-osapi-areas`. Thus the folders have the labels and the order of the tabs
-of the UI ([areas](endpoints.md#areas)). A method that takes a host shows it in
-its signature. The generator writes a table of the services of each area in
-`client.md`, between the `osapi:sdk-services` markers. It removes a page that it
-wrote before when its service is gone, and the `_category_.json` and the folder
-of an area that has no service now. A page has each method that the source of
-the SDK declares for the service: its signature, its doc comment and the
-permission from the spec. Then it has the code of each example and the types. A
-method that a person wrote is on the page too, with its doc comment.
+`docs/docs/sidebar/sdk`, in the folder of its area, such as `fleet/agent.md`.
+The service gets the `x-osapi-area` of its operations, and the generator fails
+when the operations of one service have two areas. It writes a `_category_.json`
+for each area that has a service, with the label and the order from
+`x-osapi-areas`. Thus the folders have the labels and the order of the tabs of
+the UI ([areas](endpoints.md#areas)). A method that takes a host shows it in its
+signature. The generator writes a table of the services of each area in
+`library/client.md`, between the `osapi:sdk-services` markers. It removes a page
+that it wrote before when its service is gone, and the `_category_.json` and the
+folder of an area that has no service now. A page has each method that the
+source of the SDK declares for the service: its signature, its doc comment and
+the permission from the spec. Then it has the code of each example and the
+types. A method that a person wrote is on the page too, with its doc comment.
 
 `sdk-gen-check` writes the programs and the pages again, and fails when one
 changed. Before osapi-io/osapi#1013 and osapi-io/osapi#1008, a person wrote 32

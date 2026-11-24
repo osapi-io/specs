@@ -203,12 +203,15 @@ in the order of their `sidebar_position`, with the title of each page.
 - **Features** has a section for each folder of `sidebar/features`, with the
   pages of the folder by title. The label and the order of a section come from
   the `_category_.json` of its folder ([the feature pages](#the-feature-pages)).
-- **SDK** has the overview of the client, then a section for each folder of
-  `sidebar/sdk/client`, with the page of each service in it. The label and the
-  order of a section come from the `_category_.json` of its folder, which
-  `internal/sdk/gen` writes from the areas of the spec
-  ([areas](endpoints.md#areas)). Then it has the platform pages and the link to
-  the orchestrator.
+- **SDK** has a section for each folder of `sidebar/sdk`, as Features has: an
+  area with the page of each service in it, then the client library (the
+  client's overview, the guidelines and platform detection), then the link to
+  the orchestrator. The label and the order of an area come from the
+  `_category_.json` of its folder, which `internal/sdk/gen` writes from the
+  areas of the spec ([areas](endpoints.md#areas)). The `library` folder is
+  written by hand, and its `_category_.json` puts it last. The SDK page uses the
+  `FeatureIndex` component of the feature pages, so its areas are headings in
+  the colors of the other pages, with a card for each service.
 - **Behaviors** has a section for each folder of `reference/behaviors`, with the
   page of each behavior in it, and the page of each behavior that is nested
   under another behavior. The label and the order of a section come from the
