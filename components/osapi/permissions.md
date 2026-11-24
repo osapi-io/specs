@@ -108,7 +108,7 @@ two short lists of `auditor` and `observer`.
 | ------------ | ------------------------------------ | --------------------------------------------------------------------- |
 | `admin`      | the owner of the fleet               | each permission                                                       |
 | `operator`   | the person on call                   | each `read` and each `execute` permission that is not admin only      |
-| `automation` | CI, or a workflow that changes hosts | each `read` and each `write` permission that is not admin only        |
+| `automation` | CI, or a workflow that changes hosts | each `read`, `write` and `use` permission that is not admin only      |
 | `auditor`    | a person who audits                  | `audit:read`, `trace:read`, `job:read`, `health:read`, `catalog:read` |
 | `read`       | a person who looks                   | each `read` permission that is not admin only                         |
 | `observer`   | a dashboard or a monitor             | `health:read`, `status:read`, `agent:read`, `catalog:read`            |
@@ -169,6 +169,14 @@ dashboard gets `observer`, which reads no log, file or command output.
 
 `trace:read` is in `operator`, `automation`, `auditor` and `read`. A trace shows
 the hosts, operations and errors of a request, the same as the job.
+
+`secret:read` and `secret:write` follow the rule of their verbs. `secret:read`
+gives the names and the metadata of the secrets, and no value, so `operator` and
+`read` have it. `secret:use` is the one permission with the verb `use`: a
+request needs it to give a reference to a secret. `authtoken` declares it,
+because no method needs it. The rule gives `automation` each `use` permission,
+because a secret goes into a write. `operator` does not get it, because no
+action takes a secret ([Vaults](vaults.md#the-secret-endpoint-group)).
 
 `catalog:read` is in each built-in role. The UI loads the catalog after sign-in
 and shows no page without it ([the UI](ui.md#the-catalog)). Thus each role that
