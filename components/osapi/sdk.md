@@ -1,9 +1,44 @@
 # The Go SDK
 
-`pkg/sdk/client` is the public API of osapi for programs. `internal/sdk/gen`
-writes its typed services and their types from the full spec of the API. A small
-layer that a person writes sends the requests and makes the errors. It is the
-contract that [osapi-orchestrator](../osapi-orchestrator/README.md) depends on.
+`pkg/sdk` is the public SDK of osapi: each package that code outside the osapi
+repository imports. The client is one part of it:
+
+```
+pkg/sdk/
+  client/      calls the API over HTTP
+  types/       the shared vocabulary: the job states, the permissions and roles,
+               the error reasons, the content types, Step, the targets
+  extension/   later: what an extension imports to register itself (osapi#1319)
+```
+
+`go-pkg-check` fails when a package of `pkg/` imports `internal/`, and when
+`pkg/sdk/types` imports any other package of osapi. Thus osapi's own packages,
+the client and an extension can each import `types`, and each value has one
+definition.
+
+## The shared vocabulary
+
+`pkg/sdk/types` holds the words that cross the API: `JobStatus`, the agent
+states and conditions, `Permission`, `Role` and the `Perm` constants, `Reason`,
+`ContentType`, `Step`, `JobType`, the job operations, and `TargetAny` and
+`TargetAll`. osapi's packages use the type from `types`, not a copy. An endpoint
+group registers each named type that its input or output uses with
+`endpoint.Enum`, so the spec has a schema with its values, such as
+`ContentType`. A generator writes only `permissions.gen.go`, from the registry
+of permissions.
+
+Before osapi-io/osapi#1318, these types were in `pkg/sdk/client`, and
+`internal/job` and the catalog endpoint imported them from the client. The
+client is not their owner, and an extension that only registers a behavior does
+not call the API.
+
+## The client
+
+`pkg/sdk/client` is the public API of osapi for programs that call it.
+`internal/sdk/gen` writes its typed services and their types from the full spec
+of the API. A small layer that a person writes sends the requests and makes the
+errors. It is the contract that
+[osapi-orchestrator](../osapi-orchestrator/README.md) depends on.
 
 It has 40 services and 123 generated methods. Each group of the API is a
 service, and each operation of the spec is a method.
@@ -37,6 +72,15 @@ pkg/sdk/client/
   errors.go, check_error.go   by hand: the error types
   file_upload.go           by hand: the multipart upload of a file
 ```
+
+**The rule for generated code.** Generated code that a caller imports is in the
+package that the caller imports, as a `*.gen.go` file. `gen/` is for generated
+code that no caller imports, such as the routes of a behavior. A schema of the
+spec that `pkg/sdk/types` declares is not written again: the generator reads the
+types of `pkg/sdk/types` and writes a reference, such as `types.Step`. For each
+other enum of the spec, it writes the type and a constant for each value, such
+as `ContentTypeRaw`. A hand-written file in `pkg/sdk/client` is plumbing that
+each method uses, or a method that the generator cannot write.
 
 The SDK does not use oapi-codegen. Before osapi#732, oapi-codegen wrote a client
 in `pkg/sdk/client/gen`, and 32 hand-written services copied each of its types
@@ -194,10 +238,9 @@ path.
 
 `File.Upload` and `File.Update` send a multipart form, and the generator writes
 a method only for a JSON body. `File.GetChanged` compares a SHA-256 on the
-caller's side and calls no operation of its own, so it has no example. Constants
-that osapi's own packages use, such as the job states, the content types and the
-permissions, are in their own files. Each program under `examples/sdk/client/`
-is generated.
+caller's side and calls no operation of its own, so it has no example. The
+vocabulary is in `pkg/sdk/types`, not in the client. Each program under
+`examples/sdk/client/` is generated.
 
 The SDK imports nothing from `internal/`. `go-pkg-check` fails when it does. For
 a route with no typed method, use the generic call:

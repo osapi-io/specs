@@ -223,7 +223,7 @@ var Group = endpoint.Register(endpoint.Define(
   components, with the values that `values` returns as its enum. `values` runs
   when the spec is built, after each group and behavior registered. Thus the
   generator of the endpoints imports the behaviors too. The catalog group gives
-  `client.Permission` the permissions of `authtoken.AllPermissions`, and
+  `types.Permission` the permissions of `authtoken.AllPermissions`, and
   `OperationID` the operationId of each operation that needs a permission.
   `orval` makes a union type of the values, and the SDK a string type. A
   `validate:"oneof=..."` tag cannot have them, because a tag is fixed when the
