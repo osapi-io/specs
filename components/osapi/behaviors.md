@@ -283,7 +283,8 @@ The area of the behavior sorts it now: it is the heading of its command in
 describes it. `validate` gives the constraints. The standard tags map directly:
 
 - `required`, `min`, `max` and `len`, by the type of the field
-- `oneof` to an enum
+- `enum` to the values of the field's type, a closed set with `Values()` and
+  `Valid()`, and `oneof` to its values on a field with no such type
 - `ip`, `url`, `email`, `hostname`, `uuid` and `cidr` to formats
 
 A custom validator is a Go function, and nothing can read a schema from it. Thus
