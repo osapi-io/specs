@@ -69,6 +69,7 @@ operating system.
 | [Endpoints](endpoints.md)                   | The controller's own operations defined in Go, the full spec and CLI generated from them, and the tests that hold them to the hand-written spec; the first step is built |
 | [Commands](commands.md)                     | Each command of the binary from a definition, in the layer that endpoints and behaviors embed, with its own spec and validate                                            |
 | [The parts of a DSL](dsls.md)               | What each DSL shares: spec, checks, typed values, tag keys, permissions, generation, docs and skill, and the tests that hold them                                        |
+| [Secrets](secrets.md)                       | A plan: one `secret://` reference, vaults that an extension can add, a built-in vault in NATS KV, and values sealed to the agent that uses them                          |
 | [Least privilege](least-privilege.md)       | A plan: the agent as a user that is not root, privileged steps that a behavior declares, and the sudoers and systemd files made from them                                |
 | [Workflows](workflows.md)                   | A proposal: named, ordered behavior calls in a file, checked against the registry, and run again with the same result                                                    |
 
