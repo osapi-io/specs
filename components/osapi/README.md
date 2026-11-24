@@ -70,6 +70,7 @@ operating system.
 | [Commands](commands.md)                     | Each command of the binary from a definition, in the layer that endpoints and behaviors embed, with its own spec and validate                                            |
 | [The parts of a DSL](dsls.md)               | What each DSL shares: spec, checks, typed values, tag keys, permissions, generation, docs and skill, and the tests that hold them                                        |
 | [Secrets](secrets.md)                       | A plan: one `secret://` reference in each DSL, the `secret` endpoint group, vaults that an extension can add, and values sealed to the agent that uses them              |
+| [Vaults](vaults.md)                         | The store of secrets on the controller: the interface, the registry of types, the `nats` type, its key and its rotation                                                  |
 | [Least privilege](least-privilege.md)       | A plan: the agent as a user that is not root, privileged steps that a behavior declares, and the sudoers and systemd files made from them                                |
 | [Workflows](workflows.md)                   | A proposal: named, ordered behavior calls in a file, checked against the registry, and run again with the same result                                                    |
 
