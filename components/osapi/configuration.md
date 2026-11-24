@@ -73,12 +73,12 @@ source of each value is `env`, `file`, `default` or `unset`. A field with the
 tag `mask:"password"` prints as `********`.
 
 `validate` runs the checks of `start`, which are the table `Checks` in
-`internal/config/checks.go`: `file`, `parse`, `value`, `setting` and `bucket`.
-`validate` lists each problem, not only the first, with its rule, its key and
-the fix of the rule, in text and in `--json`. It prints its report, then exits 1
-when the config is not valid: the method returns its output with
-`command.Fail()`, so a script or CI fails on it. That is the shape of
-`behavior validate`. `validate --help` lists each rule with its fix. A value
+`internal/config/checks.go`: `file`, `parse`, `value`, `setting`, `bucket`,
+`vault` and `reference`. `validate` lists each problem, not only the first, with
+its rule, its key and the fix of the rule, in text and in `--json`. It prints
+its report, then exits 1 when the config is not valid: the method returns its
+output with `command.Fail()`, so a script or CI fails on it. That is the shape
+of `behavior validate`. `validate --help` lists each rule with its fix. A value
 that breaks its `validate` tag is named by its config key, such as
 `controller.api.security.signing_keys[0].key`, not by its Go field. Thus the key
 goes straight to `config get --key`. `start` reads the same problems through
@@ -157,10 +157,79 @@ fields: host, port and client name. It never logs a password. These are two
 different solutions to the same problem. The solution of the agent stays safe
 only while nobody adds a secret to the list of fields that it logs.
 
+## A secret can be a reference to a vault
+
+A field with the tag `mask:"password"` takes a reference,
+`secret://<vault>/<key>`, in place of its value. The file and the environment
+take it in the same form:
+
+```yaml
+controller:
+  api:
+    security:
+      signing_keys:
+        - id: 2026-11
+          key: secret://default/jwt-signing-key
+  client:
+    security:
+      bearer_token: secret://default/cli-token
+```
+
+`internal/config/references.go` finds each reference. It walks the config struct
+for the string fields with the mask tag, and names each one by its config key,
+such as `controller.api.security.signing_keys[0].key`.
+
+**The checks.** The rule `reference` of `validate` and `start` refuses three
+references:
+
+- a reference that does not parse. `vault.ParseReference` in
+  `internal/secret/vault` has the syntax.
+- a reference to a vault that `controller.secrets.vaults` does not have.
+- a reference in a field with the tag `noref`. The tag holds the reason.
+
+The rule `value` does not apply to a reference. The rule of the key applies to
+the value when osapi resolves it. Thus `signing_key` does not refuse
+`secret://default/jwt` because it is short.
+
+**The resolution.** `config.ResolveReferences` resolves each reference under a
+key prefix, and puts the value in its place. Then it checks the value against
+the `validate` tag of its key. An error names the key and the reference. It
+never shows the value. Each process resolves only the values that it reads:
+
+| Process                                          | Prefix                                 | When                                  |
+| ------------------------------------------------ | -------------------------------------- | ------------------------------------- |
+| the controller                                   | `controller.api`                       | at startup, after it opens the vaults |
+| `osapi controller token generate` and `validate` | `controller.api.security.signing_keys` | before the command signs or checks    |
+| each `osapi client` command                      | `controller.client`                    | before the command makes its client   |
+
+A command calls no API. Thus a command opens the vaults itself, with
+`controller.OpenVaults` on a NATS connection of `controller.nats`, as the
+controller does. It connects only when a value that it reads is a reference. A
+host that cannot connect to NATS as the controller, or cannot read the vault
+key, needs the value in its config.
+
+**What cannot be a reference.** osapi needs some values before it can read a
+vault. A reference to a vault in one of them is a loop:
+
+- **A NATS password.** The `nats` vault reads its values through NATS. Thus
+  `NATSAuth.Password` and `NATSServerUser.Password` have the tag `noref`. The
+  tag covers `controller.nats.auth.password`, `agent.nats.auth.password` and
+  `nats.server.auth.users[].password`. The agent never resolves a reference.
+- **The vault key.** The rule `vault` refuses a reference in `key_file`. The
+  `nats` type refuses a line of the key that is a reference, from the file or
+  from the variable that `key_env` names. Thus the controller does not start
+  with it.
+
+A vault of a type that does not use NATS can hold a NATS password later. osapi
+ships only the `nats` type now, so the tag refuses each NATS password.
+
 ## Where this connects
 
 [The job system](job-system.md) has the two clocks of a job. You configure the
 two here.
+
+[Secrets](secrets.md) has the plan of the secrets, and [Vaults](vaults.md) has
+the vaults that a reference names.
 
 [The embedded UI](ui.md) has `controller.ui.enabled`, the only dashboard setting
 that an operator changes.
@@ -170,4 +239,4 @@ enable enforcement in stages on a live fleet.
 
 ______________________________________________________________________
 
-Written from `cmd/root.go` and `internal/config/`.
+Written from `cmd/root.go`, `cmd/references.go` and `internal/config/`.

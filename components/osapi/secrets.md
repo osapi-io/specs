@@ -73,10 +73,11 @@ three DSLs does with it, and the limits until the vaults exist.
 [Behaviors](behaviors.md#secret-inputs) has the rule `secret` of the behavior
 DSL.
 
-Not built: a command of the command DSL that uses a secret resolves the
-reference itself, from the vaults of its config. A command calls no API.
-`osapi controller token generate` is one: it reads the signing keys from the
-config, and each value can be a reference.
+A command of the command DSL calls no API. Thus it resolves a reference itself,
+from the vaults of its config. Built for a value of the config:
+`osapi controller token generate` resolves the signing keys
+([Configuration](configuration.md#a-secret-can-be-a-reference-to-a-vault)). Not
+built: a reference in a `secret.Value` flag of a command.
 
 ## The order on the controller
 
@@ -241,18 +242,10 @@ encrypts each value too.
 
 ## References in the config
 
-A config field that has a `mask` tag takes a reference, such as the `key` of an
-entry of `controller.api.security.signing_keys`:
-`key: secret://default/jwt-signing-key`. The controller resolves it at startup.
-
-Two values cannot come from the `nats` vault, because the controller needs them
-before it can read the vault:
-
-- the vault key itself.
-- the NATS credentials of the controller.
-
-Each of these comes from a file, from the environment, or from a vault of a
-different type, such as Vault.
+Built in osapi-io/osapi#1245.
+[Configuration](configuration.md#a-secret-can-be-a-reference-to-a-vault) has
+which fields take a reference, which process resolves each one, and the values
+that cannot be a reference: a NATS password and the vault key.
 
 ## What an AI agent learns
 
@@ -295,7 +288,9 @@ Each part is an issue in osapi, in this order:
     `secret:use`, and the Secrets page of the UI.
 05. Resolution on the controller: the order above, the three limits of use, and
     the references in the audit entry.
-06. `secret://` references in the config, resolved at startup.
+06. Built: `secret://` references in the config, resolved at startup and by the
+    commands that read them
+    ([Configuration](configuration.md#a-secret-can-be-a-reference-to-a-vault)).
 07. The agent's X25519 key at enrollment. Built:
     [Agent identity](agent-identity.md#the-encryption-key).
 08. Sealed values in the job, opened by the dispatch of the agent, with the
