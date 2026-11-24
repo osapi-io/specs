@@ -92,7 +92,12 @@ formatters of `internal/cli/ui.go` in TypeScript: `formatTime` prints
 formatter of its own. A field has the name that the CLI gives it, such as
 `Machine ID`, and a page lists the fields in the order of the CLI command for
 the same resource. A result's summary line is `2 hosts: 1 ok, 1 skipped`, then
-the whole job ID in gray, as the CLI prints it. A job ID is never cut.
+the whole job ID in gray, as the CLI prints it. A job ID is never cut. The
+status of a host is the generated `RowStatus` (`ok`, `failed`, `skipped` or
+`timeout`), not a union that a page writes. A host that did not answer is
+`timeout`, with a clock icon and its own count. It is not `failed`, because
+nobody knows if the operation ran. The CLI still counts it as `failed`
+(osapi-io/osapi#1338).
 
 **A result links its job and its trace.** On the Plans page, each step that ran
 shows a line under its card with the job and the trace of its call, whole, each
@@ -522,9 +527,9 @@ color, such as `processing`, is gray. Thus `skipped`, `submitted`, `draining`
 and a condition are amber on each page and in the terminal.
 
 A count has a tone too. `CountTones` in the same file gives the tone of a count
-above zero by what it counts: `failed` and `dlq` are red, `submitted` and
-`skipped` are amber, `completed` is green. A zero is gray. The catalog serves
-`CountTones` as `count_tones`, and `Count` reads it.
+above zero by what it counts: `failed`, `timeout` and `dlq` are red, `submitted`
+and `skipped` are amber, `completed` is green. A zero is gray. The catalog
+serves `CountTones` as `count_tones`, and `Count` reads it.
 
 An HTTP method, an HTTP code, a role and a target group are not statuses, so
 they never take green, amber or red. The audit log shows a method in bold, as
