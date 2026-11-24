@@ -118,7 +118,7 @@ What each part of a DSL does with a `secret.Value` field:
 | Chain records         | `MarshalJSON` gives the reference, or `[redacted]`, at each depth of the input.                                                                                                                         |
 | UI                    | the catalog marks the field as a secret. The form shows a password input, and a plan shows `<secret>`. A picker of references is not built ([Secrets](secrets.md#the-parts), part 9).                   |
 
-The CLI sends the request, and the dispatch of a behavior sends the job, with
+The CLI sends the request, and the job client queues the job, with
 `secret.Plain`. It gives a copy of the input in which each `secret.Value`
 marshals its value. Each other marshal of the input gives the reference or
 `[redacted]`.
