@@ -175,7 +175,12 @@ before it does work, about 30 to 45 seconds. A repository with a run of 1 or 2
 minutes gets almost nothing from parallel jobs, and a repository with two
 packages gets one shard. GitHub runs about 20 jobs at a time for a public
 repository. A workflow with more jobs than that waits for a runner. Thus a quick
-check goes in `go_quick_checks`, so that the shards have runners.
+check goes in `go_quick_checks`, so that the shards have runners. osapi also
+groups its slow checks into five recipes of about two minutes each, beside
+`go-vet`, so that the plan, the checks, ten shards and the coverage job stay
+under the limit. Before, thirteen jobs of one check each made the last jobs wait
+up to 108 seconds, and `go-vet`, the longest, started last
+(osapi-io/osapi#1353).
 
 The smallest part of a shard is one package. Thus the package with the most
 tests, or the slowest tests, sets the minimum time of the slowest shard. In
