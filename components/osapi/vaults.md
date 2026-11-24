@@ -224,8 +224,10 @@ They also refuse a vault of a type that is not `nats`.
 
 - The `secret` endpoint group, and who may read or write a secret
   ([osapi #1243](https://github.com/osapi-io/osapi/issues/1243)).
-- The resolution of a reference, and the seal to an agent. [Secrets](secrets.md)
-  has the plan.
+- The resolution of a reference in a request, and the seal to an agent.
+  [Secrets](secrets.md) has the plan.
+  [Configuration](configuration.md#a-secret-can-be-a-reference-to-a-vault) has
+  the references in the config, which `Set.Resolve` resolves.
 - JetStream encryption at rest, with its own key and `osapi nats key create`.
   That key protects each stream and bucket on the disk. It does not protect
   against a NATS user, which is why the vault encrypts each value too.
