@@ -306,9 +306,9 @@ the controller serves and of each behavior. `specgen.Full`, in
   areas of `area.All`, and in the order above in an area. `x-tagGroups` puts
   each tag under the label of its area. A tag with no area of `area.All` is an
   error.
-- `ErrorResponse` is the first schema. `endpoint.ErrorSchema` builds it from
-  `endpoint.Reasons` and `endpoint.ReasonDocs`. Thus the schema has each reason
-  that the server sends, with what it means.
+- `ErrorResponse` is the first schema. `endpoint.ErrorSchema` builds it from the
+  `Values()` of `types.Reason` and `endpoint.ReasonDocs`. Thus the schema has
+  each reason that the server sends, with what it means.
 - Two groups that serve one path are an error. Two groups that give one schema
   or one parameter two shapes are an error too. A schema that two groups give
   the same shape is in the spec one time.

@@ -147,16 +147,17 @@ schema lists each reason, with what it means:
 | `server_error`    | 500    | the controller failed; its log has the cause                               |
 
 The generated routes take the reason from the error that the method maps
-(`endpoint.NotFound`, `.Conflict(...).Because(endpoint.ReasonNotManaged)`). The
+(`endpoint.NotFound`, `.Conflict(...).Because(types.ReasonNotManaged)`). The
 token check gives `unauthorized` or `forbidden`, and the error handler of the
 API takes the reason from the status. The agent already names the cause of a
 failed job (`internal/job/errors.go`), and the reason carries it to the caller.
-`endpoint.ErrorSchema` makes the schema from `endpoint.Reasons` and
-`endpoint.ReasonDocs`, so the enum has each reason in order, with what it means.
-A test fails when a reason has no text in `endpoint.ReasonDocs`. A reason is the
-type `endpoint.Reason`, and `Because` takes one. Go converts an untyped string
-literal to the type. Thus `endpoint validate` checks each error that a method
-maps, under the rule `reason`, and refuses a reason outside `endpoint.Reasons`.
+`endpoint.ErrorSchema` makes the schema from the `Values()` of `types.Reason`
+and `endpoint.ReasonDocs`, so the enum has each reason in order, with what it
+means. A test fails when a reason has no text in `endpoint.ReasonDocs`. A reason
+is the type `types.Reason`, and `Because` takes one. Go converts an untyped
+string literal to the type. Thus `endpoint validate` checks each error that a
+method maps, under the rule `reason`, and refuses a reason that `Valid()` of
+`types.Reason` refuses.
 
 Two answers changed with the reason. A not found on a method with no key, such
 as a create whose object is not in the Object Store, was a 500. Not managed and

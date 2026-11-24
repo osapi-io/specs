@@ -259,8 +259,9 @@ Each method has:
 
 The spec has the types of the catalog, so `orval` generates them, and
 `ui/src/lib/catalog.ts` uses them. The `Permission` and the `OperationID` types
-are enums of the spec, which `endpoint.Enum` makes from the registries
-([Endpoints](endpoints.md#the-definition)).
+are enums of the spec, from the `Values()` of each type
+([Endpoints](endpoints.md#the-definition)). `types.Permission` has the generated
+list of the permissions, and `OperationID` reads the registries.
 
 `CatalogProvider` (`ui/src/lib/catalog-provider.tsx`) loads the catalog one time
 after sign-in. Until it has the catalog, it shows a spinner, and no page. When
