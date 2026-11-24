@@ -215,22 +215,23 @@ the endpoint DSL with no new code: its OpenAPI spec, `endpoint validate`, the
 SDK service, the CLI commands, the docs pages, its permissions and the
 `apicontract` golden file.
 
-| Method | Path                        | Permission     | CLI                          |
-| ------ | --------------------------- | -------------- | ---------------------------- |
-| GET    | `/api/secret`               | `secret:read`  | `osapi client secret vaults` |
-| GET    | `/api/secret/{vault}`       | `secret:read`  | `osapi client secret list`   |
-| GET    | `/api/secret/{vault}/{key}` | `secret:read`  | `osapi client secret get`    |
-| PUT    | `/api/secret/{vault}/{key}` | `secret:write` | `osapi client secret set`    |
-| DELETE | `/api/secret/{vault}/{key}` | `secret:write` | `osapi client secret delete` |
+| Method | Path                        | Permission     | CLI                              |
+| ------ | --------------------------- | -------------- | -------------------------------- |
+| GET    | `/api/secret`               | `secret:read`  | `osapi client secret vault list` |
+| GET    | `/api/secret/{vault}`       | `secret:read`  | `osapi client secret list`       |
+| GET    | `/api/secret/{vault}/{key}` | `secret:read`  | `osapi client secret get`        |
+| PUT    | `/api/secret/{vault}/{key}` | `secret:write` | `osapi client secret update`     |
+| DELETE | `/api/secret/{vault}/{key}` | `secret:write` | `osapi client secret delete`     |
 
-- `vaults` lists each vault with its type, its targets and whether it answers.
+- `vault list` lists each vault with its type, its targets and whether it
+  answers.
 - `get` gives the metadata of a key: its version, when it changed, and who
   changed it. It never gives the value. No method gives a value.
-- `set` takes the value as a `secret.Value` body field. Thus the generated CLI
-  reads it from standard input, or asks for it with the echo off:
+- `update` takes the value as a `secret.Value` body field. Thus the generated
+  CLI reads it from standard input, or asks for it with the echo off:
 
 ```bash
-osapi client secret set --vault default --key registry-token < token.txt
+osapi client secret update --vault default --key registry-token < token.txt
 osapi client secret list --vault default
 ```
 
@@ -238,14 +239,16 @@ The commands are under `osapi client`, as the commands of each endpoint group
 are, because they go through the API: they work from each host, and each call
 has a permission check and an audit entry. The vault key is different. It is a
 file on the controller host, and the API does not give it or change it. Thus its
-two commands are under `osapi controller`, as `osapi controller key fingerprint`
-reads the PKI key in `key_dir`. They run on the controller host, and read the
-config there:
+two commands are under `osapi controller`, by the rule of the CLI that a command
+goes where it runs
+([osapi #1239](https://github.com/osapi-io/osapi/issues/1239)), as
+`osapi controller key fingerprint` reads the PKI key in `key_dir`. They run on
+the controller host, and read the config there:
 
-| Command                                | What it does                                         |
-| -------------------------------------- | ---------------------------------------------------- |
-| `osapi controller secret key generate` | makes the key of the `nats` vault in `key_file`      |
-| `osapi controller secret rotate`       | adds a new key, encrypts each value again, drops old |
+| Command                                            | What it does                                         |
+| -------------------------------------------------- | ---------------------------------------------------- |
+| `osapi controller vault key create --name default` | makes the key of the `nats` vault in `key_file`      |
+| `osapi controller vault key rotate --name default` | adds a new key, encrypts each value again, drops old |
 
 The group is in a new area, `secrets`, as the Object Store has its own area. A
 secret is not a step of a plan, because a plan file holds no values. The UI has
@@ -308,14 +311,17 @@ each value encrypted in a JetStream KV bucket, `osapi-secrets`:
 - The vault key comes from `key_file`, or from an environment variable that the
   config names. A KMS or a TPM can give the key later, through the same setting.
 - A rotation adds a new key and keeps the old key for reads.
-  `osapi controller secret rotate` encrypts each value again with the new key,
-  then the old key goes. This is the model of `JetStreamOldKey` in NATS.
-- `osapi controller secret key generate` makes the vault key in `key_file`.
+  `osapi controller vault key rotate --name default` encrypts each value again
+  with the new key, then the old key goes. This is the model of
+  `JetStreamOldKey` in NATS.
+- `osapi controller vault key create --name default` makes the vault key in
+  `key_file`.
 
-osapi also turns on JetStream encryption at rest, with its own key. That key
-protects each stream and bucket on the disk, not only the secrets, and NATS
-derives each account's key from it. It does not protect against a NATS user,
-which is why the vault encrypts each value too.
+osapi also turns on JetStream encryption at rest, with its own key.
+`osapi nats key create` makes that key, on the NATS host. That key protects each
+stream and bucket on the disk, not only the secrets, and NATS derives each
+account's key from it. It does not protect against a NATS user, which is why the
+vault encrypts each value too.
 
 ## References in the config
 
@@ -338,20 +344,20 @@ A coding agent learns about a secret from the same generated parts as a person.
 `method get` and the docs page of a method mark each secret field and its two
 forms. `osapi client secret list` gives the names to reference. The skill in the
 binary ([Agent skills](agent-skills.md)) has one rule for it: put a value in
-with `osapi client secret set` from standard input, then use its reference. Do
-not put a value in a command, a plan or a file.
+with `osapi client secret update` from standard input, then use its reference.
+Do not put a value in a command, a plan or a file.
 
 ## Rotation
 
-- **A secret.** `set` writes a new version. A job that the controller queues
+- **A secret.** `update` writes a new version. A job that the controller queues
   after the change gets the new value. A host that has the old value, in a file
   or a container, keeps it until a job runs on it again. `secret get` shows when
   the key changed, and the audit log shows which hosts used it.
 - **The JWT signing key.** The controller accepts tokens from more than one key,
   each with its own `kid`, and signs with the newest. Thus a new key goes in
   first, and the old one goes after the last token that it signed expires.
-- **The vault key.** `osapi controller secret rotate`, on the controller host,
-  as in [the built-in vault](#the-built-in-vault).
+- **The vault key.** `osapi controller vault key rotate --name default`, on the
+  controller host, as in [the built-in vault](#the-built-in-vault).
 - **The PKI keys.** As now, with the grace period of
   [Agent identity](agent-identity.md#rotation-without-an-outage).
 - **NATS credentials.** Out of scope here. The embedded server reads them from
@@ -364,8 +370,9 @@ Each part is an issue in osapi, in this order:
 01. `secret.Value` in `internal/secret`, in place of the `secret` tag, with the
     `secret` rule in each DSL and the `dslcheck` guard.
 02. The `Vault` interface, the `nats` type, the `controller.secrets` config, and
-    `osapi controller secret key generate` and `rotate`.
-03. JetStream encryption at rest, with its key in the config.
+    `osapi controller vault key create --name default` and `rotate`.
+03. JetStream encryption at rest, with its key in the config and
+    `osapi nats key create`.
 04. The `secret` endpoint group and its area, `secret:read`, `secret:write` and
     `secret:use`, and the Secrets page of the UI.
 05. Resolution on the controller: the order above, the three limits of use, and
