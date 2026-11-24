@@ -49,7 +49,7 @@ of each response (W3C Trace Context level 2). The SDK gives it as
 that keeps the trace of each answer. Thus each command prints the trace of its
 request, and no command has code for it. The trace is at the end of the summary
 line, after the job ID. A command with no summary line, such as `agent list` or
-`controller status`, prints it as its last line. A command that fails prints it
+`health status`, prints it as its last line. A command that fails prints it
 under its error, where a person looks next. Before osapi-io/osapi#1033 only the
 summary line printed it, so those commands and each failure had none. The
 `/api/health` routes have no trace, because the controller does not trace the
@@ -184,18 +184,17 @@ status.
 
 ### Reading a trace through the controller
 
-`osapi client telemetry trace get --id <trace>` and the Traces page of the UI
-show the span tree of a trace. They ask the controller, at
-`GET /api/telemetry/trace/{id}`, with `trace:read`. The controller answers the
-summary of the trace and its spans as a tree: each span with ON, STATUS, DETAIL,
-the span as the backend has it, and its children. Without the query parameter
-`all`, it leaves out the NATS calls, moves the spans under them up, and counts
-them. `--all` and the check box of the Traces page send it. The controller asks
-the tracing backend. Thus the machine of the CLI needs no access to the backend,
-as with the trace ID. A token with a target scope gets a trace only when each
-`osapi.target` that its spans record is in the scope, and gets 404 for a
-different trace. [Permissions](permissions.md#a-tokens-target-scope) has the
-rule.
+`osapi client trace get --id <trace>` and the Traces page of the UI show the
+span tree of a trace. They ask the controller, at `GET /api/trace/{id}`, with
+`trace:read`. The controller answers the summary of the trace and its spans as a
+tree: each span with ON, STATUS, DETAIL, the span as the backend has it, and its
+children. Without the query parameter `all`, it leaves out the NATS calls, moves
+the spans under them up, and counts them. `--all` and the check box of the
+Traces page send it. The controller asks the tracing backend. Thus the machine
+of the CLI needs no access to the backend, as with the trace ID. A token with a
+target scope gets a trace only when each `osapi.target` that its spans record is
+in the scope, and gets 404 for a different trace.
+[Permissions](permissions.md#a-tokens-target-scope) has the rule.
 
 OpenTelemetry has no standard API to read a trace. The controller reads the
 query API of Jaeger, `/api/v3/traces/{id}`, which answers OTLP JSON, at
@@ -273,10 +272,11 @@ prints each component with its sub-components under it, as a tree. The answer
 had them in one map of the whole fleet, keyed `controller.api`, and the CLI and
 the UI each matched the prefix to find the component (osapi-io/osapi#904).
 
-`GET /api/controller/status`, `/api/nats/status` and `/api/agent/status` answer
-the components of one type, with their sub-components, as a list with its count.
-They filter the health status, so the data is the same.
-`osapi client nats status` and the others print the same tree for one type.
+`GET /api/health/status?component=controller|nats|agent` answers the health
+status with only the components of that type in the registry, each with its
+sub-components. `osapi client health status --component nats` prints it. Before
+osapi-io/osapi#1257, `controller status`, `nats status` and `agent status` were
+three commands of three groups for the same data.
 
 The controller also checks its connection to NATS and to KV for each answer.
 These are in `checks`, each with its name, its status and, when it failed, its

@@ -18,7 +18,7 @@ of the node domains, which went as each domain became a
 | Kind                                    | Files | Examples                                                                                           |
 | --------------------------------------- | ----: | -------------------------------------------------------------------------------------------------- |
 | Commands that run on the local machine  |    40 | `token generate`, `config validate`, `nats server start`, `agent start`, `behavior new`, `version` |
-| Code of the CLI for the endpoint groups |    17 | the renderer of `client agent list`, `client agent status`, `client nats status`                   |
+| Code of the CLI for the endpoint groups |    17 | the renderer of `client agent list`, `client health status`                                        |
 
 Now `cmd/` has 14 files. Each local command is a group under
 `internal/cli/commands/`, and each node command comes from a behavior. `cmd/`
@@ -342,10 +342,9 @@ Each check has its rule and its fix, as for endpoints.
    only the true conditions), the job commands (the operation is `{type, data}`,
    the target is always set, and the responses and agent states are lists),
    `health status` (each registry entry has its sub-components, and the checks
-   of NATS and KV are `checks`) and `telemetry trace get` (the controller
-   answers the span tree). `client controller status`, `client nats status` and
-   `client agent status` are generated from a `status` method in their endpoint
-   groups. No command has a renderer.
+   of NATS and KV are `checks`) and `trace get` (the controller answers the span
+   tree). `client health status --component` shows one type of component. No
+   command has a renderer.
 
 ## Processes
 

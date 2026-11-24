@@ -221,12 +221,12 @@ var Group = endpoint.Register(endpoint.Define(
 - **The help of the group's commands** comes from the definition, so a group has
   no file in `cmd/`. The group's one line is the help of its command, and
   `CommandLong("...")` adds more. `SubDoc("segment", "...")` is the one line of
-  the command that a `.Sub` segment makes, such as `trace` in
-  `osapi client telemetry trace get`. `validate` fails a `.Sub` segment that
-  makes a command of its own and has no `SubDoc`. The page of each names the
-  permission that covers each command under it. A parent that has flags or
-  hooks, such as `client` and `client node`, stays in `cmd/`. So does
-  `client controller`, while its `key` command is hand-written.
+  the command that a `.Sub` segment makes, such as `stale` in
+  `osapi client file stale list`. `validate` fails a `.Sub` segment that makes a
+  command of its own and has no `SubDoc`. The page of each names the permission
+  that covers each command under it. A parent that has flags or hooks, such as
+  `client` and `client node`, stays in `cmd/`. So does `client controller`,
+  while its `key` command is hand-written.
 
 ## What it generates
 
@@ -469,11 +469,11 @@ actions, query parameters and 409. The DSL gets its shape there.
 Then each group moves in its own pull request, from the easiest:
 
 1. agent
-2. telemetry: one GET, a permission with a different name, and 503. Moved. Its
-   command stays `osapi client telemetry trace get`: a method whose `Sub` is not
-   its name is under a command of that name. `--all` is the query parameter
-   `all`, and a backend that fails is `endpoint.Internal`, so the caller does
-   not get the backend's error.
+2. telemetry: one GET, a permission with a different name, and 503. Moved. On 24
+   November 2026 the group became `trace`, and its command
+   `osapi client trace get` (osapi-io/osapi#1257). `--all` is the query
+   parameter `all`, and a backend that fails is `endpoint.Internal`, so the
+   caller does not get the backend's error.
 3. audit: pagination and an export. It is served from its definition. Its CLI
    paths stay `audit list`, `audit get` and `audit export`; `export`'s
    `--output` and `--type` are `.StringFlag`s, and an input field's `default`
@@ -486,9 +486,10 @@ Then each group moves in its own pull request, from the easiest:
    command does. A field of an `in:"body"` struct is a flag, and the `flag` and
    `short` tags keep retry's `-T/--target`. `endpoint.Invalid` maps an error to
    400, for a retry of a job with no operation data
-5. facts: a permission of a different group. It is served from its definition,
-   and gains `osapi client facts keys list`: the method is `list` under `keys`,
-   as `telemetry trace get` is, so the command is a resource and a verb
+5. facts: a permission of a different group. It is served from its definition.
+   On 24 November 2026 it moved into the agent group, as
+   `osapi client agent facts list`: the method is `facts`, with `.Sub("facts")`
+   and `.Use("list")`, as `file stale list` is (osapi-io/osapi#1257)
 6. file: a multipart upload. It is served from its definition. A field tagged
    `in:"form"` makes the body `multipart/form-data`, and a `[]byte` field is the
    file. In the CLI, the flag of a `[]byte` field is the path of a local file,
