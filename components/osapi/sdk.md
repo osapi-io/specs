@@ -140,8 +140,8 @@ reads the flags of each example into the input of the command: the parameters of
 the path and the query, and the properties of the body. It writes the inputs in
 the `x-osapi-examples` extension of the operation, each with its doc. An example
 with no doc gets the summary of the method. Two examples with the same input are
-one example. An upload has no example in the spec, because the SDK has no
-generated method for a multipart form.
+one example. The file of a multipart form, such as an upload, is the path that
+its flag names.
 
 The same `go generate` run writes a program for each service,
 `examples/sdk/client/<service>.go`. The program has a function for each example,
@@ -149,6 +149,16 @@ which calls the method with the input of the example and prints the answer as
 JSON. Give the name of an example to run it, such as `go run dns.go update`. The
 target of a node is `OSAPI_TARGET`, `_any` by default, not the host of the
 example. `examples-check` compiles each program.
+
+A method that sends a multipart form is written by hand, but its examples are
+generated. The program reads the file with `os.ReadFile`, then calls the method
+with the arguments in a fixed order: the keys of the path, the required fields
+of the form, the optional fields, and then the file as an `io.Reader`. Each part
+is in the order of the field names. A field that an example does not set gets
+its default from the spec. Thus the person who writes the method must use this
+order. `examples-check` fails when the method has a different one. Before
+osapi-io/osapi#1294, a person wrote `examples/sdk/client/file_upload.go`, and
+nothing reported when it went stale.
 
 `just sdk-docs-generate` writes a page for each service under
 `docs/docs/sidebar/sdk`, in the folder of its area, such as `fleet/agent.md`.
@@ -184,11 +194,10 @@ path.
 
 `File.Upload` and `File.Update` send a multipart form, and the generator writes
 a method only for a JSON body. `File.GetChanged` compares a SHA-256 on the
-caller's side and calls no operation of its own. Constants that osapi's own
-packages use, such as the job states, the content types and the permissions, are
-in their own files. `examples/sdk/client/file_upload.go` is the one program that
-a person writes: it calls the three methods of the file service that the
-generator does not write. The page of the file service links it.
+caller's side and calls no operation of its own, so it has no example. Constants
+that osapi's own packages use, such as the job states, the content types and the
+permissions, are in their own files. Each program under `examples/sdk/client/`
+is generated.
 
 The SDK imports nothing from `internal/`. `go-pkg-check` fails when it does. For
 a route with no typed method, use the generic call:
