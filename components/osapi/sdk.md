@@ -77,10 +77,16 @@ pkg/sdk/client/
 package that the caller imports, as a `*.gen.go` file. `gen/` is for generated
 code that no caller imports, such as the routes of a behavior. A schema of the
 spec that `pkg/sdk/types` declares is not written again: the generator reads the
-types of `pkg/sdk/types` and writes a reference, such as `types.Step`. For each
-other enum of the spec, it writes the type and a constant for each value, such
-as `ContentTypeRaw`. A hand-written file in `pkg/sdk/client` is plumbing that
-each method uses, or a method that the generator cannot write.
+types of `pkg/sdk/types` and writes a reference, such as `types.Step`. The
+schema and the Go type must agree. The generator compares the properties of an
+object schema with the JSON names of the fields of the struct. It compares the
+values of an enum with the constants of the type. If they are different, or if
+only one of the two is a struct, the generator stops with an error and writes no
+file (osapi-io/osapi#1335). Before that check, the generator used only the name
+to bind a schema to a type of `pkg/sdk/types`. For each other enum of the spec,
+it writes the type and a constant for each value, such as `ContentTypeRaw`. A
+hand-written file in `pkg/sdk/client` is plumbing that each method uses, or a
+method that the generator cannot write.
 
 The SDK does not use oapi-codegen. Before osapi#732, oapi-codegen wrote a client
 in `pkg/sdk/client/gen`, and 32 hand-written services copied each of its types
