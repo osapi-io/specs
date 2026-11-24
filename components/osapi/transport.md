@@ -152,11 +152,16 @@ a new key in place of the old key makes each stream unreadable.
 osapi nats key create -f /etc/osapi/osapi.yaml
 ```
 
-Three things can surprise you:
+Four things can surprise you:
 
 - **A store with no encryption becomes encrypted.** When a server with a key
   starts on a `store_dir` that has plain files, NATS encrypts each block as it
   loads it. You do not delete the store first.
+- **Only the accounts that the server loads become encrypted.** NATS keeps each
+  account in its own directory under `store_dir`. A directory of an account that
+  the server no longer has stays plain. The lab hub had a `$G` directory from
+  before it used operator mode, with plain JSON in it, after each other
+  directory was encrypted. Remove such a directory yourself.
 - **Only file storage is encrypted.** A stream or a bucket with
   `storage: memory` is not on the disk, so the key does not apply to it.
 - **The key is the data.** If the key is lost, or a different key is set, NATS
