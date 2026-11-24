@@ -19,11 +19,12 @@ definition.
 
 ## The shared vocabulary
 
-`pkg/sdk/types` holds the words that cross the API: `JobStatus`, the agent
-states and conditions, `Permission`, `Role` and the `Perm` constants, `Reason`,
+`pkg/sdk/types` holds the words that cross the API: `JobStatus` (the status of a
+job), `AgentJobStatus` (the status of a job on one host), the agent states and
+conditions, `Permission`, `Role` and the `Perm` constants, `Reason`,
 `ContentType`, `AdmissionState`, `Step`, `JobType`, the job operations, and
 `TargetAny` and `TargetAll`. osapi's packages use the type from `types`, not a
-copy. A closed set, such as `ContentType`, `Reason`, `JobStatus` or
+copy. A closed set, such as `ContentType`, `Reason`, `AgentJobStatus` or
 `Permission`, has the methods `Values()` and `Valid()`. Thus the spec has a
 schema with its values, and the rule `validate:"enum"` calls `Valid()`. `Role`
 has no `Values()`, because the config can add custom roles. A generator writes
