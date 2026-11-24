@@ -148,6 +148,26 @@ job. An agent that joins after that has no sealed key in the job. It reports the
 job as failed, with the reason "the job was not sealed to this agent", and does
 not run it.
 
+## Secrets in a chain
+
+A vault is not a behavior. A behavior runs on a host, as a job. A vault as a
+behavior gives each agent credentials for the vault, and the agent then reads
+each secret that the vault has. The design gives an agent only the values of its
+job, so the vault stays on the controller.
+
+A chain moves the value, not the vault. A parent behavior calls its children on
+the agent, in the same job. Thus a `secret.Value` field of a parent goes to a
+child as each other field does. For example, `certificate.create` takes a
+private key and gives it to `managedfile.update` as the content of the file. The
+controller resolves and seals the key one time, for the top method. The agent
+opens it one time, and each method of the chain gets the opened value. The chain
+records show the reference, not the value.
+
+`behavior validate` checks the type across a chain: a parent that gives a
+`secret.Value` to a child field of a different type fails under the rule
+`secret`. Thus a chain cannot change a secret into an ordinary string, which the
+child then records.
+
 ## What the agent knows
 
 The agent knows nothing about vaults or references. It knows three things:
