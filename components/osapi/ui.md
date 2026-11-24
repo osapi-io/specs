@@ -247,7 +247,7 @@ Each method has:
   shows them: `UpdateInput { interface_name*, servers }`.
 - the fields of its input. Each field has its place in the request (the path,
   the query or the body), its kind, its doc, whether it is required, the values
-  of a `oneof` rule, and whether it is a secret.
+  of its enum, from a closed set or a `oneof` rule, and whether it is a secret.
 - the fields of the rows that it answers, as the CLI's output reads them: the
   label, the `render` tag, and the fields of an object or of a list of objects.
 - its calls: the calls that its examples make to other behaviors, under the call
@@ -259,8 +259,9 @@ Each method has:
 
 The spec has the types of the catalog, so `orval` generates them, and
 `ui/src/lib/catalog.ts` uses them. The `Permission` and the `OperationID` types
-are enums of the spec, which `endpoint.Enum` makes from the registries
-([Endpoints](endpoints.md#the-definition)).
+are enums of the spec, from the `Values()` of each type
+([Endpoints](endpoints.md#the-definition)). `types.Permission` has the generated
+list of the permissions, and `OperationID` reads the registries.
 
 `CatalogProvider` (`ui/src/lib/catalog-provider.tsx`) loads the catalog one time
 after sign-in. Until it has the catalog, it shows a spinner, and no page. When
@@ -352,7 +353,7 @@ its method, such as "DNS · Update". It also has the input and output types of
 the method, the behaviors that the method calls, its kind and its status. A step
 can move up and down. The form of a step comes from the input of its method:
 
-- A field with the values of a `oneof` rule is a select.
+- A field with the values of an enum is a select.
 - A list is a field of tags. Enter, a comma or a space adds a tag.
 - A flag is a checkbox, and an object is JSON.
 - A secret field takes a reference, `secret://<vault>/<key>`, from a picker

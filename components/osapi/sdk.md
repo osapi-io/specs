@@ -21,11 +21,12 @@ definition.
 `pkg/sdk/types` holds the words that cross the API: `JobStatus`, the agent
 states and conditions, `Permission`, `Role` and the `Perm` constants, `Reason`,
 `ContentType`, `Step`, `JobType`, the job operations, and `TargetAny` and
-`TargetAll`. osapi's packages use the type from `types`, not a copy. An endpoint
-group registers each named type that its input or output uses with
-`endpoint.Enum`, so the spec has a schema with its values, such as
-`ContentType`. A generator writes only `permissions.gen.go`, from the registry
-of permissions.
+`TargetAll`. osapi's packages use the type from `types`, not a copy. A closed
+set, such as `ContentType`, `Reason`, `JobStatus` or `Permission`, has the
+methods `Values()` and `Valid()`. Thus the spec has a schema with its values,
+and the rule `validate:"enum"` calls `Valid()`. `Role` has no `Values()`,
+because the config can add custom roles. A generator writes only
+`permissions.gen.go`, from the registry of permissions.
 
 Before osapi-io/osapi#1318, these types were in `pkg/sdk/client`, and
 `internal/job` and the catalog endpoint imported them from the client. The
@@ -184,8 +185,8 @@ that the generator of the UI gives it (osapi-io/osapi#1329):
 
 A constant is the type's name and the value, such as `AgentInfoStateReady`. A
 field of an enum type does not list the values in its comment, because the type
-has them. The page of the type lists them. `endpoint.Enum` makes the named
-schemas ([Endpoints](endpoints.md#the-definition)).
+has them. The page of the type lists them. A closed set of Go, a type with
+`Values()`, makes the named schemas ([Endpoints](endpoints.md#the-definition)).
 
 A type that `pkg/sdk/types` declares is not written again: the client refers to
 it. `types.Permission` is one, so the `Permission` schema of the catalog uses

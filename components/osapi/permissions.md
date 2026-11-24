@@ -250,10 +250,13 @@ roles imports the groups and the behaviors, as the binary does.
 
 `go generate ./internal/behaviors/all` writes the SDK's constants in
 `pkg/sdk/types/permissions.gen.go`, one `Perm` constant for each permission and
-one `Role` constant for each built-in role. A test fails when the file is stale.
-A permission constant is `Perm`, then the resource and the verb with capitals,
-such as `PermDiskRead` for `disk:read`. The UI reads the permissions and the
-roles from the catalog endpoint, at run time ([the UI](ui.md#the-catalog)).
+one `Role` constant for each built-in role. It also writes `Values()` and
+`Valid()` of `Permission`, so the spec has the permissions as an enum.
+`authtoken/gen` runs before the generator of the spec, so that the spec has the
+list that the same run wrote. A test fails when the file is stale. A permission
+constant is `Perm`, then the resource and the verb with capitals, such as
+`PermDiskRead` for `disk:read`. The UI reads the permissions and the roles from
+the catalog endpoint, at run time ([the UI](ui.md#the-catalog)).
 `just cli-docs-generate` writes the role table of the configuration page of the
 docs site from `RolePermissions`.
 

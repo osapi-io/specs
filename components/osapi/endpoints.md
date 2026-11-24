@@ -166,9 +166,9 @@ var Group = endpoint.Register(endpoint.Define(
   is a `date-time`. A `float64` is a `number` of format `double`, and a
   `float32` a `number` with no format, as oapi-codegen maps them back. A
   `pattern:"..."` tag gives a string a regular expression, and the route answers
-  400 for a value that does not match. `validate:"oneof=..."` gives an enum. In
-  the input, a field is required when it is tagged `validate:"required"`. Each
-  input field has a validate tag, and the spec carries the whole tag in
+  400 for a value that does not match. A closed set gives an enum. In the input,
+  a field is required when it is tagged `validate:"required"`. Each input field
+  has a validate tag, and the spec carries the whole tag in
   `x-oapi-codegen-extra-tags`. The rules are the behavior DSL's, from
   `internal/validation/rule`; [behaviors](behaviors.md) has them. Each rule of
   each input field has a `.Fails(doc, input)` that breaks it, as a behavior's
@@ -219,15 +219,17 @@ var Group = endpoint.Register(endpoint.Define(
   answers 404 or 409 with `endpoint.Errorf(sentinel, "...")`, so the message
   names what it was called with. Any other error is a 500, and is logged.
 
-- **`Enum[T](values)`** makes `T`, a named string type, a schema of the
-  components, with the values that `values` returns as its enum. `values` runs
-  when the spec is built, after each group and behavior registered. Thus the
-  generator of the endpoints imports the behaviors too. The catalog group gives
-  `types.Permission` the permissions of `authtoken.AllPermissions`, and
-  `OperationID` the operationId of each operation that needs a permission.
-  `orval` makes a union type of the values, and the SDK a string type. A
-  `validate:"oneof=..."` tag cannot have them, because a tag is fixed when the
-  code compiles, and the values come from the registries.
+- **A closed set** is a named string type with the methods `Values()` and
+  `Valid()`, such as `types.ContentType`. The spec has the type as a schema of
+  the components, with the values of `Values()` as its enum. A field of the type
+  has the rule `validate:"enum"`, and the server calls `Valid()`. Thus the
+  values are in one list, the type's. `Values()` can read the registries. The
+  catalog's `OperationID` gives the operationId of each operation that needs a
+  permission. The permissions of `types.Permission` are generated from
+  `authtoken.AllPermissions`. `orval` makes a union type of the values, and the
+  SDK a string type. `oneof` on a type with `Values()` fails the spec. Use
+  `validate:"oneof=..."` only on a field with no such type. The catalog and the
+  help of a CLI flag read the values that the spec has.
 
 - **`Doc[T]("...")`** describes a named type, and **`example:"..."`** gives a
   field an example. The generator fails when two groups define one schema in
@@ -304,9 +306,9 @@ the controller serves and of each behavior. `specgen.Full`, in
   areas of `area.All`, and in the order above in an area. `x-tagGroups` puts
   each tag under the label of its area. A tag with no area of `area.All` is an
   error.
-- `ErrorResponse` is the first schema. `endpoint.ErrorSchema` builds it from
-  `endpoint.Reasons` and `endpoint.ReasonDocs`. Thus the schema has each reason
-  that the server sends, with what it means.
+- `ErrorResponse` is the first schema. `endpoint.ErrorSchema` builds it from the
+  `Values()` of `types.Reason` and `endpoint.ReasonDocs`. Thus the schema has
+  each reason that the server sends, with what it means.
 - Two groups that serve one path are an error. Two groups that give one schema
   or one parameter two shapes are an error too. A schema that two groups give
   the same shape is in the spec one time.
