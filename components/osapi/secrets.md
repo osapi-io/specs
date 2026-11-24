@@ -13,20 +13,20 @@ Each kind of secret has its own solution, and none of them is a store:
 - The JWT signing keys and the NATS passwords are values in `osapi.yaml` or in
   an environment variable. [Configuration](configuration.md) masks them before
   the controller logs its config.
+
 - The PKI keys are files in `key_dir`. [Agent identity](agent-identity.md) has
   their rotation.
+
 - A behavior input of type `secret.Value` stays out of the audit log, the spans
   and the chain records. [Secrets](dsls.md#secrets) has the type.
+
 - The route of each method resolves a reference from its vault, after the limits
   of use. [Vaults](vaults.md#how-a-route-resolves-a-reference) has it.
 
-The type does not keep a value out of NATS. The input of a behavior is the data
-of its job, and JetStream and the job KV keep that data. A `.Before` step solves
-this when the agent needs only a value made from the secret, such as the hash of
-a password. It does not solve it when the agent uses the secret as it is.
-`docker.create` and `docker.exec` take `env`, a map of secrets, with no step.
-Thus an API token in a container's environment sits in JetStream as plain text
-now.
+- With PKI on, the job client seals each secret of a job to its target agents,
+  and the dispatch of the agent opens it.
+  [Job system](job-system.md#a-secret-in-the-definition-is-sealed) has it. With
+  PKI off, the job has the value as plain text.
 
 ## Who the design protects against
 
@@ -94,42 +94,23 @@ The route of a behavior method does these steps, in this order:
 3. Run the `.Before` step, if the method has one. A step can change a secret to
    a value made from it, such as a password to its hash. A secret that the step
    clears is not sent.
-4. Seal each secret that is still set, for the target agents
-   ([How a value gets to the agent](#how-a-value-gets-to-the-agent)). Not built.
-   Until it is, the job has the value.
-5. Queue the job.
-
-Today a guard fails the request when a `.Before` step leaves a secret field set
-(`internal/behavior/before.go`). After step 4 exists, the guard goes: a value
-that is still set is sealed, not refused.
+4. Seal each secret that is still set, for the target agents, and queue the job.
+   Built in osapi-io/osapi#1247:
+   [Job system](job-system.md#a-secret-in-the-definition-is-sealed) has it. A
+   value that a `.Before` step leaves set is sealed, not refused.
 
 An endpoint method runs on the controller, so it does steps 1 and 2, and gives
 the value to its handler. It queues nothing, so it seals nothing.
 
 ## How a value gets to the agent
 
-The controller seals the values of a job once, then lets each target agent open
-them:
-
-1. It makes a new random key for the job, and encrypts each secret value of the
-   job with it (XChaCha20-Poly1305).
-2. It seals the job key to each target agent's X25519 key, with NaCl `box`.
-   nkeys gives this as xkeys `Seal` and `Open`, which the NATS auth callout of
-   nats-server already uses.
-3. The job data has each secret field as `{"sealed": "<ciphertext>"}`, and one
-   `sealed_keys` map from machine ID to the sealed job key. JetStream, the job
-   KV and the audit log never see the plain value.
-4. The dispatch of the agent opens the job key with its own X25519 key, opens
-   each value into the `secret.Value` of its field, and calls the provider. It
-   drops the values when the provider returns.
-
-The job key is the only part that has one copy for each agent. Thus a large
-value, such as a certificate key, goes in the job one time, also to `_all`.
-
-The controller seals for the agents that the target names when it queues the
-job. An agent that joins after that has no sealed key in the job. It reports the
-job as failed, with the reason "the job was not sealed to this agent", and does
-not run it.
+Built in osapi-io/osapi#1247.
+[Job system](job-system.md#a-secret-in-the-definition-is-sealed) has the job
+key, the seal to each agent, and the open in the dispatch. The data has a sealed
+value as the string `sealed:<base64>`, not as an object, so a `secret.Value`
+field reads it with no new code. The operation has `sealed_from`, the public key
+of a new X25519 key for the job, because the controller has no X25519 key of its
+own.
 
 ## Secrets in a chain
 
@@ -266,8 +247,8 @@ Each part is an issue in osapi, in this order:
     ([Configuration](configuration.md#a-secret-can-be-a-reference-to-a-vault)).
 07. The agent's X25519 key at enrollment. Built:
     [Agent identity](agent-identity.md#the-encryption-key).
-08. Sealed values in the job, opened by the dispatch of the agent, with the
-    docker `env` fields as the first users.
+08. Built: sealed values in the job, opened by the dispatch of the agent, with
+    the docker `env` fields as the first users.
 09. Built: the reference picker of the UI, and the rule in the skill
     ([What an AI agent learns](#what-an-ai-agent-learns)).
 10. More than one JWT signing key. Built, in

@@ -114,8 +114,8 @@ The rule `vault` also refuses two vaults with one name, and two vaults with one
 `key_file`. A rotation of a shared file would drop the key of the other vault,
 and each value of that vault would then not decrypt.
 
-`targets` is in the spec now. The controller enforces it when it seals a value
-for an agent ([Who may use a secret](secrets.md#who-may-use-a-secret)).
+The route enforces `targets` when it resolves a reference
+([How a route resolves a reference](#how-a-route-resolves-a-reference)).
 
 The controller opens each vault at startup, in `internal/controller/vaults.go`,
 after it connects to NATS. A type that is not registered, a block that does not
@@ -255,8 +255,9 @@ with `authtoken.WithPermissions`. `authtoken.Granted` reads them.
 The handler gets the value. A `.Before` step runs on the value, and the job
 keeps the value that the step leaves. The audit entry keeps the reference,
 because the audit records the body of the request. A span never records a
-secret. A chain record on the agent has `[redacted]`, because the job has the
-value. The sealed values of osapi-io/osapi#1247 keep the value out of the job.
+secret. A chain record on the agent has `[redacted]`. With PKI on, the job has
+the value sealed to its target agents
+([Job system](job-system.md#a-secret-in-the-definition-is-sealed)).
 
 ## The secret endpoint group
 
@@ -329,7 +330,8 @@ The UI has a Secrets page in the Admin menu, at `/admin/secrets`
 
 ## What this page does not cover
 
-- The seal of a value to an agent. [Secrets](secrets.md) has the plan.
+- The seal of a value to an agent.
+  [Job system](job-system.md#a-secret-in-the-definition-is-sealed) has it.
   [Configuration](configuration.md#a-secret-can-be-a-reference-to-a-vault) has
   the references in the config, which `Set.Resolve` resolves.
 - JetStream encryption at rest, with its own key and `osapi nats key create`.

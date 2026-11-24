@@ -73,8 +73,9 @@ the controller sends a request of this type. Upgrade the agent.
 The controller has no encryption key. Its fingerprint is the hash of its Ed25519
 public key only.
 
-The [secrets plan](secrets.md#how-a-value-gets-to-the-agent) uses the key. The
-controller seals a value to it at dispatch.
+The job client seals the job key of each job with secrets to this key, and the
+agent opens it
+([Job system](job-system.md#a-secret-in-the-definition-is-sealed)).
 
 ### An agent that was admitted before the encryption key
 

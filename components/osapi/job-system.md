@@ -40,6 +40,43 @@ retry included, takes the envelope's payload and checks its signature with the
 controller's key first. A reader that parsed the envelope as the definition
 would find no created time and no operation.
 
+### A secret in the definition is sealed
+
+Built in osapi-io/osapi#1247. With PKI on, the job client seals each
+`secret.Value` of the data before it stores the definition (`request` in
+`internal/job/client`, `internal/secret/seal`):
+
+1. It makes a new random job key, and encrypts each secret value that is not
+   empty with it, with XChaCha20-Poly1305 and a new nonce. The job ID is the
+   additional data, so a value that somebody copies to a different job does not
+   open. The data has each value as the string `sealed:<base64>`, in the field
+   of the value. Thus the data has the same shape, and `secret.Value` reads it
+   as a string.
+2. It makes a new X25519 key for the job, and seals the job key to the X25519
+   key of each agent that the target can reach, with NaCl `box` (nkeys xkeys
+   `Seal`). `job.Recipients` gives the agents: each agent that takes jobs for
+   `_all`, `_any` or a label, and the agent of one host. The admission store
+   gives the X25519 key of each agent. An agent with no key gets no sealed key.
+3. The operation has `sealed_keys`, a map from machine ID to the sealed job key,
+   and `sealed_from`, the public X25519 key that sealed them. The signed
+   envelope covers them, so an agent knows that the controller sealed the job.
+
+The job key is the only part that has one copy for each agent. Thus a large
+value goes in the job one time, also to `_all`. JetStream, the job KV and the
+audit log never see the value.
+
+The agent opens its own job key with its X25519 key when it takes the job
+(`openJob` in `internal/agent`). The dispatch of a behavior decodes the input
+into the type of the method, opens each `secret.Value` with `secret.Map`, and
+gives the provider the input. The values live only in that call. A job with no
+key for the agent fails with `seal.ErrNotSealedToAgent`, "the job was not sealed
+to this agent", and does not run. Such an agent joined after the controller
+queued the job, or has no X25519 key. A retry keeps the sealed keys of the job,
+so it reaches only the same agents.
+
+With PKI off, no agent has an X25519 key in the admission store. Thus the job
+client does not seal, and the data has each value as the caller sent it.
+
 osapi records the status as **events that it only adds**. It does not change a
 field. Thus the history of a job stays after the job. Later, a reader can see
 that something was queued, started and failed, in that order.
