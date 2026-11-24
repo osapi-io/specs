@@ -2,7 +2,7 @@
 
 The controller must know two things. An answer came from the machine that it
 addressed. A machine that claims a hostname is the machine that enrolled with
-that hostname. The two facts come from one stored public key for each agent.
+that hostname. The two facts come from one stored signing key for each agent.
 
 ## Enrollment is the only thing that writes a key
 
@@ -15,12 +15,12 @@ with a different key cannot do it. A new registration cannot do it. A restart
 cannot do it. Thus an attacker who can publish to the bus cannot change a key by
 a publish. The trust anchor stays where an operator put it.
 
-The agent obeys the same rule for its own key. It makes a keypair only when
-neither file exists. A key file that it cannot read stops the agent with an
-error. Examples are a file that root still owns after the user of the agent
-changed, or one half of a pair. A replacement key gives no signal. The new key
-is not the accepted key. Thus the host stops getting jobs, and nothing at the
-agent tells why.
+The agent obeys the same rule for its own keys. It makes the signing keypair
+only when neither file exists. A key file that it cannot read stops the agent
+with an error. Examples are a file that root still owns after the user of the
+agent changed, or one half of a pair. A replacement key gives no signal. The new
+key is not the accepted key. Thus the host stops getting jobs, and nothing at
+the agent tells why.
 
 Only two events destroy a key:
 
@@ -39,6 +39,55 @@ osapi does not tell the removed agent. The agent keeps the key of the controller
 from its acceptance. Thus it thinks that it is enrolled, and does not ask again.
 To enroll it again, do a step on the host: delete `controller.pub` and restart
 the agent.
+
+## The encryption key
+
+Each agent has two keys in `agent.pki.key_dir`:
+
+| File         | Key     | Use                                      |
+| ------------ | ------- | ---------------------------------------- |
+| `agent.key`  | Ed25519 | signs job responses and registrations    |
+| `agent.pub`  | Ed25519 | the public half of the signing key       |
+| `agent.xkey` | X25519  | opens a value that the controller sealed |
+
+One key does not do both jobs. The signing key signs, and the encryption key
+opens. `agent.xkey` is an nkeys curve seed, and the seed contains its public
+key. Thus it is one file, and there is no half pair.
+
+The agent makes the encryption key when it loads the signing key. It makes the
+key only when `agent.xkey` does not exist. A file that it cannot read, or a file
+that is not a curve seed, stops the agent with an error, as for the signing key.
+
+The enrollment request sends the two public keys. The fingerprint covers the
+two. It is the SHA-256 hash of the 32 bytes of the Ed25519 public key, then the
+32 bytes of the X25519 public key, in the form `SHA256:<hex>`. The controller
+calculates it from the two keys in the request. Thus the operator who admits the
+fingerprint admits the two keys. The admitted record in the enrollment KV keeps
+the two public keys. `GET /agent` and the signed registration show the same
+fingerprint.
+
+The controller does not keep a request that has no encryption key, or one that
+is not an X25519 public key. It writes a warning to its log. An agent older than
+the controller sends a request of this type. Upgrade the agent.
+
+The controller has no encryption key. Its fingerprint is the hash of its Ed25519
+public key only.
+
+The [secrets plan](secrets.md#how-a-value-gets-to-the-agent) uses the key. The
+controller seals a value to it at dispatch.
+
+### An agent that was admitted before the encryption key
+
+osapi has no compatibility for an agent that was admitted before the encryption
+key. When the new agent starts, it makes `agent.xkey`, and its fingerprint
+changes. Its signing key does not change. Thus it keeps its work, but its
+admitted record has no encryption key. Enroll it again:
+
+1. On the host, delete `controller.pub` in `agent.pki.key_dir`, and restart the
+   agent. The agent sends a new request with the two keys.
+2. On the host, run `osapi agent key fingerprint`.
+3. Admit the machine with that fingerprint. The pending record shows the old
+   fingerprint as `previous_fingerprint`.
 
 ## What gets verified
 
@@ -126,4 +175,5 @@ the signature is in the life of a job.
 
 ______________________________________________________________________
 
-Written from `internal/agent/` and `internal/job/registration.go`.
+Written from `internal/agent/`, `internal/pki/` and
+`internal/job/registration.go`.

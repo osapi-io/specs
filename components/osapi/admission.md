@@ -63,23 +63,28 @@ machines can run jobs. Thus it is a separate permission, not part of
 ## Admit needs the fingerprint from the machine
 
 `admit` takes a fingerprint, and the controller compares it with the fingerprint
-of the key in the request. A different fingerprint answers 409, and the machine
-stays pending.
+of the keys in the request. The fingerprint covers the signing key and the
+encryption key of the agent
+([Agent identity](agent-identity.md#the-encryption-key)). A different
+fingerprint answers 409, and the machine stays pending.
 
 The fingerprint that `admission list` shows comes from the request, and so does
 the key. A copy of that value proves nothing. The operator reads the fingerprint
 on the machine:
 
 ```bash
-osapi agent key fingerprint  # on the machine: machine ID, hostname, fingerprint
+osapi agent key fingerprint  # on the machine: machine ID, hostname, keys, fingerprint
 osapi client admission admit --machine-id <id> --fingerprint SHA256:...
 ```
 
-`osapi agent key fingerprint` reads the key in `agent.pki.key_dir`, and makes
-the pair if there is none. When the two fingerprints are the same, the request
-came from the machine that the operator looked at, not from a different
-publisher on the bus. The controller calculates the fingerprint of the request
-from its public key. It does not use the fingerprint that the request states.
+`osapi agent key fingerprint` reads the keys in `agent.pki.key_dir`, and makes
+each key that does not exist. It shows the public encryption key, in the nkeys
+form that starts with `X`, and the fingerprint. When the two fingerprints are
+the same, the request came from the machine that the operator looked at, not
+from a different publisher on the bus. The controller calculates the fingerprint
+of the request from its two public keys. It does not use the fingerprint that
+the request states. Each record of the API has the public encryption key as
+`encryption_key`.
 
 A pending agent writes the same instruction to its log, with its machine ID and
 fingerprint, when it starts.
@@ -153,11 +158,11 @@ the others.
 ## The UI
 
 Admin › Admission shows the records in four sections, in the order of the states
-above. A pending card has Admit and Reject. Admit opens a field for the
-fingerprint, and the button stays off until it has a value. An admitted card has
-Revoke, which needs a second click. Each card has Delete, which also needs a
-second click. A token without `admission:write` sees the cards without the
-buttons.
+above. Each card shows the fingerprint and the public encryption key. A pending
+card has Admit and Reject. Admit opens a field for the fingerprint, and the
+button stays off until it has a value. An admitted card has Revoke, which needs
+a second click. Each card has Delete, which also needs a second click. A token
+without `admission:write` sees the cards without the buttons.
 
 ## What this page does not cover
 
