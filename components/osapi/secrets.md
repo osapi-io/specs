@@ -17,6 +17,8 @@ Each kind of secret has its own solution, and none of them is a store:
   their rotation.
 - A behavior input of type `secret.Value` stays out of the audit log, the spans
   and the chain records. [Secrets](dsls.md#secrets) has the type.
+- The route of each method resolves a reference from its vault, after the limits
+  of use. [Vaults](vaults.md#how-a-route-resolves-a-reference) has it.
 
 The type does not keep a value out of NATS. The input of a behavior is the data
 of its job, and JetStream and the job KV keep that data. A `.Before` step solves
@@ -69,7 +71,7 @@ of a key.
 
 Built in osapi-io/osapi#1240. A secret is the type `secret.Value`, not a tag.
 [The parts that each DSL shares](dsls.md#secrets) has what each part of the
-three DSLs does with it, and the limits until the vaults exist.
+three DSLs does with it, and the limit until the controller seals a value.
 [Behaviors](behaviors.md#secret-inputs) has the rule `secret` of the behavior
 DSL.
 
@@ -81,27 +83,27 @@ built: a reference in a `secret.Value` flag of a command.
 
 ## The order on the controller
 
-The generated route of a behavior method does these steps, in this order:
+The route of a behavior method does these steps, in this order:
 
 1. Validate the input. A secret field passes as a reference or a value.
-2. Resolve each reference, from any vault. A reference to a vault or a key that
-   does not exist gives 400, with the reference and not a value.
-3. Check that the caller may use each secret
-   ([Who may use a secret](#who-may-use-a-secret)). A refusal gives 403.
-4. Validate each resolved value against the `validate` tags of its field, such
-   as `no_linebreak` on a password.
-5. Run the `.Before` step, if the method has one. A step can change a secret to
+2. Resolve each reference, after the limits of use. Built in
+   osapi-io/osapi#1244: [Vaults](vaults.md#how-a-route-resolves-a-reference) has
+   the steps. The limits come before the read, so a caller that may not use a
+   secret does not learn if its key exists. Each value then passes the
+   `validate` tags of its field.
+3. Run the `.Before` step, if the method has one. A step can change a secret to
    a value made from it, such as a password to its hash. A secret that the step
    clears is not sent.
-6. Seal each secret that is still set, for the target agents
-   ([How a value gets to the agent](#how-a-value-gets-to-the-agent)).
-7. Queue the job.
+4. Seal each secret that is still set, for the target agents
+   ([How a value gets to the agent](#how-a-value-gets-to-the-agent)). Not built.
+   Until it is, the job has the value.
+5. Queue the job.
 
 Today a guard fails the request when a `.Before` step leaves a secret field set
-(`internal/behavior/before.go`). After step 6 exists, the guard goes: a value
+(`internal/behavior/before.go`). After step 4 exists, the guard goes: a value
 that is still set is sealed, not refused.
 
-An endpoint method runs on the controller, so it does steps 1 to 4, and gives
+An endpoint method runs on the controller, so it does steps 1 and 2, and gives
 the value to its handler. It queues nothing, so it seals nothing.
 
 ## How a value gets to the agent
@@ -162,7 +164,8 @@ credentials of the agent stay in its config file or its environment.
 
 ## Who may use a secret
 
-Three limits apply to each reference in a request. All three must pass:
+Built in osapi-io/osapi#1244, with `secret:use` from osapi-io/osapi#1243. Three
+limits apply to each reference in a request. All three must pass:
 
 - **The permission `secret:use`.** `admin` and `automation` have it. A secret
   goes into a write that changes the configuration of a host, and `automation`
@@ -171,11 +174,13 @@ Three limits apply to each reference in a request. All three must pass:
 - **The target scope of the token.** It limits the hosts, as for each other
   request ([Permissions](permissions.md#a-tokens-target-scope)).
 - **The targets of the vault.** A vault can name the targets that its secrets go
-  to, such as `group:prod`. The controller refuses to seal a secret of that
-  vault for an agent outside them. A vault with no targets goes to each host.
+  to, such as `group:prod`. The route refuses a reference to that vault when the
+  host of the request is outside them, and when the request names no host. A
+  vault with no targets goes to each host.
 
-The audit entry of the request records each reference that it used. Thus
-`osapi client audit list` shows who used a secret, when, and on which hosts.
+The audit entry of the request records each reference that it used, because the
+audit keeps a reference in the body. Thus `osapi client audit list` shows who
+used a secret, when, and on which hosts.
 
 ## The secret endpoint group
 
@@ -287,7 +292,8 @@ Each part is an issue in osapi, in this order:
 04. The `secret` endpoint group and its area, `secret:read`, `secret:write` and
     `secret:use`, and the Secrets page of the UI.
 05. Resolution on the controller: the order above, the three limits of use, and
-    the references in the audit entry.
+    the references in the audit entry. Built:
+    [Vaults](vaults.md#how-a-route-resolves-a-reference).
 06. Built: `secret://` references in the config, resolved at startup and by the
     commands that read them
     ([Configuration](configuration.md#a-secret-can-be-a-reference-to-a-vault)).
