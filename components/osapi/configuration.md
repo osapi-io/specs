@@ -188,7 +188,9 @@ references:
 
 - a reference that does not parse. `vault.ParseReference` in
   `internal/secret/vault` has the syntax.
-- a reference to a vault that `controller.secrets.vaults` does not have.
+- a reference to a vault that `controller.secrets.vaults` does not have. A
+  config with no vaults has one, `default`, so `secret://default/<key>` works on
+  a new install ([Vaults](vaults.md) has its key file).
 - a reference in a field with the tag `noref`. The tag holds the reason.
 
 The rule `value` does not apply to a reference. The rule of the key applies to
