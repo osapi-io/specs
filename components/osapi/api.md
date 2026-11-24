@@ -103,7 +103,9 @@ A list of the controller answers with its things in `items`, and their count in
 files, the stale deployments and the jobs all use this shape.
 
 A node operation answers `results`, which is not a list of things. It is the
-answer of each host.
+answer of each host. The catalog, `GET /api/catalog`, is one document, not a
+list of things, as the health is. `TestConventions` does not ask them for
+`items`.
 
 ## A read is a GET
 

@@ -57,13 +57,13 @@ The shared components that each page uses for the same thing:
 | ----------------------- | -------------------------------------------------------------------- |
 | a card                  | `components/ui/card.tsx`                                             |
 | a table                 | `components/ui/data-table.tsx`: CLI headers, and "None." if empty    |
-| a status                | `Badge`, `HealthDot` and `Text`, with `lib/status.ts`                |
+| a status                | `Badge`, `HealthDot` and `Text`, with `useStatus`                    |
 | a page that loads       | `components/ui/spinner.tsx`                                          |
 | a page without its perm | `components/layout/permission-denied.tsx`                            |
 | an empty page           | `components/ui/empty-state.tsx`                                      |
 | an error                | `components/ui/error-banner.tsx`                                     |
 | key-value pairs         | `components/ui/kv-list.tsx`: the values line up, as `PrintKV`        |
-| a count                 | `components/ui/count.tsx`, with `COUNT_TONES`                        |
+| a count                 | `components/ui/count.tsx`, with the count tones of the catalog       |
 | a result's summary line | `components/domain/result-summary.tsx`                               |
 | a job                   | `JobView` in `components/domain/job-detail.tsx`, as `job get`        |
 | a time, age or duration | `lib/format.ts`                                                      |
@@ -155,35 +155,38 @@ page keeps it. This is the verification of the server, not of the UI. The server
 still checks each request after sign-in.
 
 A token in `localStorage` from an earlier session gets no check. If the server
-refuses it, each page shows an error until the person signs out.
+refuses it, the catalog does not load, and the UI shows the reason with a sign
+out.
+
+The sign-in page needs no catalog. `SessionProvider` (`ui/src/lib/session.tsx`)
+keeps the token, and `useSession()` reads it. After sign-in, the UI loads the
+catalog, and only then shows a page ([the catalog](#the-catalog)).
 
 The permission model of the UI is the model of osapi. The roles claim uses the
 permissions and the six built-in roles that the API checks.
 [Permissions](permissions.md) describes them. The UI does not keep its own list.
-`go generate ./internal/behaviors/all` writes `ui/src/lib/permissions.gen.ts`
-from `AllPermissions` and `RolePermissions` in `internal/authtoken`, with every
-behavior registered. A Go test fails when the file is stale, and TypeScript
-fails the build on a permission that Go does not have. A hand copy came before
-it, and it was out of date: it had `cron:*`, `hostname:*` and `group:*`, which
-no token has, and did not have `schedule:*` (osapi-io/osapi#749). The published
+The catalog has each permission, and each built-in role in order with its
+description and its permissions, from `AllPermissions`, `Roles`,
+`RoleDescription` and `RolePermissions` in `internal/authtoken`. `AuthProvider`
+(`ui/src/lib/auth.tsx`) is inside the catalog. It finds the role of the token,
+or of the role switch, in the roles of the catalog. A role that the catalog does
+not have gets the last role, which has the least. The role switch and the Roles
+page show the roles of the catalog. The `Permission` type of the UI is the
+`Permission` enum of the spec, so TypeScript fails the build on a permission
+that the controller does not have. A hand copy came before the generated list,
+and it was out of date: it had `cron:*`, `hostname:*` and `group:*`, which no
+token has, and did not have `schedule:*` (osapi-io/osapi#749). The published
 site also tells what each role permits for an *operator*, because a person who
-configures a role looks there. The same file has `BUILT_IN_ROLES`, the built-in
-roles in order with the description of each, from `authtoken.RoleDescription`,
-for the role switch and the Roles page.
-
-These `.gen.ts` files are a second channel beside the spec and the SDK, and a
-file that the build fixes cannot show a behavior that an extension adds at run
-time. osapi-io/osapi#1256 replaces them with one served catalog endpoint that
-the UI reads through the generated client.
+configures a role looks there.
 
 A page, its link in the Admin menu and each control that writes check the API
-operation that they call, not a permission. `useAuth().canCall("getAdmissions")`
-reads the permission from `OPERATION_PERMISSIONS` in
-`ui/src/lib/operations.gen.ts`, which
-`go generate ./internal/authtoken/gen/operations` writes from the endpoint
-groups and the behaviors. Thus a link and its page cannot disagree. Before, the
-Admin menu showed each link to a role with `audit:read`, and each page typed its
-own permission: an auditor saw Admission, and the page refused it
+operation that they call, not a permission. `useAuth().canCall("GetAdmissions")`
+reads the permission of the operation from the operations of the catalog. The
+type of the argument is the `OperationID` enum of the spec, so TypeScript fails
+the build on an operation that the API does not have. An operation that the
+catalog does not have is refused. Thus a link and its page cannot disagree.
+Before, the Admin menu showed each link to a role with `audit:read`, and each
+page typed its own permission: an auditor saw Admission, and the page refused it
 (osapi-io/osapi#1232). `ui/src/lib/can-call.test.ts` fails on a permission typed
 into `can("...")`. Roles calls no API, so each role sees it.
 
@@ -194,18 +197,30 @@ detail of an audit entry shows the scope that the entry records. The UI does not
 hide a host outside the scope. The controller refuses a request to it with 403.
 [Permissions](permissions.md#a-tokens-target-scope) tells the rule.
 
-## The catalog of the behaviors
+## The catalog
 
-The registry of behaviors makes the catalog of the UI.
-`go generate ./internal/behaviors/all` runs `internal/behavior/uicatalog/gen`,
-which writes `ui/src/lib/catalog.gen.ts`. The catalog has each behavior that the
-API serves, and each internal behavior. Each behavior has:
+The UI gets its metadata from one operation of the controller,
+`GET /api/catalog` (`osapi client catalog get`), through the generated client.
+The `catalog` endpoint group builds it on each request from the registries of
+the controller ([Endpoints](endpoints.md#the-inventory)). The catalog has:
+
+- each behavior that the API serves, and each internal behavior.
+- each area of `area.All`, in order, with its label.
+- each permission, and each built-in role in order, with its description and its
+  permissions.
+- the permission of each operation that needs one, by its operationId, from
+  `authtoken.Operations`.
+- the tones of the status words and of the counts, from `StatusTones` and
+  `CountTones` of the CLI ([color](#color-one-palette-with-the-cli)).
+- the host families, the platforms that gohai names.
+
+Each behavior has:
 
 - its name, its title from its definition, such as "Package updates", its area,
   its doc and its parent, such as `user` for `sshkey`.
 - the platforms of its providers, such as `debian` and `darwin`.
-- the behaviors that it calls and the behaviors that call it, and its chain, as
-  `osapi dsl chain list` prints it.
+- the behaviors that it calls, `uses`, and the behaviors that call it,
+  `used_by`, and its chain, as `osapi dsl chain list` prints it.
 - its methods.
 
 Each method has:
@@ -214,8 +229,8 @@ Each method has:
   of the method: `read`, `write`, or a verb of an action (`execute`, `shell` or
   `exec`).
 - its doc and its long doc.
-- the HTTP method and the path of its route, and its permission. An internal
-  behavior has no route and no permission.
+- the HTTP method and the path of its route, `http_method` and `path`, and its
+  permission. An internal behavior has no route and no permission.
 - the platforms that it runs on: the platforms that its `On` limits it to, else
   each platform of the behavior.
 - its input and output types, with their fields, as `osapi dsl behavior get`
@@ -227,19 +242,44 @@ Each method has:
   label, the `render` tag, and the fields of an object or of a list of objects.
 - its calls: the calls that its examples make to other behaviors, under the call
   that made them, each one time. `behaviortest.Chains` runs each example on a
-  fake host and records the calls, as `osapi dsl chain get` does.
+  fake host and records the calls, as `osapi dsl chain get` does. It takes
+  approximately 20 ms for each request.
 - its examples, with their input and output. A secret of an input is
   `[redacted]`.
 
-`catalog.gen.ts` also has `AREAS`, which the generator writes from `area.All`:
-the name and the label of each area, in order. A Go test fails when the file is
-stale. The pages read the catalog only through `useCatalog()` in
-`ui/src/hooks/use-catalog.ts`. Thus, when the controller serves the catalog
-later (osapi#1064), only the hook changes. `ui/src/lib/catalog-index.ts` indexes
-the catalog: the behaviors by name, the sections of the Behaviors page by area,
-and the definition of each step that a plan can run. The pages that read the
-catalog load it when a person first opens one of them, because the catalog is
-most of the size of the UI.
+The spec has the types of the catalog, so `orval` generates them, and
+`ui/src/lib/catalog.ts` uses them. The `Permission` and the `OperationID` types
+are enums of the spec, which `endpoint.Enum` makes from the registries
+([Endpoints](endpoints.md#the-definition)).
+
+`CatalogProvider` (`ui/src/lib/catalog-provider.tsx`) loads the catalog one time
+after sign-in. Until it has the catalog, it shows a spinner, and no page. When
+the load fails, it shows the reason, with Retry and Sign out. Each page reads
+the catalog only through `useCatalog()` in `ui/src/hooks/use-catalog.ts`, and
+`useStatus()` gives the colors of a status word from its tones.
+`ui/src/lib/catalog-index.ts` indexes the catalog: the behaviors by name, the
+sections of the Behaviors page by area, the definition of each step that a plan
+can run, the roles, and the permission of each operation.
+
+The controller builds the catalog on each request. Thus a behavior that an
+extension adds at run time (osapi-io/osapi#1064) is in the next catalog. No file
+of the UI holds a copy, so no test checks that a file is current. Until
+osapi-io/osapi#1256 Go wrote four TypeScript files beside the spec, and a Go
+test failed on each when it was stale:
+
+| File                            | Generator                           |
+| ------------------------------- | ----------------------------------- |
+| `ui/src/lib/catalog.gen.ts`     | `internal/behavior/uicatalog/gen`   |
+| `ui/src/lib/permissions.gen.ts` | `internal/authtoken/gen`            |
+| `ui/src/lib/operations.gen.ts`  | `internal/authtoken/gen/operations` |
+| `ui/src/lib/status.gen.ts`      | `internal/cli/gen`                  |
+
+Each was a second channel beside the spec, which the build fixed. The catalog
+was also most of the size of the UI, so the pages that read it loaded it on the
+first visit.
+
+Each test of the UI that needs a catalog uses `ui/src/test/catalog.ts`, a small
+catalog in the shape that the controller answers.
 
 Before osapi-io/osapi#1197 the generator was `internal/behavior/uiblocks`. It
 wrote `blocks.gen.ts`, with a block of the Configure page for each method: the
@@ -250,8 +290,9 @@ that it needs, the platforms that it runs on, or the behaviors that it calls.
 
 ## The Behaviors page
 
-`/behaviors` lists the behaviors by area, in the order of `AREAS`. An area with
-no behavior, such as `fleet`, has no section. The three levels look different:
+`/behaviors` lists the behaviors by area, in the order of the areas of the
+catalog. An area with no behavior, such as `fleet`, has no section. The three
+levels look different:
 
 - An area is a section heading.
 - A behavior is a row: its title, its name, its doc, the behaviors that it
@@ -321,10 +362,11 @@ Above the steps, a preflight shows what the plan needs:
 - each host of a target where a method does not run. The preflight reads the
   platform of a host from `os_info.family` of the agent list. The agent reports
   there the family that it picks providers by, from gohai's `family.Detect`
-  (osapi#1224). The catalog gives each method `runsOn`: the host platforms that
+  (osapi#1224). The catalog gives each method `runs_on`: the host platforms that
   it runs on, from `Behavior.RunsOnHost`, the rule that the agent itself calls,
-  and `*` for a Linux host whose platform gohai has no family for. The UI does
-  not copy the rule (osapi#1235).
+  and `*` for a Linux host whose platform gohai has no family for. A platform
+  that is not one of the host families of the catalog is such a host. The UI
+  does not copy the rule (osapi#1235).
 - the count of steps that wait for input or a target.
 
 The preflight refuses nothing. **Run** runs each step that can run, in order,
@@ -343,19 +385,17 @@ The Object Store area of the list has four steps that run on the controller:
 `objectstore.list`, `objectstore.upload`, `objectstore.delete` and
 `objectstore.stale`. They are not behaviors, so they are not on the Behaviors
 page. They take no target. Each names the operation that it calls in
-`catalog-index.ts`, and its permission comes from
-`ui/src/lib/operations.gen.ts`, which
-`go generate ./internal/authtoken/gen/operations` writes. TypeScript fails the
-build on an operation that the spec does not have. A workflow cannot run them
-yet, so the YAML has them as a comment. The audit log is not in the list. The
-Audit page, at `/admin/audit`, lists, opens and exports the entries.
+`catalog-index.ts`, and its permission comes from the operations of the catalog.
+TypeScript fails the build on an operation that the spec does not have. A step
+whose operation the catalog does not have is not in the list. A workflow cannot
+run them yet, so the YAML has them as a comment. The audit log is not in the
+list. The Audit page, at `/admin/audit`, lists, opens and exports the entries.
 
-A step is refused when its permission is not one that the UI knows. `permitted`
-in `ui/src/lib/permissions.ts` allows a permission only when it is in the
-generated list of permissions and the role has it. Before osapi-io/osapi#1161
-the panel of the Configure page enabled a block that had no permission. Command
-exec and ping had no entry, so a role that cannot run a command saw both
-enabled.
+A step is refused when it has no permission. `permitted` in
+`ui/src/lib/permissions.ts` allows a permission only when the role has it, and a
+role has only the permissions of the catalog. Before osapi-io/osapi#1161 the
+panel of the Configure page enabled a block that had no permission. Command exec
+and ping had no entry, so a role that cannot run a command saw both enabled.
 
 The result of a method groups its rows by host and shows each field of the
 output by its label (`GenericRowsResult` in `result-card.tsx`). It formats a
@@ -451,20 +491,20 @@ The loading spinner takes one heading color, which `spinner-color.ts` selects
 one time for each page load.
 
 **A status word has the color that the CLI gives it.** `StatusTones` in
-`internal/cli/theme.go` gives each status word a tone: ok, warn or err. Go
-generate writes the map to `ui/src/lib/status.gen.ts`, and a test in
-`internal/behaviors/all` fails when that file is stale. `statusVariant()` in
+`internal/cli/theme.go` gives each status word a tone: ok, warn or err. The
+catalog serves the map as `status_tones`. `statusVariant()` in
 `ui/src/lib/status.ts` reads the first word of a status, lowercased, as the CLI
 does. It gives the `Badge` variant. `statusDot()` and `statusText()` give the
-`HealthDot` and `Text` colors of the same word. Each badge, dot and status text
-uses them. A page does not map a status to a color of its own. A word that the
-CLI does not color, such as `processing`, is gray. Thus `skipped`, `submitted`,
-`draining` and a condition are amber on each page and in the terminal.
+`HealthDot` and `Text` colors of the same word. `useStatus()` gives the three
+with the tones of the catalog, and each badge, dot and status text uses it. A
+page does not map a status to a color of its own. A word that the CLI does not
+color, such as `processing`, is gray. Thus `skipped`, `submitted`, `draining`
+and a condition are amber on each page and in the terminal.
 
 A count has a tone too. `CountTones` in the same file gives the tone of a count
 above zero by what it counts: `failed` and `dlq` are red, `unprocessed` and
-`skipped` are amber, `completed` is green. A zero is gray. Go generate writes
-`CountTones` to the same file as `COUNT_TONES`, and `Count` reads it.
+`skipped` are amber, `completed` is green. A zero is gray. The catalog serves
+`CountTones` as `count_tones`, and `Count` reads it.
 
 An HTTP method, an HTTP code, a role and a target group are not statuses, so
 they never take green, amber or red. The audit log shows a method in bold, as
@@ -550,4 +590,5 @@ orval client's constants, such as `GetJobsStatus`, not a typed string
 
 ______________________________________________________________________
 
-Written from `ui/` and `internal/controller/api/ui/`.
+Written from `ui/`, `internal/controller/api/ui/` and
+`internal/controller/endpoints/catalog/`.

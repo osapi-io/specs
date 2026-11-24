@@ -603,7 +603,6 @@ writes:
 | `internal/behaviors/all/gen/gen.go`                             | the import of every behavior's generated code: its routes and commands                                                                                                 |
 | `docs/docs/sidebar/reference/behaviors/<area>/<name>/<name>.md` | the behavior's page, in the folder of its area, or of `internal` for an internal behavior: `behavior get` and `method get` as markdown ([The docs site](docs-site.md)) |
 | `docs/docs/sidebar/reference/chains/<area>/<name>.md`           | the chain's page of a behavior that requires others, in the folder of its area: `dsl chain get` as markdown ([The docs site](docs-site.md))                            |
-| `ui/src/lib/catalog.gen.ts`                                     | the catalog of the UI: each behavior and method, with its permission, platforms, chain and examples, from `internal/behavior/uicatalog/gen` ([The embedded UI](ui.md)) |
 
 osapi generates the code into files. It does not build it when it starts. Thus a
 reviewer reads and diffs exactly what a route or a command does, as people read
