@@ -64,8 +64,10 @@ own facts (`internal/agent/factref.go`). The controller resolves `secret://`,
 because the agent has no vault and no credentials for one. Thus an agent never
 sees a reference, and the controller never sends a value that it did not seal.
 
-The API never returns the value of a secret. It returns names, and the metadata
-of a key.
+Only `secret:reveal` returns the value of a secret, through
+`osapi client secret reveal`, and only `admin` has it. Each other method returns
+names, and the metadata of a key
+([The secret endpoint group](vaults.md#the-secret-endpoint-group)).
 
 ## A secret in the DSLs
 
@@ -168,7 +170,8 @@ used a secret, when, and on which hosts.
 Built in osapi-io/osapi#1243.
 [The secret endpoint group](vaults.md#the-secret-endpoint-group) has its
 methods, its commands, its permissions and the roles that get them, and the
-Secrets page of the UI. No method gives a value.
+Secrets page of the UI. Only `reveal`, with `secret:reveal`, gives a value
+(osapi-io/osapi#1309).
 
 ## A vault is a backend that you can replace
 

@@ -132,6 +132,7 @@ that needs it is marked `AdminOnly()`:
 | `user:write`                                   | an account or an SSH key reaches root                  |
 | `schedule:write`                               | a cron entry runs a command as any user                |
 | `admission:write`, `agent:write`, `audit:read` | `AdminOnly()` on the endpoint groups                   |
+| `secret:reveal`                                | `AdminOnly()` on secret reveal: the value of a secret  |
 
 `schedule:write` is admin only from `AdminOnly()` on the create, update and
 delete methods of the schedule behavior (osapi-io/osapi#1106). `command:execute`
@@ -177,6 +178,8 @@ request needs it to give a reference to a secret. `authtoken` declares it,
 because no method needs it. The rule gives `automation` each `use` permission,
 because a secret goes into a write. `operator` does not get it, because no
 action takes a secret ([Vaults](vaults.md#the-secret-endpoint-group)).
+`secret:reveal` gives the value of a secret, so it is admin only, from
+`AdminOnly()` on `secret reveal`.
 
 `catalog:read` is in each built-in role. The UI loads the catalog after sign-in
 and shows no page without it ([the UI](ui.md#the-catalog)). Thus each role that
