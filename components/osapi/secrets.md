@@ -234,6 +234,19 @@ osapi client secret set --vault default --key registry-token < token.txt
 osapi client secret list --vault default
 ```
 
+The commands are under `osapi client`, as the commands of each endpoint group
+are, because they go through the API: they work from each host, and each call
+has a permission check and an audit entry. The vault key is different. It is a
+file on the controller host, and the API does not give it or change it. Thus its
+two commands are under `osapi controller`, as `osapi controller key fingerprint`
+reads the PKI key in `key_dir`. They run on the controller host, and read the
+config there:
+
+| Command                                | What it does                                         |
+| -------------------------------------- | ---------------------------------------------------- |
+| `osapi controller secret key generate` | makes the key of the `nats` vault in `key_file`      |
+| `osapi controller secret rotate`       | adds a new key, encrypts each value again, drops old |
+
 The group is in a new area, `secrets`, as the Object Store has its own area. A
 secret is not a step of a plan, because a plan file holds no values. The UI has
 a Secrets page in the Admin menu that lists the names and sets a value with a
@@ -294,9 +307,10 @@ each value encrypted in a JetStream KV bucket, `osapi-secrets`:
 - The KV keeps the earlier versions of a key, so `get` can show its history.
 - The vault key comes from `key_file`, or from an environment variable that the
   config names. A KMS or a TPM can give the key later, through the same setting.
-- A rotation adds a new key and keeps the old key for reads. A command encrypts
-  each value again with the new key, then the old key goes. This is the model of
-  `JetStreamOldKey` in NATS.
+- A rotation adds a new key and keeps the old key for reads.
+  `osapi controller secret rotate` encrypts each value again with the new key,
+  then the old key goes. This is the model of `JetStreamOldKey` in NATS.
+- `osapi controller secret key generate` makes the vault key in `key_file`.
 
 osapi also turns on JetStream encryption at rest, with its own key. That key
 protects each stream and bucket on the disk, not only the secrets, and NATS
@@ -336,8 +350,8 @@ not put a value in a command, a plan or a file.
 - **The JWT signing key.** The controller accepts tokens from more than one key,
   each with its own `kid`, and signs with the newest. Thus a new key goes in
   first, and the old one goes after the last token that it signed expires.
-- **The vault key.** A new key and a command that encrypts each value again, as
-  in [the built-in vault](#the-built-in-vault).
+- **The vault key.** `osapi controller secret rotate`, on the controller host,
+  as in [the built-in vault](#the-built-in-vault).
 - **The PKI keys.** As now, with the grace period of
   [Agent identity](agent-identity.md#rotation-without-an-outage).
 - **NATS credentials.** Out of scope here. The embedded server reads them from
@@ -349,7 +363,8 @@ Each part is an issue in osapi, in this order:
 
 01. `secret.Value` in `internal/secret`, in place of the `secret` tag, with the
     `secret` rule in each DSL and the `dslcheck` guard.
-02. The `Vault` interface, the `nats` type and the `controller.secrets` config.
+02. The `Vault` interface, the `nats` type, the `controller.secrets` config, and
+    `osapi controller secret key generate` and `rotate`.
 03. JetStream encryption at rest, with its key in the config.
 04. The `secret` endpoint group and its area, `secret:read`, `secret:write` and
     `secret:use`, and the Secrets page of the UI.
