@@ -130,12 +130,15 @@ osapi
 The tree is the plan. Three pull requests build it, in sequence, because each
 edits the same registration lists. The first builds the rules, the root and the
 local commands ([moved on 24 November 2026](#moved-on-24-november-2026)). The
-second moves the client groups: `facts keys list` to `agent facts list`,
-`telemetry trace get` to `trace get`, and the `status` of each component to
-`health status --component`. The third moves the node paths: the behaviors
-without category words, the area help headings, `file get`, `package updates`
-and `user password update`. The `secret`, `vault` and `nats key` commands come
-with secret management (osapi-io/osapi#1065), not with these moves.
+second moved the client groups (osapi-io/osapi#1257): `facts keys list` to
+`agent facts list` (`GET /api/agent/facts`), `telemetry trace get` to
+`trace get` (`GET /api/trace/{id}`), and `controller status`, `nats status` and
+`agent status` to `health status --component controller|nats|agent`. The
+`facts`, `controller` and `nats` endpoint groups went. The third moves the node
+paths: the behaviors without category words, the area help headings, `file get`,
+`package updates` and `user password update`. The `secret`, `vault` and
+`nats key` commands come with secret management (osapi-io/osapi#1065), not with
+these moves.
 
 ### Where the rules are
 
@@ -187,7 +190,7 @@ a deploy writes each path as root, and `file:write` stays with `automation`.
 A command is `<resource> <verb>`. A noun that is used as a command becomes a
 filter on `list`, or a resource with its own verbs under it: `file stale list`,
 `package list --updates`, `log source list`, `user password update`,
-`facts keys list`. Do not use synonyms. Use `delete`, never `remove` or `rm`.
+`agent facts list`. Do not use synonyms. Use `delete`, never `remove` or `rm`.
 Use `create`, never `add` or `new`. Use `get`, never `describe` or `show`.
 
 A command directly under `osapi` that acts on the whole binary or host is not a
