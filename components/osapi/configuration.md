@@ -145,6 +145,13 @@ Password   string     `mapstructure:"password"   mask:"password"`
 it logs the config. Thus the code reads the tags. They are not decoration. Seven
 fields have a mask tag.
 
+A key that osapi keeps on the disk is a file, and the config has only its path.
+`nats.server.jetstream.key_file` is one: the key that encrypts the streams of
+the embedded server. A path is not a secret, so it has no mask, and the
+controller logs it.
+[The message bus](transport.md#the-streams-are-encrypted-on-the-disk) has the
+key.
+
 **The agent does not mask, because it does not log the struct.** It logs named
 fields: host, port and client name. It never logs a password. These are two
 different solutions to the same problem. The solution of the agent stays safe
