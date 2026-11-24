@@ -4,9 +4,10 @@ A vault is a store of secrets on the controller. It has a name and a type. The
 controller resolves a `secret://<vault>/<key>` reference through the vault that
 the reference names. `internal/secret/vault` has the interface and the registry
 of types. `internal/secret/vault/natsvault` has `nats`, the one type that osapi
-ships. [Secrets](secrets.md) has the plan that uses the vaults: the reference
-syntax, the `secret` endpoint group, and the values that the controller seals to
-an agent.
+ships. [The secret endpoint group](#the-secret-endpoint-group) reads and writes
+the keys through the API. [Secrets](secrets.md) has the plan that uses the
+vaults: the reference syntax, and the values that the controller seals to an
+agent.
 
 ## The interface
 
@@ -257,10 +258,77 @@ because the audit records the body of the request. A span never records a
 secret. A chain record on the agent has `[redacted]`, because the job has the
 value. The sealed values of osapi-io/osapi#1247 keep the value out of the job.
 
+## The secret endpoint group
+
+The `secret` endpoint group reads the vaults and writes a key through the API
+(osapi-io/osapi#1243). It is in `internal/controller/endpoints/secret`, in the
+area `secrets`. A secret is data that an operator adds at run time, as a file in
+the Object Store is. Thus it is a group of the endpoint DSL, not a new DSL, and
+it gets each generated part: the spec, the routes, the SDK service, the CLI
+commands and their pages.
+
+| Method | Path                        | Permission     | CLI                              |
+| ------ | --------------------------- | -------------- | -------------------------------- |
+| GET    | `/api/secret`               | `secret:read`  | `osapi client secret vault list` |
+| GET    | `/api/secret/{vault}`       | `secret:read`  | `osapi client secret list`       |
+| GET    | `/api/secret/{vault}/{key}` | `secret:read`  | `osapi client secret get`        |
+| PUT    | `/api/secret/{vault}/{key}` | `secret:write` | `osapi client secret update`     |
+| DELETE | `/api/secret/{vault}/{key}` | `secret:write` | `osapi client secret delete`     |
+
+**No method gives a value.** Each answer is the metadata of a key: its vault,
+its key, its version, when it changed and who changed it. `get` finds the key in
+`List`, not with `Get`, so the controller does not decrypt a value to answer.
+
+- `vault list` gives each vault of `controller.secrets.vaults`, with its type,
+  its targets, and `answers`: true when the vault gave a list of its keys.
+- `update` writes the value as the next version of the key, or as version 1 of a
+  new key, and answers 200 with the metadata. The body is `{"value": "..."}`, a
+  `secret.Value` of at most 64 KiB. The route puts the subject of the token in
+  the context with `vault.WithActor`, so `by` is who wrote it. A reference as
+  the value resolves first, as in each route
+  ([How a route resolves a reference](#how-a-route-resolves-a-reference)). Thus
+  `update` with `secret://default/other` copies the value of that key, and needs
+  `secret:use`.
+- A vault that the config does not name is 404, and so is a key that is not in
+  its vault. A vault name and a key are letters, digits, `-` and `_`, the rule
+  `resource_name`. A vault name has 64 characters at most, and a key 128, as the
+  config and `vault.CheckKey` require.
+
+The CLI reads the value from standard input with `--value -`. It refuses a
+literal value in a flag, because the shell history keeps it:
+
+```bash
+osapi client secret update --vault default --key registry-token --value - < token.txt
+osapi client secret list --vault default
+```
+
+The commands are under `osapi client`, because they go through the API: they
+work from each host, and each call has a permission check and an audit entry.
+The vault key is a file on the controller host, which the API does not give or
+change, so its two commands are under `osapi controller`.
+
+The endpoint DSL got two refinements for the group. `.Key("vault", "key")` names
+the path fields of a key in order, for `/api/secret/{vault}/{key}`.
+`.CommandSub("vault")` puts a command under a word that is not in the path, for
+`secret vault list`. [Endpoints](endpoints.md#the-definition) has both.
+
+The permissions and the roles that get them:
+
+| Permission     | Roles                                     | Why                                                                  |
+| -------------- | ----------------------------------------- | -------------------------------------------------------------------- |
+| `secret:read`  | `admin`, `operator`, `automation`, `read` | the rule of the `read` verb. It gives names and metadata, no value   |
+| `secret:write` | `admin`, `automation`                     | the rule of the `write` verb                                         |
+| `secret:use`   | `admin`, `automation`                     | a secret goes into a write, and `automation` is the role that writes |
+
+`authtoken` declares `secret:use`, because no method of this group needs it. A
+request needs it for each reference that it gives
+([How a route resolves a reference](#how-a-route-resolves-a-reference)).
+
+The UI has a Secrets page in the Admin menu, at `/admin/secrets`
+([The UI](ui.md#the-four-kinds-of-component)).
+
 ## What this page does not cover
 
-- The `secret` endpoint group, and who may read or write a secret
-  ([osapi #1243](https://github.com/osapi-io/osapi/issues/1243)).
 - The seal of a value to an agent. [Secrets](secrets.md) has the plan.
   [Configuration](configuration.md#a-secret-can-be-a-reference-to-a-vault) has
   the references in the config, which `Set.Resolve` resolves.
@@ -272,4 +340,6 @@ value. The sealed values of osapi-io/osapi#1247 keep the value out of the job.
 ______________________________________________________________________
 
 Written from `internal/secret/vault/`, `internal/secret/vault/natsvault/`,
-`internal/config/vaults.go` and `internal/cli/commands/vaultkey/`.
+`internal/config/vaults.go`, `internal/cli/commands/vaultkey/`,
+`internal/controller/endpoint/server/secrets.go` and
+`internal/controller/endpoints/secret/`.

@@ -184,45 +184,10 @@ used a secret, when, and on which hosts.
 
 ## The secret endpoint group
 
-A secret is set and read through an endpoint group, `secret`, in the endpoint
-DSL ([Endpoints](endpoints.md)). It is not a new DSL. A DSL is for a thing that
-a contributor defines in Go, many times. A secret is data that an operator adds
-at run time, as a file in the Object Store is. Thus the group gets each part of
-the endpoint DSL with no new code: its OpenAPI spec, `endpoint validate`, the
-SDK service, the CLI commands, the docs pages, its permissions and the
-`apicontract` golden file.
-
-| Method | Path                        | Permission     | CLI                              |
-| ------ | --------------------------- | -------------- | -------------------------------- |
-| GET    | `/api/secret`               | `secret:read`  | `osapi client secret vault list` |
-| GET    | `/api/secret/{vault}`       | `secret:read`  | `osapi client secret list`       |
-| GET    | `/api/secret/{vault}/{key}` | `secret:read`  | `osapi client secret get`        |
-| PUT    | `/api/secret/{vault}/{key}` | `secret:write` | `osapi client secret update`     |
-| DELETE | `/api/secret/{vault}/{key}` | `secret:write` | `osapi client secret delete`     |
-
-- `vault list` lists each vault with its type, its targets and whether it
-  answers.
-- `get` gives the metadata of a key: its version, when it changed, and who
-  changed it. It never gives the value. No method gives a value.
-- `update` takes the value as a `secret.Value` body field. Thus the generated
-  CLI reads it from standard input, or asks for it with the echo off:
-
-```bash
-osapi client secret update --vault default --key registry-token < token.txt
-osapi client secret list --vault default
-```
-
-The commands are under `osapi client`, as the commands of each endpoint group
-are, because they go through the API: they work from each host, and each call
-has a permission check and an audit entry. The vault key is different. It is a
-file on the controller host, and the API does not give it or change it. Thus its
-two commands, `osapi controller vault key create` and `rotate`, are under
-`osapi controller` ([Vaults](vaults.md#the-vault-key)).
-
-The group is in a new area, `secrets`, as the Object Store has its own area. A
-secret is not a step of a plan, because a plan file holds no values. The UI has
-a Secrets page in the Admin menu that lists the names and sets a value with a
-write-only field, under `canCall` of the group's operations.
+Built in osapi-io/osapi#1243.
+[The secret endpoint group](vaults.md#the-secret-endpoint-group) has its
+methods, its commands, its permissions and the roles that get them, and the
+Secrets page of the UI. No method gives a value.
 
 ## A vault is a backend that you can replace
 
@@ -289,8 +254,9 @@ Each part is an issue in osapi, in this order:
     ([Vaults](vaults.md)).
 03. JetStream encryption at rest, with its key in the config and
     `osapi nats key create`. Built: osapi #1242.
-04. The `secret` endpoint group and its area, `secret:read`, `secret:write` and
-    `secret:use`, and the Secrets page of the UI.
+04. Built: the `secret` endpoint group and its area, `secret:read`,
+    `secret:write` and `secret:use`, and the Secrets page of the UI
+    ([Vaults](vaults.md#the-secret-endpoint-group)).
 05. Resolution on the controller: the order above, the three limits of use, and
     the references in the audit entry. Built:
     [Vaults](vaults.md#how-a-route-resolves-a-reference).

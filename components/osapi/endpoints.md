@@ -124,7 +124,20 @@ var Group = endpoint.Register(endpoint.Define(
   `in:"query"` is a query parameter. The other fields are the JSON body, or one
   field tagged `in:"body"` is the whole body. `endpoint validate` fails any
   other value of `in`, under the rule `in`, because such a field went into the
-  body with no error. The path is `/api/<group>[/<sub>][/{key}][/<action>]`.
+  body with no error. The path is `/api/<group>[/<sub>][/{key}...][/<action>]`.
+
+- **A key** is one `in:"path"` field, or more than one in the order of the path.
+  The DSL allows path keys in order: `.Key("vault", "key")` makes
+  `/api/secret/{vault}/{key}`, for a key that is unique only in the thing that
+  holds it. A list of the keys of one vault names only the holder,
+  `.Key("vault")`. A method with one key field can leave out `.Key`. The last
+  field names what the method acts on, as the CLI line of a method with no body
+  says, such as `[ok] registry-token deleted`. Under the rule `key`,
+  `endpoint validate` refuses a field that `.Key` names and the input does not
+  have in the path, a field that it names twice, a `secret.Value` field, and a
+  path field that neither `.Key` nor the prefix names. `dsl endpoint method get`
+  shows the key as `Keys`, the scaffold writes `.Key`, and the build-an-endpoint
+  skill tells when to use it.
 
 - **`Location` and `Example[T]`** name a field by its json name.
   `endpoint validate` checks the names, under the rule `field`: the field that
@@ -195,9 +208,9 @@ var Group = endpoint.Register(endpoint.Define(
   startup, in `internal/controller/handlers.go`. A test gives the mockgen mocks
   of the group's `mocks/`, never a fake written by hand. It is the place of the
   host in a behavior. `dsl endpoint spec get` lists each service that a `Deps`
-  takes now (`Jobs`, `Store`, `Objects`, `States`, `Health`, `Traces`) under
-  "What a Deps takes". A test fails on a field of a `Deps` that has no entry
-  there.
+  takes now (`Jobs`, `Store`, `Objects`, `States`, `Health`, `Traces`, `Vaults`)
+  under "What a Deps takes". A test fails on a field of a `Deps` that has no
+  entry there.
 
 - **`.Handle(fn)`** sets the function of a method,
   `func(ctx, Deps, In) (Out, error)`. `Validate` checks the signature. A handler
@@ -236,10 +249,12 @@ var Group = endpoint.Register(endpoint.Define(
   `CommandLong("...")` adds more. `SubDoc("segment", "...")` is the one line of
   the command that a `.Sub` segment makes, such as `stale` in
   `osapi client file stale list`. `validate` fails a `.Sub` segment that makes a
-  command of its own and has no `SubDoc`. The page of each names the permission
-  that covers each command under it. A parent that has flags or hooks, such as
-  `client` and `client node`, stays in `cmd/`. So does `client controller`,
-  while its `key` command is hand-written.
+  command of its own and has no `SubDoc`. `.CommandSub("vault")` puts a command
+  under a word that is not in the path, such as `osapi client secret vault list`
+  for `GET /api/secret`. The word needs a `SubDoc` too. The page of each names
+  the permission that covers each command under it. A parent that has flags or
+  hooks, such as `client` and `client node`, stays in `cmd/`. So does
+  `client controller`, while its `key` command is hand-written.
 
 ## What it generates
 
@@ -333,6 +348,7 @@ endpoint group had no area. Thus the SDK pages were one list.
 | `security`    | Security     | behaviors                                                                                       |
 | `containers`  | Containers   | behaviors                                                                                       |
 | `objectstore` | Object Store | the `file` endpoint group, the Object Store                                                     |
+| `secrets`     | Secrets      | the `secret` endpoint group, the vaults of the controller                                       |
 | `command`     | Command      | behaviors                                                                                       |
 | `hardware`    | Hardware     | behaviors                                                                                       |
 | `audit`       | Audit        | the `audit` endpoint group                                                                      |

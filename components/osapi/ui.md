@@ -113,6 +113,16 @@ opens it in full: the user, the roles, the source IP, the operation, the path,
 the status, the duration, the request with each secret replaced, and the links
 to its job and its trace (`RunLinks`).
 
+**The Secrets page writes a value and never shows one.** It is at
+`/admin/secrets`, and its link in the Admin menu shows under
+`canCall("GetSecretVaults")`. A picker selects a vault, and a table lists its
+keys with the columns of `osapi client secret list`: the key, the version, when
+it changed and who changed it. A form writes a value to a new key or to a key of
+the table, under `canCall("PutSecret")`. Its value field is a password field,
+and it is empty again after each write. Each row has a delete button under
+`canCall("DeleteSecret")`. No API answer has a value, so the page has no value
+to show.
+
 Thus:
 
 - Markup with one resource is a domain component.
