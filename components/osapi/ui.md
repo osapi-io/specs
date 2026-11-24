@@ -168,6 +168,17 @@ no token has, and did not have `schedule:*` (osapi-io/osapi#749). The published
 site also tells what each role permits for an *operator*, because a person who
 configures a role looks there.
 
+A page, its link in the Admin menu and each control that writes check the API
+operation that they call, not a permission. `useAuth().canCall("getAdmissions")`
+reads the permission from `OPERATION_PERMISSIONS` in
+`ui/src/lib/operations.gen.ts`, which
+`go generate ./internal/authtoken/gen/operations` writes from the endpoint
+groups and the behaviors. Thus a link and its page cannot disagree. Before, the
+Admin menu showed each link to a role with `audit:read`, and each page typed its
+own permission: an auditor saw Admission, and the page refused it
+(osapi-io/osapi#1232). `ui/src/lib/can-call.test.ts` fails on a permission typed
+into `can("...")`. Roles calls no API, so each role sees it.
+
 The UI also reads the targets claim, the target scope of the token.
 `jwtClaimStrings` in `ui/src/lib/jwt.ts` reads the roles and the targets. The
 Roles page shows the targets, or "each host" for a token without a scope. The
