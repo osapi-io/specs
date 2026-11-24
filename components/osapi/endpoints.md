@@ -289,9 +289,8 @@ behavior validate each answer against it.
 Each operation has an `x-osapi-method` extension: the name of the method in its
 group, such as `get`. `internal/sdk/gen` writes the typed services of the SDK
 from the spec, and names each method from it ([the Go SDK](sdk.md)).
-`go generate ./...` runs that generator in `pkg/sdk/client` after
-`internal/behaviors/all`, so it reads the new spec. Thus `just generate` runs
-`go generate` one time, and one run leaves nothing stale.
+`just sdk-generate` runs that generator after `go generate ./...`, so it reads
+the new spec. Thus one run of `just generate` leaves nothing stale.
 
 Each operation also has an `x-osapi-area` extension: the area of its group, such
 as `fleet`. The full spec has the `x-osapi-areas` extension at its top. It lists
