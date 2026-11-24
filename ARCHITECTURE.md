@@ -154,10 +154,11 @@ osapi-justfiles has their recipes:
 - A coverage job. `go-cover-merge` joins the profiles of the shards, and fails
   below the target. Each shard also checks its own profile against the target
   (`go-unit-shard`). With a target of 100 that gives the same answer, because
-  the total is 100% only when each package is. gohai has no coverage job: each
-  shard sends its own profile to Codecov, which joins them
-  ([gohai#288](https://github.com/osapi-io/gohai/pull/288)). The other four
-  repositories still have the coverage job.
+  the total is 100% only when each package is. gohai and osapi have no coverage
+  job: each shard sends its own profile to Codecov, which joins them
+  ([gohai#288](https://github.com/osapi-io/gohai/pull/288),
+  osapi-io/osapi#1353). The other three repositories still have the coverage
+  job.
 
 `.github/actions/setup` in each repository has its own setup. In osapi it also
 installs Node.js and Bun (input `js`), because some checks run Prettier through
