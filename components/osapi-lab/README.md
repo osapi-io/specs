@@ -303,18 +303,28 @@ config and the NATS credential of its own VM.
 
 The admin token is the exception to "one time". osapi signs a token for three
 months. Thus each run of the `secrets` role checks `.lab/secrets/token` with
-`osapi controller token validate` against the current signing key, and reads
+`osapi controller token validate` against the current signing keys, and reads
 `exp` from the token. The role signs a new token when the token is missing, when
-the key refuses it, or when it expires within `secrets_token_renew_days`, 14 by
+the keys refuse it, or when it expires within `secrets_token_renew_days`, 14 by
 default. A new token uses the same key, thus the hub needs no change. The CLI,
 the client of the hub and the web UI all send this token.
 
-Two configs hold the signing key of the hub: `hub.yaml`, which the controller
+`lab_signing_keys` in `group_vars/all.yml` is the list of signing keys, as
+`controller.api.security.signing_keys` takes it. It has one key, `lab`, from
+`.lab/secrets/signing_key`. A token that has no `kid`, such as a token from
+before the list, fails the check. Thus the next run of the role signs a new
+token with the `kid` of `lab`.
+
+Two configs hold the signing keys of the hub: `hub.yaml`, which the controller
 verifies with, and `client.yaml` on your machine. Thus
 `osapi controller token generate` on your machine signs a token that the
 controller accepts. The config of an agent has a temporary signing key, because
 osapi validates each key in the file for each command. An agent never signs or
 verifies a token. Thus a VM holds no key that can sign an admin token.
+
+A VM that upgrades in place keeps its config. Thus `upgrade.yml` changes the
+`signing_key` of its config to a `signing_keys` list before it restarts the
+agent. A config with the old key does not load in an osapi that has the list.
 
 ## NATS in operator mode
 

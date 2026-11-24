@@ -10,9 +10,9 @@ and this page goes when the last part is built.
 
 Each kind of secret has its own solution, and none of them is a store:
 
-- The JWT signing key and the NATS passwords are values in `osapi.yaml` or in an
-  environment variable. [Configuration](configuration.md) masks them before the
-  controller logs its config.
+- The JWT signing keys and the NATS passwords are values in `osapi.yaml` or in
+  an environment variable. [Configuration](configuration.md) masks them before
+  the controller logs its config.
 - The PKI keys are files in `key_dir`. [Agent identity](agent-identity.md) has
   their rotation.
 - A behavior input tagged `secret:"true"` stays out of the audit log, the spans
@@ -95,8 +95,8 @@ What each part of a DSL ([The parts that each DSL shares](dsls.md)) does with a
 
 A command of the command DSL calls no API. Thus a command that uses a secret
 resolves the reference itself, from the vaults of its config.
-`osapi controller token generate` is one: it reads the signing key from the
-config, and that value can be a reference.
+`osapi controller token generate` is one: it reads the signing keys from the
+config, and each value can be a reference.
 
 ## The order on the controller
 
@@ -325,9 +325,9 @@ vault encrypts each value too.
 
 ## References in the config
 
-A config field that has a `mask` tag takes a reference, such as
-`controller.api.security.signing_key: secret://default/jwt-signing-key`. The
-controller resolves it at startup.
+A config field that has a `mask` tag takes a reference, such as the `key` of an
+entry of `controller.api.security.signing_keys`:
+`key: secret://default/jwt-signing-key`. The controller resolves it at startup.
 
 Two values cannot come from the `nats` vault, because the controller needs them
 before it can read the vault:
@@ -353,9 +353,10 @@ Do not put a value in a command, a plan or a file.
   after the change gets the new value. A host that has the old value, in a file
   or a container, keeps it until a job runs on it again. `secret get` shows when
   the key changed, and the audit log shows which hosts used it.
-- **The JWT signing key.** The controller accepts tokens from more than one key,
-  each with its own `kid`, and signs with the newest. Thus a new key goes in
-  first, and the old one goes after the last token that it signed expires.
+- **The JWT signing key.** Built. The controller accepts tokens from more than
+  one key, each with its own `kid`, and signs with the first. Thus a new key
+  goes in first, and the old one goes after the last token that it signed
+  expires. [Permissions](permissions.md#the-keys-that-sign-a-token) has it.
 - **The vault key.** `osapi controller vault key rotate --name default`, on the
   controller host, as in [the built-in vault](#the-built-in-vault).
 - **The PKI keys.** As now, with the grace period of
@@ -382,7 +383,8 @@ Each part is an issue in osapi, in this order:
 08. Sealed values in the job, opened by the dispatch of the agent, with the
     docker `env` fields as the first users.
 09. The reference picker of the UI, and the rule in the skill.
-10. More than one JWT signing key.
+10. More than one JWT signing key. Built, in
+    [Permissions](permissions.md#the-keys-that-sign-a-token).
 11. The vault types of extensions, after osapi #1064.
 
 ## What this page does not cover

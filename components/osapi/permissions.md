@@ -312,6 +312,60 @@ hidden job also gets 404, because for the token the job does not exist. A retry
 checks its new target first, so its 403 does not tell whether the old job
 exists.
 
+## The keys that sign a token
+
+A token is a JWT with HS256. `controller.api.security.signing_keys` is a list of
+keys, and each key has an `id` and a `key`:
+
+```yaml
+controller:
+  api:
+    security:
+      signing_keys:
+        - id: 2026-11
+          key: <64 hex characters>
+        - id: 2026-08
+          key: <64 hex characters>
+```
+
+- **The first key signs.** `osapi controller token generate` signs with the
+  first key of the list, and puts its `id` in the `kid` header of the token.
+  Thus the newest key goes first.
+- **Each key verifies.** The middleware reads the `kid` of the token and
+  verifies the signature with the key that has that `id`. It does not try each
+  key.
+- **A token with no `kid`, or with a `kid` that the list does not have, gets
+  401.** Thus a token stops when you remove its key. A token from before the
+  list had no `kid`, and the controller refuses it too.
+
+`osapi controller token validate` shows the `kid` with the claims, so you can
+see which key signed a token before you remove the key. `internal/authtoken` has
+the two sides: `Generate` takes one `authtoken.Key`, and `Validate` takes
+`authtoken.Keys` and puts the `kid` in the claims as `KeyID`.
+
+The config does not load when the list is empty, when two keys have the same
+`id`, or when a key has fewer than 32 characters. The rules are `required`,
+`unique=ID` and `signing_key`. A problem names the key by its index, such as
+`controller.api.security.signing_keys[1].key`.
+
+To change the key with no outage:
+
+1. Put a new key at the start of the list, and restart the controller. New
+   tokens get the new key. The tokens of the old key still work.
+2. Sign a new token for each client.
+3. Remove the old key when no client sends a token that it signed. A token
+   expires after three months.
+
+The environment variable `OSAPI_CONTROLLER_API_SECURITY_SIGNING_KEYS` takes the
+list as `id=key` pairs with a comma between them, such as
+`2026-11=<key>,2026-08=<key>`. A decode hook in `internal/config` makes each
+pair a key, because a variable cannot hold a YAML list. Thus an `id` cannot have
+`=`, and a `key` cannot have a comma. `openssl rand -hex 32` gives a key with
+neither.
+
+`osapi config list` prints the list as `********`, because the field has the tag
+`mask:"password"`.
+
 ## What checks it
 
 The handler checks it, through scope middleware that the domain package wraps
@@ -332,4 +386,5 @@ targets claim, and why its decode is not a verification.
 ______________________________________________________________________
 
 Written from `internal/authtoken/`, `internal/validation/target.go`,
-`internal/controller/api/middleware.go` and `pkg/sdk/client/permissions.gen.go`.
+`internal/controller/api/middleware.go`, `internal/config/types.go` and
+`pkg/sdk/client/permissions.gen.go`.

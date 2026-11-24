@@ -80,10 +80,10 @@ when the config is not valid: the method returns its output with
 `command.Fail()`, so a script or CI fails on it. That is the shape of
 `behavior validate`. `validate --help` lists each rule with its fix. A value
 that breaks its `validate` tag is named by its config key, such as
-`controller.api.security.signing_key`, not by its Go field. Thus the key goes
-straight to `config get --key`. `start` reads the same problems through `Load`,
-and refuses to start on any of them. A test fails on a `Rule` constant without a
-check. It follows
+`controller.api.security.signing_keys[0].key`, not by its Go field. Thus the key
+goes straight to `config get --key`. `start` reads the same problems through
+`Load`, and refuses to start on any of them. A test fails on a `Rule` constant
+without a check. It follows
 [the commands that teach](cli.md#commands-that-teach-for-agents).
 
 The configuration page of the site points to these commands. It does not list
