@@ -219,12 +219,13 @@ that cannot be a reference: a NATS password and the vault key.
 
 ## What an AI agent learns
 
-A coding agent learns about a secret from the same generated parts as a person.
-`method get` and the docs page of a method mark each secret field and its two
-forms. `osapi client secret list` gives the names to reference. The skill in the
-binary ([Agent skills](agent-skills.md)) has one rule for it: put a value in
-with `osapi client secret update` from standard input, then use its reference.
-Do not put a value in a command, a plan or a file.
+Built in osapi-io/osapi#1248. A coding agent learns about a secret from the same
+generated parts as a person. `method get` and the docs page of a method mark
+each secret field and its two forms. `osapi client secret list` gives the names
+to reference. Rule 5 of the skill in the binary tells it to put a value in with
+`osapi client secret update` from standard input, then use its reference
+([Agent skills](agent-skills.md#what-the-skill-tells-an-agent)). The Plans page
+of the UI has a picker of the references ([The UI](ui.md#plans)).
 
 ## Rotation
 
@@ -267,7 +268,8 @@ Each part is an issue in osapi, in this order:
     [Agent identity](agent-identity.md#the-encryption-key).
 08. Sealed values in the job, opened by the dispatch of the agent, with the
     docker `env` fields as the first users.
-09. The reference picker of the UI, and the rule in the skill.
+09. Built: the reference picker of the UI, and the rule in the skill
+    ([What an AI agent learns](#what-an-ai-agent-learns)).
 10. More than one JWT signing key. Built, in
     [Permissions](permissions.md#the-keys-that-sign-a-token).
 11. The vault types of extensions, after osapi #1064.

@@ -355,6 +355,13 @@ can move up and down. The form of a step comes from the input of its method:
 - A field with the values of a `oneof` rule is a select.
 - A list is a field of tags. Enter, a comma or a space adds a tag.
 - A flag is a checkbox, and an object is JSON.
+- A secret field takes a reference, `secret://<vault>/<key>`, from a picker
+  beside it, as a text field takes a `@fact.` reference. The picker lists each
+  key of each vault, grouped by vault, from `GET /api/secret` and
+  `GET /api/secret/{vault}`. It shows only when the role may call both. A value
+  that is not a reference is a password field. A reference shows as text,
+  because it is not a secret. A map of secrets, such as the `env` of
+  `docker.create`, is JSON, as each object is.
 - Another field takes text or a `@fact.` reference.
 - The doc of each field stays under the field, so it does not go when a person
   types.
@@ -386,10 +393,12 @@ Run is pinned to the bottom of the window. After a run, the bar says what the
 run did, such as `3 ran: 3 ok`, and has Clear, to start over, and Run again.
 
 **Export YAML** shows the plan as a workflow file, read only, with a button that
-copies it. A step with no target has a comment in place of its target. A secret
-is `<secret>`. The UI does not save a plan. Save comes with workflow files.
-Before osapi-io/osapi#1197 the Configure page had saved stacks, which were mock
-data behind a flag, and a Save that wrote to the console.
+copies it. A step with no target has a comment in place of its target. A plan
+holds only references: a secret field keeps its reference, and a value is
+`<secret>`, also each value of a map of secrets. The UI does not save a plan.
+Save comes with workflow files. Before osapi-io/osapi#1197 the Configure page
+had saved stacks, which were mock data behind a flag, and a Save that wrote to
+the console.
 
 The Object Store area of the list has four steps that run on the controller:
 `objectstore.list`, `objectstore.upload`, `objectstore.delete` and
