@@ -10,9 +10,15 @@ service, and each operation of the spec is a method.
 
 ## How it is made
 
-`go generate` runs `internal/sdk/gen` in `pkg/sdk/client`, after it writes the
-full spec in `internal/behaviors/all`. Thus `just generate` makes the spec and
-the SDK in one run, and `go-generate-check` fails on a stale file.
+`just sdk-generate` runs `internal/sdk/gen`, after `go generate` writes the full
+spec in `internal/behaviors/all`. Thus `just generate` makes the spec and the
+SDK in one run, and `sdk-gen-check` fails on a stale file of the SDK, its
+examples or its pages.
+
+The generator is not a `go:generate` directive. `go generate` lists the files of
+each package before it runs any directive, so a run that removed the file of a
+group that is gone made `go generate` fail on that file, and only a second run
+passed (osapi-io/osapi#1261).
 
 The generator reads the spec into a model, `internal/sdk/gen/sdkmodel`: each
 service, its methods with their parameters, body and result, and each type. It
