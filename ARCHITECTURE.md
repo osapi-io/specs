@@ -139,7 +139,7 @@ Each workflow has the same four jobs, and the shared `go` module of
 osapi-justfiles has their recipes:
 
 - A plan job runs `just go-ci-checks` and `just go-unit-plan`. Their output is
-  the matrix of the other jobs.
+  the matrix of the other jobs. osapi has no plan job (below).
 - Check jobs. `go-test` runs the checks of two lists, `go_quick_checks` and
   `go_slow_checks`, and `go-ci-checks` prints the same lists. The quick checks
   share one job, and each slow check is a job. A repository adds its own checks
@@ -175,17 +175,35 @@ before it does work, about 30 to 45 seconds. A repository with a run of 1 or 2
 minutes gets almost nothing from parallel jobs, and a repository with two
 packages gets one shard. GitHub runs about 20 jobs at a time for a public
 repository. A workflow with more jobs than that waits for a runner. Thus a quick
-check goes in `go_quick_checks`, so that the shards have runners. osapi also
-groups its slow checks into five recipes of about two minutes each, beside
-`go-vet`, so that the plan, the checks, ten shards and the coverage job stay
-under the limit. Before, thirteen jobs of one check each made the last jobs wait
-up to 108 seconds, and `go-vet`, the longest, started last
-(osapi-io/osapi#1353).
+check goes in `go_quick_checks`, so that the shards have runners. The limit
+counts each repository of the organization, and a push to a pull request cancels
+the run of its earlier push (`concurrency`), so that a stale run holds no
+runner.
+
+osapi's Go workflow has no plan job, so that each job starts at once
+(osapi-io/osapi#1353). Before, the plan waited for a runner and ran for about a
+minute, and no check or shard started before about 150 seconds:
+
+- `go.yml` names each check of `go_slow_checks`, and its quick job fails when
+  the workflow and the list disagree.
+- Each of ten unit shards runs `go-unit-plan` and takes its own packages. A
+  shard sends its own profile to Codecov, as in gohai, so no coverage job waits
+  for the shards. `internal/dslcheck` (about 53 seconds, no statements to cover)
+  runs in a job of its own.
+- `go-vet` runs the prebuilt golangci-lint of the version that `go.mod` pins,
+  through golangci-lint-action. Through `go tool`, a cold runner compiled
+  golangci-lint itself first. `just go-vet` still runs `go tool` on a laptop.
+- One `generated` job runs `just generate` and fails on any change, in place of
+  five generation checks that each generated the tree again.
+- One Go cache, of the modules and the compiled packages, keyed on `go.sum` and
+  the week. A cache job on `main` fills it when the key is new, by compiling
+  each package and each test with the race detector; each job restores it.
+  setup-go's own cache, keyed on `go.sum` alone, was saved once and stayed cold.
+- The integration suite runs on each push to `main`, by hand, and on a pull
+  request with the label `integration`.
 
 The smallest part of a shard is one package. Thus the package with the most
-tests, or the slowest tests, sets the minimum time of the slowest shard. In
-osapi that is `internal/dslcheck`, about 53 seconds, because it type-checks each
-package. The planner weighs by lines, so it does not see this.
+tests, or the slowest tests, sets the minimum time of the slowest shard.
 
 ## Facts that span repositories
 
