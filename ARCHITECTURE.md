@@ -146,9 +146,11 @@ osapi-justfiles has their recipes:
   to the lists. Thus a check that is added to a list runs on a laptop and in CI.
 - Unit jobs. `go-unit-plan` weighs each package by its lines of test code, and
   gives each package to the lightest shard, the heaviest package first. It makes
-  one shard for each 20,000 lines, up to ten. Each shard is a job, and
-  `go-unit-shard` runs it with the race detector. Thus a new package goes into a
-  shard with no change to the workflow.
+  one shard for each `go_shard_weight` lines, 20,000 by default, up to ten.
+  osapi sets 13,000: its test code fell to about 133,000 lines as behaviors
+  moved to generated tests, and 20,000 gave seven shards. Each shard is a job,
+  and `go-unit-shard` runs it with the race detector. Thus a new package goes
+  into a shard with no change to the workflow.
 - A coverage job. `go-cover-merge` joins the profiles of the shards, and fails
   below the target. Each shard also checks its own profile against the target
   (`go-unit-shard`). With a target of 100 that gives the same answer, because
@@ -158,7 +160,14 @@ osapi-justfiles has their recipes:
   repositories still have the coverage job.
 
 `.github/actions/setup` in each repository has its own setup. In osapi it also
-installs Node.js and Bun, and builds the UI, which the Go code embeds.
+installs Node.js and Bun (input `js`), because some checks run Prettier through
+Bun. CI does not bundle the UI. Only the job of the UI checks installs its
+packages (input `ui`), and `go_quick_checks` lints and type-checks it with
+`react-lint` and `react-typecheck` (`tsc -b`, no emit). Each job puts a
+placeholder in `ui/dist`: the embed needs a file there, and no Go test reads the
+built UI. The unit shards also skip Node.js and Bun. A release bundles the UI in
+the `before` hook of goreleaser. The bundle took most of the 87 seconds of setup
+in each shard (osapi-io/osapi#1353).
 
 The five repositories have the same jobs so that they stay the same, not for
 speed. Each job starts a runner, checks out the code and restores the caches
@@ -169,8 +178,9 @@ repository. A workflow with more jobs than that waits for a runner. Thus a quick
 check goes in `go_quick_checks`, so that the shards have runners.
 
 The smallest part of a shard is one package. Thus the package with the most
-tests sets the minimum time of the slowest shard. In osapi that is
-`pkg/sdk/client`.
+tests, or the slowest tests, sets the minimum time of the slowest shard. In
+osapi that is `internal/dslcheck`, about 53 seconds, because it type-checks each
+package. The planner weighs by lines, so it does not see this.
 
 ## Facts that span repositories
 
