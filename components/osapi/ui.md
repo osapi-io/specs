@@ -311,10 +311,10 @@ Above the steps, a preflight shows what the plan needs:
 - each permission of its steps, and whether the role of the viewer has it. The
   controller makes the same check on each call.
 - each host of a target where a method does not run. The preflight reads the
-  platform of a host from the name of its distribution, because the agent does
-  not report the family that gohai detects (osapi#1224). A method that runs on
-  `linux` runs on each Linux host and not on macOS, as the agent resolves a
-  provider.
+  platform of a host from `os_info.family` of the agent list. The agent reports
+  there the family that it picks providers by, from gohai's `family.Detect`
+  (osapi#1224). A method that runs on `linux` runs on each Linux host and not on
+  macOS, as the agent resolves a provider.
 - the count of steps that wait for input or a target.
 
 The preflight refuses nothing. **Run** runs each step that can run, in order,
