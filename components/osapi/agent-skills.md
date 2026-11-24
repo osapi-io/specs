@@ -179,7 +179,7 @@ only for the part that it uses.
 
 ## What the skill tells an agent
 
-`SKILL.md` has four rules:
+`SKILL.md` has five rules:
 
 1. Run `osapi help <command> --json` before a command, and
    `osapi dsl behavior method get --name <behavior> --method <method> --json`
@@ -189,6 +189,12 @@ only for the part that it uses.
 3. Read the target with `get` or `list` before an update or a delete.
 4. Check the `status` of each host in a result. A command against many hosts
    succeeds when some of them fail, and `skipped` is neither.
+5. Give a secret as a reference. Put the value in a vault with
+   `osapi client secret update --value -`, from standard input, then give
+   `secret://<vault>/<key>`. `osapi client secret list` gives the keys. A value
+   in a flag, a plan or a file stays in the shell history or on the disk. Each
+   secret field marks its two forms in `method get`
+   ([Secrets](secrets.md#what-an-ai-agent-learns)).
 
 `osapi-operations` has its own five rules:
 
