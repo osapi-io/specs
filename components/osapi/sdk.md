@@ -87,9 +87,9 @@ values of an enum with the constants of the type. If they are different, or if
 only one of the two is a struct, the generator stops with an error and writes no
 file (osapi-io/osapi#1335). Before that check, the generator used only the name
 to bind a schema to a type of `pkg/sdk/types`. For each other enum of the spec,
-it writes the type and a constant for each value, such as `ContentTypeRaw`. A
-hand-written file in `pkg/sdk/client` is plumbing that each method uses, or a
-method that the generator cannot write.
+it writes the type and a constant for each value, such as
+`NetworkInterfaceResponseFamilyInet`. A hand-written file in `pkg/sdk/client` is
+plumbing that each method uses, or a method that the generator cannot write.
 
 The SDK does not use oapi-codegen. Before osapi#732, oapi-codegen wrote a client
 in `pkg/sdk/client/gen`, and 32 hand-written services copied each of its types
@@ -179,21 +179,26 @@ enum, such as `OperationID`, is `type OperationID string`. An enum that a
 property or a query parameter defines inline is a named type too, with the name
 that the generator of the UI gives it (osapi-io/osapi#1329):
 
-- `<Schema><Property>` for a property, such as `AgentInfoState`;
+- `<Schema><Property>` for a property, such as `NetworkInterfaceResponseFamily`;
 - `<operationId><Parameter>` for a parameter of the query, such as
   `GetJobsStatus`;
 - `<Schema><Property>Item` for an item of an inline list, such as
   `JobDetailResponseTimelineItem`.
 
-A constant is the type's name and the value, such as `AgentInfoStateReady`. A
-field of an enum type does not list the values in its comment, because the type
-has them. The page of the type lists them. A closed set of Go, a type with
-`Values()`, makes the named schemas ([Endpoints](endpoints.md#the-definition)).
+A constant is the type's name and the value, such as
+`NetworkInterfaceResponseFamilyInet`. A field that refers to a named enum schema
+does not list the values in its comment, because the type has them. A field
+whose enum is inline still lists them, such as
+`Family NetworkInterfaceResponseFamily` (It is one of: inet, inet6, dual). The
+page of each type lists them. A closed set of Go, a type with `Values()`, makes
+the named schemas ([Endpoints](endpoints.md#the-definition)).
 
 A type that `pkg/sdk/types` declares is not written again: the client refers to
 it. `types.Permission` is one, so the `Permission` schema of the catalog uses
-it. `types.Step` has a `*bool` `Changed`, because a step of a method with no
-changed field leaves it out. osapi's own job code uses that type.
+it. `types.AgentState` and `types.ConditionType` are others, so `AgentInfo` has
+a `types.AgentState` and `NodeCondition` has a `types.ConditionType`
+(osapi-io/osapi#1332). `types.Step` has a `*bool` `Changed`, because a step of a
+method with no changed field leaves it out. osapi's own job code uses that type.
 
 ## The examples and the pages are generated
 
