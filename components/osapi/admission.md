@@ -1,6 +1,6 @@
 # Admission
 
-Admission decides which machines can join osapi. When PKI is on, a new agent
+Admission decides which machines can join osapi. PKI is always on: a new agent
 asks to join, and it gets no work until an operator admits it. The operator can
 also reject the request, or revoke a machine that was admitted before.
 [Agent identity](agent-identity.md) tells what the stored key proves after
@@ -50,9 +50,9 @@ CLI pages are generated from it.
 | `DELETE /api/admission/{machine_id}`      | `osapi client admission delete` | `admission:write` |
 
 The three decisions and the delete answer 204. A machine ID with no record, or
-with no record in the state that the decision needs, answers 404. When PKI is
-off (`controller.pki.enabled`), each route answers 503, and the error names the
-setting.
+with no record in the state that the decision needs, answers 404. The controller
+always runs admission, and does not start when the enrollment bucket does not
+open. Thus no route answers that admission is off.
 
 `admin` has the two permissions. `operator`, `automation` and `read` have only
 `admission:read`. `auditor` and `observer` have neither. Admission decides which

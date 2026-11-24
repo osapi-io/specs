@@ -34,17 +34,17 @@ definition of each job before it counts and pages them, and an unscoped list
 reads only its page. [Permissions](permissions.md#a-tokens-target-scope) has the
 rule. The answer of `GET /api/job/{id}` has the responses and the agent states
 as lists sorted by hostname, each with its hostname, and the operation as its
-`type` and its `data`. With PKI on, the controller writes the definition inside
-a signed envelope. Each reader of the definition, the list, the detail and a
-retry included, takes the envelope's payload and checks its signature with the
+`type` and its `data`. The controller writes the definition inside a signed
+envelope. Each reader of the definition, the list, the detail and a retry
+included, takes the envelope's payload and checks its signature with the
 controller's key first. A reader that parsed the envelope as the definition
 would find no created time and no operation.
 
 ### A secret in the definition is sealed
 
-Built in osapi-io/osapi#1247. With PKI on, the job client seals each
-`secret.Value` of the data before it stores the definition (`request` in
-`internal/job/client`, `internal/secret/seal`):
+Built in osapi-io/osapi#1247. The job client seals each `secret.Value` of the
+data before it stores the definition (`request` in `internal/job/client`,
+`internal/secret/seal`):
 
 1. It makes a new random job key, and encrypts each secret value that is not
    empty with it, with XChaCha20-Poly1305 and a new nonce. The job ID is the
@@ -74,8 +74,10 @@ to this agent", and does not run. Such an agent joined after the controller
 queued the job, or has no X25519 key. A retry keeps the sealed keys of the job,
 so it reaches only the same agents.
 
-With PKI off, no agent has an X25519 key in the admission store. Thus the job
-client does not seal, and the data has each value as the caller sent it.
+PKI is always on (osapi-io/osapi#1307), so the controller has the X25519 key of
+each admitted agent. A job client with no agent keys, such as the one of an
+agent, refuses a job with a secret with `client.ErrNoAgentKeys`. Thus no secret
+goes in a job as plain text.
 
 osapi records the status as **events that it only adds**. It does not change a
 field. Thus the history of a job stays after the job. Later, a reader can see

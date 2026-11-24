@@ -271,8 +271,8 @@ with `authtoken.WithPermissions`. `authtoken.Granted` reads them.
 The handler gets the value. A `.Before` step runs on the value, and the job
 keeps the value that the step leaves. The audit entry keeps the reference,
 because the audit records the body of the request. A span never records a
-secret. A chain record on the agent has `[redacted]`. With PKI on, the job has
-the value sealed to its target agents
+secret. A chain record on the agent has `[redacted]`. The job has the value
+sealed to its target agents
 ([Job system](job-system.md#a-secret-in-the-definition-is-sealed)).
 
 ## The secret endpoint group
