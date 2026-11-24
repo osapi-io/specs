@@ -150,15 +150,17 @@ that is defined there.
 - **`images`** bakes an image for each VM of the inventory, with the name
   `img-<vm>-<tag>`. The image is the whole VM: the linux build, its config, its
   NATS credential, its hostname and each package that a behavior runs, such as
-  Docker and chrony. The tag is the short commit of the build. It ends with
-  `-dirty` when the checkout had uncommitted changes. The fingerprint of an
-  image is the fingerprint of the build and a hash of `packer/`. The hub keeps
-  it, and builds an image again only when the image is missing or the
-  fingerprint is different. Before a build, the playbook makes the NATS user of
-  the VM, because the credential must exist before it goes into the image. It
-  deletes images from other builds, except an image that a build recorded in the
-  last hour. It does not bake an image for a VM that upgrades in place while
-  that VM exists.
+  Docker and chrony. It also has the unit `osapi0.service`, which adds the dummy
+  interface `osapi0` at each boot, as the integration job of osapi does. The
+  dns, interface and route write examples change `osapi0`, not the network of
+  the VM. The tag is the short commit of the build. It ends with `-dirty` when
+  the checkout had uncommitted changes. The fingerprint of an image is the
+  fingerprint of the build and a hash of `packer/`. The hub keeps it, and builds
+  an image again only when the image is missing or the fingerprint is different.
+  Before a build, the playbook makes the NATS user of the VM, because the
+  credential must exist before it goes into the image. It deletes images from
+  other builds, except an image that a build recorded in the last hour. It does
+  not bake an image for a VM that upgrades in place while that VM exists.
 - **`vms`** deletes the admission of a VM and clones it again when its image
   changed. It clones a VM that upgrades in place only when the VM does not
   exist. It adds each VM to the inventory.
