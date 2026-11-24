@@ -191,7 +191,7 @@ a shell as `osapi` when the agent is not.
 
 Docker exec is a behavior now: the `exec` action of the `docker` behavior
 (osapi-io/osapi#994). Its permission is `docker:exec`, from
-`.PermitAs(behavior.VerbExec)`, and only the admin role gets it
+`.PermitAs(types.VerbExec)`, and only the admin role gets it
 (osapi-io/osapi#1136). It reads `h.CommandEnabled` and refuses the call when
 `agent.command.enabled` is false. It runs `docker exec` with sudo, as each write
 of the behavior does.
