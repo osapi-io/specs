@@ -173,7 +173,8 @@ Secrets page of the UI. No method gives a value.
 ## A vault is a backend that you can replace
 
 Built. [Vaults](vaults.md) has the `Vault` interface, the registry of types, the
-`controller.secrets.vaults` config with `targets`, the `nats` type in the
+`controller.secrets.vaults` config with `targets`, the default vault `default`
+whose key the controller makes at its first start, the `nats` type in the
 `osapi-secrets` bucket, and `osapi controller vault key create` and `rotate`.
 
 swamp has the same design. Its backend interface is `get`, `put`, `list` and
@@ -254,6 +255,8 @@ Each part is an issue in osapi, in this order:
 10. More than one JWT signing key. Built, in
     [Permissions](permissions.md#the-keys-that-sign-a-token).
 11. The vault types of extensions, after osapi #1064.
+12. Built: the default vault `default`, whose key the controller makes at its
+    first start ([Vaults](vaults.md#the-config)), osapi-io/osapi#1308.
 
 ## What this page does not cover
 
