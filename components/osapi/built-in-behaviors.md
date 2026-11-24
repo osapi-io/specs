@@ -174,9 +174,38 @@ write on the Debian family goes only under the own definition of the interface.
 The behavior refuses an interface that a match defines, such as the `all` of
 cloud-init. A static address under `all` changes each interface that the match
 takes, now and later. On the lab that match took one interface, so a check that
-counted the interfaces let the write through. The write examples run on
-`osapi0`, a dummy interface that the integration job makes, and set no gateway.
-A default route through `osapi0` would take the traffic of the runner.
+counted the interfaces let the write through.
+
+`create` and `update` take `--type`: `ethernet`, the default, or `dummy`. An
+`ethernet` is an interface that the host has, and its config goes in the netplan
+section that `netplan status` gives for it. An interface that the host does not
+have is "not found". A `dummy` goes under `dummy-devices` in the file of osapi,
+such as `/etc/netplan/osapi-osapi0.yaml`, and `netplan apply` makes the link.
+Thus a `dummy` does not have to be on the host. A `create` of a dummy that osapi
+configures gives `changed: false`. `netplan status` gives the type
+`dummy-device` for a dummy, and the `netplan` behavior puts it in
+`dummy-devices`. Thus dns and route write on a dummy under the same section. If
+they wrote it under `ethernets`, `netplan generate` would refuse the file with
+"changes device type".
+
+`delete` of a dummy removes the file, runs `netplan apply`, and then removes the
+link with `ip link delete`. On the lab, with netplan 1.1.2, `netplan apply` left
+the link after its file went. netplan 0.107 added `dummy-devices`, and Debian 12
+has netplan 0.106. On an older netplan, `netplan generate` refuses the key. The
+`netplan` behavior puts the output of `netplan generate` in its error, and the
+interface behavior adds that the netplan of the host does not have
+`dummy-devices`. Each VM of the lab has netplan 1.1.2.
+
+The write examples run on `osapi0`, a dummy, and set no gateway. A default route
+through `osapi0` would take the traffic of the host. The integration suite makes
+`osapi0` through osapi before the write examples:
+`osapi client node interface create --name osapi0 --type dummy`. It makes it
+again after each interface example, because that example deletes it. At the end,
+the suite deletes `osapi0` if the suite made it. Thus the CI runner and a lab VM
+need no setup of their own for these examples. The suite also installs chrony
+through osapi, for the ntp examples. The CI job still installs chrony before the
+agent starts, because the agent reads its missing programs only when it starts
+(osapi-io/osapi#1290).
 
 **route** (osapi-io/osapi#990, osapi-io/osapi#998) is under the interface, with
 `behavior.Of`: `osapi client node interface route`, at
