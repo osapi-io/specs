@@ -1207,7 +1207,7 @@ examples, in the binary as in the tests.
 A real job records its chain with the same mechanism. The job handler of the
 agent gives the processor a context from `behavior.Record`, so each
 `behavior.Call` of the method adds its step. The response of the job has the
-tree as `client.Step`: the behavior, the method, `changed`, the error, the
+tree as `types.Step`: the behavior, the method, `changed`, the error, the
 duration in milliseconds, and the calls of the step. The agent records the tree
 also when a step fails, because a failed job is where the tree helps most.
 `osapi client job get` prints a line for each host:
@@ -1415,7 +1415,7 @@ The other typed values:
 
 - **An area** is an `area.Name` of `internal/area`, such as `area.Hardware`.
   `area.All` lists them, and `behavior validate` refuses an area outside it.
-- **A content type** is `client.ContentType`: `ContentRaw` or `ContentTemplate`.
+- **A content type** is `types.ContentType`: `ContentRaw` or `ContentTemplate`.
   `Stored` in an example, the file behavior, the file provider, the agent and
   the file endpoints use the constants. The value that a header or a form
   carries is a string, and the conversion is at that boundary.

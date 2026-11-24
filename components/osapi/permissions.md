@@ -73,21 +73,21 @@ built-in roles get each behavior permission, so a token with a built-in role
 keeps its access. A custom role that named `node:read` or `node:write` for these
 domains must name the new permissions.
 
-`client.Permission` in the SDK is the type. Thus the permission set is part of
-the public API of osapi, not an internal detail. A consumer can name the
+`types.Permission` in `pkg/sdk/types` is the type. Thus the permission set is
+part of the public API of osapi, not an internal detail. A consumer can name the
 permission that it needs.
 
-`client.Permission` and `client.Role` are named types, not aliases of `string`.
+`types.Permission` and `types.Role` are named types, not aliases of `string`.
 Thus a role does not compile where a permission goes, and a permission does not
-compile where a role goes. The DSLs return a `client.Permission`. The check of
+compile where a role goes. The DSLs return a `types.Permission`. The check of
 each request keeps the types too:
 
 - `authtoken.ResolvePermissions` takes the roles as `[]Role`, the direct
   permissions as `[]Permission` and the custom roles as `authtoken.CustomRoles`,
   a `map[Role][]Permission`. It returns a `map[Permission]bool`.
 - `authtoken.HasPermission` takes a `Permission`.
-- The custom roles of the config are a `map[client.Role]CustomRole`, and each
-  `CustomRole` has `[]client.Permission`. The scope middleware and the endpoint
+- The custom roles of the config are a `map[types.Role]CustomRole`, and each
+  `CustomRole` has `[]types.Permission`. The scope middleware and the endpoint
   server take `authtoken.CustomRoles`.
 
 A token's claims, a route's scope and the output of a command are text. The
@@ -231,7 +231,7 @@ Declare the method. The permission and its roles come from the definition:
 - **A behavior:** register it. Its methods need `<name>:read`, `<name>:write`
   and, for an action, `<name>:execute`, or those of its group.
 - **An endpoint group:** register it. A GET needs `<group>:read`, and each other
-  verb `<group>:write`. `.Permission(client.PermAgentRead)` names a different
+  verb `<group>:write`. `.Permission(types.PermAgentRead)` names a different
   one, which something else must declare. Use the `Perm` constant, not a string.
 - **A permission that no method declares:** `builtinPermissions` in
   `internal/authtoken/permissions.go` has it. It has only `health:read` and
@@ -249,7 +249,7 @@ and that `init` can run after the `init` of `authtoken`. Thus a test that checks
 roles imports the groups and the behaviors, as the binary does.
 
 `go generate ./internal/behaviors/all` writes the SDK's constants in
-`pkg/sdk/client/permissions.gen.go`, one `Perm` constant for each permission and
+`pkg/sdk/types/permissions.gen.go`, one `Perm` constant for each permission and
 one `Role` constant for each built-in role. A test fails when the file is stale.
 A permission constant is `Perm`, then the resource and the verb with capitals,
 such as `PermDiskRead` for `disk:read`. The UI reads the permissions and the
@@ -410,4 +410,4 @@ ______________________________________________________________________
 
 Written from `internal/authtoken/`, `internal/validation/target.go`,
 `internal/controller/api/middleware.go`, `internal/config/types.go` and
-`pkg/sdk/client/permissions.gen.go`.
+`pkg/sdk/types/permissions.gen.go`.
