@@ -239,16 +239,8 @@ The commands are under `osapi client`, as the commands of each endpoint group
 are, because they go through the API: they work from each host, and each call
 has a permission check and an audit entry. The vault key is different. It is a
 file on the controller host, and the API does not give it or change it. Thus its
-two commands are under `osapi controller`, by the rule of the CLI that a command
-goes where it runs
-([osapi #1239](https://github.com/osapi-io/osapi/issues/1239)), as
-`osapi controller key fingerprint` reads the PKI key in `key_dir`. They run on
-the controller host, and read the config there:
-
-| Command                                            | What it does                                         |
-| -------------------------------------------------- | ---------------------------------------------------- |
-| `osapi controller vault key create --name default` | makes the key of the `nats` vault in `key_file`      |
-| `osapi controller vault key rotate --name default` | adds a new key, encrypts each value again, drops old |
+two commands, `osapi controller vault key create` and `rotate`, are under
+`osapi controller` ([Vaults](vaults.md#the-vault-key)).
 
 The group is in a new area, `secrets`, as the Object Store has its own area. A
 secret is not a step of a plan, because a plan file holds no values. The UI has
@@ -257,65 +249,16 @@ write-only field, under `canCall` of the group's operations.
 
 ## A vault is a backend that you can replace
 
-A vault has a name, a type and its targets. The config names each vault:
-
-```yaml
-controller:
-  secrets:
-    vaults:
-      - name: default
-        type: nats
-        key_file: /etc/osapi/secrets.key
-      - name: prod
-        type: vault # from an extension
-        targets: [group:prod]
-        config:
-          address: https://vault.internal:8200
-```
-
-A type is a Go interface, as in the vaults of swamp:
-
-```go
-type Vault interface {
-    Name() string
-    Get(ctx context.Context, key string) (secret.Value, Meta, error)
-    Put(ctx context.Context, key string, value secret.Value) (Meta, error)
-    Delete(ctx context.Context, key string) error
-    List(ctx context.Context) ([]Meta, error)
-}
-```
-
-osapi ships one type, `nats`. A different store, such as HashiCorp Vault,
-1Password or a cloud secret manager, is a type that an extension adds
-([osapi #1064](https://github.com/osapi-io/osapi/issues/1064)). A type registers
-with a name, a constructor and the Go struct of its `config` block. The struct
-gives the config table of the docs and the check of the config, as each other
-config block does. When extensions exist, a vault type gets the parts of a DSL
-through the extension work: a spec, `validate` and a scaffold. A reference names
-the vault, not the type. Thus you can move the keys of a vault to a different
-type, and each reference still resolves.
+Built. [Vaults](vaults.md) has the `Vault` interface, the registry of types, the
+`controller.secrets.vaults` config with `targets`, the `nats` type in the
+`osapi-secrets` bucket, and `osapi controller vault key create` and `rotate`.
 
 swamp has the same design. Its backend interface is `get`, `put`, `list` and
 `getName`, each vault has a name and a type, and only its local backend is built
 in. AWS, Azure and 1Password are extensions. `swamp vault migrate` copies the
 keys to a new type and keeps the name.
 
-## The built-in vault
-
-NATS does not have a secret store. The `nats` type is code in osapi that keeps
-each value encrypted in a JetStream KV bucket, `osapi-secrets`:
-
-- Each value is encrypted with AES-256-GCM under the vault key, with a new nonce
-  each time. The KV holds only the encrypted value and its metadata.
-- The KV keeps the earlier versions of a key, so `get` can show its history.
-- The vault key comes from `key_file`, or from an environment variable that the
-  config names. A KMS or a TPM can give the key later, through the same setting.
-- A rotation adds a new key and keeps the old key for reads.
-  `osapi controller vault key rotate --name default` encrypts each value again
-  with the new key, then the old key goes. This is the model of
-  `JetStreamOldKey` in NATS.
-- `osapi controller vault key create --name default` makes the vault key in
-  `key_file`.
+## Encryption at rest
 
 JetStream encryption at rest is built
 ([osapi #1242](https://github.com/osapi-io/osapi/issues/1242)).
@@ -360,7 +303,7 @@ Do not put a value in a command, a plan or a file.
   goes in first, and the old one goes after the last token that it signed
   expires. [Permissions](permissions.md#the-keys-that-sign-a-token) has it.
 - **The vault key.** `osapi controller vault key rotate --name default`, on the
-  controller host, as in [the built-in vault](#the-built-in-vault).
+  controller host, as in [Vaults](vaults.md#the-vault-key).
 - **The PKI keys.** As now, with the grace period of
   [Agent identity](agent-identity.md#rotation-without-an-outage).
 - **NATS credentials.** Out of scope here. The embedded server reads them from
@@ -372,8 +315,9 @@ Each part is an issue in osapi, in this order:
 
 01. `secret.Value` in `internal/secret`, in place of the `secret` tag, with the
     `secret` rule in each DSL and the `dslcheck` guard.
-02. The `Vault` interface, the `nats` type, the `controller.secrets` config, and
-    `osapi controller vault key create --name default` and `rotate`.
+02. Built: the `Vault` interface, the `nats` type, the `controller.secrets`
+    config, and `osapi controller vault key create --name default` and `rotate`
+    ([Vaults](vaults.md)).
 03. JetStream encryption at rest, with its key in the config and
     `osapi nats key create`. Built: osapi #1242.
 04. The `secret` endpoint group and its area, `secret:read`, `secret:write` and
