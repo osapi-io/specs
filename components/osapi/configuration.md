@@ -129,21 +129,30 @@ in different streams from the KV buckets.
 for request input. Thus a custom rule that you register for one is also
 available to the other.
 
-## Secrets are masked before the config is logged
+## A secret never gets to a log or a printout
 
-At startup, the controller logs all of its resolved config. Without masks, the
-log gets each password.
-
-Struct tags mark what must not appear:
+The tag `mask:"password"` marks a secret of the config. Five fields have it:
+`NATSAuth.Password`, `NATSServerUser.Password`, `ServerSecurity.SigningKeys`,
+`SigningKey.Key` and `ClientSecurity.BearerToken`.
 
 ```go
-Controller Controller `mapstructure:"controller" mask:"struct"`
-Password   string     `mapstructure:"password"   mask:"password"`
+Password string `mapstructure:"password" mask:"password"`
 ```
 
-`cmd/controller.go` gives the config to go-masker in `PersistentPreRun`, before
-it logs the config. Thus the code reads the tags. They are not decoration. Seven
-fields have a mask tag.
+Two parts of osapi read the tag. They are not decoration:
+
+- `internal/config/keys.go` sets `Key.Secret` for the field. Thus
+  `osapi config list` and `config get` print its value as `********`.
+- `internal/config/references.go` lets the field be a reference,
+  `secret://<vault>/<key>`, which a vault resolves.
+
+**The controller and the agent log only named fields.** At start, the controller
+logs the config file, the API port, the NATS host, port, client name, namespace
+and auth type, and the CORS origins
+(`internal/cli/commands/controllercmd/methods.go`). It never logs the config
+struct. Before osapi #927, go-masker masked the struct before the controller
+logged all of it. This stays safe only while nobody adds a secret to the fields
+that are logged.
 
 A key that osapi keeps on the disk is a file, and the config has only its path.
 `nats.server.jetstream.key_file` is one: the key that encrypts the streams of
@@ -151,11 +160,6 @@ the embedded server. A path is not a secret, so it has no mask, and the
 controller logs it.
 [The message bus](transport.md#the-streams-are-encrypted-on-the-disk) has the
 key.
-
-**The agent does not mask, because it does not log the struct.** It logs named
-fields: host, port and client name. It never logs a password. These are two
-different solutions to the same problem. The solution of the agent stays safe
-only while nobody adds a secret to the list of fields that it logs.
 
 ## A secret can be a reference to a vault
 
