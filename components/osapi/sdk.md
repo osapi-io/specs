@@ -164,17 +164,27 @@ the request as its zero value, so a pointer cannot send more than a value can. A
 The method decodes the body of the answer straight into the type. There is no
 copy from a second type.
 
-A schema that is a string with an enum, such as `OperationID`, is a string type:
-`type OperationID string`. A field of such a type does not list the values in
-its comment, because the type has them. A property with an enum in its own
-schema lists its values. `endpoint.Enum` makes these schemas
-([Endpoints](endpoints.md#the-definition)).
+An enum of the spec is a named string type with a constant for each value, so a
+caller does not type a value as a string. A schema that is a string with an
+enum, such as `OperationID`, is `type OperationID string`. An enum that a
+property or a query parameter defines inline is a named type too, with the name
+that the generator of the UI gives it (osapi-io/osapi#1329):
 
-A type that a person wrote in the package wins: the generator does not write a
-type with its name. `Permission` in `permissions.go` is one, so the `Permission`
-schema of the catalog uses it. `Step`, in `job_steps.go`, has a `*bool`
-`Changed`, because a step of a method with no changed field leaves it out.
-osapi's own job code uses that type.
+- `<Schema><Property>` for a property, such as `AgentInfoState`;
+- `<operationId><Parameter>` for a parameter of the query, such as
+  `GetJobsStatus`;
+- `<Schema><Property>Item` for an item of an inline list, such as
+  `JobDetailResponseTimelineItem`.
+
+A constant is the type's name and the value, such as `AgentInfoStateReady`. A
+field of an enum type does not list the values in its comment, because the type
+has them. The page of the type lists them. `endpoint.Enum` makes the named
+schemas ([Endpoints](endpoints.md#the-definition)).
+
+A type that `pkg/sdk/types` declares is not written again: the client refers to
+it. `types.Permission` is one, so the `Permission` schema of the catalog uses
+it. `types.Step` has a `*bool` `Changed`, because a step of a method with no
+changed field leaves it out. osapi's own job code uses that type.
 
 ## The examples and the pages are generated
 
