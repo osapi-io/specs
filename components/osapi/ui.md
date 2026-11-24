@@ -521,7 +521,7 @@ color, such as `processing`, is gray. Thus `skipped`, `submitted`, `draining`
 and a condition are amber on each page and in the terminal.
 
 A count has a tone too. `CountTones` in the same file gives the tone of a count
-above zero by what it counts: `failed` and `dlq` are red, `unprocessed` and
+above zero by what it counts: `failed` and `dlq` are red, `submitted` and
 `skipped` are amber, `completed` is green. A zero is gray. The catalog serves
 `CountTones` as `count_tones`, and `Count` reads it.
 
