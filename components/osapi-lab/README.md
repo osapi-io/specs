@@ -290,10 +290,11 @@ cloned one time. After that, each deploy copies the new build into it and
 restarts its agent, as an operator upgrades a host. It keeps its machine ID, the
 KV records of its agent, its file state, its consumers and its job history. This
 breaks the rule that a VM is its image, for one VM only. It keeps the config and
-the packages of its first image. A change to `packer/` does not get to it.
-`just rebuild` bakes its image again and replaces it, so a person can reset it.
-`ready` and `consumers` check it as they check the other VMs
-(osapi-io/osapi-lab#49).
+the packages of its first image. A change to `packer/` does not get to it,
+except `osapi0.service`: each deploy also copies that unit into the VM, and
+enables and starts it. `just rebuild` bakes its image again and replaces it, so
+a person can reset it. `ready` and `consumers` check it as they check the other
+VMs (osapi-io/osapi-lab#49).
 
 **Each clone gets its own machine ID.** osapi identifies an agent by
 `/etc/machine-id`. The image ships that file empty. Thus systemd writes a new
