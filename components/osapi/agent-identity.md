@@ -52,9 +52,10 @@ machine and get its jobs (GHSA-j73r).
 `node hostname update` changes it. The operator needs `hostname:write`. The
 answer of the update has the old hostname, and the agent signs it, so it
 verifies. When that answer is `completed`, the job client writes the new
-hostname in the record of its machine ID (`RenameAgentKey`). The agent finds its
-new hostname at its next heartbeat. Then its registrations and its answers have
-the new hostname, and they verify.
+hostname in the record of its machine ID (`RenameAgentKey`). When the update
+completes, the agent reads its new hostname and registers with it at once, not
+at its next heartbeat. Then its registrations and its answers have the new
+hostname, and they verify.
 
 A rename that osapi did not do, such as `hostnamectl` on the host, does not
 change the record. The agent with the new hostname does not verify, and gets no
