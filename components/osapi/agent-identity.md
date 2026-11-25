@@ -1,8 +1,10 @@
 # Agent identity
 
 The controller must know two things. An answer came from the machine that it
-addressed. A machine that claims a hostname is the machine that enrolled with
-that hostname. The two facts come from one stored signing key for each agent.
+addressed. A machine that claims a hostname is the machine that has that
+hostname in its record: the hostname that it enrolled with, or the hostname that
+an operator gave it through osapi. The two facts come from one stored signing
+key for each agent.
 
 ## Enrollment is the only thing that writes a key
 
@@ -39,6 +41,24 @@ osapi does not tell the removed agent. The agent keeps the key of the controller
 from its acceptance. Thus it thinks that it is enrolled, and does not ask again.
 To enroll it again, do a step on the host: delete `controller.pub` and restart
 the agent.
+
+## A rename through osapi
+
+The stored record holds the hostname of the machine. An agent cannot change it:
+a registration or an answer with a different hostname does not verify. If an
+agent could change it, an accepted agent could take the hostname of a different
+machine and get its jobs (GHSA-j73r).
+
+`node hostname update` changes it. The operator needs `hostname:write`. The
+answer of the update has the old hostname, and the agent signs it, so it
+verifies. When that answer is `completed`, the job client writes the new
+hostname in the record of its machine ID (`RenameAgentKey`). The agent finds its
+new hostname at its next heartbeat. Then its registrations and its answers have
+the new hostname, and they verify.
+
+A rename that osapi did not do, such as `hostnamectl` on the host, does not
+change the record. The agent with the new hostname does not verify, and gets no
+jobs, until an operator revokes it and it enrolls again (osapi-io/osapi#1352).
 
 ## The encryption key
 
