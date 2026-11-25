@@ -178,7 +178,7 @@ Secrets page of the UI. Only `reveal`, with `secret:reveal`, gives a value
 Built. [Vaults](vaults.md) has the `Vault` interface, the registry of types, the
 `controller.secrets.vaults` config with `targets`, the default vault `default`
 whose key the controller makes at its first start, the `nats` type in the
-`osapi-secrets` bucket, and `osapi controller vault key create` and `rotate`.
+`osapi-secrets` bucket, and `osapi controller secret key create` and `rotate`.
 
 swamp has the same design. Its backend interface is `get`, `put`, `list` and
 `getName`, each vault has a name and a type, and only its local backend is built
@@ -222,8 +222,8 @@ of the UI has a picker of the references ([The UI](ui.md#plans)).
   one key, each with its own `kid`, and signs with the first. Thus a new key
   goes in first, and the old one goes after the last token that it signed
   expires. [Permissions](permissions.md#the-keys-that-sign-a-token) has it.
-- **The vault key.** `osapi controller vault key rotate --name default`, on the
-  controller host, as in [Vaults](vaults.md#the-vault-key).
+- **The vault key.** `osapi controller secret key rotate --vault default`, on
+  the controller host, as in [Vaults](vaults.md#the-vault-key).
 - **The PKI keys.** As now, with the grace period of
   [Agent identity](agent-identity.md#rotation-without-an-outage).
 - **NATS credentials.** Out of scope here. The embedded server reads them from
@@ -236,8 +236,8 @@ Each part is an issue in osapi, in this order:
 01. Built: `secret.Value` in `internal/secret`, in place of the `secret` tag,
     with the `secret` rule in each DSL and the `dslcheck` guard.
 02. Built: the `Vault` interface, the `nats` type, the `controller.secrets`
-    config, and `osapi controller vault key create --name default` and `rotate`
-    ([Vaults](vaults.md)).
+    config, and `osapi controller secret key create --vault default` and
+    `rotate` ([Vaults](vaults.md)).
 03. JetStream encryption at rest, with its key in the config and
     `osapi nats key create`. Built: osapi #1242.
 04. Built: the `secret` endpoint group and its area, `secret:read`,

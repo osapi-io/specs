@@ -127,12 +127,12 @@ The route enforces `targets` when it resolves a reference
 
 The controller opens each vault at startup, in `internal/controller/vaults.go`,
 after it connects to NATS. Before that, it makes the `key_file` of each `nats`
-vault when the file is not there, as `vault key create` does, with the mode
-0600, and logs `vault key created` with the name, the file and the key ID. It
-never replaces a file that is there, because each value under the old key would
-then not decrypt. A vault with `key_env` gets no file. Only the controller makes
-a key: a command that resolves a reference of the config reads the key, and does
-not write it.
+vault when the file is not there, as `controller secret key create` does, with
+the mode 0600, and logs `vault key created` with the name, the file and the key
+ID. It never replaces a file that is there, because each value under the old key
+would then not decrypt. A vault with `key_env` gets no file. Only the controller
+makes a key: a command that resolves a reference of the config reads the key,
+and does not write it.
 
 A type that is not registered, a block that does not decode, a check that fails,
 a bucket that is not there, a key that the controller cannot make or a key that
