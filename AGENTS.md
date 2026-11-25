@@ -43,7 +43,7 @@ to see that a read or a write operates on Linux and on macOS.
   `OSAPI_INTEGRATION_OSAPIFILE` and `OSAPI_INTEGRATION_TARGET` point at it.
 
 A test in the lab includes the UI. The controller of the hub serves it, at the
-URL that `.lab/config/client.yaml` of osapi-lab names. For each flow that the
+URL that `.lab/config/cli.yaml` of osapi-lab names. For each flow that the
 change touches, add its methods as steps on the Plans page, run them, and look
 at the result: the fields that it asks for, the rows that it shows, and a
 refusal. Then report the UI results with the CLI and integration results. A
