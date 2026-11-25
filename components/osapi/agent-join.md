@@ -81,30 +81,40 @@ agent connect again. Nothing needs a restart.
 `osapi client agent get` and the UI show the version that the agent runs, when
 it got it, and `behind` when the agent does not have the newest version.
 
-## NATS credentials for each agent
+## NATS credentials
 
-Each agent gets its own NATS credentials, so a revoked agent is cut off from
-NATS at once, not at its next start. The NATS server must let the controller
-make and remove credentials while it runs. A static list of users or nkeys needs
-a reload of the server for each agent.
+The join, the token, HTTPS and the config do not depend on how NATS
+authenticates. Only the NATS credentials that the config carries change with the
+auth type of the server:
 
-The NATS server runs in **operator mode**, with a resolver
-(`nats.server.auth.type` with `resolver_file`), which the embedded server
-supports. The controller holds the signing key of the account of the agents. At
-a join it signs a user JWT for the agent, with the subjects that an agent can
-use, and gives it with the config. When an operator revokes the agent, the
-controller adds the agent's public key to the revocation list of the account,
-and the server closes its connection. No reload is necessary. The owner chose
-operator mode over a static list that the server reloads, and over credentials
-that each agent shares (25 Nov 2026). A lab that uses a static list switches to
-operator mode one time.
+| NATS auth                                                                   | The agent gets                                                                  | A revoked agent                                                                                              |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| operator mode (JWT), with a resolver                                        | its own user JWT, which the controller signs                                    | loses its NATS connection at once                                                                            |
+| nkeys, user and password, a creds file, or a server that osapi does not run | the agent credentials that the controller's config has, the same for each agent | keeps its connection until an operator changes those credentials, but gets no work and cannot answer (below) |
+| none, in a lab                                                              | no credentials                                                                  | the same as the row above                                                                                    |
+
+In operator mode (`nats.server.auth.type` with `resolver_file`, which the
+embedded server supports), the controller holds the signing key of the account
+of the agents. At a join it signs a user JWT for the agent, with the subjects
+that an agent can use. When an operator revokes the agent, the controller adds
+the agent's public key to the revocation list of the account, and the server
+closes the connection. No reload is necessary. The owner chose operator mode as
+the recommended setup on 25 Nov 2026, over a static list that the server reloads
+for each agent.
+
+In each mode, the NATS credentials are not the identity of the agent. The
+controller verifies each answer and each registration with the key that it
+admitted ([Agent identity](agent-identity.md)). Thus a revoked agent gets no job
+and cannot answer for a host in each mode. Operator mode adds only the immediate
+cut from the bus.
 
 ## Revocation
 
 An operator removes or rejects an agent as today. The next config request of the
-agent answers 403. Its NATS credentials are revoked, so it is cut off from NATS
-at once. An agent authenticates with its key, not with a user token. Thus no new
-role is necessary.
+agent answers 403. In operator mode its NATS credentials are revoked, so it is
+cut off from NATS at once. In the other modes the controller refuses its
+messages, as it does today. An agent authenticates with its key, not with a user
+token. Thus no new role is necessary.
 
 ## What this page does not cover
 
