@@ -229,6 +229,30 @@ vault. A reference to a vault in one of them is a loop:
 A vault of a type that does not use NATS can hold a NATS password later. osapi
 ships only the `nats` type now, so the tag refuses each NATS password.
 
+## HTTPS for the API
+
+`controller.api.tls.enabled` makes the API, and the UI on its listener, serve
+HTTPS. It is off by default. The certificate comes from one of two places:
+
+- `controller.api.tls.cert_file` and `key_file`: a certificate from any source,
+  such as `tailscale cert`, certbot, step-ca or a company CA. A new certificate
+  replaces the old one with no other change.
+- Neither set: the controller makes a self-signed ECDSA P-256 certificate in
+  `controller.pki.key_dir` at its first start (`api.crt`, `api.key`), for this
+  host, `localhost` and the hosts of `controller.api.url` and
+  `controller.ui.url`. It uses that certificate after that.
+
+The CLI trusts the system's roots. For a self-signed certificate,
+`controller.client.tls.ca_file` names `api.crt`, and the CLI trusts it too. No
+setting turns off the check of the certificate: a client that trusts each
+certificate also trusts an attacker's certificate.
+
+osapi has no ACME client. Let's Encrypt cannot issue a certificate for an
+internal name, such as a `.internal` or `.local` name, without a DNS-01
+challenge. Thus osapi takes a certificate from a tool that gets one. Agent join
+([Agent join](agent-join.md)) needs HTTPS on, because the join token pins the
+certificate (osapi-io/osapi#1381).
+
 ## Where this connects
 
 [The job system](job-system.md) has the two clocks of a job. You configure the
