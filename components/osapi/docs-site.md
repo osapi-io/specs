@@ -288,12 +288,12 @@ shows:
 the rest of the page. Thus `just cli-docs-generate` writes it, and
 `cli-docs-gen-check` fails when a key changes and its table does not.
 
-A key with no default in `config.Defaults` gets its value from
-`configs/osapi.yaml`, the config that osapi ships. The table says so, as
-`none; 9091 in configs/osapi.yaml`, and does not call that value a default.
-Before osapi-io/osapi#1011 the tables were written by hand, and they gave 9091,
-9092, `agent-facts` and `5m` as defaults. A config file without those keys does
-not get those values.
+Each key has a default from the definition that owns it
+([configuration](configuration.md#each-default-has-one-owner)). A key that is a
+choice of the operator shows `none:` and why, from its `choice` tag. Before
+osapi-io/osapi#1011 the tables were written by hand, and they gave 9091, 9092,
+`agent-facts` and `5m` as defaults that no code had. Until osapi-io/osapi#1387
+the tables took those values from `configs/osapi.yaml`, which osapi shipped.
 
 ## The metrics reference
 

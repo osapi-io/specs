@@ -149,9 +149,9 @@ deliver the message again. `internal/agent/handler.go` makes that decision.
 
 ### Consumer defaults
 
-`MaxDeliver` is 5 and `AckWait` is 2m. `cmd/root.go` sets them as
-`agent.consumer.max_deliver` and `agent.consumer.ack_wait`, and
-`configs/osapi.yaml` ships the same values. A deployment can change the two.
+`MaxDeliver` is 5 and `AckWait` is 2m. `agent start` declares them as the
+defaults of `agent.consumer.max_deliver` and `agent.consumer.ack_wait`, in
+`internal/cli/commands/agentcmd/defaults.go`. A deployment can change the two.
 
 An operation that runs longer than `AckWait` is **not** delivered again during
 the work, because the agent extends the deadline while the work runs. The
@@ -271,12 +271,12 @@ from the config of the server. A connection of the agent or the controller does
 not change it (osapi-io/osapi#1096). Thus the TTL of the server decides how long
 a job stays.
 
-The shipped `osapi.yaml` sets it to one hour. `osapi.dev.yaml` does not set it,
-and osapi ignores the parse error. Thus a deployment from that file gets no
-expiry, not a default.
+The default is one hour, from `nats start`. Until osapi-io/osapi#1387 only the
+shipped `osapi.yaml` set it. A file without the key, such as `osapi.dev.yaml`,
+got no expiry.
 
 ```sh
-sed -n '/^  kv:/,/^  [a-z]/p' configs/osapi.dev.yaml   # no ttl line
+osapi config get --key nats.kv.ttl   # 1h, source default
 ```
 
 `job-queue` has definitions and status events. `job-responses` has results.
