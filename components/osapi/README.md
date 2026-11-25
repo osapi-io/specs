@@ -56,6 +56,7 @@ operating system.
 | [Agent skills](agent-skills.md)             | The skill in the binary, what it tells an agent, and how `osapi skill install` installs and updates it                                                                   |
 | [Admission](admission.md)                   | Which machines can join, the four states, and why admit needs the fingerprint from the machine                                                                           |
 | [Agent identity](agent-identity.md)         | Enrollment, signatures, rotation, and why targeting needs verification                                                                                                   |
+| [Agent join](agent-join.md)                 | A plan: an agent joins over HTTPS with a token, and gets its config and its own NATS credentials from the controller                                                     |
 | [The embedded UI](ui.md)                    | The dashboard in the binary, and what it does not verify                                                                                                                 |
 | [The Go SDK](sdk.md)                        | How the typed services are generated from the spec, where each name comes from, and what is still written by hand                                                        |
 | [The API conventions](api.md)               | Status codes, the error body, the shape of a list, names, and the test that holds each operation to them                                                                 |
