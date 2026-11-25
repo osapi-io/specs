@@ -119,7 +119,7 @@ osapi
   controller  start | key fingerprint | token generate|validate | role list|get | vault key create|rotate
   agent       start | key fingerprint | collector list|get|spec get|validate
   nats        start | setup | key create
-  config      list | get | validate
+  config      list | get | spec get | validate
   skill       list | get | install
   sdk         list | get | spec get | validate
   dsl         behavior … | chain … | endpoint … | command … | docs generate
