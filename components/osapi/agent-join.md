@@ -1,32 +1,53 @@
 # Agent join
 
-An agent host joins osapi with two values: the URL of the controller and a join
-token. The agent gets the rest of its config from the controller over HTTPS.
-Today each agent host needs a full `osapi.yaml` with the NATS address and the
-NATS credentials, and configuration management must write it. The agent also
-enrolls over NATS, so it needs the NATS settings before it can enroll.
+An agent host joins osapi with one value: a join string. The agent needs to
+reach NATS, and nothing else. The controller admits it, and gives it the rest of
+its config and its NATS credentials over NATS. Thus a host can come up from an
+image or a cloud-init file with no configuration management.
 
-This page is the design of osapi-io/osapi#1313. The join tokens
-(osapi-io/osapi#1377) and the join (osapi-io/osapi#1378) are built: an agent
-with `agent.join` set joins at its first start, and is admitted at once. Until
-osapi-io/osapi#1379, the agent still has its NATS settings in its own config,
-and the controller answers the join with its public key only. The config and the
-NATS credentials of [The config of the agent](#the-config-of-the-agent) and
-[NATS credentials](#nats-credentials) are not built yet.
+This page is the design of osapi-io/osapi#1313. The parts that are built:
 
-## What stays on the host
+- the join tokens (osapi-io/osapi#1377)
+- the join over HTTPS (osapi-io/osapi#1378): an agent with `agent.join` set
+  joins at its first start, and is admitted at once
 
-The first contact needs these values only:
+The parts that are not built: the join over NATS and the config in KV
+(osapi-io/osapi#1416, osapi-io/osapi#1379), the NATS credentials
+(osapi-io/osapi#1380), and the NATS permissions of each role
+(osapi-io/osapi#1415).
 
-| Value               | Why it stays                                            |
-| ------------------- | ------------------------------------------------------- |
-| the controller URL  | The agent must find the controller before anything.     |
-| the join token      | It admits the agent. The agent deletes it after a join. |
-| `agent.pki.key_dir` | The agent makes its keys there before it sends them.    |
+## Why NATS is the transport
 
-A join string, `osapi://<host>:<port>?token=<token>&fp=<fingerprint>`, carries
-the three facts that the first contact needs: the URL, the token and the
-fingerprint of the controller's certificate.
+An agent must reach NATS to take a job. Often NATS is the only thing that it can
+reach: a NATS leaf node in its site, an edge cluster, or a NATS port that a
+firewall lets through when it blocks each other port. An agent that must also
+reach the controller's API needs a second route, and that breaks a zero-touch
+join at such a site. Thus the rule is: an agent needs to reach NATS, and nothing
+else. The owner decided this on 25 Nov 2026.
+
+To give an agent its NATS config over NATS is not circular. The join string
+carries the minimum that a first contact needs, as the HTTPS join string carries
+the API's URL.
+
+The join over HTTPS stays, for a site where the API is the route that the agent
+has. The two transports send the same signed request and get the same answer.
+
+## The join string
+
+| Transport | Join string                                                       |
+| --------- | ----------------------------------------------------------------- |
+| NATS      | `tls://<host>:<port>?token=<token>&fp=SHA256:<hex>&creds=<creds>` |
+| HTTPS     | `osapi://<host>:<port>?token=<token>&fp=SHA256:<hex>`             |
+
+- `token` is the join token. It admits the agent.
+- `fp` is the fingerprint of the server's certificate: the NATS server's, or the
+  API's. The agent refuses a server whose certificate does not match it. Thus a
+  host in the path cannot answer for the server.
+- `creds` is the bootstrap credential, where the NATS setup has one
+  ([What each NATS setup needs](#what-each-nats-setup-needs)).
+
+The agent also needs `agent.pki.key_dir`, where it makes its keys before it
+sends them. The default, `/etc/osapi/pki`, needs no setting.
 
 ## Join tokens
 
@@ -39,130 +60,155 @@ osapi controller join token revoke --id <id>
 ```
 
 A token has an expiry, a number of uses, and labels that each agent that uses it
-gets. The controller stores a hash of the token, not the token. The token
-carries the controller URL and the fingerprint of the controller's TLS
-certificate. Thus the agent checks the controller before it sends anything, and
-a host in the path cannot answer for the controller.
+gets. The controller stores a hash of the token, not the token. With the NATS
+transport, `create` also makes the bootstrap credential of the token, where the
+setup lets osapi make one. A bootstrap JWT expires with its token.
 
-## The join
+## The join over NATS
 
 The agent does these steps one time, at its first start:
 
-1. The agent makes its signing key and its encryption key in
-   `agent.pki.key_dir`, as it does for an enrollment today
+1. The agent makes its signing key and its encryption key in `agent.pki.key_dir`
    ([Agent identity](agent-identity.md)).
-2. The agent connects to the controller over HTTPS. It refuses a certificate
-   whose fingerprint is not the fingerprint of the token.
-3. The agent sends `POST /api/agent/join` with the token, its hostname, its
-   machine ID and its two public keys. The request is signed with its signing
-   key.
-4. The controller checks the token: not expired, uses left, not revoked. A valid
-   token **admits the machine at once**. The operator made the token, so the
-   token is the decision that `admit` records today ([Admission](admission.md)).
-   The admission record names the token.
-5. The controller answers with the agent's config and its NATS credentials.
-6. The agent stores its credentials in `agent.pki.key_dir`, deletes the token,
-   and connects to NATS.
+2. The agent connects to NATS with the bootstrap credential. It refuses a server
+   whose certificate does not match `fp`.
+3. The agent sends the join request as a NATS request: the token, its hostname,
+   its machine ID and its two public keys, signed with its signing key. The
+   bootstrap credential can send this request and get its reply, and nothing
+   else.
+4. The controller checks the signature, then the token: not expired, uses left,
+   not revoked. A valid token **admits the machine at once**, and the admission
+   record names the token ([Admission](admission.md)).
+5. The controller replies with the controller's public key, the agent's NATS
+   credential and its config.
+6. The agent saves them in `agent.pki.key_dir`, and connects again with its own
+   credential.
 
-An invalid token answers 403 and admits nothing. The agent logs the reason, and
-enrolls over NATS as today, to wait for an operator.
+A token that does not admit gets a reply that says why, and admits nothing. The
+agent logs it, and asks to be admitted as today, to wait for an operator.
 
-The join is `POST /api/agent/join`, in the agent group. It is public, because
-the join token authorizes it, and it has no CLI command: the agent calls it, not
-a person (`.NoCommand()` in the [endpoint DSL](endpoints.md)). The spec marks it
-`x-osapi-program`, so the SDK has the method and needs no example of it, which
-would spend a token. The agent signs the request over each field with a domain
-prefix, `osapi-join-v1`, so that the signature is not a signature of anything
-else. The controller checks the signature before it takes a use of the token.
-Thus a request that does not hold its key spends nothing.
+The controller checks the signature before it takes a use of the token. Thus a
+request that does not hold its key spends nothing. The signature covers each
+field with the domain prefix `osapi-join-v1`, so that it is not a signature of
+anything else.
 
-The agent pins the controller's certificate: it skips the check of the roots and
-compares the SHA-256 of the leaf certificate with the fingerprint of the join
-string, so a self-signed certificate works. A certificate that renews, such as a
-Let's Encrypt certificate every 90 days, makes the join strings made before it
-not match. A join token is short-lived, so this is a small cost.
+## The join over HTTPS
+
+It is built (osapi-io/osapi#1378). The agent sends the same signed request to
+`POST /api/agent/join`, which is public, because the join token authorizes it.
+The route has no CLI command: the agent calls it, not a person (`.NoCommand()`
+in the [endpoint DSL](endpoints.md)). The spec marks it `x-osapi-program`, so
+the SDK has the method and needs no example of it, which would spend a token.
+
+The agent pins the API's certificate: it skips the check of the roots and
+compares the SHA-256 of the leaf certificate with `fp`, so a self-signed
+certificate works. A certificate that renews, such as a Let's Encrypt
+certificate every 90 days, makes the join strings made before it not match. A
+join token is short-lived, so this is a small cost.
 
 ## The config of the agent
 
-The controller holds each agent's config. `GET /api/agent/config` answers it,
-signed by the controller, to an agent that signs the request with its key. It
-has:
+The controller holds each agent's config, in a KV bucket, under the agent's
+machine ID. It has:
 
-- the NATS URLs, and the agent's own NATS credentials
+- the NATS URLs, and the agent's own NATS credential
 - the labels, the queue group and the maximum number of jobs
 - the facts: the collectors and the interval
 - the metrics settings and the log level
 
-The config has a version, one more at each change. The agent sends the version
-that it runs in each heartbeat. When the controller has a newer version, the
-agent gets it. The labels, the facts, the log level and the maximum number of
-jobs apply at once. A change of the NATS URL or of the credentials makes the
-agent connect again. Nothing needs a restart.
+The agent watches its key. A change reaches it at once, with no poll and no
+HTTP. The labels, the facts, the log level and the maximum number of jobs apply
+at once. A change of the NATS URL or of the credential makes the agent connect
+again. Nothing needs a restart. The config has a version, one more at each
+change. `osapi client agent get` and the UI show the version that the agent
+runs, and `behind` when the agent does not have the newest one.
 
-`osapi client agent get` and the UI show the version that the agent runs, when
-it got it, and `behind` when the agent does not have the newest version.
+## What each NATS setup needs
 
-## NATS credentials
+The NATS server does not decide the role of an agent. What the agent connects
+with carries its permissions. What osapi can give an agent depends on what the
+NATS administrator, the person who runs the NATS infrastructure, gives osapi:
 
-The join, the token, HTTPS and the config do not depend on how NATS
-authenticates. Only the NATS credentials that the config carries change with the
-auth type of the server:
+| NATS server                               | The administrator provisions for osapi                                                                 | Bootstrap credential                | Agent credential                           | One agent cut from the bus             |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------------------------------------------ | -------------------------------------- |
+| osapi's embedded server, in operator mode | nothing                                                                                                | a JWT for each token                | a short-lived JWT for each agent           | at once: the account's revocation list |
+| another server, in operator mode          | an account for osapi, and a scoped signing key whose template is the agent's permissions               | a JWT for each token                | a short-lived JWT for each agent           | when its JWT expires                   |
+| another server, with auth callout         | an `auth_callout` block that names osapi's issuer key (NATS 2.10 or later)                             | the callout decides, per connection | the callout decides, per agent             | at once                                |
+| another server, with static users         | two users: a join user that can send only the join request, and an agent user, the same for each agent | the join user, in the join string   | the agent user, which the controller gives | no: osapi refuses what the agent signs |
+| no authentication, for development        | nothing                                                                                                | none                                | none                                       | no                                     |
 
-| NATS server                                                                                          | The agent gets                                                                  | A revoked agent                                                          |
-| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| osapi's embedded server, in operator mode                                                            | its own user JWT, which the controller signs, valid for a short time            | loses its NATS connection at once                                        |
-| a server that osapi does not run, in operator mode, with a signing key for osapi                     | its own user JWT, valid for a short time                                        | loses its connection when its JWT expires, which is at most one lifetime |
-| a server in operator mode with no key for osapi, or with nkeys, users and passwords, or a creds file | the agent credentials that the controller's config has, the same for each agent | keeps its connection until an operator changes those credentials         |
-| none, in a lab                                                                                       | no credentials                                                                  | the same as the row above                                                |
+In operator mode, the role is in the user JWT. The controller signs a bootstrap
+JWT that can send only the join request, and after the join an agent JWT with
+the agent's subjects. The change of role is a new connection with the second
+JWT. The server checks only the signature, and applies the permissions that the
+JWT has. A scoped signing key keeps the operator's key with the administrator:
+its template sets the most that osapi can give, and osapi cannot give more.
 
-In operator mode (`nats.server.auth.type` with `resolver_file`, which the
-embedded server supports), the controller holds a signing key of the account of
-the agents. At a join, and at each config fetch, it signs a user JWT for the
-agent with the subjects that an agent can use, valid for a short time, such as
-one hour. Thus a revoked agent, whose config fetch answers 403, gets no new JWT.
-When osapi runs the server, the controller also adds the agent's public key to
-the revocation list of the account, and the server closes the connection at
-once. No reload is necessary.
+With static users, osapi cannot make a user. The administrator makes the two
+users, and gives them to the controller's config. The join string carries the
+join user. The join reply carries the agent user.
 
-A server that another team runs gives osapi a scoped signing key of one account,
-not the key of the operator. With that key osapi signs the JWTs of the agents,
-but it cannot change the revocation list of the account. The short lifetime cuts
-the agent off. A team that gives osapi no key gives it the agent credentials of
-the shared row instead. The owner chose operator mode as the recommended setup
-on 25 Nov 2026, over a static list that the server reloads for each agent.
+The permissions of each role (controller, agent, `nats setup`, the join) are not
+defined yet: today each osapi user can use the whole account
+(osapi-io/osapi#1415). A scoped signing key's template and the two static users
+need them.
 
-In each mode, the NATS credentials are not the identity of the agent. The
+In each setup, the NATS credential is not the identity of the agent. The
 controller verifies each answer and each registration with the key that it
 admitted ([Agent identity](agent-identity.md)). Thus a revoked agent gets no job
-and cannot answer for a host in each mode. Operator mode adds only the immediate
+and cannot answer for a host in each setup. The table's last column is only the
 cut from the bus.
+
+A host that has the join string can send the join request. Without a valid token
+and the agent's signature, the controller admits nothing.
+
+## Hosts that come and go
+
+A NATS administrator never makes a NATS user for each host. Agents share the
+agent user, or the controller makes a JWT for each one. Thus a fleet that scales
+up and down needs nothing from the administrator at each host.
+
+- **One join token for each group of hosts.** A token with enough uses, an
+  expiry that outlives the image, and the labels of the group, such as
+  `role=web`. Each host that joins with it gets the labels. Rotate the token in
+  the image or the launch template.
+- **A machine ID for each host.** An agent's identity is `/etc/machine-id` on
+  Linux. An image that ships a filled-in machine ID gives each clone the same
+  identity, and the second clone replaces the first in admission. Ship the image
+  with an empty `/etc/machine-id`, so that systemd makes one at the first boot.
+- **Labels, not hostnames.** A host whose hostname is random is targeted by its
+  labels: `--target role:web`.
+- **`controller.pki.delete_after`.** It deletes an admitted machine that has not
+  reported for that time, such as `24h`. Thus a host that went away leaves no
+  record. Empty, the default, keeps each one.
 
 ## Revocation
 
-An operator revokes an agent with the command of today, for each NATS server:
+An operator revokes an agent with the command of today:
 `osapi client admission revoke --machine-id <id>`, or `reject` or `delete`
-([Admission](admission.md)). No new command is necessary. An agent authenticates
-with its key, not with a user token, so no new role is necessary either.
+([Admission](admission.md)). No new command is necessary. The controller refuses
+each answer and each registration that the agent signs, and writes no new config
+for it. The cut from the bus is the last column of
+[What each NATS setup needs](#what-each-nats-setup-needs). With static users, to
+cut the agent from the bus, the administrator changes the agent user; the
+controller gives the new one to the other agents in their config, and then the
+administrator removes the old one.
 
-The next config request of the agent answers 403, and the controller refuses
-each answer and each registration that the agent signs. Thus in each mode the
-agent gets no job and cannot answer for a host. The cut from the bus depends on
-the server:
+A revocation that the administrator makes with their own tools, such as
+`nsc revocations add-user`, needs nothing from osapi. The agent cannot connect,
+logs the error of the server, tries again with a backoff, and shows as an agent
+that stopped reporting ([Admission](admission.md#machines-that-stop-reporting)).
 
-| NATS server                                  | What osapi does                                            | What the owner of the server does                                                                                                                                                                        |
-| -------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| osapi's embedded server                      | adds the agent's key to the revocation list of the account | nothing                                                                                                                                                                                                  |
-| another server, with a signing key for osapi | signs no new JWT, so the agent's JWT expires               | nothing, or revokes the agent's key with its own tools, such as `nsc revocations add-user`, for an immediate cut                                                                                         |
-| another server, with shared credentials      | gives no new config to the agent                           | to cut it from the bus: an operator changes the credentials in the controller's config, the other agents get them at their next config version, and then the old credentials are removed from the server |
+## The lab joins in the same way
 
-A revocation that the owner of a server makes with its own tools needs nothing
-from osapi. The agent cannot connect, logs the error of the server, tries again
-with a backoff, and shows as an agent that stopped reporting
-([Admission](admission.md#machines-that-stop-reporting)).
+The lab's images bake a join string, not the NATS settings and credentials of an
+agent. The hub makes a token for the lab when it bakes the images, with enough
+uses and an expiry that outlives them. Thus each VM joins as a host in
+production does, and a break in the join breaks the lab first.
 
 ## What this page does not cover
 
 - The controller makes its own secrets at its first start (after #1308).
-- Zero-touch joins: a build with the controller URL in it, DNS SRV discovery,
-  and an install from the controller over SSH.
+- How the join string gets to a host: a value in an image, cloud-init, DNS SRV
+  discovery, or an install over SSH.
 - Signed extension binaries (#1064).
