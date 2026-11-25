@@ -125,6 +125,25 @@ buckets, and not more.
 a user does not need `nsc`. This work waits until the lab runs operator mode
 with `nsc`.
 
+## The bus can use TLS
+
+`nats.server.tls` makes the embedded server serve TLS with a certificate, and
+`controller.nats.tls` and `agent.nats.tls` make each connection use it. TLS is
+off by default. The shapes are the same as each other server and connection of
+osapi ([TLS](configuration.md#tls)).
+
+Without TLS, the integrity of a job still holds: the controller signs each job,
+it verifies each answer, and a secret is sealed to its agents. But the payload
+of a job, the output of a command, the facts and the content of a file cross the
+network readable, and `user_pass` sends its password in the clear. Operator mode
+sends no seed: the client signs a nonce. Turn TLS on when an agent reaches the
+server over a network that you do not control. In the lab, Tailscale encrypts
+the traffic.
+
+nats-server needed no change: its options embed the upstream options, so
+`TLSConfig` reaches the server as osapi sets it. nats-client takes a
+`*tls.Config` since v1.3.0.
+
 ## The streams are encrypted on the disk
 
 The embedded server can encrypt each stream and bucket that it keeps in
@@ -199,7 +218,7 @@ changes a key, and that is true.
 
 ## What osapi cannot control from here
 
-The two wrapper repositories decide four things. A consumer of either wrapper
+The two wrapper repositories decide three things. A consumer of either wrapper
 cannot change them. This page records them because a person who debugs the bus
 looks here, and because osapi is the only consumer of the two wrappers.
 
@@ -223,16 +242,7 @@ outage. But there is no notification. Thus osapi cannot:
 - report a drop on `/health`
 - tell a slow request from a bus that went away and came back
 
-**The bus has no TLS.** Neither wrapper has a TLS option, so the controller and
-each agent connect in plain text. The integrity of a job does not depend on it:
-the controller signs each job, it verifies each answer, and a secret is sealed
-to its agents. But the payload of a job, the output of a command, the facts and
-the content of a file cross the network readable, and `user_pass` sends its
-password in the clear. Operator mode sends no seed: the client signs a nonce. In
-the lab, Tailscale encrypts the traffic. osapi-io/osapi#1396 adds TLS, after
-osapi-io/nats-client#223 and osapi-io/nats-server#172.
-
-To change any of these, change the wrapper, not this repository.
+To change any of the three, change the wrapper, not this repository.
 
 ## Where this connects
 
