@@ -28,6 +28,30 @@ operates, or an agreement that two repositories must keep? Job retry logic is
 the operation of osapi. osapi and osapi-orchestrator both depend on the subject
 names, but neither owns them. Thus the subject names go in `ARCHITECTURE.md`.
 
+## Keep the descriptions in sync
+
+Each part of osapi-io that a person or an agent builds on describes itself as
+data, and a binary prints that data. The parts are each DSL of osapi
+(`osapi dsl behavior`, `endpoint`, `command` and `chain`), the Go SDK
+(`osapi sdk`), and gohai's collectors (`gohai collector` and
+`osapi agent collector`). Each has the same four commands, each with `--json`:
+`list`, `get --name`, `spec get` and `validate`.
+
+A change to one of these parts is a change to its data. Thus the commands, the
+generated pages and the skills agree with the build. Each change obeys these
+rules:
+
+- Change the data, not a copy. A spec term, a check, a doc comment or an example
+  is the source. A page or a skill that repeats it goes stale.
+- A skill sends the agent to the commands. It does not copy their output.
+- A part that describes itself has the four commands. A new part gets them in
+  the same change.
+- osapi mounts gohai's own command, and does not copy it. A change to the
+  collectors goes in gohai first, then a gohai tag, then osapi.
+- The page of the part says that it describes itself, and names the commands.
+
+A reviewer refuses a change that breaks one of these rules.
+
 ## Issues
 
 The rule is [Tracking](CONSTITUTION.md#tracking). In practice:

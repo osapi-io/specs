@@ -77,6 +77,11 @@ prints the same data. The commands have the shape of the DSL commands of osapi:
 | `gohai collector spec get`       | each part of a collector, what it does and when to use it            |
 | `gohai collector validate`       | the problems of each collector against the rules, each with its fix  |
 
+osapi mounts the same command as `osapi agent collector`, through
+`cmd.NewCollectorCommand(path)` (gohai v1.13.0). `path` is the command path that
+the examples and the hints name. Thus the two binaries print the same collectors
+from the same code. A change to the output goes in gohai first.
+
 The constructor is `<package>.NewWith(src)` for a collector that reads the host,
 and `<package>.New()` for a cloud collector. The fields come from the field of
 `gohai.Facts` whose JSON name is the name of the collector.
