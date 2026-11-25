@@ -222,14 +222,14 @@ The lab shows those.
 
 **The same suite, pointed at the lab.** osapi's integration suite runs against
 the lab from an osapi checkout. `OSAPI_INTEGRATION_OSAPIFILE` names the lab's
-`.lab/config/client.yaml`, and `OSAPI_INTEGRATION_TARGET` names one VM. The
-suite then starts nothing and tests the hub's controller and that VM's agent.
-With `OSAPI_INTEGRATION_WRITE_BEHAVIORS=1`, the write examples run on the VM,
-and the VM gets its state back after each one. The suite prepares the VM through
-osapi, the same as it prepares the CI runner: the ping parameter, chrony, and
-the dummy interface `osapi0`. Thus the image does not make `osapi0`, and CI and
-the lab run the same suite with no setup outside it. The lab has no recipe of
-its own for this: `just go-unit-int` in osapi is the one entry point.
+`.lab/config/cli.yaml`, and `OSAPI_INTEGRATION_TARGET` names one VM. The suite
+then starts nothing and tests the hub's controller and that VM's agent. With
+`OSAPI_INTEGRATION_WRITE_BEHAVIORS=1`, the write examples run on the VM, and the
+VM gets its state back after each one. The suite prepares the VM through osapi,
+the same as it prepares the CI runner: the ping parameter, chrony, and the dummy
+interface `osapi0`. Thus the image does not make `osapi0`, and CI and the lab
+run the same suite with no setup outside it. The lab has no recipe of its own
+for this: `just go-unit-int` in osapi is the one entry point.
 
 **Ansible, not a justfile of shell.** The first version was bash in the
 justfile. It had a render script for templates, an scp loop for the VMs and a
@@ -319,7 +319,7 @@ before the list, fails the check. Thus the next run of the role signs a new
 token with the `kid` of `lab`.
 
 Two configs hold the signing keys of the hub: `hub.yaml`, which the controller
-verifies with, and `client.yaml` on your machine. Thus
+verifies with, and `cli.yaml` on your machine. Thus
 `osapi controller token generate` on your machine signs a token that the
 controller accepts. The config of an agent has a temporary signing key, because
 osapi validates each key in the file for each command. An agent never signs or
