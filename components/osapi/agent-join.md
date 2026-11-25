@@ -16,9 +16,14 @@ This page is the design of osapi-io/osapi#1313. The parts that are built:
   agent and setup. `osapi nats permissions get --role <role>` prints them, and
   the embedded server applies them to a user with a `role`
 
-The parts that are not built: the join over NATS and the config in KV
-(osapi-io/osapi#1416, osapi-io/osapi#1379), the NATS credentials
-(osapi-io/osapi#1380), and the permissions of the join's bootstrap credential.
+- the join over NATS with static users (osapi-io/osapi#1416): osapi's embedded
+  server, or a server with a join user and an agent user. The join user has the
+  role `join`, which can send the join request and nothing else
+
+The parts that are not built: the join over NATS in operator mode and with auth
+callout, where the controller makes a JWT for each agent (osapi-io/osapi#1416),
+the config in KV (osapi-io/osapi#1379), and JWTs that renew
+(osapi-io/osapi#1380).
 
 ## Why NATS is the transport
 
@@ -38,17 +43,26 @@ has. The two transports send the same signed request and get the same answer.
 
 ## The join string
 
-| Transport | Join string                                                       |
-| --------- | ----------------------------------------------------------------- |
-| NATS      | `tls://<host>:<port>?token=<token>&fp=SHA256:<hex>&creds=<creds>` |
-| HTTPS     | `osapi://<host>:<port>?token=<token>&fp=SHA256:<hex>`             |
+| Transport | Join string                                                                             |
+| --------- | --------------------------------------------------------------------------------------- |
+| NATS      | `tls://<host>:<port>?token=<token>&fp=SHA256:<hex>&user=<user>&pass=<password>&ns=<ns>` |
+| HTTPS     | `osapi://<host>:<port>?token=<token>&fp=SHA256:<hex>`                                   |
 
 - `token` is the join token. It admits the agent.
 - `fp` is the fingerprint of the server's certificate: the NATS server's, or the
   API's. The agent refuses a server whose certificate does not match it. Thus a
-  host in the path cannot answer for the server.
-- `creds` is the bootstrap credential, where the NATS setup has one
-  ([What each NATS setup needs](#what-each-nats-setup-needs)).
+  host in the path cannot answer for the server. A `nats://` string, with no
+  TLS, has no `fp`.
+- `user` and `pass` are the bootstrap user, where the NATS setup has one
+  ([What each NATS setup needs](#what-each-nats-setup-needs)). The user can send
+  the join request and nothing else, so the string gives no access to osapi's
+  data.
+- `ns` is the namespace of osapi's subjects.
+
+`join token create` makes the NATS string by default, and the HTTPS string with
+`--transport https`. For a `tls://` server, it reads the fingerprint when it
+connects as the bootstrap user, so a string that it prints has a user that
+connects.
 
 The agent also needs `agent.pki.key_dir`, where it makes its keys before it
 sends them. The default, `/etc/osapi/pki`, needs no setting.
@@ -64,9 +78,8 @@ osapi controller join token revoke --id <id>
 ```
 
 A token has an expiry, a number of uses, and labels that each agent that uses it
-gets. The controller stores a hash of the token, not the token. With the NATS
-transport, `create` also makes the bootstrap credential of the token, where the
-setup lets osapi make one. A bootstrap JWT expires with its token.
+gets. The controller stores a hash of the token, not the token. In operator mode
+(not built), `create` also makes a bootstrap JWT that expires with its token.
 
 ## The join over NATS
 
@@ -83,13 +96,26 @@ The agent does these steps one time, at its first start:
 4. The controller checks the signature, then the token: not expired, uses left,
    not revoked. A valid token **admits the machine at once**, and the admission
    record names the token ([Admission](admission.md)).
-5. The controller replies with the controller's public key, the agent's NATS
-   credential and its config.
-6. The agent saves them in `agent.pki.key_dir`, and connects again with its own
-   credential.
+5. The controller replies with the controller's public key and the agent's NATS
+   user. The controllers answer in a queue group, so one controller answers each
+   join and takes one use of the token.
+6. The agent saves the key as `enrolled-controller.pub`, and the user and the
+   server's certificate in `nats-join.json` (mode 0600), in `agent.pki.key_dir`.
+   It connects again with its own user. Each later start reads `nats-join.json`
+   and does not join again.
 
 A token that does not admit gets a reply that says why, and admits nothing. The
-agent logs it, and asks to be admitted as today, to wait for an operator.
+agent stops with the reason.
+
+A reply can be lost after the controller admitted the machine. The agent then
+asks again, and the controller answers again with no second use of the token:
+the machine is admitted, by that token, with the keys that the request has. The
+signature shows that the request holds those keys.
+
+Each join writes an audit entry: the actor is `join-token:<id>`, the operation
+is `agent.join`, the response code is 200 or 403, and the summary is the machine
+ID and the hostname. The agent's join has an `agent.join` span, and the
+controller's has `admission.join`. None of them holds the token or a password.
 
 The controller checks the signature before it takes a use of the token. Thus a
 request that does not hold its key spends nothing. The signature covers each
