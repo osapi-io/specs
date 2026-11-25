@@ -8,13 +8,17 @@ image or a cloud-init file with no configuration management.
 This page is the design of osapi-io/osapi#1313. The parts that are built:
 
 - the join tokens (osapi-io/osapi#1377)
+
 - the join over HTTPS (osapi-io/osapi#1378): an agent with `agent.join` set
   joins at its first start, and is admitted at once
 
+- the NATS permissions of each role (osapi-io/osapi#1415): the controller, an
+  agent and setup. `osapi nats permissions get --role <role>` prints them, and
+  the embedded server applies them to a user with a `role`
+
 The parts that are not built: the join over NATS and the config in KV
 (osapi-io/osapi#1416, osapi-io/osapi#1379), the NATS credentials
-(osapi-io/osapi#1380), and the NATS permissions of each role
-(osapi-io/osapi#1415).
+(osapi-io/osapi#1380), and the permissions of the join's bootstrap credential.
 
 ## Why NATS is the transport
 
@@ -148,10 +152,12 @@ With static users, osapi cannot make a user. The administrator makes the two
 users, and gives them to the controller's config. The join string carries the
 join user. The join reply carries the agent user.
 
-The permissions of each role (controller, agent, `nats setup`, the join) are not
-defined yet: today each osapi user can use the whole account
-(osapi-io/osapi#1415). A scoped signing key's template and the two static users
-need them.
+The permissions of each role come from `bus.RolePermissions` in osapi, built
+from the names of the streams and buckets of the config. An agent cannot make or
+change a stream or a bucket, and cannot write the secrets, the enrollment
+records or the object store. A scoped signing key's template and the static
+agent user take the agent's set. The join's bootstrap set is part of
+osapi-io/osapi#1416.
 
 In each setup, the NATS credential is not the identity of the agent. The
 controller verifies each answer and each registration with the key that it
