@@ -48,6 +48,15 @@ the vmnet bridge can also read the traces. The lab accepts that, because the
 tailnet and the LAN have one user. A remote agent does not change this, because
 it only sends spans.
 
+The API, NATS, Jaeger's UI and its OTLP receiver each serve the hub's Tailscale
+certificate, and each connection checks it: the CLI, the controller, each agent
+and each exporter. The certificate names the tailnet name only. Thus a
+connection that dials `127.0.0.1` or the `.1` address of the subnet sets
+`server_name` to the tailnet name. A VM that upgrades in place gets its `tls`
+blocks from `upgrade.yml`, because its config is from an older image. Plain text
+to any of the four is refused. [TLS](../osapi/configuration.md#tls) has the
+settings.
+
 The hub writes these locations into the `url` keys of its config:
 `controller.api.url`, `controller.ui.url`, `telemetry.tracing.url` and
 `nats.server.url`. Thus `osapi client health status` shows a location that you
