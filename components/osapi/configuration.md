@@ -282,10 +282,10 @@ is off in each by default. There is no top-level block, and a block does not
 take a value from another block. Two shapes are used, each in `internal/config`
 with one function that builds its `tls.Config`:
 
-| Shape  | Keys                                                                                 | Blocks                                                                                              |
-| ------ | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| server | `enabled`, `cert_file`, `key_file`                                                   | `controller.api.tls`, `controller.metrics.tls`, `agent.metrics.tls`, `nats.server.metrics.tls`      |
-| client | `enabled`, `ca_file`, `cert_file`, `key_file`, `server_name`, `insecure_skip_verify` | `controller.client.tls` (the CLI), `telemetry.tracing.tls` (the OTLP exporter and the trace reader) |
+| Shape  | Keys                                                                                 | Blocks                                                                                                                                       |
+| ------ | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| server | `enabled`, `cert_file`, `key_file`                                                   | `controller.api.tls`, `nats.server.tls`, `controller.metrics.tls`, `agent.metrics.tls`, `nats.server.metrics.tls`                            |
+| client | `enabled`, `ca_file`, `cert_file`, `key_file`, `server_name`, `insecure_skip_verify` | `controller.client.tls` (the CLI), `controller.nats.tls`, `agent.nats.tls`, `telemetry.tracing.tls` (the OTLP exporter and the trace reader) |
 
 The certificate of the API comes from one of two places:
 
@@ -297,9 +297,11 @@ The certificate of the API comes from one of two places:
   host, `localhost` and the hosts of `controller.api.url` and
   `controller.ui.url`. It uses that certificate after that.
 
-A metrics server has no self-signed certificate. With `tls.enabled` and no
-`cert_file`, it logs `tls.enabled needs cert_file and key_file` and does not
-start. It does not serve plain HTTP in place of HTTPS. Its process continues.
+A metrics server and the NATS server have no self-signed certificate. With
+`tls.enabled` and no `cert_file`, a metrics server logs
+`tls.enabled needs cert_file and key_file` and does not start, and the NATS
+server does not start at all. It does not serve plain HTTP in place of HTTPS.
+Its process continues.
 
 A client trusts the system's roots, and `ca_file` if it is set, such as the
 `api.crt` of a self-signed controller. `cert_file` and `key_file` send a client
@@ -312,10 +314,14 @@ osapi-io/osapi#1385 the exporter always connected in plain text.
 certificate of an attacker in the path. osapi logs a warning that names the
 setting at each start that has it on. Use it only for a test.
 
-The connections to NATS have no TLS yet. nats-client and nats-server have no TLS
-option, so osapi-io/osapi#1396 waits on osapi-io/nats-client#223 and
-osapi-io/nats-server#172. [The message bus](transport.md) tells what crosses the
-bus in plain text until then.
+A NATS connection has no scheme in the config, so `enabled` decides. Each of the
+five places that dial NATS (the job client of the controller and of each agent,
+`nats setup`, the references of the config, and the join token and vault key
+commands) builds its options with `bus.ConnectionOptions`. Thus a new place that
+dials NATS gets TLS without a change. The NATS server's own connection, for its
+setup and heartbeat, trusts the certificate that the server serves and checks
+the first name in it, because it dials its bind address. Health shows its
+address as `tls://` (osapi-io/osapi#1396).
 
 osapi has no ACME client. Let's Encrypt cannot issue a certificate for an
 internal name, such as a `.internal` or `.local` name, without a DNS-01
