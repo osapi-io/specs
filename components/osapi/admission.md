@@ -144,6 +144,13 @@ state bucket, once a minute (`seenInterval` in `internal/agent/heartbeat.go`).
 That key keeps the last report of an agent that stopped. A machine that never
 reported has no last seen.
 
+## A join token admits
+
+A join token is an operator's decision made ahead of time. An agent that joins
+with one ([Agent join](agent-join.md)) is admitted at once, with no pending
+record, and its admitted record names the token as `join_token`. A join clears
+an earlier pending, rejected or revoked record of the machine, as an admit does.
+
 ## Automatic admission
 
 `controller.pki.auto_admit: true` admits each request when it arrives, with no
