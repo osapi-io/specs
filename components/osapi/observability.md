@@ -327,10 +327,11 @@ Set the two together.
 
 Tracing is different from the other sub-components. It listens on nothing: it
 sends spans to `otlp_endpoint`. Thus its `address` is that destination, as
-`grpc://<otlp_endpoint>`, and only when the exporter is `otlp`. It is the one
-`address` that is not a bind address. `telemetry.tracing.url` points to the
-trace viewer, for example Jaeger. osapi does not run that viewer. The URL lets a
-person go from the health output to the traces.
+`grpc://<otlp_endpoint>`, or `grpcs://` when `telemetry.tracing.tls.enabled` is
+on, and only when the exporter is `otlp`. It is the one `address` that is not a
+bind address. `telemetry.tracing.url` points to the trace viewer, for example
+Jaeger. osapi does not run that viewer. The URL lets a person go from the health
+output to the traces.
 
 Each process sends its sub-components in its heartbeat, in
 `job.SubComponentInfo`: the controller from `internal/controller/heartbeat.go`,
