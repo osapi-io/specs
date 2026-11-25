@@ -202,8 +202,13 @@ var Group = endpoint.Register(endpoint.Define(
   in the list is a 500. Each method also gets 400 when it has an input, 401 and
   403 when it is not public, and 500.
 
-- **`Permission`** and **`Public`** change the default auth. `Public` is only
-  for the health probes.
+- **`Permission`** and **`Public`** change the default auth. `Public` is for the
+  health probes, and for the agent's join, which its join token authorizes.
+
+- **`NoCommand`** gives a method no CLI command, for a method that a program
+  calls, not a person, such as the agent's join. Its route, spec and SDK method
+  are as each other method's. The spec marks it `x-osapi-program`, which the SDK
+  reads, so `osapi sdk validate` needs no example of it.
 
 - **`Uses[Deps]()`** names the struct of what the handlers use, such as the job
   client and the admission store, as interfaces. The controller gives one at

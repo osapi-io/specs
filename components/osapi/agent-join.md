@@ -6,7 +6,13 @@ Today each agent host needs a full `osapi.yaml` with the NATS address and the
 NATS credentials, and configuration management must write it. The agent also
 enrolls over NATS, so it needs the NATS settings before it can enroll.
 
-This page is the design of osapi-io/osapi#1313. Nothing on it is built yet.
+This page is the design of osapi-io/osapi#1313. The join tokens
+(osapi-io/osapi#1377) and the join (osapi-io/osapi#1378) are built: an agent
+with `agent.join` set joins at its first start, and is admitted at once. Until
+osapi-io/osapi#1379, the agent still has its NATS settings in its own config,
+and the controller answers the join with its public key only. The config and the
+NATS credentials of [The config of the agent](#the-config-of-the-agent) and
+[NATS credentials](#nats-credentials) are not built yet.
 
 ## What stays on the host
 
@@ -58,8 +64,23 @@ The agent does these steps one time, at its first start:
 6. The agent stores its credentials in `agent.pki.key_dir`, deletes the token,
    and connects to NATS.
 
-An invalid token answers 403 and admits nothing. The machine can still enroll
-over NATS as today, and wait for an operator.
+An invalid token answers 403 and admits nothing. The agent logs the reason, and
+enrolls over NATS as today, to wait for an operator.
+
+The join is `POST /api/agent/join`, in the agent group. It is public, because
+the join token authorizes it, and it has no CLI command: the agent calls it, not
+a person (`.NoCommand()` in the [endpoint DSL](endpoints.md)). The spec marks it
+`x-osapi-program`, so the SDK has the method and needs no example of it, which
+would spend a token. The agent signs the request over each field with a domain
+prefix, `osapi-join-v1`, so that the signature is not a signature of anything
+else. The controller checks the signature before it takes a use of the token.
+Thus a request that does not hold its key spends nothing.
+
+The agent pins the controller's certificate: it skips the check of the roots and
+compares the SHA-256 of the leaf certificate with the fingerprint of the join
+string, so a self-signed certificate works. A certificate that renews, such as a
+Let's Encrypt certificate every 90 days, makes the join strings made before it
+not match. A join token is short-lived, so this is a small cost.
 
 ## The config of the agent
 
