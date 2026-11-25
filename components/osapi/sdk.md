@@ -26,14 +26,38 @@ conditions, `Permission`, `Role` and the `Perm` constants, `Reason`,
 `TargetAny` and `TargetAll`. osapi's packages use the type from `types`, not a
 copy. A closed set, such as `ContentType`, `Reason`, `AgentJobStatus` or
 `Permission`, has the methods `Values()` and `Valid()`. Thus the spec has a
-schema with its values, and the rule `validate:"enum"` calls `Valid()`. `Role`
-has no `Values()`, because the config can add custom roles. A generator writes
-only `permissions.gen.go`, from the registry of permissions.
+schema with its values, and the rule `validate:"enum"` calls `Valid()`. The rule
+`validate` refuses `oneof`: a closed set is always a named type
+(osapi-io/osapi#1362). `Role` has no `Values()`, because the config can add
+custom roles. Two files are generated: `permissions.gen.go`, from the registry
+of permissions, and `types.gen.go` (below).
 
 Before osapi-io/osapi#1318, these types were in `pkg/sdk/client`, and
 `internal/job` and the catalog endpoint imported them from the client. The
 client is not their owner, and an extension that only registers a behavior does
 not call the API.
+
+## The SDK describes itself
+
+The SDK gives a description of itself as data, as gohai does with
+`gohai.Collectors()`:
+
+- `types.All()` is each closed set of `pkg/sdk/types`, with its doc and its
+  values. `internal/sdk/gen` writes it in `types.gen.go`, with a `Doc()` method
+  on each type from its doc comment. The spec uses `Doc()` as the description of
+  the schema. Thus the comment, the code and the spec say the same.
+- `client.Services()` is each service of the client and each method, with the
+  permission that it needs, its route, its input, its result and its number of
+  examples. `internal/sdk/gen` writes it in `spec.gen.go` from the same model as
+  the methods.
+
+The binary prints the description: `osapi sdk list`, `get --name`, `spec get`
+and `validate`, the four commands of each DSL ([the CLI](cli.md)).
+`internal/sdk/sdkspec` makes the spec and the checks of `validate` from the two
+functions. The `osapi-sdk` skill, which `osapi skill install` installs, sends an
+agent to these commands. Each DSL's `spec get` also ends with a section "Types
+for values" from `types.All()`. Thus each skill that reads a spec teaches the
+types (osapi-io/osapi#1326, osapi-io/osapi#1339).
 
 ## The client
 

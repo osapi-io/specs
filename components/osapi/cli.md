@@ -69,6 +69,7 @@ and the commands that write the docs were under `cli`.
    | runs on this host, on the config that each component reads    | `config`                                        |
    | works on the definitions of osapi, for an author              | `dsl`                                           |
    | works on the skills in the binary                             | `skill`                                         |
+   | describes or checks the Go SDK in the binary, for its callers | `sdk`                                           |
    | acts on the whole binary or host                              | the root. Only `start` and `version` are there. |
 
 3. **Under `client`, the words follow the API path.** The group is the endpoint
@@ -85,7 +86,12 @@ and the commands that write the docs were under `cli`.
 6. **A group with one resource has the name of that resource.** It has no
    wrapper word.
 
-7. **Each DSL has the same commands**, under `dsl <name>`.
+7. **Each DSL has the same commands**, under `dsl <name>`. Each other thing that
+   describes itself has the four that they share, each with `--json`: `list`,
+   `get --name`, `spec get` and `validate`. These are `sdk`, from `types.All()`
+   and `client.Services()`, and `agent collector`, which is gohai's own command
+   (`gohai collector`), mounted with its path. Thus the two binaries print the
+   same collectors.
 
 8. **Each process is `<component> start`.** `start` alone starts each component.
 
@@ -100,6 +106,7 @@ and the commands that write the docs were under `cli`.
 | `nats`       | Run the embedded NATS server on this host, or prepare a NATS server            |
 | `config`     | List, get and validate the config that each component reads                    |
 | `skill`      | Show the agent skills in this binary, and install them into a repository       |
+| `sdk`        | List, describe and check the Go SDK in this binary: its types and its services |
 | `dsl`        | Describe, check and document the definitions of osapi, for authors             |
 | `client`     | Call the API of the controller                                                 |
 
@@ -110,10 +117,11 @@ osapi
   start                 each component on this host
   version
   controller  start | key fingerprint | token generate|validate | role list|get | vault key create|rotate
-  agent       start | key fingerprint
+  agent       start | key fingerprint | collector list|get|spec get|validate
   nats        start | setup | key create
   config      list | get | validate
   skill       list | get | install
+  sdk         list | get | spec get | validate
   dsl         behavior … | chain … | endpoint … | command … | docs generate
   client
     admission   list | get | admit | reject | revoke | delete
