@@ -1,10 +1,9 @@
 # Agent identity
 
 The controller must know two things. An answer came from the machine that it
-addressed. A machine that claims a hostname is the machine that has that
-hostname in its record: the hostname that it enrolled with, or the hostname that
-an operator gave it through osapi. The two facts come from one stored signing
-key for each agent.
+addressed. A machine that claims a hostname holds that hostname: no other
+admitted machine has it. The two facts come from one stored signing key for each
+agent. The identity is the machine ID and the key. The hostname can change.
 
 ## Enrollment is the only thing that writes a key
 
@@ -146,6 +145,33 @@ broadcast that returns nineteen rows for a fleet of twenty machines. The missing
 row gives no error. Look at `GET /agent`, which reports `key_stored` and
 `verified`.
 
+## The hostname follows the machine
+
+An operator knows a host by its hostname, and targets it by its hostname. A
+hostname can change: a rename through osapi, a rename by hand, or a rebuild that
+keeps the machine ID. The record of the machine keeps its machine ID and its
+key, and takes the new hostname.
+
+When a verified registration or a verified answer has a hostname that is not the
+hostname of the record, the controller does these steps:
+
+1. It looks for another admitted machine whose registration and record have that
+   hostname.
+2. If there is one, it refuses the registration, and logs "registration claims
+   the hostname of another admitted machine". Thus an admitted agent cannot take
+   the name of a different host (GHSA-j73r).
+3. If there is none, it moves the record to the new hostname, logs "an agent's
+   hostname changed", and writes a `hostname_changed` event to the timeline of
+   the machine.
+
+An answer shows under the hostname of the record. A request to the new hostname
+right after a rename finds the host: an agent that renames its host registers
+with the new hostname before it answers the rename, and the target check reads
+the registry again when its cached list does not have the name.
+
+A config that sets `agent.hostname` pins the hostname. A rename of the host then
+does not change the hostname that the agent reports.
+
 ## Rotation without an outage
 
 After a key changes, osapi accepts the old key for a grace period. Thus an agent
@@ -208,5 +234,5 @@ the signature is in the life of a job.
 
 ______________________________________________________________________
 
-Written from `internal/agent/`, `internal/pki/` and
-`internal/job/registration.go`.
+Written from `internal/agent/`, `internal/pki/`, `internal/job/registration.go`
+and `internal/job/client/agent.go`.
