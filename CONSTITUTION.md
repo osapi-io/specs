@@ -39,6 +39,25 @@ pass" is a claim. The command and its output are evidence.
 If a check can be automatic, make it automatic. A rule that only a review
 enforces stays true only until the reviewer is busy.
 
+## Audit and telemetry are part of the design
+
+A change that adds a path, or that changes state, says in its design which audit
+entry it writes and which spans it makes. Its test shows them. They are not
+added after the change merges.
+
+- **Audit.** Each change of state writes one audit entry: who did it (a person,
+  a token, the system or an agent), what it did, to what, and the result. This
+  includes a change that does not go through an API, such as a local command or
+  the work of a process on its own.
+- **Spans.** Each operation that crosses a process or a store has a span: a
+  request, a job, a read or a write of NATS, a vault, a command.
+- **No secret in either.** A value of a secret, a token or a key is never an
+  attribute of a span or a field of an audit entry. A test checks it.
+
+On 25 Nov 2026 a sweep found more than ten changes of state with no audit entry,
+and six areas with no spans: each one was added without them
+(osapi-io/osapi#1425, osapi-io/osapi#1426).
+
 ## Tooling
 
 Declare each tool that a repository runs in the location where the repository
