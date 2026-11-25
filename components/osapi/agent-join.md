@@ -88,12 +88,16 @@ NATS at once, not at its next start. The NATS server must let the controller
 make and remove credentials while it runs. A static list of users or nkeys needs
 a reload of the server for each agent.
 
-**Decision needed:** the embedded NATS server supports operator mode
-(`nats.server.auth.type` with `resolver_file`). In operator mode the controller
-holds an account signing key, signs a user JWT for each agent, and adds a
-revoked agent to the account's revocation list. The other way is a static list
-that the controller writes and the server reloads. Operator mode is the
-recommendation: it needs no reload, and a revocation takes effect at once.
+The NATS server runs in **operator mode**, with a resolver
+(`nats.server.auth.type` with `resolver_file`), which the embedded server
+supports. The controller holds the signing key of the account of the agents. At
+a join it signs a user JWT for the agent, with the subjects that an agent can
+use, and gives it with the config. When an operator revokes the agent, the
+controller adds the agent's public key to the revocation list of the account,
+and the server closes its connection. No reload is necessary. The owner chose
+operator mode over a static list that the server reloads, and over credentials
+that each agent shares (25 Nov 2026). A lab that uses a static list switches to
+operator mode one time.
 
 ## Revocation
 
