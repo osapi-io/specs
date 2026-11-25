@@ -83,8 +83,11 @@ and the commands that write the docs were under `cli`.
 
 5. **One fact has one command.**
 
-6. **A group with one resource has the name of that resource.** It has no
-   wrapper word.
+6. **A group's word is the name of its area**: the word that the config and the
+   docs use for it. Thus `telemetry trace get` matches `telemetry.tracing`, and
+   metrics or logs can join traces there later. A group has no wrapper word that
+   is not such a name. `facts`, `controller` and `nats` were not areas, so their
+   commands moved under `agent` and `health` (osapi-io/osapi#1257).
 
 7. **Each DSL has the same commands**, under `dsl <name>`. Each other thing that
    describes itself has the four that they share, each with `--json`: `list`,
@@ -131,7 +134,7 @@ osapi
     health      liveness | ready | status [--component]
     job         list | get | retry | delete
     secret      list | get | update | delete | reveal | vault list
-    trace       get
+    telemetry   trace get
     node        <behavior> …   (each behavior by its name; help grouped by area)
 ```
 
@@ -140,10 +143,12 @@ edits the same registration lists. The first builds the rules, the root and the
 local commands ([moved on 24 November 2026](#moved-on-24-november-2026)). The
 second moved the client groups (osapi-io/osapi#1257): `facts keys list` to
 `agent facts list` (`GET /api/agent/facts`), `telemetry trace get` to
-`trace get` (`GET /api/trace/{id}`), and `controller status`, `nats status` and
-`agent status` to `health status --component controller|nats|agent`. The
-`facts`, `controller` and `nats` endpoint groups went. The third moved the node
-paths (osapi-io/osapi#1258): the behaviors without category words, the area help
+`trace get` (`GET /api/trace/{id}`), which osapi-io/osapi#1386 moved back to
+`telemetry trace get` (`GET /api/telemetry/trace/{id}`) when rule 6 became the
+general rule, and `controller status`, `nats status` and `agent status` to
+`health status --component controller|nats|agent`. The `facts`, `controller` and
+`nats` endpoint groups went. The third moved the node paths
+(osapi-io/osapi#1258): the behaviors without category words, the area help
 headings, `file get`, `package updates` and `user password update`
 ([node paths](#node-paths-moved-on-24-november-2026)). The `secret`, `vault` and
 `nats key` commands come with secret management (osapi-io/osapi#1065), not with

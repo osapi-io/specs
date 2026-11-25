@@ -502,9 +502,12 @@ Then each group moves in its own pull request, from the easiest:
 1. agent
 2. telemetry: one GET, a permission with a different name, and 503. Moved. On 24
    November 2026 the group became `trace`, and its command
-   `osapi client trace get` (osapi-io/osapi#1257). `--all` is the query
-   parameter `all`, and a backend that fails is `endpoint.Internal`, so the
-   caller does not get the backend's error.
+   `osapi client trace get` (osapi-io/osapi#1257). On 25 November it became
+   `telemetry` again, with `osapi client telemetry trace get` at
+   `GET /api/telemetry/trace/{id}`, because the group's word is its area
+   (osapi-io/osapi#1386). `--all` is the query parameter `all`, and a backend
+   that fails is `endpoint.Internal`, so the caller does not get the backend's
+   error.
 3. audit: pagination and an export. It is served from its definition. Its CLI
    paths stay `audit list`, `audit get` and `audit export`; `export`'s
    `--output` and `--type` are `.StringFlag`s, and an input field's `default`

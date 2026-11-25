@@ -184,17 +184,18 @@ status.
 
 ### Reading a trace through the controller
 
-`osapi client trace get --id <trace>` and the Traces page of the UI show the
-span tree of a trace. They ask the controller, at `GET /api/trace/{id}`, with
-`trace:read`. The controller answers the summary of the trace and its spans as a
-tree: each span with ON, STATUS, DETAIL, the span as the backend has it, and its
-children. Without the query parameter `all`, it leaves out the NATS calls, moves
-the spans under them up, and counts them. `--all` and the check box of the
-Traces page send it. The controller asks the tracing backend. Thus the machine
-of the CLI needs no access to the backend, as with the trace ID. A token with a
-target scope gets a trace only when each `osapi.target` that its spans record is
-in the scope, and gets 404 for a different trace.
-[Permissions](permissions.md#a-tokens-target-scope) has the rule.
+`osapi client telemetry trace get --id <trace>` and the Traces page of the UI
+show the span tree of a trace. They ask the controller, at
+`GET /api/telemetry/trace/{id}`, with `trace:read`. The controller answers the
+summary of the trace and its spans as a tree: each span with ON, STATUS, DETAIL,
+the span as the backend has it, and its children. Without the query parameter
+`all`, it leaves out the NATS calls, moves the spans under them up, and counts
+them. `--all` and the check box of the Traces page send it. The controller asks
+the tracing backend. Thus the machine of the CLI needs no access to the backend,
+as with the trace ID. A token with a target scope gets a trace only when each
+`osapi.target` that its spans record is in the scope, and gets 404 for a
+different trace. [Permissions](permissions.md#a-tokens-target-scope) has the
+rule.
 
 OpenTelemetry has no standard API to read a trace. The controller reads the
 query API of Jaeger, `/api/v3/traces/{id}`, which answers OTLP JSON, at
