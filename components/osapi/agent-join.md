@@ -118,11 +118,26 @@ cut from the bus.
 
 ## Revocation
 
-An operator removes or rejects an agent as today. The next config request of the
-agent answers 403. In operator mode its NATS credentials are revoked, so it is
-cut off from NATS at once. In the other modes the controller refuses its
-messages, as it does today. An agent authenticates with its key, not with a user
-token. Thus no new role is necessary.
+An operator revokes an agent with the command of today, for each NATS server:
+`osapi client admission revoke --machine-id <id>`, or `reject` or `delete`
+([Admission](admission.md)). No new command is necessary. An agent authenticates
+with its key, not with a user token, so no new role is necessary either.
+
+The next config request of the agent answers 403, and the controller refuses
+each answer and each registration that the agent signs. Thus in each mode the
+agent gets no job and cannot answer for a host. The cut from the bus depends on
+the server:
+
+| NATS server                                  | What osapi does                                            | What the owner of the server does                                                                                                                                                                        |
+| -------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| osapi's embedded server                      | adds the agent's key to the revocation list of the account | nothing                                                                                                                                                                                                  |
+| another server, with a signing key for osapi | signs no new JWT, so the agent's JWT expires               | nothing, or revokes the agent's key with its own tools, such as `nsc revocations add-user`, for an immediate cut                                                                                         |
+| another server, with shared credentials      | gives no new config to the agent                           | to cut it from the bus: an operator changes the credentials in the controller's config, the other agents get them at their next config version, and then the old credentials are removed from the server |
+
+A revocation that the owner of a server makes with its own tools needs nothing
+from osapi. The agent cannot connect, logs the error of the server, tries again
+with a backoff, and shows as an agent that stopped reporting
+([Admission](admission.md#machines-that-stop-reporting)).
 
 ## What this page does not cover
 
