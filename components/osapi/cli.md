@@ -119,7 +119,7 @@ and the commands that write the docs were under `cli`.
 osapi
   start                 each component on this host
   version
-  controller  start | key fingerprint | token generate|validate | role list|get | vault key create|rotate
+  controller  start | key fingerprint | token generate|validate | role list|get | secret key create|rotate
   agent       start | key fingerprint | collector list|get|spec get|validate
   nats        start | setup | key create
   config      list | get | spec get | validate
