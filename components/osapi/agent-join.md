@@ -27,9 +27,9 @@ fingerprint of the controller's certificate.
 An operator makes a join token on the controller:
 
 ```bash
-osapi controller join-token create --expires 1h [--uses 1] [--labels k=v]
-osapi controller join-token list
-osapi controller join-token revoke --id <id>
+osapi controller join token create --expires 1h [--uses 1] [--labels k=v]
+osapi controller join token list
+osapi controller join token revoke --id <id>
 ```
 
 A token has an expiry, a number of uses, and labels that each agent that uses it
