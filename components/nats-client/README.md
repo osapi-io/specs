@@ -117,6 +117,16 @@ each connect. Thus `Connect` first checks that the file exists. It reports a
 missing file as `failed to read creds file`, not as the authorization error of
 the server.
 
+## TLS
+
+`Options.TLS` is a `*tls.Config`. When it is set, `Connect` dials `tls://` with
+`nats.Secure`, with the roots, the client certificate and the server name of
+that config. Nil connects in plain text. The package does not read a certificate
+file: the consumer builds the config, so osapi builds it from its own `tls`
+block (osapi-io/osapi#1396). A test runs a real server that serves TLS: a
+trusted certificate connects, and an untrusted certificate or a client without
+TLS is refused (osapi-io/nats-client#223).
+
 ## Telemetry
 
 `Options.Telemetry` turns on the spans and the metric. It is off by default.
