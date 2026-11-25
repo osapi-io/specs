@@ -23,8 +23,9 @@ nats:
 
 Viper reads four sources. A later source replaces an earlier source:
 
-1. the defaults: `config.Defaults` in `internal/config/keys.go`, and the field
-   values of the settings that each behavior declares
+1. the defaults: the values that the definition of each section declares, and
+   the field values of the settings that each behavior declares
+   ([Each default has one owner](#each-default-has-one-owner))
 2. the config file, in YAML, at the path that the `--osapi-file` flag gives
 3. the environment
 4. a flag that is bound to the key, for example
@@ -37,17 +38,62 @@ start. Underscores replace the dots. Thus `controller.api.port` is
 The name of a flag is the config path with dashes for its dots and underscores,
 such as `--controller-api-port`. A process names its keys with `.Flag` in the
 [command DSL](commands.md#processes), and `config.BindFlags` makes each flag
-from the type, the default and the doc of its key. Thus the default of a key is
-in `config.Defaults` only, and `config get` shows the default that the flag has.
+from the type, the default and the doc of its key. A flag with a name of its
+own, such as `osapi client --url` for `controller.client.url`, uses
+`config.BindFlagAs`. Thus the default of a key is in the definition that owns it
+only, and `config get` shows the default that the flag has.
 
 Before that change, `AutomaticEnv` read only the keys that viper already knew
 from a default or from the file. Thus viper ignored a variable for each other
 key, and nothing reported it.
 
-`config.Defaults` names keys of the config struct. A test fails on a name that
-is not a key. Two sets of defaults in `cmd/root.go` used `controller.api.nats.*`
-and `nats.api.*`. These keys do not exist, so the defaults did not apply until
-somebody moved them.
+## Each default has one owner
+
+The process group that uses a section of the config declares its defaults, in
+its definition, with `command.Config`:
+
+| Group              | Section      | Defaults in                                       |
+| ------------------ | ------------ | ------------------------------------------------- |
+| `controller start` | `controller` | `internal/cli/commands/controllercmd/defaults.go` |
+| `agent start`      | `agent`      | `internal/cli/commands/agentcmd/defaults.go`      |
+| `nats start`       | `nats`       | `internal/cli/commands/natsserver/defaults.go`    |
+| `start`            | `telemetry`  | `internal/cli/commands/startcmd/start.go`         |
+
+A behavior declares the defaults of its settings with `behavior.Config`. The
+value is a struct of the section's type, so a key that does not exist does not
+compile. `command.Config` puts the value in `internal/settings`, a package that
+imports nothing of osapi. `config.Keys` reads the defaults from there. Thus the
+`config` package does not import the groups, and there is no cycle from config
+to behavior to the command DSL. Two groups that claim one section panic at
+startup.
+
+Before osapi-io/osapi#1387, `config.Defaults` in `internal/config/keys.go` had
+the defaults of each section, and `configs/osapi.yaml` had about 110 values that
+no default had. Thus a config file without those keys did not get those values,
+and the two lists disagreed.
+
+Each key has a default, or the tag `choice:"<why>"` that says why the operator
+picks it: a URL, a token, a certificate, the labels of a host. A test fails on a
+key that has neither. Thus an empty config file runs a controller, an agent and
+a NATS server on one host.
+
+`osapi config default get` prints the whole config at its defaults, as YAML,
+each key with its doc. A key that is a choice is commented out, with why. The
+output loads as a valid config. osapi has no sample config file to keep up to
+date.
+
+## The signing key of the controller
+
+`controller.api.security.signing_keys` can be empty. Then the controller makes
+an HS256 key of 32 random bytes in `controller.pki.key_dir`, as `signing.key`
+with mode 0600, at its first start, and uses it with the id `local`.
+`controller token generate` on the same host reads the same file. Thus a token
+that it signs passes the API with no key in the config. A key in the config, or
+a reference to one, replaces the file. `config.EnsureSigningKey` runs after the
+references resolve.
+
+`controller.client.security.bearer_token` can be empty too. A request without a
+token gets 401 from the API, which tells the person what to set.
 
 ## The binary describes its own settings
 
