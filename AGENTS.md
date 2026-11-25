@@ -35,8 +35,12 @@ to see that a read or a write operates on Linux and on macOS.
 - `just lab-session <name> "<commands>"` in osapi-lab holds the lab for your
   deploy and your tests, and gives it back at the end, also when a step fails.
   Use the issue as the name, such as `osapi-1139`. Other agents wait for it.
-- `just deploy` in osapi-lab copies your osapi build to the hub and the running
-  VMs. Run it in your session, with `LAB_SESSION` set.
+- `just bump` in osapi-lab puts your osapi build on the hub and in each running
+  VM, and restarts them, in about two minutes. Use it first for a change to
+  osapi: it bakes no image. Run it in your session, with `LAB_SESSION` set.
+- `just deploy` in osapi-lab bakes new images and clones the VMs again, in about
+  twenty minutes. Use it when `packer/` changed, such as the config of an agent.
+  `just bump` refuses to run then, and says so.
 - `just ssh <vm>` opens a shell on a VM. Remove each file that you copy to a VM
   when you finish.
 - `just go-unit-int` in osapi runs the integration tests against the lab when
