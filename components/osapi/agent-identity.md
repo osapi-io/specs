@@ -39,8 +39,15 @@ identity. [Admission](admission.md) has the decisions and who can make them.
 
 osapi does not tell the removed agent. The agent keeps the key of the controller
 from its acceptance. Thus it thinks that it is enrolled, and does not ask again.
-To enroll it again, do a step on the host: delete `controller.pub` and restart
-the agent.
+To enroll it again, do a step on the host: delete `enrolled-controller.pub` and
+restart the agent.
+
+The agent saves the controller's key as `enrolled-controller.pub`, not
+`controller.pub`, which is the name of the controller's own key pair. The two
+share `/etc/osapi/pki` by default. Before osapi-io/osapi#1398 an agent on the
+controller's host read the controller's own file, thought that it was enrolled,
+and never asked, so no job ran. An agent admitted before then still reads its
+`controller.pub`, but only when no `controller.key` is beside it.
 
 ## A rename through osapi
 
