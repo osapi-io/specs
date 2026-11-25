@@ -20,10 +20,19 @@ This page is the design of osapi-io/osapi#1313. The parts that are built:
   server, or a server with a join user and an agent user. The join user has the
   role `join`, which can send the join request and nothing else
 
-The parts that are not built: the join over NATS in operator mode and with auth
-callout, where the controller makes a JWT for each agent (osapi-io/osapi#1416),
-the config in KV (osapi-io/osapi#1379), and JWTs that renew
-(osapi-io/osapi#1380).
+- the join over NATS in operator mode (osapi-io/osapi#1416): with an account
+  signing key, the controller mints a bootstrap JWT for each token and a JWT for
+  each agent's own user key. A scoped signing key is osapi-io/osapi#1432
+
+- `osapi nats auth password create` and `operator create` (osapi-io/osapi#1420):
+  a credential for each role, made by osapi
+
+- the labels of a join token: the agent takes them, and its own `agent.labels`
+  win
+
+The parts that are not built: the join with auth callout (osapi-io/osapi#1416),
+the config in KV (osapi-io/osapi#1379), and JWTs that renew and a revocation
+list (osapi-io/osapi#1380).
 
 ## Why NATS is the transport
 
@@ -53,10 +62,12 @@ has. The two transports send the same signed request and get the same answer.
   API's. The agent refuses a server whose certificate does not match it. Thus a
   host in the path cannot answer for the server. A `nats://` string, with no
   TLS, has no `fp`.
-- `user` and `pass` are the bootstrap user, where the NATS setup has one
-  ([What each NATS setup needs](#what-each-nats-setup-needs)). The user can send
-  the join request and nothing else, so the string gives no access to osapi's
-  data.
+- `creds` is, in operator mode, the bootstrap user's credentials: a JWT with the
+  join role that expires with the token, and its seed.
+- `user` and `pass` are the bootstrap user, where the NATS setup has static
+  users ([What each NATS setup needs](#what-each-nats-setup-needs)). The user
+  can send the join request and nothing else, so the string gives no access to
+  osapi's data.
 - `ns` is the namespace of osapi's subjects.
 
 `join token create` makes the NATS string by default, and the HTTPS string with
@@ -78,8 +89,10 @@ osapi controller join token revoke --id <id>
 ```
 
 A token has an expiry, a number of uses, and labels that each agent that uses it
-gets. The controller stores a hash of the token, not the token. In operator mode
-(not built), `create` also makes a bootstrap JWT that expires with its token.
+gets. The controller stores a hash of the token, not the token. In operator
+mode, `create` also makes a bootstrap JWT that expires with its token, signed
+with `controller.join.signing_key_file`. The admission record keeps the token's
+labels, and the join reply gives them to the agent.
 
 ## The join over NATS
 
@@ -96,9 +109,11 @@ The agent does these steps one time, at its first start:
 4. The controller checks the signature, then the token: not expired, uses left,
    not revoked. A valid token **admits the machine at once**, and the admission
    record names the token ([Admission](admission.md)).
-5. The controller replies with the controller's public key and the agent's NATS
-   user. The controllers answer in a queue group, so one controller answers each
-   join and takes one use of the token.
+5. The controller replies with the controller's public key, the agent's NATS
+   user and the labels of the token. In operator mode, the user is a JWT for the
+   user key that the agent sent in the request; its seed never leaves the host.
+   The controllers answer in a queue group, so one controller answers each join
+   and takes one use of the token.
 6. The agent saves the key as `enrolled-controller.pub`, and the user and the
    server's certificate in `nats-join.json` (mode 0600), in `agent.pki.key_dir`.
    It connects again with its own user. Each later start reads `nats-join.json`
