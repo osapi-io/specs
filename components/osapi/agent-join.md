@@ -30,9 +30,15 @@ This page is the design of osapi-io/osapi#1313. The parts that are built:
 - the labels of a join token: the agent takes them, and its own `agent.labels`
   win
 
+- JWTs that expire and renew (osapi-io/osapi#1380): with
+  `controller.join.agent_ttl`, an agent renews its JWT over NATS
+  (`<ns>.join.renew`) when a third of its life is left, with a request that its
+  admitted key signs. The controller renews only an admitted machine, so a
+  revoked agent is cut from NATS when its JWT expires
+
 The parts that are not built: the join with auth callout (osapi-io/osapi#1416),
-the config in KV (osapi-io/osapi#1379), and JWTs that renew and a revocation
-list (osapi-io/osapi#1380).
+the config in KV (osapi-io/osapi#1379), and the account's revocation list for an
+instant cut on osapi's embedded server (osapi-io/osapi#1380).
 
 ## Why NATS is the transport
 
