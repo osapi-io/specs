@@ -115,6 +115,7 @@ same module gives `ansible-lint`, `ansible-fmt` and `ansible-test`, which
 | Recipe          | Playbook       | Does                                                  |
 | --------------- | -------------- | ----------------------------------------------------- |
 | `just list`     | `list.yml`     | Every VM, its image and its osapi build; changes none |
+| `just bump`     | `bump.yml`     | Copy a new osapi build to the hub and the running VMs |
 | `just deploy`   | `deploy.yml`   | Bake the changed images, replace those VMs            |
 | `just rebuild`  | `rebuild.yml`  | Bake each image again, replace each VM                |
 | `just site`     | `site.yml`     | Everything, from nothing                              |
@@ -185,14 +186,27 @@ boots one VM for each image. When nothing changed, a deploy changes nothing.
 `playbooks/rebuild.yml` does the same, but bakes each image again and replaces
 each VM, also with no change.
 
-Only one run at a time changes the images and the VMs. `deploy`, `rebuild`,
-`site`, `images`, `vms` and `teardown` take a lock on the hub,
+`bump` is the fast path for a change to the osapi binary. It builds, puts the
+binary on the hub and restarts NATS and the controller, copies the linux build
+into each running VM and restarts its agent, and waits for each new agent
+process to be Ready. It bakes no image and clones no VM. The first bump took 100
+seconds, where a deploy takes about twenty minutes (osapi-io/osapi-lab#70). A VM
+then runs a build that is not in its image, until the next deploy. Thus `bump`
+refuses to run when `packer/` changed since the images were baked: `images.yml`
+records the checksum of `packer/` in `~/.osapi-lab/images/packer.sum`, and a
+change there, such as the config of an agent, needs `deploy`.
+
+Only one run at a time changes the images and the VMs. `deploy`, `bump`,
+`rebuild`, `site`, `images`, `vms` and `teardown` take a lock on the hub,
 `~/.osapi-lab/lock`, with one `mkdir`. The lock names its holder: the machine,
 the process of `ansible-playbook`, the build and the start time. A second run
-stops with that name. A playbook that a run imports takes the lock that the run
-holds, and the outermost playbook gives it back. On 22 November 2026, two runs
-at once deleted the images of each other, because each run deletes the images
-that its own build does not clone (osapi-io/osapi-lab#38).
+says which run holds the lab, and waits for it, for up to `lab_lock_wait`
+minutes (30). It fails only then. The wait is one shell loop, because Ansible
+prints each try of an `until` loop as `FAILED - RETRYING`, which reads as an
+error while the lab is only busy. A playbook that a run imports takes the lock
+that the run holds, and the outermost playbook gives it back. On 22 November
+2026, two runs at once deleted the images of each other, because each run
+deletes the images that its own build does not clone (osapi-io/osapi-lab#38).
 
 A run that stops before its end keeps the lock. The next run on the same machine
 finds that the process is gone, and breaks the lock. A lock from a run on a
