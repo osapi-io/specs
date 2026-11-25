@@ -275,10 +275,19 @@ vault. A reference to a vault in one of them is a loop:
 A vault of a type that does not use NATS can hold a NATS password later. osapi
 ships only the `nats` type now, so the tag refuses each NATS password.
 
-## HTTPS for the API
+## TLS
 
-`controller.api.tls.enabled` makes the API, and the UI on its listener, serve
-HTTPS. It is off by default. The certificate comes from one of two places:
+Each server and each connection over HTTP or gRPC has its own `tls` block. TLS
+is off in each by default. There is no top-level block, and a block does not
+take a value from another block. Two shapes are used, each in `internal/config`
+with one function that builds its `tls.Config`:
+
+| Shape  | Keys                                                                                 | Blocks                                                                                              |
+| ------ | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| server | `enabled`, `cert_file`, `key_file`                                                   | `controller.api.tls`, `controller.metrics.tls`, `agent.metrics.tls`, `nats.server.metrics.tls`      |
+| client | `enabled`, `ca_file`, `cert_file`, `key_file`, `server_name`, `insecure_skip_verify` | `controller.client.tls` (the CLI), `telemetry.tracing.tls` (the OTLP exporter and the trace reader) |
+
+The certificate of the API comes from one of two places:
 
 - `controller.api.tls.cert_file` and `key_file`: a certificate from any source,
   such as `tailscale cert`, certbot, step-ca or a company CA. A new certificate
@@ -288,10 +297,25 @@ HTTPS. It is off by default. The certificate comes from one of two places:
   host, `localhost` and the hosts of `controller.api.url` and
   `controller.ui.url`. It uses that certificate after that.
 
-The CLI trusts the system's roots. For a self-signed certificate,
-`controller.client.tls.ca_file` names `api.crt`, and the CLI trusts it too. No
-setting turns off the check of the certificate: a client that trusts each
-certificate also trusts an attacker's certificate.
+A metrics server has no self-signed certificate. With `tls.enabled` and no
+`cert_file`, it logs `tls.enabled needs cert_file and key_file` and does not
+start. It does not serve plain HTTP in place of HTTPS. Its process continues.
+
+A client trusts the system's roots, and `ca_file` if it is set, such as the
+`api.crt` of a self-signed controller. `cert_file` and `key_file` send a client
+certificate to a server that asks for one. A URL that starts with `https://`
+uses TLS without `enabled`. The OTLP endpoint has no scheme, so
+`telemetry.tracing.tls.enabled` decides for the exporter. Before
+osapi-io/osapi#1385 the exporter always connected in plain text.
+
+`insecure_skip_verify` accepts each certificate. Thus it also accepts the
+certificate of an attacker in the path. osapi logs a warning that names the
+setting at each start that has it on. Use it only for a test.
+
+The connections to NATS have no TLS yet. nats-client and nats-server have no TLS
+option, so osapi-io/osapi#1396 waits on osapi-io/nats-client#223 and
+osapi-io/nats-server#172. [The message bus](transport.md) tells what crosses the
+bus in plain text until then.
 
 osapi has no ACME client. Let's Encrypt cannot issue a certificate for an
 internal name, such as a `.internal` or `.local` name, without a DNS-01

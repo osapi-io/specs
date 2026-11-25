@@ -233,7 +233,10 @@ same request.
 The metrics port is `controller.metrics.port`, 9090 by default. It is separate
 from the API port, 8080. Thus a scrape does not go through the authenticated
 API, and a scraper needs no token. The tradeoff: the metrics port has no
-authentication. Put it behind a firewall. Do not expose it.
+authentication. Put it behind a firewall. Do not expose it. A metrics server can
+serve HTTPS with its `tls` block ([TLS](configuration.md#tls)), which encrypts a
+scrape but does not authenticate it. Its address in health starts with
+`https://` then.
 
 Three metrics are about liveness:
 
