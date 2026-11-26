@@ -58,9 +58,20 @@ The variants for each host exist because a step on twenty machines has twenty
 results. "Any host failed" and "all hosts failed" need different next steps.
 
 A host failed when its `Status` is `failed`. It also failed when it has an
-`Error` and its `Status` is not `skipped` (`pkg/orchestrator/step.go`). A
-skipped host with an error is not a failure. Thus `OnlyIfAnyHostFailed` does not
-start for it.
+`Error` and its `Status` is not `skipped` (`HostFailed` in
+`internal/engine/bridge.go`). A skipped host with an error is not a failure.
+Thus `OnlyIfAnyHostFailed` does not start for it.
+
+A broadcast step fails when one or more of its hosts fail. The step keeps the
+result of each host, so that a guard on a later step can examine them. The error
+names each host that failed.
+
+A step can have more than one guard. The step runs only when each guard returns
+true, and the first guard that returns false gives the skip reason. After a
+dependency fails, the engine skips the step. The three failure guards are the
+exception: `OnlyIfFailed`, `OnlyIfAnyHostFailed` and `OnlyIfAllHostsFailed`. A
+step with one of them runs after a failed dependency, when each of its guards
+returns true.
 
 **Host predicates** examine the machine. There are ten. They get to a step
 through `When` and `WhenFact`. The code counts these two methods as guards. This
@@ -86,7 +97,15 @@ the consumer already knew.
 
 `Named` gives a step an identity, so that `After` can refer to it. `Retry` sets
 the attempts. `OnError` and `ContinueOnError` decide if a failure stops the
-plan, or if the engine records it and continues. `Step` has fifteen methods.
+plan, or if the engine records it and continues. A retry is separate from the
+error strategy: a step can retry, and then continue the plan when its last
+attempt fails. `WhenFact` takes the `AgentList` step and makes the step run
+after it. `Step` has fifteen methods.
+
+When a step fails, `Run` returns the report with the error. The steps that did
+not run are in the report as skipped, with the reason `plan stopped`. The error
+names each step that failed in its level. Only a plan that is not valid, such as
+one with a cycle, gives no report.
 
 ## Two layers, and a plan between them
 
