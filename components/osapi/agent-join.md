@@ -28,7 +28,11 @@ This page is the design of osapi-io/osapi#1313. The parts that are built:
   controller cannot give more than an agent or a join user has
 
 - `osapi nats auth password create` and `operator create` (osapi-io/osapi#1420):
-  a credential for each role, made by osapi
+  a credential for each role, made by osapi. `operator update`
+  (osapi-io/osapi#1531) signs the account and each role's credentials again with
+  the same keys, for an upgrade that adds a subject to a role: the account's JWT
+  holds the agents' permissions as the template of their signing key, and each
+  credentials file holds the permissions of its role
 
 - the labels of a join token: the agent takes them, and its own `agent.labels`
   win
