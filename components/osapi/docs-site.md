@@ -10,8 +10,9 @@ the binary cannot say.
 
 | Section      | Has                                                                    | Written by                           |
 | ------------ | ---------------------------------------------------------------------- | ------------------------------------ |
+| Operate      | how to set up and run osapi for a fleet, in order                      | hand; the config tables generated    |
 | Features     | what osapi does, by feature, in a group for each area                  | hand; the index from the sidebar     |
-| Usage        | how to run it, and the CLI reference: a page for each command          | hand; the CLI pages generated        |
+| CLI          | a page for each command, in `usage/cli`                                | generated                            |
 | SDK          | the Go SDK                                                             | generated; the overviews by hand     |
 | Reference    | what this build has: behaviors, chains, endpoints, CLI groups, the API | generated; the landing pages by hand |
 | Architecture | how osapi is built                                                     | hand                                 |
@@ -21,9 +22,26 @@ Each section is a folder of `docs/docs/sidebar` with a `_category_.json`. The
 file gives the label, the position and the index page of the section. The index
 page has `sidebar_position: 0`, so it is first in its section.
 
-Reference answers "what does this build have". Development answers "how do I
-build one". The DSL pages are under Development, because only a person who
-builds osapi reads the grammar of a DSL.
+Operate answers "what do I run". Architecture answers "why does it work this
+way". Reference answers "what does this build have". Development answers "how do
+I build one". An Operate page links to Architecture and to Reference, and does
+not say again what they say.
+
+## Operate
+
+Operate has the setup in order: 1. Plan, 2. NATS, 3. Controller, 4. Join hosts.
+Each of them ends with a "Check it" part, the commands that show that the step
+worked. Then it has Run the fleet, Secure, Observe and Troubleshoot. Its index
+page has a decision map (one host or a fleet, osapi's NATS or yours, the auth,
+TLS, the join) and a table of the commands that show the state.
+
+Before osapi-io/osapi#1451 the setup was on 14 pages in 5 sections: Home,
+`fleet.md`, `your-nats.md`, Usage's configuration page, Architecture's
+deployment and NATS pages, and seven platform feature pages. Three of them told
+the NATS setup, each in a different way, and no page told how a host starts at
+boot. A person who started at Home could not find the order. The DSL pages are
+under Development, because only a person who builds osapi reads the grammar of a
+DSL.
 
 ## A reference page is the output of a command
 
@@ -229,12 +247,14 @@ the navbar.
 
 The feature pages are in a folder of `sidebar/features` for each area that has a
 feature page, such as `features/networking/`, and in `features/platform/`. The
-platform pages tell how osapi operates for each area: authentication, the job
-system, tracing, metrics, notifications, health checks, the agent pages, the
-dashboard, audit logging and behavior chains. The `_category_.json` of a folder
-of an area has the label of the area and its order in `area.All`. Platform is
-last. A person writes these files, because the feature pages are written by
-hand.
+platform pages are the job system, the dashboard and behavior chains. The pages
+that tell how to run osapi are under Operate: authentication, agent hardening,
+audit logging and secrets in `operate/secure/`, and health checks, metrics,
+tracing and notifications in `operate/observe/`. Agent identity and the agent
+lifecycle tell how osapi works, so they are under Architecture. The
+`_category_.json` of a folder of an area has the label of the area and its order
+in `area.All`. Platform is last. A person writes these files, because the
+feature pages are written by hand.
 
 A feature page has no `sidebar_position`. Thus the pages of a folder are in the
 order of their titles. Before osapi-io/osapi#1215, the 30 pages were in one
@@ -274,10 +294,10 @@ after the generated comment, and showed the file name in the sidebar.
 
 ## The config tables
 
-A feature page that has settings shows them in a table that `config.Keys`
-writes: each key, its type, its default, the environment variable that sets it,
-and its doc. The page marks where the table goes, with the key prefixes that it
-shows:
+A page under Features, Operate or Architecture that has settings shows them in a
+table that `config.Keys` writes: each key, its type, its default, the
+environment variable that sets it, and its doc. The page marks where the table
+goes, with the key prefixes that it shows:
 
 ```markdown
 <!-- osapi:config agent.facts nats.facts -->
@@ -300,10 +320,9 @@ the tables took those values from `configs/osapi.yaml`, which osapi shipped.
 `internal/telemetry/instruments` lists each metric that osapi records: its name
 without the namespace, its kind, unit, labels, the component that records it,
 and its doc. The code that makes an instrument takes its name and doc from that
-list. `just cli-docs-generate` writes the table of
-`features/platform/metrics.md` between `<!-- osapi:metrics -->` markers from the
-same list. A test records a behavior call and compares the labels of its values
-with the list.
+list. `just cli-docs-generate` writes the table of `operate/observe/metrics.md`
+between `<!-- osapi:metrics -->` markers from the same list. A test records a
+behavior call and compares the labels of its values with the list.
 
 Before osapi-io/osapi#1012 the table was written by hand, and it did not have
 the three behavior metrics. A name must not have the `osapi_` prefix, because

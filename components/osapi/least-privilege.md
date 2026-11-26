@@ -265,8 +265,7 @@ harder to render. polkit, as above.
    and osapi-lab. Prove them on the lab. A sysctl set must work. A
    `kernel.core_pattern` attempt and an extra argument must fail.
 6. One customer page that replaces `architecture/security.md`'s privilege part
-   and `features/platform/agent-hardening.md`, whose sudoers examples grant
-   root.
+   and `operate/secure/agent-hardening.md`, whose sudoers examples grant root.
 7. The skills.
 8. Command exec as a behavior. Docker exec is one (osapi-io/osapi#994).
 
