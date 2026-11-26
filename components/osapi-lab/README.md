@@ -441,10 +441,13 @@ The controller keeps the signing keys in its vault, as an operator does, and
 `hub.yaml` refers to them as `secret://default/jwt-signing-key-<id>`. The
 controller resolves the references at its start. The controller role writes each
 key with `osapi client secret update`, from standard input, when the vault does
-not hold it. The first run after a teardown starts the controller with the keys
-themselves, writes them, and then starts it again on the references
-(osapi-io/osapi-lab#54). A NATS password and the key of a vault cannot be a
-reference, because osapi needs them before it reads a vault.
+not hold it. A record in the JetStream store, `jetstream/signing-keys.in-vault`,
+says that the vault holds them. The record is in the store because the vault is.
+Thus the first run after a teardown, or after the store is removed, finds no
+record: it starts the controller with the keys themselves, writes them, and then
+starts it again on the references (osapi-io/osapi-lab#54). A NATS password and
+the key of a vault cannot be a reference, because osapi needs them before it
+reads a vault.
 
 `cli.yaml` on your machine holds the keys themselves. Thus
 `osapi controller token generate` on your machine signs a token that the
