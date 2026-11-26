@@ -71,31 +71,37 @@ jobs, until an operator revokes it and it enrolls again (osapi-io/osapi#1352).
 
 Each agent has two keys in `agent.pki.key_dir`:
 
-| File         | Key     | Use                                      |
-| ------------ | ------- | ---------------------------------------- |
-| `agent.key`  | Ed25519 | signs job responses and registrations    |
-| `agent.pub`  | Ed25519 | the public half of the signing key       |
-| `agent.xkey` | X25519  | opens a value that the controller sealed |
+| File         | Key        | Use                                      |
+| ------------ | ---------- | ---------------------------------------- |
+| `agent.key`  | Ed25519    | signs job responses and registrations    |
+| `agent.pub`  | Ed25519    | the public half of the signing key       |
+| `agent.ekey` | P-256 ECDH | opens a value that the controller sealed |
 
 One key does not do both jobs. The signing key signs, and the encryption key
-opens. `agent.xkey` is an nkeys curve seed, and the seed contains its public
-key. Thus it is one file, and there is no half pair.
+opens. `agent.ekey` is a PKCS #8 PEM private key, which contains its public key.
+Thus it is one file, and there is no half pair. P-256 ECDH is a FIPS 140-3
+approved algorithm, from `crypto/ecdh` (osapi-io/osapi#1382).
 
 The agent makes the encryption key when it loads the signing key. It makes the
-key only when `agent.xkey` does not exist. A file that it cannot read, or a file
-that is not a curve seed, stops the agent with an error, as for the signing key.
+key only when `agent.ekey` does not exist. A file that it cannot read, or a file
+that is not a P-256 key, stops the agent with an error, as for the signing key.
+When it makes the key, it removes `agent.xkey`, the X25519 key of an older
+agent.
 
-The enrollment request sends the two public keys. The fingerprint covers the
-two. It is the SHA-256 hash of the 32 bytes of the Ed25519 public key, then the
-32 bytes of the X25519 public key, in the form `SHA256:<hex>`. The controller
+The enrollment request and the join request send the two public keys. The text
+form of the encryption key is base64url, with no padding, of the 65 bytes of the
+uncompressed P-256 point (`pki.EncryptionKeyEncoding`). The fingerprint covers
+the two keys. It is the SHA-256 hash of the 32 bytes of the Ed25519 public key,
+then the 65 bytes of the P-256 point, in the form `SHA256:<hex>`. The controller
 calculates it from the two keys in the request. Thus the operator who admits the
 fingerprint admits the two keys. The admitted record in the enrollment KV keeps
 the two public keys. `GET /agent` and the signed registration show the same
 fingerprint.
 
-The controller does not keep a request that has no encryption key, or one that
-is not an X25519 public key. It writes a warning to its log. An agent older than
-the controller sends a request of this type. Upgrade the agent.
+The controller does not keep an enrollment request that has no encryption key,
+or one that is not a P-256 public key. It writes a warning to its log. It
+refuses a join request of this type with `admission.ErrJoinEncryptionKey`, a
+400, before the join token loses a use.
 
 The controller has no encryption key. Its fingerprint is the hash of its Ed25519
 public key only.
@@ -104,15 +110,20 @@ The job client seals the job key of each job with secrets to this key, and the
 agent opens it
 ([Job system](job-system.md#a-secret-in-the-definition-is-sealed)).
 
-### An agent that was admitted before the encryption key
+### An agent that was admitted with an X25519 key
 
-osapi has no compatibility for an agent that was admitted before the encryption
-key. When the new agent starts, it makes `agent.xkey`, and its fingerprint
-changes. Its signing key does not change. Thus it keeps its work, but its
-admitted record has no encryption key. Enroll it again:
+osapi has no compatibility for an agent that was admitted with the X25519 key of
+the agents before osapi-io/osapi#1382. When the new agent starts, it makes
+`agent.ekey`, removes `agent.xkey`, and its fingerprint changes. Its signing key
+does not change. Thus it keeps its work, but its admitted record has the X25519
+key. The controller cannot seal to that key, and a job with a secret for the
+agent fails at the controller with `seal the job key`. Admit it again:
 
-1. On the host, delete `controller.pub` in `agent.pki.key_dir`, and restart the
-   agent. The agent sends a new request with the two keys.
+1. On the host, delete `enrolled-controller.pub` in `agent.pki.key_dir`, and
+   restart the agent. The agent sends a new enrollment request with the two
+   keys. An agent that joined with a join string does this too, because after
+   its first join it reads its NATS user from `agent.pki.key_dir`, not the join
+   string.
 2. On the host, run `osapi pki key get --name agent`.
 3. Admit the machine with that fingerprint. The pending record shows the old
    fingerprint as `previous_fingerprint`.
@@ -210,7 +221,7 @@ controller host read the key of the controller as its own enrollment, and never
 asked to join.
 
 `GET /agent` reports `key_stored` and `verified` for each agent. An upgrade of
-an agent that has no stored key, or no X25519 key, makes it enroll again.
+an agent that has no stored key, or no P-256 key, makes it enroll again.
 
 ## What this is not
 
