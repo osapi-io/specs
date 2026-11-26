@@ -43,8 +43,10 @@ to see that a read or a write operates on Linux and on macOS.
   `just bump` refuses to run then, and says so.
 - `just ssh <vm>` opens a shell on a VM. Remove each file that you copy to a VM
   when you finish.
-- `just go-unit-int` in osapi runs the integration tests against the lab when
-  `OSAPI_INTEGRATION_OSAPIFILE` and `OSAPI_INTEGRATION_TARGET` point at it.
+- `just int` in osapi-lab runs osapi's integration tests against the lab, with
+  the same write tests that CI runs, on `ubuntu-1` by name. Run it in your
+  session after `just bump`, for each change that a real host can show. The only
+  difference from CI is the target: CI uses `_any` on its runner.
 
 A test in the lab includes the UI. The controller of the hub serves it, at the
 URL that `.lab/config/cli.yaml` of osapi-lab names. For each flow that the
