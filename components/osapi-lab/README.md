@@ -162,10 +162,15 @@ build, and `lab_restart_vms` restart:
 | `rebuild` | each                  | none                        | none      |
 | `restart` | none                  | none                        | each      |
 
-A process on the hub restarts only when it is a part of the run, and only when
-its binary, `hub.yaml`, the certificate or its credentials changed, or in a
-`restart`. Thus a run on the controller leaves NATS as it is. If `hub.yaml`
-changed, NATS reads the new config at its next run.
+A process on the hub restarts only when it is a part of the run, and only when a
+file that it reads at its start is not the file that it started on, or in a
+`restart`. The files are its binary, `hub.yaml`, the certificate and its key,
+and the NATS auth. NATS also reads the JetStream key, and Jaeger its own binary
+and config. When a process starts, the `launchd` role records a checksum of
+these files in `~/.osapi-lab/run/<process>.inputs`. Each run compares the files
+with that record. Thus a run on the controller leaves NATS as it is, and the
+next run on NATS restarts it if the controller's run changed its binary or
+`hub.yaml`.
 
 `teardown` reverses `deploy` on the hub. It does these steps:
 
@@ -173,12 +178,14 @@ changed, NATS reads the new config at its next run.
   plist.
 - It deletes the `lab-*` VMs.
 - It removes the firewall entries for the osapi build and for Jaeger.
-- It deletes the state directory of the hub.
+- It deletes the state directory of the hub, but for `images/`.
 
 It keeps two things that are slow or impossible to make again:
 
-- the `img-*` images that the VMs clone from. `-e lab_teardown_images=true`
-  deletes them.
+- the `img-*` images that the VMs clone from, and `~/.osapi-lab/images/`, which
+  has the fingerprint that each image was baked from. Without the fingerprint,
+  the next `deploy` bakes each image again. `-e lab_teardown_images=true`
+  deletes both.
 - the `.lab` of this machine, which has the NATS operator and its keys.
   `-e lab_teardown_local=true` deletes it.
 
@@ -229,8 +236,10 @@ this order:
 - **`vm_inventory`** adds each running VM to the inventory, in the groups that
   the run acts on.
 - **`lab_agent`** copies the linux build to `/usr/local/bin/osapi` on each VM
-  that the run updates, and restarts `osapi-agent` if the binary changed. In a
-  `restart`, it only restarts the agent.
+  that the run updates. It restarts `osapi-agent` when the agent runs a binary
+  that a copy replaced, which `/proc/<pid>/exe` shows as deleted. Thus a run
+  that stopped after the copy and before the restart leaves the restart to the
+  next run. In a `restart`, it only restarts the agent.
 - **`fleet_ready`** waits until the controller reports each agent of the run as
   `Ready`. For an agent that `lab_agent` restarted, it waits for a process with
   a new `started_at`. If an agent does not come back in 3 minutes, the run
@@ -249,9 +258,13 @@ changed, and waits for each new agent process to be Ready. It bakes no image and
 clones no VM. The first bump took 100 seconds, where a deploy takes about twenty
 minutes (osapi-io/osapi-lab#70). A VM then runs a build that is not in its
 image, until the next deploy. Thus a `bump` that reaches a VM refuses to run
-when `packer/` changed since the images were baked: `lab_images` records the
-checksum of `packer/` in `~/.osapi-lab/images/packer.sum`, and a change there,
-such as the config of an agent, needs `deploy`.
+when `packer/` changed since the image of a VM of the bump was baked.
+`lab_images` records the checksum of `packer/` for each VM, in
+`~/.osapi-lab/images/<vm>.packer.sum`, when it bakes the VM's image or finds the
+image current. A run that bakes some VMs records only theirs, so the other VMs
+keep the record of their own image. A change of `packer/`, such as the config of
+an agent, needs `deploy` of the VMs that the refusal names. A VM that upgrades
+in place is not checked, because only `rebuild` bakes it again.
 
 Only one run at a time changes the images and the VMs. `lab.yml`, `build.yml`
 and `teardown.yml` take a lock on the hub, `~/.osapi-lab/lock`, with one
