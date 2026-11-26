@@ -58,6 +58,27 @@ On 25 Nov 2026 a sweep found more than ten changes of state with no audit entry,
 and six areas with no spans: each one was added without them
 (osapi-io/osapi#1425, osapi-io/osapi#1426).
 
+## What a user can call, a user can learn without the source
+
+People and their agents use osapi with no access to its source: from the binary,
+the SDK and the docs. Thus a change that adds or changes what a user can call
+ships with what teaches it, in the same change:
+
+- **A command or an endpoint** is named in a reference of the skill that its
+  user reads, `osapi` or `osapi-operations`, with its `--json` use, and links
+  its page in the docs.
+- **An SDK service or type** is in the SDK's own catalog (`osapi sdk`), and the
+  `osapi-sdk` skill teaches it from that catalog, not from source files.
+- **The skills come from the binary.** `osapi skill install` writes the skills
+  of the build that runs it, and they read that build's catalogs:
+  `osapi help --json`, `osapi dsl … get`, `osapi sdk`. A skill never points at a
+  file of the repository.
+
+A test enforces it: a command group or an SDK service that no skill names fails
+CI (osapi-io/osapi#1473). On 26 Nov 2026 an audit found twelve command groups,
+among them the join tokens, NATS auth and the agent's service, that no skill
+named.
+
 ## Tooling
 
 Declare each tool that a repository runs in the location where the repository
