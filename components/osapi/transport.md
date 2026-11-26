@@ -110,8 +110,9 @@ changed at each connection. Each change to one hour removed each job older than
 one hour at once.
 
 `nsc`, the NATS tool, makes the operator, the accounts and the users. osapi only
-reads the files. [osapi-lab](../osapi-lab/README.md#nats-in-operator-mode) lists
-the exact commands, and the Ansible that runs them.
+reads the files.
+[osapi-lab](../osapi-lab/README.md#nats-in-operator-mode-and-the-join) lists the
+exact commands, and the Ansible that runs them.
 
 You cannot make a credential narrower than the bucket. An agent needs its own
 job subjects. It also needs the JetStream API and the key-value buckets that it

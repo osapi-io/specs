@@ -210,13 +210,15 @@ this order:
   last section says.
 - **`lab_images`** bakes an image for each VM of the run, with the name
   `img-<vm>-<tag>`. The image is the whole VM: the linux build, its config, its
-  NATS credential, its hostname and each package that a behavior runs, such as
+  join string, its hostname and each package that a behavior runs, such as
   Docker and chrony. The tag is the short commit of the linux build. It ends
   with `-dirty` when the checkout had uncommitted changes. The fingerprint of an
   image is the fingerprint of the build and a hash of `packer/`. The hub keeps
   it, and builds an image again only when the image is missing or the
-  fingerprint is different. Before a build, the role makes the NATS user of the
-  VM, because the credential must exist before it goes into the image. A run on
+  fingerprint is different. Before a build, the role makes a join token for the
+  VM, which admits one agent, because the join string goes into the image. The
+  token expires in `lab_join_expires`, 24 hours: a VM that is cloned again from
+  an older image cannot join, and `just rebuild <vm>` bakes a new one. A run on
   each VM deletes the images from other builds, except an image that a build
   recorded in the last hour. A run on some VMs deletes none, because the other
   VMs run from theirs. It does not bake an image for a VM that upgrades in place
@@ -318,19 +320,19 @@ a Python toolchain, and `uv` reduces that to one lock file. pytorch runs Ansible
 through `uv` from a justfile for the runner fleet of its `ci-infra`.
 
 **The image is the whole VM.** A VM that you build again from its image runs
-exactly what went into it: the build, the config, the credential and the
+exactly what went into it: the build, the config, the join string and the
 packages. Nothing configures a VM after it boots, so a VM cannot drift from its
 image. The cost is one image for each VM, not one for each distribution, and an
-image that holds the NATS credential of its VM. The images are local Tart images
-on the hub and never leave it. The owner decided this in osapi-io/osapi-lab#29.
+image that holds the join string of its VM. The images are local Tart images on
+the hub and never leave it. The owner decided this in osapi-io/osapi-lab#29.
 
 **The image is written in HCL.** `packer/lab.pkr.hcl` uses only the provisioners
 of Packer: `file` copies each file in, and `shell` runs short `inline` steps.
 `templatefile()` renders the config of the agent from
 `packer/agent.yaml.pkrtpl.hcl`. A difference between distributions is a map in
-`locals`, such as the Docker package. The NATS credential is a `sensitive`
-variable, and the playbook passes it in `PKR_VAR_nats_creds`. Thus it is in no
-argument list and no log.
+`locals`, such as the Docker package. The join string is a `sensitive` variable,
+and the playbook passes it in `PKR_VAR_join`. Thus it is in no argument list and
+no log.
 
 **Packer still builds the images.** No Ansible collection controls Tart. The
 `packer` role copies `packer/` to the hub and runs it there, because Tart runs
@@ -386,7 +388,7 @@ one on the first boot of each clone.
 
 **Secrets never go into the repository.** The lab makes them one time on your
 machine, in `.lab/`. The hub gets its rendered config. Each image gets the
-config and the NATS credential of its own VM.
+config and the join string of its own VM.
 
 The admin token is the exception to "one time". osapi signs a token for three
 months. Thus each run of the `secrets` role checks `.lab/secrets/token` with
@@ -412,84 +414,45 @@ controller accepts. The config of an agent has a temporary signing key, because
 osapi validates each key in the file for each command. An agent never signs or
 verifies a token. Thus a VM holds no key that can sign an admin token.
 
-## NATS in operator mode
+## NATS in operator mode, and the join
 
 The hub runs the NATS server of osapi in operator mode, the decentralized JWT
-model of NATS. An operator who wants credentials for each host does the same. An
-operator signs the account of osapi. The account signs a user for each process.
-Each process connects with its own credentials file. To add a VM, give it a
-credential. The config of the server does not change. The design is in osapi's
-[transport](../osapi/transport.md#who-may-connect) page.
-
-| User           | Used by                              | Credentials on                      |
-| -------------- | ------------------------------------ | ----------------------------------- |
-| `nats`         | the server's own setup and heartbeat | the hub, `secrets/nats.creds`       |
-| `controller`   | the controller                       | the hub, `secrets/controller.creds` |
-| `agent-<vm>`   | that VM's agent                      | the VM, `/etc/osapi/nats.creds`     |
-| `agent-remote` | `just agent` on your machine         | `.lab/secrets/nats/`                |
-| `cli`          | the `nats` CLI in the lab directory  | `.lab/secrets/nats/`                |
-| `sys`          | `nats-sys`, in the system account    | `.lab/secrets/nats/`                |
-
-`nsc`, which mise pins, makes all of it under `.lab/secrets/nsc`. The `secrets`
-role runs, once:
+model of NATS. The hub makes its auth one time with osapi itself:
 
 ```bash
-nsc add operator --name lab --sys --generate-signing-key
-nsc add account --name osapi
-nsc edit account --name osapi --js-enable 1
+osapi nats auth operator create --out ~/.osapi-lab/nats
 ```
 
-and on every run, so a changed account reaches the hub:
+It writes the operator, osapi's account, the resolver file of the server, the
+scoped signing keys of the join, and a credentials file for each osapi role with
+the least permissions of the role. `hub.yaml` names them. The keys stay on the
+hub. A teardown removes them, and the next deploy makes new ones. The design is
+in osapi's [transport](../osapi/transport.md#who-may-connect) page.
 
-```bash
-nsc generate config --mem-resolver --sys-account SYS --force --config-file .lab/secrets/resolver.conf
-```
+| User       | Used by                                       | From                               |
+| ---------- | --------------------------------------------- | ---------------------------------- |
+| setup      | the server's own setup and heartbeat          | `nats/setup.creds` on the hub      |
+| controller | the controller, and the `nats` CLI of the lab | `nats/controller.creds` on the hub |
+| each agent | the agent of one VM, or the remote agent      | minted by the controller at a join |
 
-Each user is made before its image is baked, by
-`ansible/roles/secrets/tasks/user.yml`:
+A VM joins as a host of an operator does. `lab_images` makes a join token for
+each image with `osapi controller join token create --uses 1`, and the image
+bakes only its join string, in `agent.join`. The agent joins at its first boot:
+the token admits it, and the controller mints its NATS user. `auto_admit` is
+off, so a request with no token waits for a person. The remote agent,
+`just agent`, joins with a token of its own, whose join string dials the tailnet
+name.
 
-```bash
-nsc add user --account osapi --name agent-debian-1
-nsc generate creds --account osapi --name agent-debian-1 --output-file .lab/secrets/nats/agent-debian-1.creds
-```
+The join string of a VM dials the gateway of tart's network, `192.168.64.1`. The
+certificate of the hub names its tailnet name, and a CA that the VM trusts
+issued it. Thus after the join the agent checks that name against the roots of
+the VM, and a renewal of the certificate changes nothing (osapi-io/osapi#1491).
 
-Every command runs with `--data-dir .lab/secrets/nsc/stores` and with `NSC_HOME`
-and `NKEYS_PATH` under `.lab/secrets/nsc`, so the lab's keys never mix with your
-own `nsc` setup. The resolver file goes to the hub as `config/resolver.conf`,
-which the hub's `nats.server.auth.resolver_file` names.
-
-The users have the account's default permissions for now. Narrowing each agent
-to its own subjects and the buckets it uses comes with the least-privilege work.
-
-### Checking it
-
-`.envrc` loads `.lab/config/nats.env`, which `just deploy` writes, so the `nats`
-CLI in the lab directory connects to the hub as `cli`:
-
-```bash
-nats account info                 # the cli user, account osapi, JetStream on
-nats stream ls                    # osapi's streams, such as JOBS and AUDIT
-nats kv ls                        # osapi's buckets, such as job-queue and agent-registry
-nats kv ls osapi-agent-registry   # one key per agent that registered
-nats sub 'osapi.jobs.>'           # jobs as they go out; run an osapi command elsewhere
-NATS_CREDS= nats stream ls        # no credentials: Authorization Violation
-```
-
-The last one is the check that matters: a connection without a credential the
-account signed is refused.
-
-Server-wide commands need NATS's system account, whose `sys` user `nsc` made
-with the operator. `nats-sys` runs the CLI as that user, and plain `nats` stays
-the `cli` user:
-
-```bash
-nats-sys server list                # the server, its version and connections
-nats-sys server report jetstream    # JetStream's streams and storage per account
-nats-sys server report connections  # every connection, by account and user
-```
-
-`server report connections` shows each osapi process connected as its own user,
-which is the check that every credential reached the right place.
+The `nats` CLI in the lab directory connects as the controller. It reads the
+lab's streams, buckets and consumers. It cannot delete a consumer, and the lab
+has no system user, so the server-wide reports of `nats server` do not work.
+Before, `nsc` made an operator on your machine, a user for each VM and a system
+user. The lab no longer uses `nsc`.
 
 ## What will surprise you
 
