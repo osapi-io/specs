@@ -95,7 +95,7 @@ ansible/
     vm_inventory            adds each running VM to the inventory
     lab_agent               a new build into a running VM's agent, or a restart
     fleet_ready             waits until each agent is Ready, and a new process after a restart
-    nats_consumers          removes the consumers of agents that are gone
+    nats_consumers          checks that each running agent has its consumers
     packer                  builds a Packer template on a host      (generic)
     tart_vm                 one Tart VM: clone, launchd, stop, start (generic)
     tart_base               a local base image from a disk image    (generic)
@@ -253,7 +253,10 @@ this order:
   a new `started_at`. If an agent does not come back in 3 minutes, the run
   fails.
 - **`client`** writes the configs on your machine, and **`nats_consumers`**
-  removes the consumers of agents that are gone.
+  checks that each running agent has its consumers on the jobs stream. It
+  removes none: NATS removes an idle consumer by itself (osapi-io/osapi#1154),
+  and the lab's nats CLI connects as the controller's user, which can list
+  consumers but not delete them.
 
 Each VM, except `debian-lts`, is then exactly its image. When the source or
 `packer/` changed, this takes some minutes. Most of the time is Packer, which
