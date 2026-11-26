@@ -39,6 +39,13 @@ This page is the design of osapi-io/osapi#1313. The parts that are built:
   admitted key signs. The controller renews only an admitted machine, so a
   revoked agent is cut from NATS when its JWT expires
 
+- the rotation of an agent's keys (osapi-io/osapi#1531):
+  `osapi pki key rotate --name agent` sends the new public keys over NATS
+  (`<ns>.join.rotate`), signed with the admitted key and the new key, and the
+  controller moves the admission to them with no new admission.
+  [Agent identity](agent-identity.md#the-rotation-of-an-agents-keys) has the
+  steps
+
 - the join with a NATS server's auth callout (osapi-io/osapi#1416): the server
   sends each connection to the controller. A join token that admits now gets the
   join role for ten minutes at most; the NATS user key that an agent sent at its
