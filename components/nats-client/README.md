@@ -34,13 +34,15 @@ library. It adds these things:
 - Each call to NATS is a method of `Client`. The method takes `ctx` first, and
   then the name of the bucket or the stream. A consumer keeps no JetStream
   handle. `Client` keeps one handle for each bucket and each stream, and asks
-  the server for it one time only.
+  the server for it one time only, and again when the server says that it is
+  gone.
 - Each of these methods can make a span and records a metric. Thus a consumer
   that calls NATS only through `Client` gets all of its NATS calls in its traces
   and its metrics.
+- A reconnect policy for a process that runs for a long time, and a log of each
+  change of the connection.
 
-It does not add a new protocol, a new wire format or its own reconnection
-policy.
+It does not add a new protocol or a new wire format.
 
 ## It does not hide NATS
 
@@ -161,26 +163,34 @@ These answers do not mark the span as an error (osapi-io/nats-client#232).
 
 ## What happens when the connection drops
 
-The default of the upstream library applies.
+The client tries to connect again, forever by default, 2 seconds apart.
+`Options.Reconnect` (`ReconnectOptions`) sets the count of tries in a row and
+the time between them. After the last try, the connection closes, and each call
+fails. Before, the upstream default applied: 60 tries, 2 seconds apart. Thus an
+outage of approximately two minutes stopped an osapi agent or controller from
+NATS until it started again (osapi-io/nats-client#231).
 
-`Connect` gives exactly three options to the library: `nats.Name`, and then
-`nats.UserInfo`, `nats.Nkey` or `nats.UserCredentials`, as the mode requires. It
-sets no reconnection options. It registers no disconnect, reconnect or closed
-handler. Thus the upstream default controls all reconnection, and **a consumer
-never gets a notification of a drop or a recovery**, because there is no
-callback.
+`Connect` registers a handler for each change of the connection: a drop, a
+reconnect, the close, and an error that the server sends, such as a permissions
+violation or a slow consumer. Each handler logs through the logger of the
+client. There is no callback to a consumer.
 
-You cannot configure resilience through the `Options` of this wrapper. A
-consumer who needs a different operation must change this package.
+`RetryFirstConnect` makes `Connect` succeed when the server is not there yet,
+and try again in the background. It is off by default. Then `Connect` returns
+the error of the first try, which a command that runs one time wants.
 
-This page does not give the upstream defaults. They belong to the NATS library
-and change with it. Prose about the settings of a different project becomes
-incorrect, but it continues to look correct.
+`nats.UserCredentials` reads the credentials file at each connect. Thus a
+renewed file is used at the next reconnect.
+
+`Close` forgets the handles of the buckets and the streams. A handle that the
+server says is gone is also forgotten. A call to JetStream before `Connect`, or
+after `Close`, returns `ErrNotConnected`, and a second `Connect` returns
+`ErrConnected`.
 
 ## The contract
 
 The contract is the exported API of `pkg/client`: the constructor `New`,
-`MessageContext`, 30 `Client` methods and 9 exported types.
+`MessageContext`, 30 `Client` methods and 10 exported types.
 
 An empty bucket is an empty list from `KVKeys` and from `ObjectList`, not an
 error. The two methods agree, and a consumer needs no special case. Everything
@@ -188,7 +198,7 @@ under `pkg/client/mocks/` is generated and is not part of it.
 
 The contract does not promise these things:
 
-- a retry or reconnection policy of the wrapper
+- a retry of a call that failed
 - isolation from the upstream types above
 - **stability between releases.** A consumer depends on a tag. A rename on
   `main` gets to the consumer at the next pin update.
