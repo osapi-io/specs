@@ -24,6 +24,7 @@ They also share the content of this page:
 | `Now`      | `func() time.Time`         | `time.Now`                                    |
 | `Family`   | string, `pkg/gohai/family` | the family of `FS`, or of the host            |
 | `Resolver` | `source.Resolver`          | `net.DefaultResolver`: `/etc/hosts`, then DNS |
+| `HTTP`     | `http.RoundTripper`        | one transport that uses no proxy              |
 
 A zero `Family` with a given `FS` is the family that the `/etc/os-release` of
 that `FS` names. It is not the family of the real host. Thus a fake filesystem
@@ -42,11 +43,15 @@ source that the caller gave. `New()` is `NewWith(source.Sources{})`, the real
 host. `gohai.New(gohai.WithSources(src))` gives the same sources to each
 collector.
 
-The cloud collectors that read only their metadata service have only `New()`,
-because the metadata service is not a source. azure, linode and openstack also
-read files of the host: the waagent binary and the dhclient leases, the apt
-sources, and `/etc/passwd`. They read these files through `FS`, and they have
-`NewWith(src)`.
+The cloud collectors read the metadata service of their provider, such as
+`http://169.254.169.254`, through the `HTTP` of `src`. A fake host gives a
+transport that answers the metadata URLs, so a test reads no network. The tests
+of gohai use `internal/sourcetest.HTTP`. A zero `HTTP` is one transport that all
+the cloud collectors share. It uses no proxy, because the metadata addresses are
+link-local. Some cloud collectors also read the host: azure reads the waagent
+binary and the dhclient leases, linode reads the apt sources and runs
+`ip -o -4 addr show`, openstack reads `/etc/passwd`, and scaleway reads
+`/proc/cmdline`. They read through `FS` and `Exec`.
 
 osapi gives the sources of `host.Host`. Thus a behavior of osapi calls a
 collector, and the example of the behavior runs on the fake host.
@@ -114,8 +119,8 @@ each file that the collector opens or looks at and each command that it runs.
 Thus the list agrees with the code, and it cannot be stale. The empty host is
 the limit: a collector reads under these paths when they have content, such as
 each device under `/sys/class/net`, and the list does not show those reads. A
-cloud collector reads the metadata service of its provider over HTTP, outside
-`source.Sources`. Thus it is not run, and its entry names the service.
+cloud collector reads the metadata service of its provider over HTTP, which
+`readlog` does not log. Thus it is not run, and its entry names the service.
 
 `validate` checks four rules: a name of lowercase letters, digits and
 underscores, with no two the same; a category of the roster; a field of
