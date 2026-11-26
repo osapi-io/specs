@@ -78,17 +78,20 @@ the key. A copy of that value proves nothing. The operator reads the fingerprint
 on the machine:
 
 ```bash
-osapi agent key fingerprint  # on the machine: machine ID, hostname, keys, fingerprint
+osapi pki key get --name agent  # on the machine: the keys, the fingerprint, the admit command
 osapi client admission admit --machine-id <id> --fingerprint SHA256:...
 ```
 
-`osapi agent key fingerprint` reads the keys in `agent.pki.key_dir`, and makes
-each key that does not exist. It shows the public encryption key, in the nkeys
-form that starts with `X`, and the fingerprint. When the two fingerprints are
-the same, the request came from the machine that the operator looked at, not
-from a different publisher on the bus. The controller calculates the fingerprint
-of the request from its two public keys. It does not use the fingerprint that
-the request states. Each record of the API has the public encryption key as
+`osapi pki key get --name agent` reads the keys in `agent.pki.key_dir`, and
+shows the fingerprint that covers the two keys, with the command that admits the
+machine. It makes no key: the agent makes its keys at its first start, and
+`osapi pki key create --name agent` makes them before then.
+`osapi pki key get --name agent-encryption` shows the public encryption key, in
+the nkeys form that starts with `X`. When the two fingerprints are the same, the
+request came from the machine that the operator looked at, not from a different
+publisher on the bus. The controller calculates the fingerprint of the request
+from its two public keys. It does not use the fingerprint that the request
+states. Each record of the API has the public encryption key as
 `encryption_key`.
 
 A pending agent writes the same instruction to its log, with its machine ID and
