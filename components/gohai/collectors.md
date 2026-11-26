@@ -45,6 +45,11 @@ unit file, not whether the unit runs now. The list has each installed unit, also
 one that systemd has not loaded, such as a stopped and disabled unit. Such a
 unit comes from `systemctl list-unit-files`, with the state `dead`, and its
 `unit_file_state` says why it does not start: `disabled`, `static` or `masked`.
+On macOS, the services are the launchd daemons of the system domain, from
+`launchctl print system`. Each user can read that domain, so the agent reads it
+without sudo. There, "enabled" is the override that launchd keeps for the label.
+A daemon that launchd has not loaded, and that has an override, is in the list
+with the state `dead`.
 
 The live state of a service that osapi manages is not a fact. Examples are the
 sync status of chrony, and the package updates that the repository index has.
