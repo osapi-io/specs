@@ -287,24 +287,38 @@ with one function that builds its `tls.Config`:
 | server | `enabled`, `cert_file`, `key_file`                                                   | `controller.api.tls`, `nats.server.tls`, `controller.metrics.tls`, `agent.metrics.tls`, `nats.server.metrics.tls`                            |
 | client | `enabled`, `ca_file`, `cert_file`, `key_file`, `server_name`, `insecure_skip_verify` | `controller.client.tls` (the CLI), `controller.nats.tls`, `agent.nats.tls`, `telemetry.tracing.tls` (the OTLP exporter and the trace reader) |
 
-The certificate of the API comes from one of two places:
+Each server serves TLS by default (osapi-io/osapi#1413). The certificate of a
+server comes from one of two places:
 
 - `controller.api.tls.cert_file` and `key_file`: a certificate from any source,
   such as `tailscale cert`, certbot, step-ca or a company CA. A new certificate
   replaces the old one with no other change.
-- Neither set: the controller makes a self-signed ECDSA P-256 certificate in
-  `controller.pki.key_dir` at its first start (`api.crt`, `api.key`), for this
-  host, `localhost` and the hosts of `controller.api.url` and
-  `controller.ui.url`. It uses that certificate after that.
 
-A metrics server and the NATS server have no self-signed certificate. With
-`tls.enabled` and no `cert_file`, a metrics server logs
-`tls.enabled needs cert_file and key_file` and does not start, and the NATS
-server does not start at all. It does not serve plain HTTP in place of HTTPS.
-Its process continues.
+- Neither set: the process makes a self-signed ECDSA P-256 certificate in its
+  key directory at its first start, for this host and `localhost`, and uses it
+  after that. One function makes each, `config.ServerTLS.WithSelfSigned`:
+
+  | Server                    | Files                                                                                    | Directory                |
+  | ------------------------- | ---------------------------------------------------------------------------------------- | ------------------------ |
+  | the API                   | `api.crt`, `api.key`, also for the hosts of `controller.api.url` and `controller.ui.url` | `controller.pki.key_dir` |
+  | the NATS server           | `nats.crt`, `nats.key`                                                                   | `nats.server.key_dir`    |
+  | the controller's metrics  | `controller-metrics.crt`                                                                 | `controller.pki.key_dir` |
+  | the agent's metrics       | `agent-metrics.crt`                                                                      | `agent.pki.key_dir`      |
+  | the NATS server's metrics | `nats-metrics.crt`                                                                       | `nats.server.key_dir`    |
+
+A metrics server whose certificate cannot be made or loaded does not start, and
+does not serve plain HTTP in place of HTTPS; its process continues. A NATS
+server whose certificate cannot be made does not start. Before
+osapi-io/osapi#1413 only the API had a self-signed certificate, and TLS was off
+by default everywhere.
 
 A client trusts the system's roots, and `ca_file` if it is set, such as the
-`api.crt` of a self-signed controller. `cert_file` and `key_file` send a client
+`api.crt` of a self-signed controller. A client of a server on the same host,
+with no `ca_file`, trusts that server's self-signed certificate:
+`config.TrustLocal` sets the CLI's `ca_file` to `api.crt` for an `https://` URL
+of `localhost` or a loopback address, and the controller's and the agent's NATS
+`ca_file` to `nats.crt` for a loopback NATS host. A client on another host needs
+`ca_file`, or the pin of a join string. `cert_file` and `key_file` send a client
 certificate to a server that asks for one. A URL that starts with `https://`
 uses TLS without `enabled`. The OTLP endpoint has no scheme, so
 `telemetry.tracing.tls.enabled` decides for the exporter. Before
