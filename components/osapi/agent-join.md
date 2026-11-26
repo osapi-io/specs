@@ -191,6 +191,12 @@ The NATS server does not decide the role of an agent. What the agent connects
 with carries its permissions. What osapi can give an agent depends on what the
 NATS administrator, the person who runs the NATS infrastructure, gives osapi:
 
+osapi's embedded server runs in operator mode by default (osapi-io/osapi#1413).
+With no `resolver_file` it makes the operator, the account, a credential for
+each role and the two scoped signing keys at its first start, in `nats-auth` of
+`nats.server.key_dir`, and a controller or an agent on the same host uses them
+with no setting.
+
 | NATS server                               | The administrator provisions for osapi                                                                       | Bootstrap credential                | Agent credential                           | One agent cut from the bus             |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------------------------------------------ | -------------------------------------- |
 | osapi's embedded server, in operator mode | nothing                                                                                                      | a JWT for each token                | a short-lived JWT for each agent           | at once: the account's revocation list |
