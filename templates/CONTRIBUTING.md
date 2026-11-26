@@ -73,11 +73,19 @@ problems. CI makes sure that both pass.
 just go-fmt-check   # Check formatting
 just go-fmt         # Auto-fix formatting
 just go-vet         # Run linter
+just go-dead-check  # Fail on functions that nothing reaches
 ```
 
 `.golangci.yml` lists the linters that run. Read the list there. A copy of the
 list in a page becomes incorrect when the configuration changes. Formatting does
 not apply to generated files (`*.gen.go`, `*.pb.go`).
+
+Do not write `//nolint:revive`. It hides a problem and does not fix it. Fix the
+name or the code. When a name must be different in an API, give it an explicit
+name, such as a struct tag.
+
+`go-dead-check` runs `deadcode`. It fails on each function that no `main` and no
+test reaches, which no linter finds. Remove the function, or call it.
 
 ### Documentation
 
