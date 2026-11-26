@@ -166,13 +166,14 @@ Each KV value is a JSON record:
   "changed": "2026-11-23T22:56:50Z",
   "by": "ops@example.com",
   "key_id": "7a10fe4922e2390a",
-  "nonce": "...",
   "data": "..."
 }
 ```
 
-- **The encryption.** `data` is the value, encrypted with AES-256-GCM under the
-  vault key, with a new random nonce at each `Put`. The additional data is
+- **The encryption.** `data` is a 12-byte nonce, then the value that AES-256-GCM
+  encrypts under the vault key, then the 16-byte tag. The GCM makes a new random
+  nonce at each `Put`, from `cipher.NewGCMWithRandomNonce`, because FIPS 140-3
+  only mode refuses a nonce that the caller selects. The additional data is
   `<vault>/<key>`. Thus a value that somebody copies to a different key does not
   decrypt.
 - **The metadata.** `version`, `changed` and `by` are plain text. Thus `List`
