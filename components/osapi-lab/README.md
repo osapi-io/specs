@@ -162,8 +162,8 @@ build, and `lab_restart_vms` restart:
 | `rebuild` | each                  | none                        | none      |
 | `restart` | none                  | none                        | each      |
 
-A process on the hub restarts only when it is a part of the run, and only when
-a file that it reads at its start is not the file that it started on, or in a
+A process on the hub restarts only when it is a part of the run, and only when a
+file that it reads at its start is not the file that it started on, or in a
 `restart`. The files are its binary, `hub.yaml`, the certificate and its key,
 and the NATS auth. NATS also reads the JetStream key, and Jaeger its own binary
 and config. When a process starts, the `launchd` role records a checksum of
@@ -262,9 +262,9 @@ when `packer/` changed since the image of a VM of the bump was baked.
 `lab_images` records the checksum of `packer/` for each VM, in
 `~/.osapi-lab/images/<vm>.packer.sum`, when it bakes the VM's image or finds the
 image current. A run that bakes some VMs records only theirs, so the other VMs
-keep the record of their own image. A change of `packer/`, such as the config
-of an agent, needs `deploy` of the VMs that the refusal names. A VM that
-upgrades in place is not checked, because only `rebuild` bakes it again.
+keep the record of their own image. A change of `packer/`, such as the config of
+an agent, needs `deploy` of the VMs that the refusal names. A VM that upgrades
+in place is not checked, because only `rebuild` bakes it again.
 
 Only one run at a time changes the images and the VMs. `lab.yml`, `build.yml`
 and `teardown.yml` take a lock on the hub, `~/.osapi-lab/lock`, with one
