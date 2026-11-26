@@ -5,16 +5,20 @@ addressed. A machine that claims a hostname holds that hostname: no other
 admitted machine has it. The two facts come from one stored signing key for each
 agent. The identity is the machine ID and the key. The hostname can change.
 
-## Enrollment is the only thing that writes a key
+## Two things write a key
 
 osapi keeps the public key of an accepted agent after the enrollment handshake.
 It keeps the key for the **machine ID** of the agent, not for its hostname. It
 records the fingerprint at the time of acceptance.
 
-**Only the acceptance of an enrollment can make or replace that key.** A message
-with a different key cannot do it. A new registration cannot do it. A restart
-cannot do it. Thus an attacker who can publish to the bus cannot change a key by
-a publish. The trust anchor stays where an operator put it.
+**Only the acceptance of an enrollment makes that key, and only an acceptance or
+a rotation that the key signed replaces it.** A message with a different key
+cannot do it. A new registration cannot do it. A restart cannot do it. Thus an
+attacker who can publish to the bus cannot change a key by a publish, unless the
+attacker holds the admitted private key. The trust anchor stays where an
+operator put it.
+[The rotation of an agent's keys](#the-rotation-of-an-agents-keys) has the
+second case.
 
 The agent obeys the same rule for its own keys. It makes the signing keypair
 only when neither file exists. A key file that it cannot read stops the agent
@@ -190,6 +194,41 @@ that changes its key has no time when osapi refuses its messages.
 
 `ControllerPKI.RotationGracePeriod` sets the period. After it ends, messages
 with the old key do not verify.
+
+### The rotation of an agent's keys
+
+`osapi pki key rotate --name agent` runs on the agent's host. It replaces the
+agent's two keys with no new admission:
+
+1. It makes the new keys beside the old keys, as `agent.next.key`,
+   `agent.next.pub` and `agent.next.ekey`.
+2. It sends a rotation request to the controller over NATS, on `join.rotate`, as
+   the agent connects. The request has the machine ID, the new public keys and
+   the time. The old signing key signs it, and the new signing key signs it too,
+   which shows that the agent holds the new key.
+3. The controller checks the time with the skew of a renewal, that the machine
+   is admitted, and the old signature against the admission. Then it writes the
+   new keys and their fingerprint into the admission, and keeps the old signing
+   key for the grace period. It audits the request as `agent.key.rotate`, also a
+   refusal.
+4. The command moves the new keys in place: the encryption key first and the
+   public key last. A running agent reads the keys again at each heartbeat and
+   before it opens a sealed job. It takes a set only when the private key is the
+   pair of the public key, so it does not take a set that is halfway through the
+   moves. It keeps the old encryption key, to open a job that the controller
+   sealed before the rotation.
+
+A refusal removes the new keys, and the agent keeps its keys. When no reply
+arrives, the new keys stay, and a second run sends the same keys. The controller
+answers a request for keys that the admission already holds as a success, with
+the new key's signature as the proof. Thus a rotation whose reply was lost
+completes. A replay of an old request cannot move the admission back, because
+the old key no longer matches the admission. A revoked machine has no admission,
+so it cannot rotate.
+
+The rotation runs in the command, not in the agent process. Thus it works when
+the agent is stopped too. The command connects to NATS with the agent's own
+user: the one that its join saved, or the one in its config.
 
 ## Failure is never silent
 

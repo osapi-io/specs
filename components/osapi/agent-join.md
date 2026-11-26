@@ -28,7 +28,11 @@ This page is the design of osapi-io/osapi#1313. The parts that are built:
   controller cannot give more than an agent or a join user has
 
 - `osapi nats auth password create` and `operator create` (osapi-io/osapi#1420):
-  a credential for each role, made by osapi
+  a credential for each role, made by osapi. `operator update`
+  (osapi-io/osapi#1531) signs the account and each role's credentials again with
+  the same keys, for an upgrade that adds a subject to a role: the account's JWT
+  holds the agents' permissions as the template of their signing key, and each
+  credentials file holds the permissions of its role
 
 - the labels of a join token: the agent takes them, and its own `agent.labels`
   win
@@ -38,6 +42,13 @@ This page is the design of osapi-io/osapi#1313. The parts that are built:
   (`<ns>.join.renew`) when a third of its life is left, with a request that its
   admitted key signs. The controller renews only an admitted machine, so a
   revoked agent is cut from NATS when its JWT expires
+
+- the rotation of an agent's keys (osapi-io/osapi#1531):
+  `osapi pki key rotate --name agent` sends the new public keys over NATS
+  (`<ns>.join.rotate`), signed with the admitted key and the new key, and the
+  controller moves the admission to them with no new admission.
+  [Agent identity](agent-identity.md#the-rotation-of-an-agents-keys) has the
+  steps
 
 - the join with a NATS server's auth callout (osapi-io/osapi#1416): the server
   sends each connection to the controller. A join token that admits now gets the
