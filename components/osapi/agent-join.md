@@ -22,7 +22,10 @@ This page is the design of osapi-io/osapi#1313. The parts that are built:
 
 - the join over NATS in operator mode (osapi-io/osapi#1416): with an account
   signing key, the controller mints a bootstrap JWT for each token and a JWT for
-  each agent's own user key. A scoped signing key is osapi-io/osapi#1432
+  each agent's own user key. The keys are scoped (osapi-io/osapi#1432): the
+  template of the agent's key and of the join's key is the permissions of the
+  role, and the JWTs that they sign carry no permissions or limits. Thus the
+  controller cannot give more than an agent or a join user has
 
 - `osapi nats auth password create` and `operator create` (osapi-io/osapi#1420):
   a credential for each role, made by osapi
@@ -180,13 +183,13 @@ The NATS server does not decide the role of an agent. What the agent connects
 with carries its permissions. What osapi can give an agent depends on what the
 NATS administrator, the person who runs the NATS infrastructure, gives osapi:
 
-| NATS server                               | The administrator provisions for osapi                                                                 | Bootstrap credential                | Agent credential                           | One agent cut from the bus             |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------------------------------------------ | -------------------------------------- |
-| osapi's embedded server, in operator mode | nothing                                                                                                | a JWT for each token                | a short-lived JWT for each agent           | at once: the account's revocation list |
-| another server, in operator mode          | an account for osapi, and a scoped signing key whose template is the agent's permissions               | a JWT for each token                | a short-lived JWT for each agent           | when its JWT expires                   |
-| another server, with auth callout         | an `auth_callout` block that names osapi's issuer key (NATS 2.10 or later)                             | the callout decides, per connection | the callout decides, per agent             | at once                                |
-| another server, with static users         | two users: a join user that can send only the join request, and an agent user, the same for each agent | the join user, in the join string   | the agent user, which the controller gives | no: osapi refuses what the agent signs |
-| no authentication, for development        | nothing                                                                                                | none                                | none                                       | no                                     |
+| NATS server                               | The administrator provisions for osapi                                                                       | Bootstrap credential                | Agent credential                           | One agent cut from the bus             |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------------------------------------------ | -------------------------------------- |
+| osapi's embedded server, in operator mode | nothing                                                                                                      | a JWT for each token                | a short-lived JWT for each agent           | at once: the account's revocation list |
+| another server, in operator mode          | an account for osapi, and two scoped signing keys whose templates are the agent's and the join's permissions | a JWT for each token                | a short-lived JWT for each agent           | when its JWT expires                   |
+| another server, with auth callout         | an `auth_callout` block that names osapi's issuer key (NATS 2.10 or later)                                   | the callout decides, per connection | the callout decides, per agent             | at once                                |
+| another server, with static users         | two users: a join user that can send only the join request, and an agent user, the same for each agent       | the join user, in the join string   | the agent user, which the controller gives | no: osapi refuses what the agent signs |
+| no authentication, for development        | nothing                                                                                                      | none                                | none                                       | no                                     |
 
 In operator mode, the role is in the user JWT. The controller signs a bootstrap
 JWT that can send only the join request, and after the join an agent JWT with
