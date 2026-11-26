@@ -111,8 +111,8 @@ Built in osapi-io/osapi#1247.
 key, the seal to each agent, and the open in the dispatch. The data has a sealed
 value as the string `sealed:<base64>`, not as an object, so a `secret.Value`
 field reads it with no new code. The operation has `sealed_from`, the public key
-of a new X25519 key for the job, because the controller has no X25519 key of its
-own.
+of a new P-256 key for the job, because the controller has no encryption key of
+its own.
 
 ## Secrets in a chain
 
@@ -131,7 +131,7 @@ it one time, for each method of the chain.
 
 The agent knows nothing about vaults or references. It knows three things:
 
-- **Its X25519 key.** Built.
+- **Its P-256 key.** Built.
   [Agent identity](agent-identity.md#the-encryption-key) has it. A rotation of
   the agent's key seals nothing again, because the controller seals at dispatch,
   not at storage.
@@ -249,8 +249,8 @@ Each part is an issue in osapi, in this order:
 06. Built: `secret://` references in the config, resolved at startup and by the
     commands that read them
     ([Configuration](configuration.md#a-secret-can-be-a-reference-to-a-vault)).
-07. The agent's X25519 key at enrollment. Built:
-    [Agent identity](agent-identity.md#the-encryption-key).
+07. The agent's encryption key at enrollment, P-256 since osapi-io/osapi#1382.
+    Built: [Agent identity](agent-identity.md#the-encryption-key).
 08. Built: sealed values in the job, opened by the dispatch of the agent, with
     the docker `env` fields as the first users.
 09. Built: the reference picker of the UI, and the rule in the skill

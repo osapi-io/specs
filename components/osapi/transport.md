@@ -160,8 +160,9 @@ nats:
 
 `server.New` reads the file and sets `JetStreamKey` in the options of the
 server. NATS derives a key for each account from it, and encrypts each file
-store with ChaCha20-Poly1305, its default cipher. With no `key_file`, the server
-does not encrypt, as before.
+store with ChaCha20-Poly1305, its default cipher. FIPS 140-3 does not approve
+that cipher, and only mode refuses it (osapi-io/osapi#1528). With no `key_file`,
+the server does not encrypt, as before.
 
 `osapi nats key create` makes the key, on the NATS host. It reads `key_file`
 from the config, writes 32 random bytes as hex to it with mode `0600`, and makes

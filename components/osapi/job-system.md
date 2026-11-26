@@ -46,35 +46,42 @@ Built in osapi-io/osapi#1247. The job client seals each `secret.Value` of the
 data before it stores the definition (`request` in `internal/job/client`,
 `internal/secret/seal`):
 
-1. It makes a new random job key, and encrypts each secret value that is not
-   empty with it, with XChaCha20-Poly1305 and a new nonce. The job ID is the
+1. It makes a new random 256-bit job key, and encrypts each secret value that is
+   not empty with it, with AES-256-GCM and a new random nonce. The job ID is the
    additional data, so a value that somebody copies to a different job does not
    open. The data has each value as the string `sealed:<base64>`, in the field
    of the value. Thus the data has the same shape, and `secret.Value` reads it
    as a string.
-2. It makes a new X25519 key for the job, and seals the job key to the X25519
-   key of each agent that the target can reach, with NaCl `box` (nkeys xkeys
-   `Seal`). `job.Recipients` gives the agents: each agent that takes jobs for
-   `_all`, `_any` or a label, and the agent of one host. The admission store
-   gives the X25519 key of each agent. An agent with no key gets no sealed key.
+2. It makes a new P-256 key for the job, and seals the job key to the P-256 key
+   of each agent that the target can reach. The key-encryption key is
+   HKDF-SHA256 of the ECDH secret, and AES-256-GCM encrypts the job key with it.
+   `job.Recipients` gives the agents: each agent that takes jobs for `_all`,
+   `_any` or a label, and the agent of one host. The admission store gives the
+   P-256 key of each agent. An agent with no key gets no sealed key.
 3. The operation has `sealed_keys`, a map from machine ID to the sealed job key,
-   and `sealed_from`, the public X25519 key that sealed them. The signed
-   envelope covers them, so an agent knows that the controller sealed the job.
+   and `sealed_from`, the public P-256 key that sealed them. The signed envelope
+   covers them, so an agent knows that the controller sealed the job.
 
 The job key is the only part that has one copy for each agent. Thus a large
 value goes in the job one time, also to `_all`. JetStream, the job KV and the
 audit log never see the value.
 
-The agent opens its own job key with its X25519 key when it takes the job
+Each algorithm is a FIPS 140-3 approved algorithm from the Go standard library,
+and the seal has one construction (osapi-io/osapi#1382). The osapi docs page of
+secrets has the wire format. Each GCM nonce is random, from
+`cipher.NewGCMWithRandomNonce`, because FIPS 140-3 only mode refuses a nonce
+that the caller selects.
+
+The agent opens its own job key with its P-256 key when it takes the job
 (`openJob` in `internal/agent`). The dispatch of a behavior decodes the input
 into the type of the method, opens each `secret.Value` with `secret.Map`, and
 gives the provider the input. The values live only in that call. A job with no
 key for the agent fails with `seal.ErrNotSealedToAgent`, "the job was not sealed
 to this agent", and does not run. Such an agent joined after the controller
-queued the job, or has no X25519 key. A retry keeps the sealed keys of the job,
+queued the job, or has no P-256 key. A retry keeps the sealed keys of the job,
 so it reaches only the same agents.
 
-PKI is always on (osapi-io/osapi#1307), so the controller has the X25519 key of
+PKI is always on (osapi-io/osapi#1307), so the controller has the P-256 key of
 each admitted agent. A job client with no agent keys, such as the one of an
 agent, refuses a job with a secret with `client.ErrNoAgentKeys`. Thus no secret
 goes in a job as plain text.
