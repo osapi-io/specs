@@ -160,9 +160,12 @@ nats:
 
 `server.New` reads the file and sets `JetStreamKey` in the options of the
 server. NATS derives a key for each account from it, and encrypts each file
-store with ChaCha20-Poly1305, its default cipher. FIPS 140-3 does not approve
-that cipher, and only mode refuses it (osapi-io/osapi#1528). With no `key_file`,
-the server does not encrypt, as before.
+store with AES-256-GCM: `bus.ServerOptions` sets `JetStreamCipher` to `AES`,
+because FIPS 140-3 approves AES-256-GCM and not the server's default,
+ChaCha20-Poly1305. A store that ChaCha20-Poly1305 encrypted converts at its next
+read, with no step from the operator. In FIPS 140-3 only mode the server still
+does not make an encrypted stream, because it makes the GCM with a nonce that it
+selects (osapi-io/osapi#1549). With no `key_file`, the server does not encrypt.
 
 `osapi nats key create` makes the key, on the NATS host. It reads `key_file`
 from the config, writes 32 random bytes as hex to it with mode `0600`, and makes
