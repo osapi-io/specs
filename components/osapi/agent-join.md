@@ -39,9 +39,17 @@ This page is the design of osapi-io/osapi#1313. The parts that are built:
   admitted key signs. The controller renews only an admitted machine, so a
   revoked agent is cut from NATS when its JWT expires
 
-The parts that are not built: the join with auth callout (osapi-io/osapi#1416),
-the config in KV (osapi-io/osapi#1379), and the account's revocation list for an
-instant cut on osapi's embedded server (osapi-io/osapi#1380).
+- the join with a NATS server's auth callout (osapi-io/osapi#1416): the server
+  sends each connection to the controller. A join token that admits now gets the
+  join role for ten minutes at most; the NATS user key that an agent sent at its
+  join gets the agent role while the machine is admitted, when the connection
+  signs the server's nonce with it; the controller refuses the rest, and each
+  decision is a `nats.connect` audit entry. The server must have an nkey user,
+  such as the callout user, or it offers no nonce
+
+The parts that are not built: the config in KV (osapi-io/osapi#1379), and the
+account's revocation list for an instant cut on osapi's embedded server
+(osapi-io/osapi#1380).
 
 ## Why NATS is the transport
 
@@ -187,7 +195,7 @@ NATS administrator, the person who runs the NATS infrastructure, gives osapi:
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------------------------------------------ | -------------------------------------- |
 | osapi's embedded server, in operator mode | nothing                                                                                                      | a JWT for each token                | a short-lived JWT for each agent           | at once: the account's revocation list |
 | another server, in operator mode          | an account for osapi, and two scoped signing keys whose templates are the agent's and the join's permissions | a JWT for each token                | a short-lived JWT for each agent           | when its JWT expires                   |
-| another server, with auth callout         | an `auth_callout` block that names osapi's issuer key (NATS 2.10 or later)                                   | the callout decides, per connection | the callout decides, per agent             | at once                                |
+| another server, with auth callout         | an `auth_callout` block that names osapi's issuer key (NATS 2.10 or later), and an nkey callout user         | the callout decides, per connection | the callout decides, per agent             | at its next connection: `agent_ttl`    |
 | another server, with static users         | two users: a join user that can send only the join request, and an agent user, the same for each agent       | the join user, in the join string   | the agent user, which the controller gives | no: osapi refuses what the agent signs |
 | no authentication, for development        | nothing                                                                                                      | none                                | none                                       | no                                     |
 
