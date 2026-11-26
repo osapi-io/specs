@@ -22,14 +22,31 @@ They also share the content of this page:
 | `FS`       | `avfs.VFS`                 | the filesystem of the host                    |
 | `Exec`     | `source.Runner`            | the commands of the host                      |
 | `Now`      | `func() time.Time`         | `time.Now`                                    |
-| `Family`   | string, `pkg/gohai/family` | `family.Detect()` of the host                 |
+| `Family`   | string, `pkg/gohai/family` | the family of `FS`, or of the host            |
 | `Resolver` | `source.Resolver`          | `net.DefaultResolver`: `/etc/hosts`, then DNS |
 
+A zero `Family` with a given `FS` is the family that the `/etc/os-release` of
+that `FS` names. It is not the family of the real host. Thus a fake filesystem
+and the variant that reads it agree. A caller that gives a macOS filesystem
+gives `darwin`, because macOS has no `/etc/os-release`. With no `FS`, a zero
+`Family` is `family.Detect()` of the host. `gohai.New` finds the family one time
+and gives it to each collector.
+
 Each collector has `NewWith(src)`. `NewWith` selects the variant from the family
-of `src`, and gives the variant the `FS`, `Exec` and `Now` of `src`. `New()` is
-`NewWith(source.Sources{})`, the real host. `gohai.New(gohai.WithSources(src))`
-gives the same sources to each collector. The cloud collectors have only
-`New()`, because the metadata service is not a source.
+of `src`. `collector.Wire` gives the variant the `FS`, `Exec`, `Now` and
+`Resolver` of `src`. A variant field with one of those names and a different
+type makes `Wire` panic. Without the panic, the collector reads the real host
+under a fake host, and nothing tells the caller. A test in `pkg/gohai` checks
+that each field of each built-in collector that has a source type gets the
+source that the caller gave. `New()` is `NewWith(source.Sources{})`, the real
+host. `gohai.New(gohai.WithSources(src))` gives the same sources to each
+collector.
+
+The cloud collectors that read only their metadata service have only `New()`,
+because the metadata service is not a source. azure, linode and openstack also
+read files of the host: the waagent binary and the dhclient leases, the apt
+sources, and `/etc/passwd`. They read these files through `FS`, and they have
+`NewWith(src)`.
 
 osapi gives the sources of `host.Host`. Thus a behavior of osapi calls a
 collector, and the example of the behavior runs on the fake host.
