@@ -50,33 +50,32 @@ goroutines.
 
 ```go
 natsServer, err := NewNATSServer(s.Opts.Options)   // construct
+natsServer.SetLogger(NewSlogWrapper(s.logger),
+    s.Opts.Debug, s.Opts.Trace)                    // logger attached first
 go natsServer.Start()                              // run
 if !natsServer.ReadyForConnections(timeout) {
     natsServer.Shutdown()                          // no server left running
     natsServer.WaitForShutdown()
     return fmt.Errorf("server not ready for connections")
 }
-natsServer.SetLogger(slogWrapper, true, true)       // logger attached here
 ```
 
-`Start()` refuses a second call before `Stop()`. If the server does not become
-ready, `Start()` shuts it down and waits for it before it returns the error.
-Thus a failed start leaves no listener and no goroutine.
+`Start()` refuses nil options, and a second call before `Stop()`. If the server
+does not become ready, `Start()` shuts it down and waits for it before it
+returns the error. Thus a failed start leaves no listener and no goroutine.
+
+`Start()` attaches the logger before the server runs. Thus the startup messages
+of the server, such as a port that is in use, go to the `slog` handler that
+`New` got. A nil logger is `slog.Default()`.
+
+Debug and trace come from `Options.Debug` and `Options.Trace` of the upstream
+struct. Both are false by default, so a consumer gets no trace unless it asks.
 
 ### `Stop()`
 
 `Stop()` calls `Shutdown()` and then `WaitForShutdown()`, and forgets the
 server. When `Stop()` returns, the port and the JetStream store are free. A
 second `Stop()` does nothing, and `Start()` can run the server again.
-
-`Start()` attaches the logger last, after the server accepts connections. Thus
-the log messages of the server during startup go to the default logger of NATS.
-They do not go to the `slog` handler that `New` got. If a server never becomes
-ready, the logger of the consumer is empty, and the reason is on stderr.
-
-The second and third arguments of `SetLogger` are debug and trace. The two are
-literals. Nothing in `Options` or `New` changes them. Thus each embedded server
-runs with trace logging on.
 
 ### `Options`
 
@@ -106,9 +105,10 @@ negative value.
 
 ### `SlogWrapper` (`logger.go`)
 
-NATS logs through its own interface, and `slog` has no trace level. The wrapper
-sends `Tracef` to `slog.Debug`. Thus the handler of the consumer cannot tell
-trace messages from debug messages.
+NATS logs through its own interface, and `slog` has no trace level.
+`NewSlogWrapper(logger)` makes the wrapper. The wrapper sends `Tracef` to
+`slog.Debug`. Thus the handler of the consumer cannot tell trace messages from
+debug messages.
 
 | NATS      | slog         |
 | --------- | ------------ |
@@ -119,23 +119,12 @@ trace messages from debug messages.
 | `Debugf`  | `slog.Debug` |
 | `Tracef`  | `slog.Debug` |
 
-## What a consumer cannot change
+## What a consumer changes
 
-A consumer cannot change the log level, or see the startup. `Start()` decides
-the two, and `Options` cannot change either. A consumer who needs fewer log
-messages, or who wants to see the server start, must change this package.
-
-## Known limitations
-
-There are two. Each needs a change here, not a workaround in a consumer.
-
-**You cannot turn off trace logging.** The cause is
-`SetLogger(wrapper, true, true)`, which `Start()` above shows.
-`docs/server/logging.md` tells where trace output goes. It does not tell that
-trace is always on.
-
-**Startup logging does not go to the logger of the consumer.** The attachment
-order in `Start()` causes this. No documentation page names `SetLogger`.
+A consumer sets the log level through its `slog` handler, and debug and trace
+through `Options.Debug` and `Options.Trace`. The wrapper formats a message only
+when the handler takes its level. It sees the startup messages, because
+`Start()` attaches the logger first.
 
 ## How big it is
 
