@@ -113,7 +113,7 @@ admitted record has no encryption key. Enroll it again:
 
 1. On the host, delete `controller.pub` in `agent.pki.key_dir`, and restart the
    agent. The agent sends a new request with the two keys.
-2. On the host, run `osapi agent key fingerprint`.
+2. On the host, run `osapi pki key get --name agent`.
 3. Admit the machine with that fingerprint. The pending record shows the old
    fingerprint as `previous_fingerprint`.
 

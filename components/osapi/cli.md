@@ -107,9 +107,10 @@ and the commands that write the docs were under `cli`.
    component made seven. A token, a join token and a role are grants of the
    controller, not files of the host, so they stay under `controller`.
    `nats auth` stays under `nats`, because it prepares a NATS server that
-   possibly does not run on this host. `pki cert` is the first group
-   (osapi-io/osapi#1461). The keys move to `pki key`, with `pki list` for each
-   key and certificate (osapi-io/osapi#1477).
+   possibly does not run on this host. `pki cert` holds the certificates
+   (osapi-io/osapi#1461), `pki key` the keys, and `pki list` each key and
+   certificate (osapi-io/osapi#1477). Only a vault key rotates: `pki key rotate`
+   refuses each other key, with what to do instead.
 
 ### The root
 
@@ -324,6 +325,21 @@ aliases:
 | `cli docs generate`, `cli docs dsl generate`, `cli docs reference generate` | `dsl docs generate`, one command                         |
 | `nats server start`                                                         | `nats start`                                             |
 | `agent admission get`                                                       | `agent key fingerprint`                                  |
+
+### Moved on 26 November 2026
+
+The keys moved under `pki`, with no aliases (osapi-io/osapi#1477):
+
+| Was                                           | Now                                  |
+| --------------------------------------------- | ------------------------------------ |
+| `agent key fingerprint`                       | `pki key get --name agent`           |
+| `controller key fingerprint`                  | `pki key get --name controller`      |
+| `nats key create`                             | `pki key create --name jetstream`    |
+| `controller secret key create --vault <name>` | `pki key create --name vault:<name>` |
+| `controller secret key rotate --vault <name>` | `pki key rotate --name vault:<name>` |
+
+The two fingerprint commands made each key that was not there. `pki key get`
+makes none: `pki key create` makes a key.
 
 ### Node paths, moved on 24 November 2026
 
