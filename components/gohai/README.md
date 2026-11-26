@@ -139,29 +139,10 @@ tests.
 
 ## Known limitations
 
-There are five. In the first four, nothing reports the error.
-
-**gohai ignores the registration error, and the test that the comment names does
-not exist.** `registerBuiltins` in `pkg/gohai/gohai.go` calls
-`_ = reg.Register(c)` for each of the 62. Its comment says that a duplicate or
-empty name can come only from programmer bugs, and that tests catch those bugs.
-The test that exists checks that `Register` refuses a duplicate on a new
-registry. No test runs `registerBuiltins`. The only check of the built-in
-registry is that it has one name:
-
-```sh
-grep -rn 'registerBuiltins\|builtinCollectors' --include='*_test.go' .   # nothing
-grep -A2 'func.*TestNewRegistry' pkg/gohai/registry_public_test.go
-```
-
-Thus a duplicate name in the 62 removes one collector without a signal. The
-reason to ignore the error is a test that nobody wrote.
-
-**The count of registered collectors does not check registration.** The count
-reads the `collectors/<name>` paths in `pkg/gohai/gohai.go`, which is source
-text. It finds a collector that exists but is not in that file. That is the
-failure that it is for. It cannot find a collector that is in the file but did
-not register. These are different failures, and only the first has a check.
+There are three. In the first two, nothing reports the error. A built-in
+collector that does not register makes `gohai.New` panic, and a test in
+`pkg/gohai` checks that each built-in collector has a `Facts` field that
+`Facts.set` fills.
 
 **An undeclared dependency works until it does not.** `prior` always has what a
 collector declared. It **can** also have upstream collectors that it did not
