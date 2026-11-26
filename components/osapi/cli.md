@@ -66,6 +66,7 @@ and the commands that write the docs were under `cli`.
    | ------------------------------------------------------------- | ----------------------------------------------- |
    | goes through the API                                          | `client`. No other command uses the API.        |
    | runs on this host, on the process or the files of a component | `controller`, `agent` or `nats`                 |
+   | runs on this host, on a key or a certificate of a component   | `pki`                                           |
    | runs on this host, on the config that each component reads    | `config`                                        |
    | works on the definitions of osapi, for an author              | `dsl`                                           |
    | works on the skills in the binary                             | `skill`                                         |
@@ -98,6 +99,18 @@ and the commands that write the docs were under `cli`.
 
 8. **Each process is `<component> start`.** `start` alone starts each component.
 
+9. **The keys and the certificates on a host are under `pki`, not under each
+   component.** One host often runs each component, with `osapi start`. Thus one
+   command shows each certificate and its expiry, and one command rotates it.
+   Before, the keys were in four groups, `controller key`, `agent key`,
+   `nats key` and `controller secret key`, and a certificate command for each
+   component made seven. A token, a join token and a role are grants of the
+   controller, not files of the host, so they stay under `controller`.
+   `nats auth` stays under `nats`, because it prepares a NATS server that
+   possibly does not run on this host. `pki cert` is the first group
+   (osapi-io/osapi#1461). The keys move to `pki key`, with `pki list` for each
+   key and certificate (osapi-io/osapi#1477).
+
 ### The root
 
 | Word         | Purpose                                                                        |
@@ -107,6 +120,7 @@ and the commands that write the docs were under `cli`.
 | `controller` | Run the controller on this host, and work on its key, its tokens and its roles |
 | `agent`      | Run the agent on this host, and work on its key                                |
 | `nats`       | Run the embedded NATS server on this host, or prepare a NATS server            |
+| `pki`        | List and rotate the keys and the TLS certificates of osapi on this host        |
 | `config`     | List, get and validate the config that each component reads                    |
 | `skill`      | Show the agent skills in this binary, and install them into a repository       |
 | `sdk`        | List, describe and check the Go SDK in this binary: its types and its services |
@@ -122,6 +136,7 @@ osapi
   controller  start | key fingerprint | token generate|validate | role list|get | secret key create|rotate
   agent       start | key fingerprint | collector list|get|spec get|validate
   nats        start | setup | key create
+  pki         cert list|get|rotate
   config      list | get | spec get | validate
   skill       list | get | install
   sdk         list | get | spec get | validate
