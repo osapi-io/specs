@@ -52,10 +52,8 @@ The API, NATS, Jaeger's UI and its OTLP receiver each serve the hub's Tailscale
 certificate, and each connection checks it: the CLI, the controller, each agent
 and each exporter. The certificate names the tailnet name only. Thus a
 connection that dials `127.0.0.1` or the `.1` address of the subnet sets
-`server_name` to the tailnet name. A VM that upgrades in place gets its `tls`
-blocks from `upgrade.yml`, because its config is from an older image. Plain text
-to any of the four is refused. [TLS](../osapi/configuration.md#tls) has the
-settings.
+`server_name` to the tailnet name. Plain text to any of the four is refused.
+[TLS](../osapi/configuration.md#tls) has the settings.
 
 The hub writes these locations into the `url` keys of its config:
 `controller.api.url`, `controller.ui.url`, `telemetry.tracing.url` and
@@ -76,18 +74,32 @@ ansible/
   inventory.example.yml     committed: the shape of an inventory
   inventory.yml             gitignored: the hub, its tailnet name, the checkout
   group_vars/all.yml        committed: the VMs, a name and a base image each
-  playbooks/                site, rebuild, deploy, secrets, hub, images, vms, ready,
-                            client, teardown
+  playbooks/
+    lab.yml                 each workflow: a mode, the VMs and the parts of the run
+    list, logs, teardown    read the lab, or remove it from the hub
+    build, client           the build and the configs of this machine alone
+    lock, unlock            the lock, which each other playbook takes
   roles/
-    build                   compiles the osapi checkout, on your machine
+    build                   compiles the osapi checkout for each OS that the run needs
     secrets                 the lab's secrets and the VMs' SSH key, kept, and the admin token, renewed
-    hub                     osapi's NATS server, controller and Jaeger on the hub
-    lab_vm                  one of the lab's VMs, mapped onto tart_vm
-    client                  the client config on your machine
+    client                  the configs on your machine
+    hub_tls                 the hub's Tailscale certificate, which the hub's processes serve
+    hub_host                what NATS and the controller share: directories, the build, hub.yaml
+    nats_server             osapi's NATS server on the hub
+    controller              the controller on the hub, with the API and the UI
+    jaeger                  the trace collector on the hub
+    lab_images              bakes the image of each VM that needs one
+    lab_vm                  clones one of the lab's VMs, mapped onto tart_vm
+    vm_inventory            adds each running VM to the inventory
+    lab_agent               a new build into a running VM's agent, or a restart
+    fleet_ready             waits until each agent is Ready, and a new process after a restart
+    nats_consumers          removes the consumers of agents that are gone
     packer                  builds a Packer template on a host      (generic)
-    tart_vm                 one Tart VM: clone, launchd, add_host   (generic)
-    launchd                 one launchd agent                       (generic)
+    tart_vm                 one Tart VM: clone, launchd, stop, start (generic)
+    tart_base               a local base image from a disk image    (generic)
+    launchd                 one launchd agent: run, stop, start     (generic)
     firewall                admits one app through the macOS firewall (generic)
+    lock                    the lock of the hub                     (generic)
 packer/                     one image for each VM: the whole VM, in HCL
 .lab/ (gitignored)          builds, secrets, the VMs' SSH key, rendered configs
 ```
@@ -112,19 +124,53 @@ directly: the version on the path is the version that somebody installed. The
 same module gives `ansible-lint`, `ansible-fmt` and `ansible-test`, which
 `just test` runs.
 
-| Recipe          | Playbook       | Does                                                  |
-| --------------- | -------------- | ----------------------------------------------------- |
-| `just list`     | `list.yml`     | Every VM, its image and its osapi build; changes none |
-| `just bump`     | `bump.yml`     | Copy a new osapi build to the hub and the running VMs |
-| `just deploy`   | `deploy.yml`   | Bake the changed images, replace those VMs            |
-| `just rebuild`  | `rebuild.yml`  | Bake each image again, replace each VM                |
-| `just site`     | `site.yml`     | Everything, from nothing                              |
-| `just ssh vm`   | `client.yml`   | Refresh `.lab/ssh/config`, then `ssh -F` through it   |
-| `just teardown` | `teardown.yml` | Remove the lab from the hub                           |
+| Recipe          | Mode      | Does                                                         |
+| --------------- | --------- | ------------------------------------------------------------ |
+| `just deploy`   | `deploy`  | Bake each image that changed, replace its VM, update the hub |
+| `just bump`     | `bump`    | Put a new build into each running process; bake no image     |
+| `just rebuild`  | `rebuild` | Bake each image again and replace each VM                    |
+| `just restart`  | `restart` | Restart each process; no build and no copy                   |
+| `just stop`     | `stop`    | Stop each process and VM, so that launchd does not start it  |
+| `just start`    | `start`   | Start what `stop` stopped                                    |
+| `just list`     |           | Every VM, its image and its osapi build; changes none        |
+| `just ssh vm`   |           | Refresh `.lab/ssh/config`, then `ssh -F` through it          |
+| `just teardown` |           | Remove the lab from the hub                                  |
 
-`teardown` reverses `site` on the hub. It does these steps:
+Each recipe with a mode runs `playbooks/lab.yml`. The recipe gives it three
+things:
 
-- It stops each `io.osapi.lab.*` launchd agent and deletes its plist.
+- `lab_mode`, the mode of the table.
+- `lab_only`, a comma list of VMs. Empty is each VM.
+- the tags of the parts: `nats`, `controller`, `jaeger`, `vms` and `client`.
+  With no tag, each part runs.
+
+The recipe makes these from its targets. `ui` is `controller`, because osapi
+embeds the UI. `hub` is `nats`, `controller` and `jaeger`. A VM's name goes to
+`lab_only` and adds `vms`. Thus `just deploy ui` builds darwin, copies it to the
+hub, restarts the controller alone, and waits for each agent.
+`just rebuild debian-lts` bakes the image of one VM and clones it again. The
+lock, a check of the run, the build and the secrets run on each run.
+
+`group_vars/all.yml` turns the mode into what the run does to each VM of the
+run. `lab_replace_vms` get an image and a clone, `lab_update_vms` get a new
+build, and `lab_restart_vms` restart:
+
+| Mode      | Replaced              | Updated                     | Restarted |
+| --------- | --------------------- | --------------------------- | --------- |
+| `deploy`  | each, when it changed | each that upgrades in place | none      |
+| `bump`    | none                  | each                        | none      |
+| `rebuild` | each                  | none                        | none      |
+| `restart` | none                  | none                        | each      |
+
+A process on the hub restarts only when it is a part of the run, and only when
+its binary, `hub.yaml`, the certificate or its credentials changed, or in a
+`restart`. Thus a run on the controller leaves NATS as it is. If `hub.yaml`
+changed, NATS reads the new config at its next run.
+
+`teardown` reverses `deploy` on the hub. It does these steps:
+
+- It stops each `io.osapi.lab.*` launchd agent, Jaeger included, and deletes its
+  plist.
 - It deletes the `lab-*` VMs.
 - It removes the firewall entries for the osapi build and for Jaeger.
 - It deletes the state directory of the hub.
@@ -137,7 +183,7 @@ It keeps two things that are slow or impossible to make again:
   `-e lab_teardown_local=true` deletes it.
 
 If you delete the operator, each credential that it gave stops working. Thus the
-next `site` makes a new operator.
+next `deploy` makes a new operator.
 
 `.lab/ssh/config` has a `Host` for each VM, with its current address and a jump
 through the hub. Thus `ssh`, `scp` and `rsync` get to a VM with `-F`. It
@@ -146,67 +192,76 @@ that is defined there.
 
 ## How a build reaches the fleet
 
-`playbooks/deploy.yml` brings the fleet to your checkout:
+`just deploy` brings the fleet to your checkout. `lab.yml` runs its roles in
+this order:
 
-- **`build`** compiles the osapi checkout that the inventory names, for darwin
-  and linux on arm64, on your machine. It builds the UI first, because osapi
-  embeds `ui/dist`. It records the branch, the commit, and if the tree had
-  changes, in `.lab/bin/REVISION`. Thus the lab always tells which build it
-  runs. It also makes a fingerprint of the source: the commit, the uncommitted
-  diff and the untracked files. If nothing changed since the last build, it
-  skips the build.
-- **`hub`** copies the darwin build to the hub, admits it through the firewall
-  again, and restarts the NATS and controller agents.
-- **`images`** bakes an image for each VM of the inventory, with the name
+- **`build`** compiles the osapi checkout that the inventory names, on your
+  machine. It always builds darwin, which this machine and the hub run. It
+  builds linux only when the run reaches a VM. It builds the UI first, because
+  osapi embeds `ui/dist`. Each OS records the branch and the commit, and if the
+  tree had changes, in `.lab/bin/<os>.REVISION` and `<os>.TAG`. It also records
+  a fingerprint of the source in `<os>.FINGERPRINT`: the commit, the uncommitted
+  diff and the untracked files. An OS whose fingerprint did not change is not
+  built again. Thus `just deploy ui` takes about 30 seconds.
+- **`hub_tls`**, **`hub_host`**, **`nats_server`**, **`controller`** and
+  **`jaeger`** bring the hub to the build. `hub_host` copies the darwin build,
+  renders `hub.yaml`, and admits the build through the firewall again. Each of
+  the other three runs its process under launchd, and restarts it only as the
+  last section says.
+- **`lab_images`** bakes an image for each VM of the run, with the name
   `img-<vm>-<tag>`. The image is the whole VM: the linux build, its config, its
   NATS credential, its hostname and each package that a behavior runs, such as
-  Docker and chrony. The tag is the short commit of the build. It ends with
-  `-dirty` when the checkout had uncommitted changes. The fingerprint of an
+  Docker and chrony. The tag is the short commit of the linux build. It ends
+  with `-dirty` when the checkout had uncommitted changes. The fingerprint of an
   image is the fingerprint of the build and a hash of `packer/`. The hub keeps
   it, and builds an image again only when the image is missing or the
-  fingerprint is different. Before a build, the playbook makes the NATS user of
-  the VM, because the credential must exist before it goes into the image. It
-  deletes images from other builds, except an image that a build recorded in the
-  last hour. It does not bake an image for a VM that upgrades in place while
-  that VM exists.
-- **`vms`** deletes the admission of a VM and clones it again when its image
+  fingerprint is different. Before a build, the role makes the NATS user of the
+  VM, because the credential must exist before it goes into the image. A run on
+  each VM deletes the images from other builds, except an image that a build
+  recorded in the last hour. A run on some VMs deletes none, because the other
+  VMs run from theirs. It does not bake an image for a VM that upgrades in place
+  while that VM exists.
+- **`lab_vm`** deletes the admission of a VM and clones it again when its image
   changed. It clones a VM that upgrades in place only when the VM does not
-  exist. It adds each VM to the inventory.
-- **`upgrade`** copies the linux build to `/usr/local/bin/osapi` on each VM that
-  upgrades in place. If the binary changed, it restarts `osapi-agent`. Then it
-  waits until the controller reports an agent process with a new `started_at`
-  that is `Ready`. If the agent does not come back in 3 minutes, the run fails.
-- **`ready`** waits until the controller reports the agent of each VM as
-  `Ready`. The agent starts at boot with the baked config, and the hub admits
-  it. Nothing logs in to a VM.
+  exist.
+- **`vm_inventory`** adds each running VM to the inventory, in the groups that
+  the run acts on.
+- **`lab_agent`** copies the linux build to `/usr/local/bin/osapi` on each VM
+  that the run updates, and restarts `osapi-agent` if the binary changed. In a
+  `restart`, it only restarts the agent.
+- **`fleet_ready`** waits until the controller reports each agent of the run as
+  `Ready`. For an agent that `lab_agent` restarted, it waits for a process with
+  a new `started_at`. If an agent does not come back in 3 minutes, the run
+  fails.
+- **`client`** writes the configs on your machine, and **`nats_consumers`**
+  removes the consumers of agents that are gone.
 
 Each VM, except `debian-lts`, is then exactly its image. When the source or
 `packer/` changed, this takes some minutes. Most of the time is Packer, which
 boots one VM for each image. When nothing changed, a deploy changes nothing.
-`playbooks/rebuild.yml` does the same, but bakes each image again and replaces
-each VM, also with no change.
+`just rebuild` bakes each image again and replaces each VM, also with no change.
 
 `bump` is the fast path for a change to the osapi binary. It builds, puts the
-binary on the hub and restarts NATS and the controller, copies the linux build
-into each running VM and restarts its agent, and waits for each new agent
-process to be Ready. It bakes no image and clones no VM. The first bump took 100
-seconds, where a deploy takes about twenty minutes (osapi-io/osapi-lab#70). A VM
-then runs a build that is not in its image, until the next deploy. Thus `bump`
-refuses to run when `packer/` changed since the images were baked: `images.yml`
-records the checksum of `packer/` in `~/.osapi-lab/images/packer.sum`, and a
-change there, such as the config of an agent, needs `deploy`.
+binary on the hub and into each running VM, restarts each process whose binary
+changed, and waits for each new agent process to be Ready. It bakes no image and
+clones no VM. The first bump took 100 seconds, where a deploy takes about twenty
+minutes (osapi-io/osapi-lab#70). A VM then runs a build that is not in its
+image, until the next deploy. Thus a `bump` that reaches a VM refuses to run
+when `packer/` changed since the images were baked: `lab_images` records the
+checksum of `packer/` in `~/.osapi-lab/images/packer.sum`, and a change there,
+such as the config of an agent, needs `deploy`.
 
-Only one run at a time changes the images and the VMs. `deploy`, `bump`,
-`rebuild`, `site`, `images`, `vms` and `teardown` take a lock on the hub,
-`~/.osapi-lab/lock`, with one `mkdir`. The lock names its holder: the machine,
-the process of `ansible-playbook`, the build and the start time. A second run
-says which run holds the lab, and waits for it, for up to `lab_lock_wait`
-minutes (30). It fails only then. The wait is one shell loop, because Ansible
-prints each try of an `until` loop as `FAILED - RETRYING`, which reads as an
-error while the lab is only busy. A playbook that a run imports takes the lock
-that the run holds, and the outermost playbook gives it back. On 22 November
-2026, two runs at once deleted the images of each other, because each run
-deletes the images that its own build does not clone (osapi-io/osapi-lab#38).
+Only one run at a time changes the images and the VMs. `lab.yml`, `build.yml`
+and `teardown.yml` take a lock on the hub, `~/.osapi-lab/lock`, with one
+`mkdir`. The lock names its holder: the machine, the process of
+`ansible-playbook`, the build and the start time. A second run says which run
+holds the lab, and waits for it, for up to `lab_lock_wait` minutes (30). It
+fails only then. The wait is one shell loop, because Ansible prints each try of
+an `until` loop as `FAILED - RETRYING`, which reads as an error while the lab is
+only busy. A playbook that a run imports takes the lock that the run holds, and
+the outermost playbook gives it back. On 22 November 2026, two runs at once
+deleted the images of each other, because each run deletes the images that its
+own build does not clone (osapi-io/osapi-lab#38).
 
 A run that stops before its end keeps the lock. The next run on the same machine
 finds that the process is gone, and breaks the lock. A lock from a run on a
@@ -282,9 +337,15 @@ argument list and no log.
 only on the Mac that has the VMs. The `tart_vm` role controls Tart with plain
 commands and `add_host`, as each public Ansible-and-Tart setup does.
 
-**Small roles, put together.** `packer`, `tart_vm`, `launchd` and `firewall`
-know nothing about osapi, and take their inputs as variables. The osapi roles
-use them. The playbooks only list roles.
+**A role for each part, and one playbook that puts them together.** Each process
+of the lab has its own role, with `main`, `stop` and `start` tasks:
+`nats_server`, `controller`, `jaeger`, and `tart_vm` for a VM. Thus a run
+targets one part, and a restart, a stop or a deploy of one part leaves the
+others as they are. Before, each workflow was a playbook of its own with the
+same ten imports, the hub restarted NATS and the controller together, and no VM
+could be bumped or rebuilt alone. `packer`, `tart_vm`, `tart_base`, `launchd`,
+`firewall` and `lock` know nothing about osapi, and take their inputs as
+variables. The osapi roles use them.
 
 **One launchd agent for each VM, not a daemon.** Tart keeps VMs under the home
 directory of the user. A launchd daemon starts with no `HOME`. An agent in the
@@ -315,9 +376,9 @@ restarts its agent, as an operator upgrades a host. It keeps its machine ID, the
 KV records of its agent, its file state, its consumers and its job history. This
 breaks the rule that a VM is its image, for one VM only. It keeps the config and
 the packages of its first image. A change to `packer/` does not get to it.
-`just rebuild` bakes its image again and replaces it, so a person can reset it.
-`ready` and `consumers` check it as they check the other VMs
-(osapi-io/osapi-lab#49).
+`just rebuild debian-lts` bakes its image again and replaces it, so a person can
+reset it. `fleet_ready` and `nats_consumers` check it as they check the other
+VMs (osapi-io/osapi-lab#49).
 
 **Each clone gets its own machine ID.** osapi identifies an agent by
 `/etc/machine-id`. The image ships that file empty. Thus systemd writes a new
@@ -330,10 +391,13 @@ config and the NATS credential of its own VM.
 The admin token is the exception to "one time". osapi signs a token for three
 months. Thus each run of the `secrets` role checks `.lab/secrets/token` with
 `osapi controller token validate` against the current signing keys, and reads
-`exp` from the token. The role signs a new token when the token is missing, when
-the keys refuse it, or when it expires within `secrets_token_renew_days`, 14 by
-default. A new token uses the same key, thus the hub needs no change. The CLI,
-the client of the hub and the web UI all send this token.
+`exp` from the token. The role sends the token on standard input, as
+`--token -`, because a secret flag refuses a literal value. Before, the check
+failed on each run, so each run signed a new token and restarted the controller.
+The role signs a new token when the token is missing, when the keys refuse it,
+or when it expires within `secrets_token_renew_days`, 14 by default. A new token
+uses the same key, thus the hub needs no change. The CLI, the client of the hub
+and the web UI all send this token.
 
 `lab_signing_keys` in `group_vars/all.yml` is the list of signing keys, as
 `controller.api.security.signing_keys` takes it. It has one key, `lab`, from
@@ -347,10 +411,6 @@ verifies with, and `cli.yaml` on your machine. Thus
 controller accepts. The config of an agent has a temporary signing key, because
 osapi validates each key in the file for each command. An agent never signs or
 verifies a token. Thus a VM holds no key that can sign an admin token.
-
-A VM that upgrades in place keeps its config. Thus `upgrade.yml` changes the
-`signing_key` of its config to a `signing_keys` list before it restarts the
-agent. A config with the old key does not load in an osapi that has the list.
 
 ## NATS in operator mode
 
@@ -403,7 +463,7 @@ to its own subjects and the buckets it uses comes with the least-privilege work.
 
 ### Checking it
 
-`.envrc` loads `.lab/config/nats.env`, which `just site` writes, so the `nats`
+`.envrc` loads `.lab/config/nats.env`, which `just deploy` writes, so the `nats`
 CLI in the lab directory connects to the hub as `cli`:
 
 ```bash
