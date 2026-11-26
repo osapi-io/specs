@@ -43,18 +43,31 @@ mocks/              generated
 ```
 
 A consumer keeps one `Server` and calls two methods. `Start` returns an error.
-`Stop` returns nothing.
+`Stop` returns nothing. A mutex guards the two, so they are safe from different
+goroutines.
 
 ### `Start()`
 
 ```go
 natsServer, err := NewNATSServer(s.Opts.Options)   // construct
 go natsServer.Start()                              // run
-if !natsServer.ReadyForConnections(s.Opts.ReadyTimeout) {
+if !natsServer.ReadyForConnections(timeout) {
+    natsServer.Shutdown()                          // no server left running
+    natsServer.WaitForShutdown()
     return fmt.Errorf("server not ready for connections")
 }
 natsServer.SetLogger(slogWrapper, true, true)       // logger attached here
 ```
+
+`Start()` refuses a second call before `Stop()`. If the server does not become
+ready, `Start()` shuts it down and waits for it before it returns the error.
+Thus a failed start leaves no listener and no goroutine.
+
+### `Stop()`
+
+`Stop()` calls `Shutdown()` and then `WaitForShutdown()`, and forgets the
+server. When `Stop()` returns, the port and the JetStream store are free. A
+second `Stop()` does nothing, and `Start()` can run the server again.
 
 `Start()` attaches the logger last, after the server accepts connections. Thus
 the log messages of the server during startup go to the default logger of NATS.
@@ -87,9 +100,9 @@ preloaded account JWTs, because upstream keeps them in an unexported field.
 [The transport page of osapi](../osapi/transport.md#who-may-connect) has the
 rest.
 
-`ReadyTimeout` is the only field that this package adds, and it has no default.
-`New` sets no defaults. Thus if you do not set it, `ReadyForConnections` gets a
-zero duration. All four examples set it to five seconds.
+`ReadyTimeout` is the only field that this package adds. When it is zero,
+`Start()` waits `DefaultReadyTimeout`, which is 10 seconds. `Start()` refuses a
+negative value.
 
 ### `SlogWrapper` (`logger.go`)
 
@@ -114,7 +127,7 @@ messages, or who wants to see the server start, must change this package.
 
 ## Known limitations
 
-There are three. Each needs a change here, not a workaround in a consumer.
+There are two. Each needs a change here, not a workaround in a consumer.
 
 **You cannot turn off trace logging.** The cause is
 `SetLogger(wrapper, true, true)`, which `Start()` above shows.
@@ -123,11 +136,6 @@ trace is always on.
 
 **Startup logging does not go to the logger of the consumer.** The attachment
 order in `Start()` causes this. No documentation page names `SetLogger`.
-
-**`ReadyTimeout` has no default.** `docs/server/configuration.md` lists the
-field with a type and a description. Its table has no Default column, so there
-is no location to record the missing default. A reader sees an example value
-next to the field and has no reason to ask.
 
 ## How big it is
 
