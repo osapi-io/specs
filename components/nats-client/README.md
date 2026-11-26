@@ -154,8 +154,10 @@ limit, and a subject can name a host.
 work of a handler is a child of the publish. The headers use the global text map
 propagator, and the consumer sets it.
 
-A key or an object that is not there is the answer of a read, not a failure. It
-does not mark the span as an error.
+A key, an object or a message that is not there is the answer of a read, not a
+failure. A key that exists, or a revision that is not the last one, is the
+answer of `KVCreate` or `KVUpdate`: it is the compare that the caller asked for.
+These answers do not mark the span as an error (osapi-io/nats-client#232).
 
 ## What happens when the connection drops
 
