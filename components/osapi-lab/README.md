@@ -28,11 +28,13 @@ It has no Go and ships nothing. Its content is:
 
 The hub runs the embedded NATS server of osapi, the controller and Jaeger as
 launchd agents. Jaeger is the native darwin-arm64 binary from its release,
-pinned by checksum. Thus the hub needs no Docker. Each VM is also a launchd
-agent that runs `tart run`. Thus the fleet starts again when the hub reboots.
-Each VM runs `osapi-agent` under systemd. Agents connect out to NATS. Thus
-nothing needs a route into a VM. A VM gets to the hub at the `.1` address of its
-vmnet subnet. A remote machine gets to the hub by its tailnet name.
+pinned by checksum. `~/.osapi-lab/bin/jaeger.version` records the version that
+the hub unpacked, so a new `lab_tracing_version` replaces the binary. Thus the
+hub needs no Docker. Each VM is also a launchd agent that runs `tart run`. Thus
+the fleet starts again when the hub reboots. Each VM runs `osapi-agent` under
+systemd. Agents connect out to NATS. Thus nothing needs a route into a VM. A VM
+gets to the hub at the `.1` address of its vmnet subnet. A remote machine gets
+to the hub by its tailnet name.
 
 Each process sends its traces to Jaeger on the hub, over OTLP gRPC on 4317:
 
@@ -162,6 +164,12 @@ build, and `lab_restart_vms` restart:
 | `rebuild` | each                  | none                        | none      |
 | `restart` | none                  | none                        | each      |
 
+A VM that the run updates or restarts must be running. If it is not, the run
+stops before it changes a VM, names the VM, and says to run `just start` first.
+`start` waits up to 60 seconds for the address of each VM that it starts.
+`restart`, `stop` and `start` copy no build, but each run checks the admin token
+with the darwin build. Thus a checkout with no darwin build builds it first.
+
 A process on the hub restarts only when it is a part of the run, and only when a
 file that it reads at its start is not the file that it started on, or in a
 `restart`. The files are its binary, `hub.yaml`, the certificate and its key,
@@ -279,7 +287,10 @@ deleted the images of each other, because each run deletes the images that its
 own build does not clone (osapi-io/osapi-lab#38).
 
 A run that stops before its end keeps the lock. The next run on the same machine
-finds that the process is gone, and breaks the lock. A lock from a run on a
+finds that the process is gone, and breaks the lock. A run that stops between
+the `mkdir` and the write of its holder leaves a lock with no holder. The next
+run waits 60 seconds for a holder, because a run that only now made the lock
+writes it within seconds. Then it breaks the lock. A lock from a run on a
 different machine needs `-e lab_lock_break=true`. Ansible cannot run a step
 after a play fails in a different play, so the lock has no release on failure.
 The check of the process takes its place.
@@ -349,8 +360,11 @@ no log.
 
 **Packer still builds the images.** No Ansible collection controls Tart. The
 `packer` role copies `packer/` to the hub and runs it there, because Tart runs
-only on the Mac that has the VMs. The `tart_vm` role controls Tart with plain
-commands and `add_host`, as each public Ansible-and-Tart setup does.
+only on the Mac that has the VMs. It removes the earlier copy first, so a file
+that `packer/` no longer has does not reach the build. The join string goes to
+Packer in the environment, and the template marks it sensitive, so Packer prints
+no secret and a failed bake shows its output. The `tart_vm` role controls Tart
+with plain commands and `add_host`, as each public Ansible-and-Tart setup does.
 
 **A role for each part, and one playbook that puts them together.** Each process
 of the lab has its own role, with `main`, `stop` and `start` tasks:
@@ -461,7 +475,9 @@ bakes only its join string, in `agent.join`. The agent joins at its first boot:
 the token admits it, and the controller mints its NATS user. `auto_admit` is
 off, so a request with no token waits for a person. The remote agent,
 `just agent`, joins with a token of its own, whose join string dials the tailnet
-name.
+name. A run with the controller down, such as `just stop controller` or
+`just ssh` after it, makes no token. It writes the remote agent's config at the
+next run with the controller up.
 
 The join string of a VM dials the gateway of tart's network, `192.168.64.1`. The
 certificate of the hub names its tailnet name, and a CA that the VM trusts
