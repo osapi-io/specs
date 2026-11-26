@@ -407,12 +407,19 @@ and the web UI all send this token.
 before the list, fails the check. Thus the next run of the role signs a new
 token with the `kid` of `lab`.
 
-Two configs hold the signing keys of the hub: `hub.yaml`, which the controller
-verifies with, and `cli.yaml` on your machine. Thus
+The controller keeps the signing keys in its vault, as an operator does, and
+`hub.yaml` refers to them as `secret://default/jwt-signing-key-<id>`. The
+controller resolves the references at its start. The controller role writes each
+key with `osapi client secret update`, from standard input, when the vault does
+not hold it. The first run after a teardown starts the controller with the keys
+themselves, writes them, and then starts it again on the references
+(osapi-io/osapi-lab#54). A NATS password and the key of a vault cannot be a
+reference, because osapi needs them before it reads a vault.
+
+`cli.yaml` on your machine holds the keys themselves. Thus
 `osapi controller token generate` on your machine signs a token that the
-controller accepts. The config of an agent has a temporary signing key, because
-osapi validates each key in the file for each command. An agent never signs or
-verifies a token. Thus a VM holds no key that can sign an admin token.
+controller accepts. The config of an agent holds no signing key, only its join
+string. Thus a VM holds no key that can sign an admin token.
 
 ## NATS in operator mode, and the join
 
