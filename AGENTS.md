@@ -126,7 +126,8 @@ flag, a field for old callers, or a note about compatibility.
 **Read a host through gohai.** osapi reads and detects facts through gohai. When
 gohai does not have a read that osapi needs, or its API does not fit, change
 gohai first. Merge and release gohai, then use it in osapi. Do not copy the read
-into osapi.
+into osapi. [What gohai reads](components/gohai/collectors.md#what-gohai-reads)
+tells which reads belong in gohai, and which stay in osapi.
 
 **Generate test doubles.** A double of an interface of the organization is a
 `mockgen` mock in a `mocks` package. Do not write a fake by hand. The exceptions
