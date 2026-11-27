@@ -34,9 +34,10 @@ or expect an empty result.
 
 ## Go version drift
 
-The `go` directive must name the older of the two newest Go minor releases
-([why](../../../../CONSTITUTION.md)). Nobody gets a notification when a new
-minor release ships. Thus this check finds it.
+The `go` directive must not be older than the older of the two newest Go minor
+releases, and it never moves down ([why](../../../../CONSTITUTION.md)). A
+directive on the newest release is correct. Nobody gets a notification when a
+new minor release ships. Thus this check finds a directive that fell behind.
 
 ```bash
 floor=$(curl -s --max-time 20 'https://proxy.golang.org/golang.org/toolchain/@v/list' \
@@ -47,7 +48,8 @@ while read -r r; do
   d=$(gh api "/repos/osapi-io/$r/contents/go.mod" --jq '.content' 2>/dev/null \
     | base64 -d 2>/dev/null | grep -m1 '^go ' | awk '{print $2}')
   [ -z "$d" ] && continue
-  [ "${d%.*}" = "$floor" ] || printf "%s go %s, want %s.0\n" "$r" "$d" "$floor"
+  minor=$(echo "$d" | cut -d. -f2)
+  [ "$minor" -ge "${floor#1.}" ] || printf "%s go %s, want %s or newer\n" "$r" "$d" "$floor"
 done
 ```
 
