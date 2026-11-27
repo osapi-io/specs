@@ -226,20 +226,26 @@ join token is short-lived, so this is a small cost.
 
 ## The config of the agent
 
-The controller holds each agent's config, in a KV bucket, under the agent's
-machine ID. It has:
+The controller holds each agent's config in the state bucket, at
+`config.<machine-id>` (`job.AgentConfig`). It has:
 
-- the NATS URLs, and the agent's own NATS credential
-- the labels and the maximum number of jobs
-- the facts: the collectors and the interval
-- the metrics settings and the log level
+- the labels
+- the maximum number of jobs
+- the log level
+- the interval of the facts
 
 The agent watches its key. A change reaches it at once, with no poll and no
-HTTP. The labels, the facts, the log level and the maximum number of jobs apply
-at once. A change of the NATS URL or of the credential makes the agent connect
-again. Nothing needs a restart. The config has a version, one more at each
-change. `osapi client agent get` and the UI show the version that the agent
-runs, and `behind` when the agent does not have the newest one.
+HTTP, and applies at once. Nothing needs a restart. The config has a version,
+one more at each change. `osapi client agent get` and the UI show the version
+that the agent runs, and `behind` when the agent does not have the newest one.
+
+The config has no NATS settings. The join gives the agent its NATS server, its
+TLS and its user, and the renewal gives it new credentials. The agent reads its
+config over that NATS connection. Thus a config that changed the NATS server
+would have to come over the connection that it replaces. If the new settings did
+not operate, the agent would lose the controller and could not get a correction.
+osapi-io/osapi#1524 decided this: the NATS server and its TLS change only
+through a new join.
 
 ## What each NATS setup needs
 
