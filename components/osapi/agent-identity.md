@@ -230,6 +230,38 @@ The rotation runs in the command, not in the agent process. Thus it works when
 the agent is stopped too. The command connects to NATS with the agent's own
 user: the one that its join saved, or the one in its config.
 
+### The rotation of the controller's key
+
+The controller's key signs each job. It rotates with no restart and no new
+admission of the agents. The state bucket holds a record of the rotation at
+`pki.controller`, and each agent reads it at each heartbeat:
+
+1. `osapi client pki key rotate`, or `osapi pki key rotate --name controller` on
+   the controller's host, makes the next key as `controller.next.key` and
+   `controller.next.pub`. It writes a record with the current key and the next
+   key, which the current key signs.
+2. An agent takes a record only when a controller key that it has signed it.
+   With the next key in the record, the agent keeps it as
+   `enrolled-controller.next.pub`, and accepts a job that it signs. The agent's
+   signed registration reports the next key, as `controller_key_next`.
+3. The controller switches when each admitted agent that reported within the
+   grace period has the next key, or when the period ends. It moves the next key
+   in place, signs with it, and writes a record that the new key signs, with the
+   old key as the previous key.
+4. Each agent takes that record with its next key, makes the new key its
+   controller key, and keeps the old key as the previous key. The previous key
+   verifies the jobs that the old key signed before the switch.
+
+`osapi client pki key get` shows the next key and each agent that the switch
+waits for. An agent that is away for the whole grace period does not trust the
+record of the switch, and needs a new admission.
+
+The record goes in the state bucket, which each agent already reads, so the
+rotation needs no new NATS subject or permission. An agent can also write that
+bucket. Thus the controller takes a record only when its own key signed it. An
+agent cannot start a rotation or cause a switch, but it can remove the record.
+Only the controller that has the key files rotates the key.
+
 ## Failure is never silent
 
 **Verification does not fail open.** When the key store is not available, osapi
