@@ -40,8 +40,12 @@ This page is the design of osapi-io/osapi#1313. The parts that are built:
 - JWTs that expire and renew (osapi-io/osapi#1380): with
   `controller.join.agent_ttl`, an agent renews its JWT over NATS
   (`<ns>.join.renew`) when a third of its life is left, with a request that its
-  admitted key signs. The controller renews only an admitted machine, so a
-  revoked agent is cut from NATS when its JWT expires
+  admitted key signs. The controller renews only an admitted machine
+
+- the cut of a removed agent's NATS user at once (osapi-io/osapi#1523): in
+  operator mode, a revocation, a rejection or a delete of an admitted machine
+  adds its NATS user to the revocations of osapi's account, and the server
+  closes the user's connections. [Revocation](#revocation) has how
 
 - the rotation of an agent's keys (osapi-io/osapi#1531):
   `osapi pki key rotate --name agent` sends the new public keys over NATS
@@ -281,13 +285,13 @@ each role and the two scoped signing keys at its first start, in `nats-auth` of
 `nats.server.key_dir`, and a controller or an agent on the same host uses them
 with no setting.
 
-| NATS server                               | The administrator provisions for osapi                                                                       | Bootstrap credential                | Agent credential                           | One agent cut from the bus             |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------------------------------------------ | -------------------------------------- |
-| osapi's embedded server, in operator mode | nothing                                                                                                      | a JWT for each token                | a short-lived JWT for each agent           | at once: the account's revocation list |
-| another server, in operator mode          | an account for osapi, and two scoped signing keys whose templates are the agent's and the join's permissions | a JWT for each token                | a short-lived JWT for each agent           | when its JWT expires                   |
-| another server, with auth callout         | an `auth_callout` block that names osapi's issuer key (NATS 2.10 or later), and an nkey callout user         | the callout decides, per connection | the callout decides, per agent             | at its next connection: `agent_ttl`    |
-| another server, with static users         | two users: a join user that can send only the join request, and an agent user, the same for each agent       | the join user, in the join string   | the agent user, which the controller gives | no: osapi refuses what the agent signs |
-| no authentication, for development        | nothing                                                                                                      | none                                | none                                       | no                                     |
+| NATS server                               | The administrator provisions for osapi                                                                       | Bootstrap credential                | Agent credential                           | One agent cut from the bus                                                                           |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| osapi's embedded server, in operator mode | nothing                                                                                                      | a JWT for each token                | a short-lived JWT for each agent           | at once: the account's revocation list                                                               |
+| another server, in operator mode          | an account for osapi, and two scoped signing keys whose templates are the agent's and the join's permissions | a JWT for each token                | a short-lived JWT for each agent           | at once, with an operator signing key and a system account user for osapi; else when its JWT expires |
+| another server, with auth callout         | an `auth_callout` block that names osapi's issuer key (NATS 2.10 or later), and an nkey callout user         | the callout decides, per connection | the callout decides, per agent             | at its next connection: `agent_ttl`                                                                  |
+| another server, with static users         | two users: a join user that can send only the join request, and an agent user, the same for each agent       | the join user, in the join string   | the agent user, which the controller gives | no: osapi refuses what the agent signs                                                               |
+| no authentication, for development        | nothing                                                                                                      | none                                | none                                       | no                                                                                                   |
 
 In operator mode, the role is in the user JWT. The controller signs a bootstrap
 JWT that can send only the join request, and after the join an agent JWT with
@@ -347,6 +351,44 @@ for it. The cut from the bus is the last column of
 cut the agent from the bus, the administrator changes the agent user; the
 controller gives the new one to the other agents in their config, and then the
 administrator removes the old one.
+
+In operator mode, the controller cuts the NATS user of an admitted machine that
+it removes at once:
+
+1. It records the time of the revocation in the enrollment bucket, as
+   `natsrevoked.<user key>`. Only a record that does not write stops the
+   removal, and the removal can then run again.
+2. It adds each recorded user to the revocations of osapi's account, in the JWT
+   of `account_jwt_file`, and signs the account again with an operator signing
+   key, `operator_signing_key_file`.
+3. It sends the account to the server on
+   `$SYS.REQ.ACCOUNT.<account>.CLAIMS.UPDATE` as a user of the system account,
+   `system_creds_file`. That user can send only this update and read the reply.
+4. The server closes each connection of the user, and refuses each JWT of the
+   user from before the revocation. The agent logs
+   `nats: authentication revoked`.
+
+The settings are under `controller.join.revocation`.
+`osapi nats auth operator create` writes the files: `account.jwt`,
+`operator-signing.nk`, `system-signing.nk` and `system.creds`. The operator JWT
+lists the operator signing key, and the system account lists its signing key.
+Thus the operator's own key stays with the administrator.
+
+The server keeps an account that it gets in memory only. The `MEMORY` resolver
+of `resolver.conf` takes the update, and at its next start the server has the
+account of its resolver file again. Thus the controller sends the account again
+each minute while a revocation is left. The controller removes a revocation that
+is older than `controller.join.agent_ttl`, because each JWT that it refuses has
+expired. With an empty `agent_ttl`, it keeps each one.
+
+A revocation names one user key. A machine that joins again gets a new user key,
+so the revocation does not stop it. The machine needs a new token, or a new
+admission.
+
+A setup from before osapi-io/osapi#1523 has no `account.jwt`. osapi's own NATS
+server adds the files at its next start, with the keys that the setup has. For
+another server, `osapi nats auth operator update` adds them. Until then, the
+controller logs a warning, and a removed agent is cut when its JWT expires.
 
 A revocation that the administrator makes with their own tools, such as
 `nsc revocations add-user`, needs nothing from osapi. The agent cannot connect,
