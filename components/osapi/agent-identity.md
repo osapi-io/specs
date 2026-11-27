@@ -247,7 +247,12 @@ admission of the agents. The state bucket holds a record of the rotation at
 3. The controller switches when each admitted agent that reported within the
    grace period has the next key, or when the period ends. It moves the next key
    in place, signs with it, and writes a record that the new key signs, with the
-   old key as the previous key.
+   old key as the previous key. The record also keeps each key that an earlier
+   switch replaced, as a retired key. The controller verifies a job that it
+   stored with its current key, its previous key or a retired key. Thus a job
+   from before each rotation still shows in `job list` and `job get`. A retired
+   key verifies no message from an agent. A job that no key verifies is listed
+   with its status and the reason, so it can be deleted.
 4. Each agent takes that record with its next key, makes the new key its
    controller key, and keeps the old key as the previous key. The previous key
    verifies the jobs that the old key signed before the switch.
