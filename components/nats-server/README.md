@@ -37,36 +37,55 @@ from a release. No `go.mod` shows that connection.
 ```
 server.go           Server, New, Start, Stop
 types.go            Options. Embeds *natsserver.Options, adds ReadyTimeout
-server_wrapper.go   NATSServerInstance, the interface Start() constructs behind
+server_wrapper.go   NATSServerInstance, the interface Start(ctx) constructs behind
 logger.go           SlogWrapper. NATS's logger interface onto slog
 mocks/              generated
 ```
 
-A consumer keeps one `Server` and calls two methods. `Start` returns an error.
-`Stop` returns nothing. A mutex guards the two, so they are safe from different
-goroutines.
+A consumer keeps one `Server` and calls `Start(ctx)`, `Stop()` and
+`ClientURL()`. `Start` returns an error. `Stop` returns nothing. A mutex guards
+the state, so the three are safe from different goroutines.
 
-### `Start()`
+### `Start(ctx)`
 
 ```go
-natsServer, err := NewNATSServer(s.Opts.Options)   // construct
-natsServer.SetLogger(NewSlogWrapper(s.logger),
-    s.Opts.Debug, s.Opts.Trace)                    // logger attached first
-go natsServer.Start()                              // run
-if !natsServer.ReadyForConnections(timeout) {
-    natsServer.Shutdown()                          // no server left running
-    natsServer.WaitForShutdown()
-    return fmt.Errorf("server not ready for connections")
+natsServer, err := NewNATSServer(s.Opts.Options)    // construct
+natsServer.SetLogger(startupLogger, debug, trace)   // logger attached first
+go natsServer.Start()                               // run
+for {                                               // the lock is not held here
+    if natsServer.ReadyForConnections(50 * time.Millisecond) {
+        return nil
+    }
+    // a fatal message, ctx, Stop or ReadyTimeout ends the wait
 }
 ```
 
-`Start()` refuses nil options, and a second call before `Stop()`. If the server
-does not become ready, `Start()` shuts it down and waits for it before it
-returns the error. Thus a failed start leaves no listener and no goroutine.
+`Start(ctx)` refuses nil options, and a second call before `Stop()` or while a
+start waits. It waits in short tries, and between them it checks four things:
 
-`Start()` attaches the logger before the server runs. Thus the startup messages
-of the server, such as a port that is in use, go to the `slog` handler that
-`New` got. A nil logger is `slog.Default()`.
+- **A fatal message.** When the server logs a fatal message while it starts,
+  such as a port that is in use, `Start` returns that message at once. Before, a
+  port in use waited the whole `ReadyTimeout`, and the error had no cause.
+- **ctx.** When ctx ends, `Start` returns `server start stopped`.
+- **`Stop()`.** `Stop()` ends a start that waits. The lock is not held while
+  `Start` waits, so `Stop()` doesn't block.
+- **`ReadyTimeout`.** The error names the timeout and the last error that the
+  server logged.
+
+If the server does not become ready, `Start` shuts it down and waits for it
+before it returns the error. Thus a failed start leaves no listener and no
+goroutine.
+
+`Start` attaches the logger before the server runs. Thus the startup messages of
+the server go to the `slog` handler that `New` got. A nil logger is
+`slog.Default()`, and so is the logger of a `Server` that `New` did not make.
+
+### `ClientURL()`
+
+`ClientURL()` is the URL that a client connects to, with the port that the
+server listens on. With `Port: -1`, the server picks a free port, and
+`ClientURL()` is the only way to learn it. It is empty when the server does not
+run.
 
 Debug and trace come from `Options.Debug` and `Options.Trace` of the upstream
 struct. Both are false by default, so a consumer gets no trace unless it asks.
