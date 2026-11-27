@@ -198,7 +198,9 @@ It keeps two things that are slow or impossible to make again:
   `-e lab_teardown_local=true` deletes it.
 
 If you delete the operator, each credential that it gave stops working. Thus the
-next `deploy` makes a new operator.
+next `deploy` makes a new operator. The operator is part of the fingerprint of
+each image, as the next section says, so that deploy also bakes each image
+again: a kept image holds a join token that only the old operator accepts.
 
 `.lab/ssh/config` has a `Host` for each VM, with its current address and a jump
 through the hub. Thus `ssh`, `scp` and `rsync` get to a VM with `-F`. It
@@ -215,12 +217,14 @@ this order:
   behind `origin/main`, and names the commit and how far behind it is. On 26
   November 2026 a build from an old commit put a NATS on the hub that could not
   open the store, two times. A branch ahead of `origin/main` passes, with its
-  uncommitted changes. `-e build_allow_stale=true` builds an old checkout. It
-  always builds darwin, which this machine and the hub run. It builds linux only
-  when the run reaches a VM. It builds the UI first, because osapi embeds
-  `ui/dist`. Each OS records the branch and the commit, and if the tree had
-  changes, in `.lab/bin/<os>.REVISION` and `<os>.TAG`. It also records a
-  fingerprint of the source in `<os>.FINGERPRINT`: the commit, the uncommitted
+  uncommitted changes. A `git fetch` that fails, such as offline, does not stop
+  the run: it says which `origin/main` it compared with. A checkout with no
+  `origin/main` fails, and says so. `-e build_allow_stale=true` builds an old
+  checkout. It always builds darwin, which this machine and the hub run. It
+  builds linux only when the run reaches a VM. It builds the UI first, because
+  osapi embeds `ui/dist`. Each OS records the branch and the commit, and if the
+  tree had changes, in `.lab/bin/<os>.REVISION` and `<os>.TAG`. It also records
+  a fingerprint of the source in `<os>.FINGERPRINT`: the commit, the uncommitted
   diff and the untracked files. An OS whose fingerprint did not change is not
   built again. Thus `just deploy ui` takes about 30 seconds.
 - **`hub_tls`**, **`hub_host`**, **`nats_server`**, **`controller`** and
@@ -233,16 +237,22 @@ this order:
   join string, its hostname and each package that a behavior runs, such as
   Docker and chrony. The tag is the short commit of the linux build. It ends
   with `-dirty` when the checkout had uncommitted changes. The fingerprint of an
-  image is the fingerprint of the build and a hash of `packer/`. The hub keeps
-  it, and builds an image again only when the image is missing or the
-  fingerprint is different. Before a build, the role makes a join token for the
-  VM, which admits one agent, because the join string goes into the image. The
-  token expires in `lab_join_expires`, 24 hours: a VM that is cloned again from
-  an older image cannot join, and `just rebuild <vm>` bakes a new one. A run on
-  each VM deletes the images from other builds, except an image that a build
-  recorded in the last hour. A run on some VMs deletes none, because the other
-  VMs run from theirs. It does not bake an image for a VM that upgrades in place
-  while that VM exists.
+  image has three parts: the fingerprint of the build, a hash of `packer/`, and
+  a hash of `nats/account.pub`, which names the NATS operator. The account key
+  is public, and a new operator has a new one. The hub keeps the fingerprint,
+  and builds an image again when the image is missing or the fingerprint is
+  different. Before a build, the role makes a join token for the VM, which
+  admits one agent, because the join string goes into the image. The token
+  expires in `lab_join_expires_hours`, 24. A VM that boots from an image spends
+  its token. So when the record `vms/<vm>.source` names an image and that VM no
+  longer exists, the image is spent, and the role bakes it again before it
+  clones the VM. `just rebuild <vm>` also bakes a new one. Each image gets its
+  token, its bake and its two records in turn (`tasks/bake.yml`). Thus a bake
+  that fails leaves each image before it baked and recorded, and each image
+  after it as it was. A run on each VM deletes the images from other builds,
+  except an image that a build recorded in the last hour. A run on some VMs
+  deletes none, because the other VMs run from theirs. It does not bake an image
+  for a VM that upgrades in place while that VM exists.
 - **`lab_vm`** deletes the admission of a VM and clones it again when its image
   changed. It clones a VM that upgrades in place only when the VM does not
   exist.
@@ -295,13 +305,19 @@ deleted the images of each other, because each run deletes the images that its
 own build does not clone (osapi-io/osapi-lab#38).
 
 A run that stops before its end keeps the lock. The next run on the same machine
-finds that the process is gone, and breaks the lock. A run that stops between
-the `mkdir` and the write of its holder leaves a lock with no holder. The next
-run waits 60 seconds for a holder, because a run that only now made the lock
-writes it within seconds. Then it breaks the lock. A lock from a run on a
-different machine needs `-e lab_lock_break=true`. Ansible cannot run a step
-after a play fails in a different play, so the lock has no release on failure.
-The check of the process takes its place.
+finds that the process is gone, and breaks the lock. It breaks it only if the
+holder is still the one that it found gone: it checks the holder and moves the
+lock aside in one shell step. Thus two runs that both find the same holder gone
+cannot both break and take the lock. A run that stops between the `mkdir` and
+the write of its holder leaves a lock with no holder. The next run waits 60
+seconds for a holder, because a run that only now made the lock writes it within
+seconds. Then it breaks the lock. Two runs that reach the `mkdir` in the same
+moment do not both fail: the run that loses waits for the winner, and breaks the
+lock if the winner's process is gone (osapi-io/osapi-lab#89). A lock from a run
+on a different machine needs `-e lab_lock_break=true`, as in
+`just deploy -e lab_lock_break=true`. Each recipe passes `-e` and its value to
+Ansible. Ansible cannot run a step after a play fails in a different play, so
+the lock has no release on failure. The check of the process takes its place.
 
 The lock of one run does not cover the tests after the deploy. Thus a second
 deploy can replace the build while the tests of the first still run against it
@@ -316,8 +332,14 @@ end of the tests:
 - `just lab-session <name> <command>` takes the lock, runs the command with
   `LAB_SESSION` set, and gives the lock back, also when the command fails.
 
-The holder of a session is `session <machine> <name>`. A session that is older
-than `lock_session_ttl`, 2 hours, is stale, and the next run breaks it.
+The holder of a session is `session <machine> <name>`. Each run of the session
+writes its start time again. Thus a session is stale, and the next run breaks
+it, `lock_session_ttl` hours (2) after its last run, not after its first. The
+lock reads the time with BSD `date` or GNU `date`. It keeps a session whose time
+it cannot read, and does not break it.
+
+The lock play refuses a run whose inventory has no hub: it would hold nothing
+(osapi-io/osapi-lab#93).
 
 ## Why it is built this way
 
@@ -447,11 +469,14 @@ The controller keeps the signing keys in its vault, as an operator does, and
 controller resolves the references at its start. The controller role writes each
 key with `osapi client secret update`, from standard input, when the vault does
 not hold it. A record in the JetStream store, `jetstream/signing-keys.in-vault`,
-says that the vault holds them. The record is in the store because the vault is.
-Thus the first run after a teardown, or after the store is removed, finds no
-record: it starts the controller with the keys themselves, writes them, and then
-starts it again on the references (osapi-io/osapi-lab#54). A NATS password and
-the key of a vault cannot be a reference, because osapi needs them before it
+says that the vault holds them. The record is in the store because the vault is,
+and it counts only while the store's data, `jetstream/jetstream/`, is there.
+Thus the first run after a teardown, or after the store or only its data is
+removed, finds no record that counts. It starts the controller with the keys
+themselves, writes them, and then starts it again on the references
+(osapi-io/osapi-lab#54, #96). Both starts of the controller name the same list
+of files that it reads, so the next run does not start it again. A NATS password
+and the key of a vault cannot be a reference, because osapi needs them before it
 reads a vault.
 
 `cli.yaml` on your machine holds the keys themselves. Thus
@@ -474,6 +499,15 @@ the least permissions of the role. `hub.yaml` names them. The keys stay on the
 hub. A teardown removes them, and the next deploy makes new ones. The design is
 in osapi's [transport](../osapi/transport.md#who-may-connect) page.
 
+The permissions of each role are in the account JWT and the credentials files,
+so a build that adds a subject does not reach the lab by itself. `hub_host`
+signs the auth again with `osapi nats auth operator update`, which keeps the
+same keys, when the hub's build is not the one that the record
+`nats/signed-with` names (osapi-io/osapi-lab#94). It skips this on a build that
+has no `update`. NATS and the controller then start again on the new auth. A run
+without NATS, such as `just bump controller`, restarts NATS itself after it
+signs.
+
 | User       | Used by                                       | From                               |
 | ---------- | --------------------------------------------- | ---------------------------------- |
 | setup      | the server's own setup and heartbeat          | `nats/setup.creds` on the hub      |
@@ -486,9 +520,11 @@ bakes only its join string, in `agent.join`. The agent joins at its first boot:
 the token admits it, and the controller mints its NATS user. `auto_admit` is
 off, so a request with no token waits for a person. The remote agent,
 `just agent`, joins with a token of its own, whose join string dials the tailnet
-name. A run with the controller down, such as `just stop controller` or
-`just ssh` after it, makes no token. It writes the remote agent's config at the
-next run with the controller up.
+name. Until it joins, the `client` role keeps the config that holds the token
+while the token has an hour left, rather than make a new one-use token on each
+run (osapi-io/osapi-lab#90). A run with the controller down, such as
+`just stop controller` or `just ssh` after it, makes no token. It writes the
+remote agent's config at the next run with the controller up.
 
 The join string of a VM dials the gateway of tart's network, `192.168.64.1`. The
 certificate of the hub names its tailnet name, and a CA that the VM trusts
