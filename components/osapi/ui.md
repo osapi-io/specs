@@ -277,11 +277,15 @@ the catalog only through `useCatalog()` in `ui/src/hooks/use-catalog.ts`, and
 sections of the Behaviors page by area, the definition of each step that a plan
 can run, the roles, and the permission of each operation.
 
-The controller builds the catalog on each request. Thus a behavior that an
-extension adds at run time (osapi-io/osapi#1064) is in the next catalog. No file
-of the UI holds a copy, so no test checks that a file is current. Until
-osapi-io/osapi#1256 Go wrote four TypeScript files beside the spec, and a Go
-test failed on each when it was stale:
+The controller builds the catalog on each request. The call tree of each
+behavior comes from a run of its examples on a fake host. That run is the
+expensive part, so the controller keeps the behaviors and runs the examples
+again only when the registry changed. The examples run with no span and no
+metric, because they run on no host. Thus a behavior that an extension adds at
+run time (osapi-io/osapi#1064) is in the next catalog. No file of the UI holds a
+copy, so no test checks that a file is current. Until osapi-io/osapi#1256 Go
+wrote four TypeScript files beside the spec, and a Go test failed on each when
+it was stale:
 
 | File                            | Generator                           |
 | ------------------------------- | ----------------------------------- |
