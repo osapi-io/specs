@@ -248,14 +248,35 @@ TLS and its user, and the renewal gives it new credentials. The agent reads its
 config over that NATS connection. Thus a config that changed the NATS server
 would have to come over the connection that it replaces. If the new settings did
 not operate, the agent would lose the controller and could not get a correction.
-osapi-io/osapi#1524 decided this: the NATS server and its TLS change only
-through a new join.
+osapi-io/osapi#1524 decided this: the controller does not push NATS settings. A
+new name of NATS needs a new join. A new host with the same name, and a new
+certificate, do not
+([A move to a different NATS server](#a-move-to-a-different-nats-server)).
 
 ## A move to a different NATS server
 
-The agent keeps the NATS server and the TLS of its join in `nats-join.json`, and
-reads them at each start. To move an agent to a different NATS server or
-address, it joins again:
+Give NATS a DNS name, and set `controller.join.url` to that name. The join
+string then carries the name, and each agent keeps it in `nats-join.json`. The
+agent reconnects to NATS with no limit, and it looks up the name again at each
+attempt. Thus NATS can move to a different host with no join, when the new host:
+
+- has the same DNS name,
+- serves the same certificate, or a certificate that a root of the agent's
+  system verifies for that name, and
+- has the JetStream store of the old host, from
+  `nats.server.jetstream.store_dir`.
+
+The certificate must have the DNS name in its subject alternative names. With a
+self-signed certificate, the agent pins that certificate, so each server that it
+reaches must serve it. With a certificate that a system root verifies, the agent
+checks only the name.
+
+osapi does not cluster NATS servers. The embedded server has no cluster
+settings, so a move cannot add the new server beside the old one and then remove
+the old one. osapi-io/osapi#1673 is the request for it.
+
+A move to a different name, or to a different self-signed certificate, needs a
+join of each agent:
 
 1. Set `controller.join.url` to the new address of NATS. Make a join token with
    a use for each host and the labels of the hosts:
