@@ -513,10 +513,18 @@ has no `update`. NATS and the controller then start again on the new auth. A run
 without NATS, such as `just bump controller`, restarts NATS itself after it
 signs.
 
+`hub.yaml` also names the files of the revocation, in
+`controller.join.revocation`: `account.jwt`, `operator-signing.nk` and
+`system.creds`. When the lab revokes, rejects or deletes a VM, the controller
+cuts the VM's NATS user from the server at once
+([Agent join](../osapi/agent-join.md#revocation)). `operator update` writes
+these files for auth from before osapi-io/osapi#1523.
+
 | User       | Used by                                       | From                               |
 | ---------- | --------------------------------------------- | ---------------------------------- |
 | setup      | the server's own setup and heartbeat          | `nats/setup.creds` on the hub      |
 | controller | the controller, and the `nats` CLI of the lab | `nats/controller.creds` on the hub |
+| revocation | the controller, to cut a removed agent        | `nats/system.creds` on the hub     |
 | each agent | the agent of one VM, or the remote agent      | minted by the controller at a join |
 
 A VM joins as a host of an operator does. `lab_images` makes a join token for
