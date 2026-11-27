@@ -211,11 +211,16 @@ that is defined there.
 this order:
 
 - **`build`** compiles the osapi checkout that the inventory names, on your
-  machine. It always builds darwin, which this machine and the hub run. It
-  builds linux only when the run reaches a VM. It builds the UI first, because
-  osapi embeds `ui/dist`. Each OS records the branch and the commit, and if the
-  tree had changes, in `.lab/bin/<os>.REVISION` and `<os>.TAG`. It also records
-  a fingerprint of the source in `<os>.FINGERPRINT`: the commit, the uncommitted
+  machine. It refuses a checkout that is a detached HEAD, or a branch that is
+  behind `origin/main`, and names the commit and how far behind it is. On 26
+  November 2026 a build from an old commit put a NATS on the hub that could not
+  open the store, two times. A branch ahead of `origin/main` passes, with its
+  uncommitted changes. `-e build_allow_stale=true` builds an old checkout. It
+  always builds darwin, which this machine and the hub run. It builds linux only
+  when the run reaches a VM. It builds the UI first, because osapi embeds
+  `ui/dist`. Each OS records the branch and the commit, and if the tree had
+  changes, in `.lab/bin/<os>.REVISION` and `<os>.TAG`. It also records a
+  fingerprint of the source in `<os>.FINGERPRINT`: the commit, the uncommitted
   diff and the untracked files. An OS whose fingerprint did not change is not
   built again. Thus `just deploy ui` takes about 30 seconds.
 - **`hub_tls`**, **`hub_host`**, **`nats_server`**, **`controller`** and
