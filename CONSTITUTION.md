@@ -445,6 +445,22 @@ cd ~/git/osapi-io/osapi
 git grep -hP '^\t+[a-zA-Z][a-zA-Z0-9]* "github.com/osapi-io/osapi/' -- '*.go' ':!*.gen.go' | wc -l
 ```
 
+### Go code does not panic
+
+Code that is not a test never calls `panic`. A function returns an error, also
+for a registration error or a programming error, and `main` reports the error
+and exits with a code that is not zero. A panic stops the whole process. In an
+agent that is a host with no management. In a library it is a crash in the
+program of somebody else.
+
+A `recover` that stops a panic from a dependency is permitted. The `forbidigo`
+linter of each Go repository fails a `panic` outside a test:
+
+```sh
+cd ~/git/osapi-io/<repo>
+git grep -nE '\bpanic\(' -- '*.go' ':!*_test.go' ':!*.gen.go'
+```
+
 ### Every CONTRIBUTING.md has one shape
 
 [templates/CONTRIBUTING.md](templates/CONTRIBUTING.md) has the sections that the
@@ -466,8 +482,10 @@ Nobody can trust a convention that is different in each repository.
 
 [templates/AGENTS.md](templates/AGENTS.md) does the same for `AGENTS.md`. Its
 shared parts are the summary line, the introduction, Run tools, Where the rules
-come from, Commit trailer and Design pages. specs has its own `AGENTS.md`, for
-the same reason.
+come from, Track work in issues, Commit trailer and Design pages.
+[templates/CLAUDE.md](templates/CLAUDE.md) is the whole `CLAUDE.md` of each
+repository: a pointer to `AGENTS.md` and to this constitution. specs has its own
+`AGENTS.md`, for the same reason.
 
 ```sh
 cd ~/git/osapi-io
