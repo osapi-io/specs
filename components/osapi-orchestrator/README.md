@@ -6,17 +6,22 @@ Go library over the SDK of [osapi](../osapi/README.md). It has one package at
 occur, and calls `Run`.
 
 ```go
-o := orchestrator.New(client)
+o := orchestrator.New(url, token)
 
-o.PackageInstall("_all", "nginx").Named("install")
-o.ServiceRestart("_all", "nginx").After("install").OnlyIfChanged()
-o.HealthCheck().After("install").When(orchestrator.OS("debian"))
+install := o.PackageCreate("_all", osapi.PackageCreateInput{Name: "nginx"})
+o.ServiceRestart("_all", "nginx").After(install).OnlyIfChanged()
+o.HealthCheck().After(install)
 
-result, err := o.Run(ctx)
+report, err := o.Run(ctx)
 ```
 
 Each operation returns a `*Step`. Guards and order attach to the step. Thus the
-same vocabulary works on all 101 operations.
+same vocabulary works on all 100 operations.
+
+Each operation that targets hosts is one call of the SDK, with the same name and
+parameters: `PackageCreate` calls `Package.Create`, and takes its
+`PackageCreateInput`. A step's host results are the SDK's rows: one for each
+host, or one for each item on each host for a list.
 
 ## What it adds over calling the SDK directly
 
@@ -141,8 +146,8 @@ organization.
 
 ## The contract
 
-The contract is the exported API of `pkg/orchestrator`: 16 functions, 13 types
-and 127 methods. 101 of the methods are the operations. Nothing under
+The contract is the exported API of `pkg/orchestrator`: 18 functions, 13 types
+and 128 methods. 100 of the methods are the operations. Nothing under
 `internal/` is part of the contract, **also the parts that import the SDK of
 osapi.**
 
@@ -153,21 +158,21 @@ and the tests of the repository use the generated client of osapi directly.
 
 ## Documentation coverage is exact, and nothing keeps it that way
 
-There are 140 pages and 81 Go files. Thus there is more documentation than code.
-**101 operation pages map one to one to 101 operation methods.** No page is
-without a method, and no method is without a page.
+There are 119 pages and 85 Go files. **100 operation pages map one to one to 100
+operation methods.** No page is without a method, and no method is without a
+page.
 
 A check of the headings in the two directions found this. A comparison of the
-totals is not sufficient: two totals of 101 do not show that they are the same
-101\. To do the check again:
+totals is not sufficient: two totals of 100 do not show that they are the same
+100\. To do the check again:
 
 ```sh
 # every page has a method
 for p in $(find docs/operations -name '*.md' -not -name 'README.md'); do
-  grep -q "func (o \*Orchestrator) $(head -1 "$p" | sed 's/^# //')(" pkg/orchestrator/ops.go || echo "NO METHOD: $p"
+  grep -q "func (o \*Orchestrator) $(head -1 "$p" | sed 's/^# //')(" pkg/orchestrator/ops*.go || echo "NO METHOD: $p"
 done
 # every method has a page
-for m in $(grep -oE '^func \(o \*Orchestrator\) [A-Z][A-Za-z]*' pkg/orchestrator/ops.go | sed 's/.*) //'); do
+for m in $(grep -ohE '^func \(o \*Orchestrator\) [A-Z][A-Za-z]*' pkg/orchestrator/ops.go pkg/orchestrator/ops_hosts.go | sed 's/.*) //'); do
   grep -rqx "# $m" docs/operations --include='*.md' || echo "NO PAGE: $m"
 done
 ```
@@ -177,7 +182,7 @@ It is the only documentation set in the organization where the two agree.
 
 ## How big it is
 
-There are 101 operation methods, and 140 documentation pages for 81 Go files.
+There are 100 operation methods, and 119 documentation pages for 85 Go files.
 
 To count them, do not match on `) *Step {`. Most signatures wrap, and that
 pattern returns 2.
@@ -193,7 +198,7 @@ a consumer cannot find it.
 osapi cannot do it.
 
 **Nothing verifies the documentation mapping.** It is true now, and a person
-checked it by hand. Somebody can add the 102nd operation without a page, and no
+checked it by hand. Somebody can add the 101st operation without a page, and no
 gate reports it. Thus no mechanism protects the repository with the best
 documentation coverage in the organization.
 
