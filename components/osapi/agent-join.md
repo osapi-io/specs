@@ -185,7 +185,7 @@ The controller holds each agent's config, in a KV bucket, under the agent's
 machine ID. It has:
 
 - the NATS URLs, and the agent's own NATS credential
-- the labels, the queue group and the maximum number of jobs
+- the labels and the maximum number of jobs
 - the facts: the collectors and the interval
 - the metrics settings and the log level
 

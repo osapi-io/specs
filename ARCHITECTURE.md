@@ -56,16 +56,11 @@ osapi embeds a NATS server through `nats-server` and connects to it through
 neither knows about osapi. They wrap the two ends of the same upstream library.
 osapi is the only thing that uses the two.
 
-Two facts about that pair are important, and neither wrapper states them alone:
+The reconnection policy and the logging of the embedded server are decided in
+the two wrappers, and set by osapi. Neither wrapper states what osapi sets.
 
-- `nats-client` adds no reconnection policy. The default of the upstream library
-  handles a dropped connection, and osapi gets no notification.
-- `nats-server` always turns on debug and trace logging. It attaches its logger
-  after the server starts. Thus the startup log of the bus does not go to the
-  log of osapi.
-
-[The message bus](components/osapi/transport.md) has the two facts. A person who
-debugs the transport looks there.
+[The message bus](components/osapi/transport.md) has how osapi sets them. A
+person who debugs the transport looks there.
 
 **osapi calls NATS only through the methods of `nats-client`.** It keeps no
 JetStream handle, and it does not call `nats.go` or `jetstream` itself. Each
@@ -221,10 +216,10 @@ connection, to osapi, as the next paragraph tells.
 `nats-server` has twelve Go files, and it forces a logging decision on the
 largest repository.
 
-**Two repositories wrap the two ends of the same upstream library.** The facts
-about reconnection and logging that a consumer needs are in the two. osapi is
-the only consumer of either repository. It now has the two facts in one
-location: [the message bus](components/osapi/transport.md).
+**Two repositories wrap the two ends of the same upstream library.** The
+reconnection policy and the logging that a consumer needs are decided in the
+two. osapi is the only consumer of either repository. It records how it sets
+them in one location: [the message bus](components/osapi/transport.md).
 
 Before, only this page had those facts. That was a correct finding in the
 incorrect repository. A new contributor needed them and did not find them where

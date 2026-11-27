@@ -222,33 +222,43 @@ Publish access to NATS puts a message on a subject. It does not make the message
 run. Thus [agent identity](agent-identity.md) can say that only enrollment
 changes a key, and that is true.
 
-## What osapi cannot control from here
+## How the bus logs and reconnects
 
-The two wrapper repositories decide three things. A consumer of either wrapper
-cannot change them. This page records them because a person who debugs the bus
-looks here, and because osapi is the only consumer of the two wrappers.
+The two wrapper repositories once decided three things that osapi could not
+change: trace logging was always on, the startup log went to the default logger
+of NATS, and a dropped connection gave no notification. nats-server v1.2.0 and
+nats-client v1.5.0 changed all three, and osapi sets them as follows.
 
-**Trace logging is on, and you cannot turn it off.** `Start()` in `nats-server`
-calls `SetLogger(wrapper, true, true)` with two literals. Thus each embedded
-server runs with debug and trace logging on. Nothing in the configuration of
-osapi can change it.
+**The embedded server logs its debug lines only at debug.** `server.New` in
+`internal/bus/server` sets `Debug` when the logger of osapi is at debug, as
+`--debug` or `debug: true` sets it. It never sets `Trace`. A trace line is each
+protocol message with its payload, such as a sealed job or a credential.
 
-**Startup log messages do not go to the logger of osapi.** The same `Start()`
-attaches the logger after the server accepts connections. Thus the server sends
-its startup messages to the default logger of NATS. If the bus of a controller
-never becomes ready, the handler that osapi gave has no record of the reason.
+**The startup log goes to the logger of osapi.** nats-server attaches the logger
+before the server starts. Thus a port that is in use, or a bad TLS file, is in
+the log of the controller.
 
-**osapi never gets a notification when the connection drops.** `nats-client`
-sets no reconnection options. It registers no disconnect, reconnect or closed
-handler. osapi gives only host, port, auth and a name. The default reconnection
-of the upstream library still applies, so the connection recovers after a short
-outage. But there is no notification. Thus osapi cannot:
+**Each connection reconnects forever, and logs each change.** nats-client tries
+again each two seconds, with no limit, and logs each drop, reconnect and close.
+Before nats-client v1.5.0, the upstream library stopped after 60 tries, which is
+two minutes. Then the connection closed for good, and the agent stayed
+disconnected until it restarted. That is how the lab lost all of its agents on
+26 November 2026, when NATS was down for seven minutes.
 
-- log a drop
-- report a drop on `/health`
-- tell a slow request from a bus that went away and came back
+**A consumer backs off.** A failed fetch waits before it tries again, from 100
+ms up to 5 s. Before nats-client v1.5.0 it tried again at once, and a closed
+connection made each agent write millions of log lines in each 30 seconds.
 
-To change any of the three, change the wrapper, not this repository.
+**A start with NATS down exits.** The agent and the controller connect, then
+open their buckets at once, so `RetryFirstConnect` is off. A process that starts
+before NATS fails, and its service manager starts it again: the unit of
+`osapi agent service install` has `Restart=always`, and its plist and the plists
+of the lab have `KeepAlive`. A one-time command, such as `osapi nats setup`,
+fails at once on a wrong address.
+
+**An agent runs up to `agent.max_jobs` jobs of each consumer at the same time.**
+Before nats-client v1.5.0, `MaxInFlight` did nothing, and each consumer ran one
+job at a time. There is no queue group: a JetStream pull consumer has none.
 
 ## Where this connects
 
