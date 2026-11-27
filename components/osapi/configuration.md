@@ -92,6 +92,13 @@ that it signs passes the API with no key in the config. A key in the config, or
 a reference to one, replaces the file. `config.EnsureSigningKey` runs after the
 references resolve.
 
+Each key must have 32 characters or more. The controller checks each key after
+it reads the file and after the references resolve, and a shorter key stops the
+controller with `ErrShortSigningKey`. An empty `signing.key`, which a failed
+first write can leave, is a short key too. The controller writes a new key to a
+temp file and links it into place. Thus two processes that start at the same
+time use one key, and no process reads a part of a key.
+
 `controller.client.security.bearer_token` can be empty too. A request without a
 token gets 401 from the API, which tells the person what to set.
 
