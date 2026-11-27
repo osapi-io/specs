@@ -247,6 +247,28 @@ not operate, the agent would lose the controller and could not get a correction.
 osapi-io/osapi#1524 decided this: the NATS server and its TLS change only
 through a new join.
 
+## A move to a different NATS server
+
+The agent keeps the NATS server and the TLS of its join in `nats-join.json`, and
+reads them at each start. To move an agent to a different NATS server or
+address, it joins again:
+
+1. Set `controller.join.url` to the new address of NATS. Make a join token with
+   a use for each host and the labels of the hosts:
+   `osapi controller join token create --uses <n> --labels <k=v>`.
+2. On each host, stop the agent.
+3. Remove `nats-join.json` from `agent.pki.key_dir`. Do not remove `agent.key`,
+   `agent.ekey` or `enrolled-controller.pub`.
+4. Set `agent.join` to the new join string, and start the agent.
+
+The agent finds no `nats-join.json`, so it joins with the new string and the
+keys that it has. The controller admits the machine again with those keys, and
+the token gives its labels. The agent writes its NATS user and the certificate
+of the new server again.
+
+A new certificate on the same address does not need a join. The
+[rotation](#a-rotation-of-the-nats-servers-certificate) gives it to each agent.
+
 ## What each NATS setup needs
 
 The NATS server does not decide the role of an agent. What the agent connects
