@@ -165,6 +165,51 @@ request that does not hold its key spends nothing. The signature covers each
 field with the domain prefix `osapi-join-v1`, so that it is not a signature of
 anything else.
 
+## A rotation of the NATS server's certificate
+
+It is built (osapi-io/osapi#1533). Each joined agent pins the NATS server's
+self-signed certificate, so a new certificate must reach each agent before the
+server serves it. The rotation has an overlap, as the rotation of the
+controller's key has:
+
+1. `osapi client pki nats rotate`, or `osapi pki cert rotate --name nats` on the
+   controller's host, makes the next certificate, `nats.next.crt`, beside
+   `nats.crt`. The controller writes a record to the state bucket, at
+   `pki.cert.nats`, with both certificates. The controller's key signs it, with
+   the domain prefix `osapi-cert-v1`.
+2. At its next heartbeat, each agent reads the record. When a controller key
+   that the agent trusts signed it, the agent writes both certificates to the CA
+   file of its join, and its signed registration reports the next one as
+   `nats_cert_next`. An agent on the NATS server's host that trusts `nats.crt`
+   itself only reports it.
+3. When each admitted agent that reported within
+   `controller.pki.rotation_grace_period` trusts the next certificate, or when
+   the grace period ends, the controller renames the next files into place: the
+   key first, then the certificate.
+4. NATS serves the new certificate at its next handshake, with no restart. The
+   connections of the agents stay up. The controller writes the record of the
+   switch, with the new certificate alone, and each agent keeps only that one in
+   its CA file.
+
+Two changes make the switch work with no restart:
+
+- Each server of osapi reads its certificate files again when they change, at
+  its next handshake. This is also true for a `cert_file` of the operator.
+- A NATS client with a `ca_file` reads the file again at each handshake. Thus an
+  agent that connects again after the switch trusts the certificate that its
+  file got after it first connected.
+
+The new certificate is in the join strings that are made after the switch,
+because `controller join token create` reads the certificate that the server
+serves. An agent that was away for the whole overlap gets the new certificate
+from the record if it still has a connection. If it does not, it joins again.
+The rotation refuses a certificate of the operator's `cert_file`.
+
+A rotation of the API's certificate has no overlap. The controller serves the
+new certificate at its next handshake. An agent does not use the API after it
+joins, so a join string made before the rotation is the only thing that stops
+working.
+
 ## The join over HTTPS
 
 It is built (osapi-io/osapi#1378). The agent sends the same signed request to
