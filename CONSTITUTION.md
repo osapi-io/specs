@@ -133,11 +133,14 @@ is the version that this repository builds with. The language version in
 `go.mod` is a minimum. It is the oldest release that a consumer can build with.
 Of the two versions, only the language version applies to other people.
 
-A repository supports the two most recent Go minor releases. Thus the directive
-names the older of the two. If the directive names the newest release, the
-repository stops support for the release before it. That is the opposite of the
-rule. Tool provisioning still uses the latest release. A toolchain that is newer
-than the minimum is always permitted, and it shows new vet findings early.
+The directive never moves down. It names the newest Go minor release that the
+repository uses at the time it changes. When Go releases the next minor, the
+directive stays where it is, and it is then the older of the two most recent
+releases. When Go releases the minor after that, the directive moves up one
+release. Thus the directive is never older than the older of the two most recent
+releases, and a repository never lowers it to support an older release. Tool
+provisioning still uses the latest release. A toolchain that is newer than the
+minimum is always permitted, and it shows new vet findings early.
 
 Continuous integration builds the minimum version. A declaration alone is not
 sufficient. A repository that tests one version and promises two did not test
