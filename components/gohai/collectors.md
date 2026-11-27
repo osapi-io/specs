@@ -82,6 +82,32 @@ writes that change it. It still runs on each family, because the family selects
 only writes. Ohai is the test when it is not clear: a read that Ohai has no
 plugin for, and that a daemon or a remote index answers, is not gohai's.
 
+Thus a read belongs in gohai when all of these are true:
+
+- It is a fact about the host: how the host is configured, or what it has.
+- A collector gets it with no argument from the caller.
+- The host answers it from its files or its commands. A daemon that osapi
+  manages, or a remote index, does not answer it.
+
+A read stays in osapi when one of these is true:
+
+- The caller gives it a query or a filter, or it is a stream. The log entries of
+  `journalctl` are an example, and so is a file at a path that the caller
+  selects.
+- It reads osapi itself: the process of the agent, such as `/proc/self/status`,
+  or a file that osapi wrote, such as the `stat` of a managed file.
+- It is part of a write: the command that changes the host.
+
+A check before a write, and a read after it, are reads. When gohai has the fact,
+they read it through gohai, not with a second command. Thus each fact has one
+parser. The timezone and the hostname are examples: `timedatectl set-timezone`
+and `hostnamectl set-hostname` are writes in osapi, and the value that they
+compare with comes from gohai.
+
+A fact that gohai does not have yet goes in gohai first: the kind of a network
+interface (ethernet, bridge, wifi, vlan or bond), or whether launchd has a
+daemon loaded. osapi uses it after a release of gohai.
+
 The `docker` collector is an exception to this rule. The Docker daemon answers
 it, and Ohai has no plugin for it, but the owner of osapi decided that osapi
 reads containers through gohai (osapi-io/osapi#994). The reason is that a
