@@ -7,8 +7,8 @@ its README calls it SDK first. Thus its consumers are programs, not people. A
 program that depends on a shape with no documentation breaks without a signal
 when the shape changes.
 
-It has 62 collector packages and 10 categories. It has 314 Go files, and 205 of
-them are not tests.
+Each fact is one collector package under `pkg/gohai/collectors/`, and each
+collector has one category. `ls pkg/gohai/collectors` lists them.
 
 ## Where it sits
 
@@ -86,7 +86,7 @@ topological levels. The order comes from `Dependencies`. It never comes from the
 order of registration or of the request. Thus a caller cannot put work in order
 with the order of a list. `expandWithDeps` and `topoLevels` do this.
 
-`pkg/gohai/gohai.go` registers all 62 collector packages, in one location. If a
+`pkg/gohai/gohai.go` registers each collector package, in one location. If a
 collector exists and is not registered there, nobody can use it, and nothing
 reports it.
 
@@ -134,8 +134,8 @@ numbers and what each counts. It did not do this until gohai#201.
 
 ## What is in the repository
 
-There are 62 collector packages in 10 categories, and 205 Go files that are not
-tests.
+Each collector is a package under `pkg/gohai/collectors/`, with its variants for
+each family and its public test suite.
 
 ## Known limitations
 

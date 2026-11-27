@@ -6,7 +6,7 @@ caller gives it: a filesystem, a command runner, a clock and the platform
 family. Thus a caller can give it a fake host, and the collector reads the fake
 host as it reads a real one.
 
-The 62 collectors share one contract, which [the entry point](README.md) states.
+The collectors share one contract, which [the entry point](README.md) states.
 They also share the content of this page:
 
 - how to select the source
