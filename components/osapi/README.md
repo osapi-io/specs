@@ -66,6 +66,7 @@ operating system.
 | [Permissions](permissions.md)               | The permissions, the six built-in roles, and why a direct permission replaces them                                                                                       |
 | [The audit trail](audit.md)                 | What osapi records, why redaction is a denylist, and what a read does not record                                                                                         |
 | [Configuration](configuration.md)           | Where a value comes from, and how secrets stay out of the log                                                                                                            |
+| [The crypto of each process](crypto.md)     | What each process reports about its crypto, where each fact comes from, and the test that keeps `only_mode` true                                                         |
 | [Observability](observability.md)           | Tracing across the queue, metrics on their own port, conditions                                                                                                          |
 | [Endpoints](endpoints.md)                   | The controller's own operations defined in Go, the full spec and CLI generated from them, and the tests that hold them to the hand-written spec; the first step is built |
 | [Commands](commands.md)                     | Each command of the binary from a definition, in the layer that endpoints and behaviors embed, with its own spec and validate                                            |
