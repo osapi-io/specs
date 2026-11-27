@@ -43,12 +43,13 @@ Each process sends its traces to Jaeger on the hub, over OTLP gRPC on 4317:
 - a remote agent to the tailnet name
 
 There is one collector, because one trace goes from the controller through NATS
-to an agent. The UI listens on `0.0.0.0:16686`, as the controller listens on
-`0.0.0.0:8080`. Thus you open both from a machine on the tailnet, at the tailnet
-name of the hub. The UI has no authentication. Each machine on the LAN and on
-the vmnet bridge can also read the traces. The lab accepts that, because the
-tailnet and the LAN have one user. A remote agent does not change this, because
-it only sends spans.
+to an agent. The UI has no authentication, and a trace can hold request data.
+Thus the UI listens only on the hub's tailnet address, port 16686. The `jaeger`
+role reads that address with `tailscale ip -4` on each run. You open the UI from
+a machine on the tailnet, at the tailnet name of the hub. A machine on the LAN
+or on the vmnet bridge cannot open it. The OTLP receiver still listens on each
+interface, because the VMs send spans on the vmnet bridge
+(osapi-io/osapi-lab#87).
 
 The API, NATS, Jaeger's UI and its OTLP receiver each serve the hub's Tailscale
 certificate, and each connection checks it: the CLI, the controller, each agent
@@ -580,6 +581,36 @@ controller that the build VM cannot reach.
 **The VMs are reachable only through the hub.** They sit on the hub's vmnet
 subnet. Ansible jumps through the hub to reach them; nothing on your network can
 reach a VM directly.
+
+**SSH checks the hub's host key, but not a VM's.** A clone of a VM gets a new
+host key. Thus the connection to a VM turns the check off, for the VM only:
+`vm_inventory`, `lab_vm` and the `client` role's `.lab/ssh/config`. The jump
+through the hub, and each play on the hub, check the hub's key in
+`~/.ssh/known_hosts`. `group_vars/hub.yml` records the key at the first
+connection (`StrictHostKeyChecking=accept-new`), and a different key later stops
+the run. After you reinstall the hub, remove the old key and connect one time:
+
+```sh
+ssh-keygen -R <hub address> && ssh <hub address> true
+```
+
+**A VM has no password.** The base images make the user `admin` with the
+password `admin`. The lab logs in with its key and runs sudo with no password.
+Thus each run of the `vms` plays sets the password of `admin` to `*`, which
+matches no password. A lock (`passwd -l`, which writes `!`) is not used, because
+sshd refuses key login to a locked user when it runs without PAM. Packer still
+logs in with the password while it bakes an image, before the first clone. To
+get into a VM that SSH cannot reach, use the Tart guest agent on the hub:
+
+```sh
+tart exec lab-<vm> <command>
+```
+
+**A deploy turns off the hub firewall's "block all incoming".** The VMs reach
+NATS and Jaeger on the hub, and "block all incoming" refuses each of them. Thus
+the `firewall` role turns it off when it is on, and admits each lab binary. The
+firewall still blocks each other program. The hub is not on a public network, so
+the lab accepts this.
 
 **A ping from a VM fails while the hub's firewall is in stealth mode.** The VMs
 reach the network through the NAT of the hub. In stealth mode, the macOS
