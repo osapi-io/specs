@@ -26,12 +26,14 @@ They also share the content of this page:
 | `Resolver` | `source.Resolver`          | `net.DefaultResolver`: `/etc/hosts`, then DNS |
 | `HTTP`     | `http.RoundTripper`        | one transport that uses no proxy              |
 
-A zero `Family` with a given `FS` is the family that the `/etc/os-release` of
-that `FS` names. It is not the family of the real host. Thus a fake filesystem
-and the variant that reads it agree. A caller that gives a macOS filesystem
-gives `darwin`, because macOS has no `/etc/os-release`. With no `FS`, a zero
-`Family` is `family.Detect()` of the host. `gohai.New` finds the family one time
-and gives it to each collector.
+A zero `Family` with a given `FS` is `family.FromFS` of that `FS`. It is not the
+family of the real host. Thus a fake filesystem and the variant that reads it
+agree. A filesystem with `/etc/os-release` gives the family that its ID names. A
+filesystem with `/System/Library/CoreServices/SystemVersion.plist` and no
+`/etc/os-release` gives `darwin`, because each macOS host has that file and no
+`/etc/os-release`. A filesystem with neither gives an empty family. With no
+`FS`, a zero `Family` is `family.Detect()` of the host. `gohai.New` finds the
+family one time and gives it to each collector.
 
 Each collector has `NewWith(src)`. `NewWith` selects the variant from the family
 of `src`. `collector.Wire` gives the variant the `FS`, `Exec`, `Now` and
