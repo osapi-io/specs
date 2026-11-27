@@ -290,6 +290,43 @@ osapi config get --key nats.kv.ttl   # 1h, source default
 `agent-facts` has what an agent collects on its own schedule, not as an answer
 to a job.
 
+## A full job store
+
+`nats.kv.max_bytes` limits `job-queue`. The default is 1 GiB. A KV bucket that
+is full refuses each new write. It does not remove old messages to make room.
+Thus, before osapi-io/osapi#1714, a full bucket refused each job until the TTL
+removed old jobs. In the lab on 27 November 2026, the integration runs of one
+day filled 100 MiB, and each job failed with a 500.
+
+When a write of a job's record gets `maximum bytes exceeded`, the job client
+(`putJob` in `internal/job/client/store.go`) does these steps:
+
+1. It writes again. A different write can have made room first.
+2. It removes the oldest finished jobs: a third of the jobs in the bucket, and
+   at least one. A third takes a full bucket below the 80% at which health
+   status warns. A finished job is completed, failed, partly failed or skipped
+   on each host. A job that is submitted or processing stays.
+3. It writes again.
+
+To remove a job, the client purges its record, its status events and its
+responses from the bucket's stream, `KV_<bucket>`. A purge writes nothing. A
+delete writes a marker, which a full bucket refuses. Thus the controller's NATS
+role may purge that stream.
+
+When no finished job is in the bucket, the write fails with `job.ErrStoreFull`.
+The API answers 503, with the reason `job_store_full`. The cause is in the log
+of the controller.
+
+`osapi client health status` shows the `max_bytes` of each bucket. Its
+`job_store` check is an error at 80% of the limit, and the status is then
+`degraded`. The check is not part of the readiness probe: a controller with a
+store that is nearly full still takes jobs. The metrics `osapi_job_store_bytes`
+and `osapi_job_store_max_bytes` give the size and the limit, for an alert.
+
+The 1 GiB default holds approximately ten times the jobs that filled 100 MiB in
+one day of integration runs. A fleet that makes more jobs before the TTL removes
+them sets a larger `nats.kv.max_bytes`, or a shorter `nats.kv.ttl`.
+
 ## One request, end to end
 
 This example sets a sysctl value on twenty hosts. A trace is more useful than a
