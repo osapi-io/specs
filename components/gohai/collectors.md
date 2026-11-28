@@ -312,6 +312,27 @@ Amazon in `rhel`, and did not know most of the Debian family. The table of the
 platform collector put Amazon in `rhel`, and on macOS the family was the value
 of `gopsutil`, not a family.
 
+## When a read fails
+
+A collector must tell "nothing is there" from "gohai cannot read it". A caller
+does different things for the two: it shows no fact for the first, and it
+reports a problem for the second.
+
+- **The source is absent.** The file does not exist (`fs.ErrNotExist`), or the
+  command is not on the host. The collector gives an empty result: an empty list
+  or map, or no fact at all when the whole subsystem is absent, as docker with
+  no daemon and grub2 with no `grubenv`. This is not an error.
+- **The source is there, but the read failed.** For example, permission is
+  denied, the command exits with an error, or its output does not parse. The
+  collector returns an error. The registry records it for that collector, and
+  the other collectors still run.
+
+A collector never puts JSON `null` where the schema requires a list or an
+object. An empty result is `[]` or `{}`, or no fact (osapi-io/gohai#396).
+
+Before November 2026, many collectors made each failure an empty result with no
+error, so a caller could not tell the two cases apart (osapi-io/gohai#424).
+
 ## What will surprise you
 
 **A link on the host can be relative.** On Ubuntu, `/etc/localtime` links to
