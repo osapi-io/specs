@@ -15,11 +15,11 @@ The issue is osapi#744.
 
 ## Why
 
-The controller has 34 operations, in nine groups. Before osapi#744, a person
+The controller has 45 operations, in ten groups. Before osapi#744, a person
 wrote each one four times: the spec, the handler, the service of the SDK and the
-CLI command. Each one comes from a definition now: admission (6), agent (5),
-audit (3), catalog (1), file (6), health (3), job (4), secret (5) and trace (1).
-`osapi dsl endpoint list` gives the groups and their methods.
+CLI command. Each one comes from a definition now: admission (6), agent (8),
+audit (3), catalog (1), file (6), health (3), job (5), pki (6), secret (6) and
+telemetry (1). `osapi dsl endpoint list` gives the groups and their methods.
 
 A new operation of the controller had no generator. Behaviors cover the work on
 a host, and nothing covered the work on the controller.
@@ -60,7 +60,7 @@ The definitions must express each row before the first group moves.
 | job       | list, get, delete, retry                                                           | a filter (`status`); 204 with no body; a JSON body; 201                                                                                                                                          |
 | pki       | cert list, cert get, tls list, tls get, key get, key rotate, nats get, nats rotate | a filter of the host and of the component; the TLS section of a component, which joins the crypto of its registration with its certificates from `cert list`, read one time for each request     |
 | secret    | vaults, list, get, update, delete                                                  | a key of two fields in the path, `.Key("vault", "key")`; a command under a word that is not in the path, `.CommandSub("vault")`; a `secret.Value` in the body, which is never in a log or a span |
-| trace     | get                                                                                | a permission with a different name (`trace:read`); 503 when the backend is not set                                                                                                               |
+| telemetry | get                                                                                | a permission with a different name (`trace:read`); 503 when the backend is not set                                                                                                               |
 
 The 94 operations under `/api/node/{hostname}` are host work. They become
 behaviors, not endpoints.
