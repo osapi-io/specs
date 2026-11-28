@@ -290,6 +290,7 @@ commands and their pages.
 | GET    | `/api/secret`                     | `secret:read`   | `osapi client secret vault list` |
 | GET    | `/api/secret/{vault}`             | `secret:read`   | `osapi client secret list`       |
 | GET    | `/api/secret/{vault}/{key}`       | `secret:read`   | `osapi client secret get`        |
+| POST   | `/api/secret/{vault}`             | `secret:write`  | `osapi client secret create`     |
 | PUT    | `/api/secret/{vault}/{key}`       | `secret:write`  | `osapi client secret update`     |
 | DELETE | `/api/secret/{vault}/{key}`       | `secret:write`  | `osapi client secret delete`     |
 | GET    | `/api/secret/{vault}/{key}/value` | `secret:reveal` | `osapi client secret reveal`     |
@@ -320,14 +321,24 @@ answer.
 - `vault list` gives each vault of `controller.secrets.vaults`, with its type,
   its targets, and `answers`: true when the vault gave a list of its keys.
 
-- `update` writes the value as the next version of the key, or as version 1 of a
-  new key, and answers 200 with the metadata. The body is `{"value": "..."}`, a
-  `secret.Value` of at most 64 KiB. The route puts the subject of the token in
-  the context with `vault.WithActor`, so `by` is who wrote it. A reference as
-  the value resolves first, as in each route
+- `create` writes the value as version 1 of a new key, and answers 201 with the
+  metadata and a `Location` header, `/api/secret/{vault}/{key}`. The body is
+  `{"key": "...", "value": "..."}`, with the name in the body, as each create
+  has it. A key that exists is 409, whatever its value, and `update` changes it.
+  `create` checks only that the key is in the list of the vault. It never reads
+  the value of the key.
+
+- `update` writes the value as the next version of a key that exists, and
+  answers 200 with the metadata. A key that is not there is 404: `create` makes
+  it. The body is `{"value": "..."}`. Each value is a `secret.Value` of at most
+  64 KiB. Each write puts the subject of the token in the context with
+  `vault.WithActor`, so `by` is who wrote it. A reference as the value resolves
+  first, as in each route
   ([How a route resolves a reference](#how-a-route-resolves-a-reference)). Thus
-  `update` with `secret://default/other` copies the value of that key, and needs
-  `secret:use`.
+  `create` or `update` with `secret://default/other` copies the value of that
+  key, and needs `secret:use`. `create` lists the keys first, then writes. The
+  vault has no write that only creates, so two creates of one new key at the
+  same time can both write.
 
 - A vault that the config does not name is 404, and so is a key that is not in
   its vault. A vault name and a key are letters, digits, `-` and `_`, the rule
@@ -338,7 +349,8 @@ The CLI reads the value from standard input with `--value -`. It refuses a
 literal value in a flag, because the shell history keeps it:
 
 ```bash
-osapi client secret update --vault default --key registry-token --value - < token.txt
+osapi client secret create --vault default --key registry-token --value - < token.txt
+osapi client secret update --vault default --key registry-token --value - < new-token.txt
 osapi client secret list --vault default
 ```
 

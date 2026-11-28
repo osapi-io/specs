@@ -15,10 +15,10 @@ The issue is osapi#744.
 
 ## Why
 
-The controller has 45 operations, in ten groups. Before osapi#744, a person
+The controller has 46 operations, in ten groups. Before osapi#744, a person
 wrote each one four times: the spec, the handler, the service of the SDK and the
 CLI command. Each one comes from a definition now: admission (6), agent (8),
-audit (3), catalog (1), file (6), health (3), job (5), pki (6), secret (6) and
+audit (3), catalog (1), file (6), health (3), job (5), pki (6), secret (7) and
 telemetry (1). `osapi dsl endpoint list` gives the groups and their methods.
 
 A new operation of the controller had no generator. Behaviors cover the work on
@@ -55,11 +55,11 @@ The definitions must express each row before the first group moves.
 | agent     | facts, list, get, drain, undrain                                                   | a fixed sub-path beside the key (`/agent/facts`), so the order of the routes is important; a key in the path (`{hostname}`); actions on the key (`/agent/{hostname}/drain`)                      |
 | audit     | list, get, export                                                                  | pagination (`limit`, `offset`) and a total; an export of each entry                                                                                                                              |
 | catalog   | get                                                                                | one document, not a list; an enum of the spec from a registry (`Permission`, `OperationID`); the permission `catalog:read`, which each built-in role has                                         |
-| file      | list, stale, get, upload, update, delete                                           | a multipart upload; 201 with `Location`; 200 for a file that exists; 409; 503 when no Object Store is set                                                                                        |
+| file      | list, stale, get, upload, update, delete                                           | a multipart upload; 201 with `Location`; 200 for a file that exists; 409; 404 for an update of a file that is not there; 503 when no Object Store is set                                         |
 | health    | liveness, ready, status                                                            | no auth for liveness and ready, which probes call; 503; the permission `health:read`                                                                                                             |
 | job       | list, get, delete, retry                                                           | a filter (`status`); 204 with no body; a JSON body; 201                                                                                                                                          |
 | pki       | cert list, cert get, tls list, tls get, key get, key rotate, nats get, nats rotate | a filter of the host and of the component; the TLS section of a component, which joins the crypto of its registration with its certificates from `cert list`, read one time for each request     |
-| secret    | vaults, list, get, update, delete                                                  | a key of two fields in the path, `.Key("vault", "key")`; a command under a word that is not in the path, `.CommandSub("vault")`; a `secret.Value` in the body, which is never in a log or a span |
+| secret    | vaults, list, get, create, update, delete                                          | a key of two fields in the path, `.Key("vault", "key")`; a command under a word that is not in the path, `.CommandSub("vault")`; a `secret.Value` in the body, which is never in a log or a span |
 | telemetry | get                                                                                | a permission with a different name (`trace:read`); 503 when the backend is not set                                                                                                               |
 
 The 94 operations under `/api/node/{hostname}` are host work. They become
@@ -143,11 +143,14 @@ var Group = endpoint.Register(endpoint.Define(
   skill tells when to use it.
 
 - **`Location` and `Example[T]`** name a field by its json name.
-  `endpoint validate` checks the names, under the rule `field`: the field that
+  `endpoint validate` checks the names, under the rule `field`: each field that
   `Location` names is a json field of the output, and the field that
-  `Example[T]` names is a json field of `T`. Before the rule, a misspelled name
-  gave the header `Location: .../<nil>`, or dropped the example from the spec,
-  with no error.
+  `Example[T]` names is a json field of `T`. `Location` takes one field or more.
+  The header is the path of the group, then the value of each field, joined by
+  `/` and escaped, such as `/api/secret/default/registry-token` for
+  `.Location("vault", "key")`. Before the rule, a misspelled name gave the
+  header `Location: .../<nil>`, or dropped the example from the spec, with no
+  error.
 
 - **An example** names the flags of the method's command. Under the rule
   `example`, `endpoint validate` refuses a flag that the command does not have.

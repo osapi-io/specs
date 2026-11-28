@@ -208,7 +208,7 @@ Built in osapi-io/osapi#1248. A coding agent learns about a secret from the same
 generated parts as a person. `method get` and the docs page of a method mark
 each secret field and its two forms. `osapi client secret list` gives the names
 to reference. Rule 5 of the skill in the binary tells it to put a value in with
-`osapi client secret update` from standard input, then use its reference
+`osapi client secret create` from standard input, then use its reference
 ([Agent skills](agent-skills.md#what-the-skill-tells-an-agent)). The Plans page
 of the UI has a picker of the references ([The UI](ui.md#plans)).
 
