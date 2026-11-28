@@ -117,8 +117,12 @@ host for the tests, and the docker and image behaviors of osapi read it. The
 collector runs `docker version`, `docker ps -a --no-trunc`, one `docker inspect`
 for each container, and `docker images`. It returns the names of the environment
 variables of a container, never their values, because the values often hold
-secrets (osapi-io/gohai#327). A host where `docker version` does not answer has
-no docker facts.
+secrets (osapi-io/gohai#327). A host without the `docker` command has no docker
+facts, with the status `absent`. A host where the daemon is stopped, or where
+`docker version` fails for a different reason, has no docker facts, with the
+status `failed`. When `docker version` works and `docker ps` or `docker images`
+fails, the collector keeps the version and the other list, with the status
+`partial`.
 
 ## What each collector is, from the binary
 
@@ -321,9 +325,10 @@ reports a problem for the second.
 - **The source is absent.** The file does not exist (`fs.ErrNotExist`), or the
   command is not on the host. The collector gives an empty result: an empty list
   or map, or no fact at all when the whole subsystem is absent, as docker with
-  no daemon and grub2 with no `grubenv`. This is not an error.
+  no `docker` command and grub2 with no `grubenv`. This is not an error.
 - **The source is there, but the read failed.** For example, permission is
-  denied, the command exits with an error, or its output does not parse. The
+  denied, the command exits with an error, or its output does not parse. A
+  stopped Docker daemon is an example: `docker version` exits with an error. The
   collector returns an error. The registry records it for that collector, and
   the other collectors still run.
 - **Some reads worked, and one failed.** The collector returns the fact of the
