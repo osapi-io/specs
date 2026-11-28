@@ -59,8 +59,11 @@ This page is the design of osapi-io/osapi#1313. The parts that are built:
   join role for ten minutes at most; the NATS user key that an agent sent at its
   join gets the agent role while the machine is admitted, when the connection
   signs the server's nonce with it; the controller refuses the rest, and each
-  decision is a `nats.connect` audit entry. The server must have an nkey user,
-  such as the callout user, or it offers no nonce
+  decision is a `nats.connect` audit entry. A join token that the controller
+  cannot read, such as when the enrollment bucket is down, is not refused: the
+  connection is undecided, the server gets no reason, and the cause goes to the
+  controller's log. The server must have an nkey user, such as the callout user,
+  or it offers no nonce
 
 The parts that are not built: the config in KV (osapi-io/osapi#1379), and the
 account's revocation list for an instant cut on osapi's embedded server
