@@ -154,12 +154,26 @@ with one ([Agent join](agent-join.md)) is admitted at once, with no pending
 record, and its admitted record names the token as `join_token`. A join clears
 an earlier pending, rejected or revoked record of the machine, as an admit does.
 
+A join does not replace the key of an admitted machine. A join for a machine ID
+that is admitted with different keys is refused with a 409
+(`admission.ErrMachineAdmitted`), before the token loses a use. A join with the
+same keys and a new token admits the machine again. To join a machine with new
+keys, an operator deletes its admission first. An agent that changes its own
+keys uses a rotation, which its old key signs
+([Agent identity](agent-identity.md#rotation-without-an-outage)).
+
 ## Automatic admission
 
 `controller.pki.auto_admit: true` admits each request when it arrives, with no
 check of the fingerprint. It is for development and tests, such as a lab that
 makes new VMs at each push. The setting was `auto_accept` before 18 November
 2026\. The old name does nothing now.
+
+Automatic admission does not admit a request whose keys are not the keys of an
+admitted machine with the same ID. That request stays pending, so that an
+operator compares its fingerprint with the host. A request carries no proof that
+it comes from the machine, so an automatic admission of it would replace the
+admitted key.
 
 ## Traces
 

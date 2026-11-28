@@ -102,6 +102,12 @@ fingerprint admits the two keys. The admitted record in the enrollment KV keeps
 the two public keys. `GET /agent` and the signed registration show the same
 fingerprint.
 
+The agent takes an enrollment response only while it is pending. A response to
+an agent that is admitted, cordoned or draining does not change its controller
+key or its state. The agent also ignores a response whose controller key is not
+an Ed25519 public key of 32 bytes, and waits for a response with a key it can
+use.
+
 The controller does not keep an enrollment request that has no encryption key,
 or one that is not a P-256 public key. It writes a warning to its log. It
 refuses a join request of this type with `admission.ErrJoinEncryptionKey`, a
@@ -174,7 +180,10 @@ hostname of the record, the controller does these steps:
    hostname.
 2. If there is one, it refuses the registration, and logs "registration claims
    the hostname of another admitted machine". Thus an admitted agent cannot take
-   the name of a different host (GHSA-j73r).
+   the name of a different host (GHSA-j73r). The move of the record refuses a
+   hostname that the record of any other admitted machine has, also when that
+   machine is offline (`admission.ErrHostnameHeld`). Jobs and sealed secrets go
+   to a hostname.
 3. If there is none, it moves the record to the new hostname, logs "an agent's
    hostname changed", and writes a `hostname_changed` event to the timeline of
    the machine.
