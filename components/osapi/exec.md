@@ -8,16 +8,19 @@ osapi were about how a command was built, and the two fixes are here.
 out, err := e.RunPrivilegedCmd(ctx, "sysctl", "-w", key+"="+value)
 ```
 
-## Five ways to run something, and the one they share
+## Six ways to run something
 
-| Method                      | For                                           |
-| --------------------------- | --------------------------------------------- |
-| `RunCmd`                    | the ordinary case                             |
-| `RunCmdInDir`               | the same, from a working directory            |
-| `RunCmdFull`                | a caller supplying its own timeout in seconds |
-| `RunPrivilegedCmd`          | a command needing root                        |
-| `RunPrivilegedCmdWithStdin` | a command needing root **and** a secret       |
-| `RunCmdImpl`                | not an entry point: what the five above call  |
+| Method                      | For                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| `RunCmd`                    | the ordinary case                                                               |
+| `RunCmdFull`                | a caller that supplies its own timeout in seconds, with stdout and stderr apart |
+| `RunReadCmd`                | a read, with the timeout and the output limit of gohai                          |
+| `RunPrivilegedCmd`          | a command that needs root                                                       |
+| `RunPrivilegedCmdWithStdin` | a command that needs root **and** a secret                                      |
+| `RunPrivilegedCmdFull`      | a command that needs root, with stdout, stderr and the exit code apart          |
+
+`RunCmd`, `RunPrivilegedCmd` and `RunPrivilegedCmdWithStdin` call `RunCmdImpl`,
+which is not an entry point. The others have their own run.
 
 "Privileged" means sudo, when sudo is on. The command becomes an argument to
 `sudo`. When sudo is off, the command runs as the user of the agent. Thus a
@@ -37,17 +40,36 @@ ctx, cancel := context.WithTimeout(ctx, DefaultCommandTimeout)
 `context.WithTimeout` comes from the context that it gets. Thus the deadline
 that comes first applies. A caller that gives a shorter deadline gets the
 shorter deadline. **A caller that wants more than ten minutes cannot get it**,
-because this line is on each path. `Execute` and `ExecuteWithStdin` both call
-`run`, and no other code runs a process.
+because this line is on each path through `run`. `Execute` and
+`ExecuteWithStdin` both call `run`.
 
 Thus `DefaultCommandTimeout` is not the fallback for a command that gave no
 deadline. It is the maximum time for each command. If an operation really needs
 twenty minutes, osapi stops it at ten. Only the deadline of the caller can make
 the time shorter.
 
-`RunCmdFull` takes a timeout in seconds and applies its own
-`context.WithTimeout`. That timeout is inside the ten-minute timeout. It can
-make the time shorter. It cannot make the time longer.
+`RunCmdFull` and `RunPrivilegedCmdFull` do not go through `run`. `RunCmdFull`
+takes a timeout in seconds and applies its own `context.WithTimeout`, so that
+timeout is its ceiling. A timeout of 0 is `DefaultCommandTimeout`.
+`RunPrivilegedCmdFull` always gives 0, so `docker exec` gets ten minutes. Until
+osapi-io/osapi#1788, 0 was 30 seconds.
+
+## Output stops at 1 MiB
+
+Each run keeps at most `MaxCommandOutput`, 1 MiB, of the output of a command:
+the combined output of `run`, and each of stdout and stderr of a full run. The
+command runs to its end. osapi counts the bytes that it does not keep, and adds
+a last line: `[N more bytes of output not kept]`.
+
+Without the limit, `command exec -- yes` could fill the memory of the agent
+before the timeout. The answer of a job goes into a NATS message, which cannot
+hold more than that.
+
+## A stopped command is an error
+
+When the caller's context ends while the command runs, osapi kills the process
+group, and the run returns the error of the context, with exit code -1. A
+command that osapi killed does not look like a command that ran.
 
 ## A secret never reaches a command through its arguments
 
