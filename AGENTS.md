@@ -180,11 +180,18 @@ ask first.
 - Before you push to a branch again, make sure that its pull request did not
   merge. A squash merge orphans a commit that you push after it.
 - Do not wait on CI after you open a pull request. Start the next work.
+- Give it a title of 50 characters or fewer. The squash merge makes the title
+  the commit subject.
+- Two other agents review each pull request: a standards review and a code
+  review. Never certify your own pull request.
+  [pr-review-model](.claude/skills/pr-review-model/SKILL.md) has the labels and
+  the steps.
 
-When the owner asks to close out the work, merge each pull request when its
-checks pass: the specs pull request first, then the component pull request.
-Rebase a pull request that conflicts, generate again, and push. After you push a
-fix, watch the new run. Do not leave a green pull request unmerged.
+When the owner asks to close out the work, merge each pull request when it has
+both review labels, `standards-reviewed` and `code-reviewed`, and its checks
+pass: the specs pull request first, then the component pull request. Rebase a
+pull request that conflicts, generate again, and push. After you push a fix,
+watch the new run. Do not leave a green pull request unmerged.
 
 ## Close an issue
 
