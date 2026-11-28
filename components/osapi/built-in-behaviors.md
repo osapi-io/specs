@@ -74,9 +74,9 @@ runs and changes nothing. On the lab, the hand-written domain reported a change
 on each such `enable`.
 
 The behavior does not have the main process of a service, because gohai does not
-read it. gohai lists only the units that systemd loaded. Thus a service that is
-stopped and disabled is not found until gohai reads the unit files too
-(osapi-io/gohai#321).
+read it on Linux. gohai reads the unit files too, with
+`systemctl list-unit-files`, so a service that is stopped and disabled is in the
+list, with the state `dead` (osapi-io/gohai#321).
 
 ## Files
 
@@ -257,10 +257,11 @@ that does not answer is 100% loss, not an error.
 
 ## Users, groups and SSH keys
 
-`group` moved alone (osapi-io/osapi#992). It reads `/etc/group` through gohai on
-each platform, so Fedora and macOS answer `list` and `get`. It changes groups on
-the Debian family. Its permissions are `group:read` and `group:write`, the name
-of the behavior, not `user:read` and `user:write`. A custom role that named
+`group` moved alone (osapi-io/osapi#992). It reads the groups through gohai on
+each platform: `/etc/group` on Linux, and the directory service with `dscl` on
+macOS. Thus Fedora and macOS answer `list` and `get`. It changes groups on the
+Debian family. Its permissions are `group:read` and `group:write`, the name of
+the behavior, not `user:read` and `user:write`. A custom role that named
 `user:write` for groups must name `group:write`.
 
 `user` moved after the group (osapi-io/osapi#992). Its `create` hashes the

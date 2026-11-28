@@ -61,10 +61,20 @@ collector. Neither is an error of the run, and neither goes into `_errors`. A
 `StatusOf` in `collector.go` makes this decision, and `Absent` tells a source
 that is not on the host from a read that failed.
 
-`DefaultEnabled` keeps large and privileged collectors off until a caller asks
-for them. The interface names the cases: ssh host keys, the full package
-inventory and the full service list. A consumer who expects one of those in a
-default run gets nothing and no error.
+Two more helpers in `collector.go` keep the status correct. `Result` changes a
+nil pointer to an untyped nil. A typed nil `*Info` in an `any` is not nil, so
+without `Result` the output has a `null` fact. `Cancelled` tells a read that
+stopped because the run was cancelled or ran out of time. Then the collector
+gives no fact, also when earlier reads worked, because the run did not finish.
+
+`DefaultEnabled` keeps a collector off until a caller asks for it. A default run
+has 21 of the 64 collectors, and the `DEFAULT` column of `gohai collector list`
+names them. The large and privileged collectors are off, such as ssh host keys,
+the full package inventory and the full service list. Each cloud collector, and
+many hardware and Linux collectors, are off too. A collector that is off still
+runs when a selected collector depends on it: `shard` is on and depends on
+`dmi`, so a default run has 22 statuses. A consumer who expects a collector that
+is off gets nothing and no error.
 
 `Category` returns one of ten values. Constants close the set. A convention does
 not.
@@ -87,11 +97,12 @@ its type.
 or `partial`. A declared collector that is `absent` or `unsupported` is not in
 `prior`, and the dependent runs without it. A declared collector that `failed`
 stops the dependent: it does not run, its error wraps `ErrDependencyFailed`, and
-its status is `failed`.
+its status is `failed`. Thus the dependents of that dependent do not run either.
 
-`prior` **can** also have upstream collectors that you did not declare. Thus a
-collector that reads an undeclared collector works until the schedule changes.
-Then it does not work. Declare what you read.
+`prior` has each collector that finished before this one started. Thus it
+**can** also have collectors that you did not declare. An undeclared collector
+is in `prior` only when it finished first, and that can change from one run to
+the next. Declare what you read.
 
 ## The registry (`internal/collector/registry.go`)
 
@@ -112,10 +123,18 @@ or that a failed dependency stopped. A collector that panics gives a
 `*PanicError`, which has the stack. Thus one collector does not stop the process
 that runs gohai.
 
-The registry adds the declared dependencies, and runs the collectors in
-topological levels. The order comes from `Dependencies`. It never comes from the
-order of registration or of the request. Thus a caller cannot put work in order
-with the order of a list. `expandWithDeps` and `topoLevels` do this.
+The registry adds the declared dependencies of each requested collector
+(`expandWithDeps`). It starts a collector when each of its dependencies has
+finished. It does not wait for a level of collectors to finish. Thus a dependent
+does not wait for a slow collector that it does not need, and collectors with no
+path between them run at the same time. `topoLevels` finds a dependency cycle
+and the collectors with no dependency, which start first. It does not set when
+the other collectors start.
+
+The order comes from `Dependencies`. It never comes from the order of
+registration or of the request. Thus a caller cannot put work in order with the
+order of a list. After a context is cancelled, no collector starts, and `Run`
+returns the facts that finished with the error of the context.
 
 The `Facts` struct in `pkg/gohai/facts.go` is the one list of the collectors.
 `pkg/gohai/gen` reads it and writes `pkg/gohai/builtins.gen.go`, which holds the
@@ -138,6 +157,21 @@ A program uses `New` with options such as `WithCollectors` and `WithSources`,
 then `Collect`, which returns `Facts`. `Facts` has a typed field for each
 collector, `Errors` (`_errors`), `Status` (`_status`) and, with `WithTimings`,
 `Timings`.
+
+`New` returns an error when the caller disables a collector that a selected
+collector depends on, directly or through a different dependency. The registry
+adds each dependency to a run, so without this error the disabled collector
+runs. The error names the two collectors, and tells the caller to enable the
+first or to disable the second too. Thus `gohai collect --no-collector.dmi`
+fails, because the default `shard` depends on `dmi`.
+
+`Facts.Err(name)` returns the error value of a collector, and `Errors` has its
+text. `Err` is not nil for each collector with the status `failed` or `partial`.
+For a collector that panicked, or whose dependency panicked, the error is a
+`*gohai.PanicError`, with the stack. Use `errors.As` to get it. `Facts` that a
+caller reads back from JSON have only `Errors`, so `Err` is nil for them. When
+the context is cancelled, `Collect` returns the error and the `Facts` of the
+collectors that finished.
 
 `Collectors`, `CollectorSpec`, `Field` and `Reads` describe each collector: its
 fields, how a caller builds it and what it reads on each platform. osapi reads
@@ -203,15 +237,16 @@ each family and its public test suite.
 
 There are four.
 
-**An undeclared dependency works until it does not.** `prior` **can** have
-upstream collectors that a collector did not declare. A read of one of those
-works now. It breaks when the schedule changes, and nothing warns before that.
-Declare what you read.
+**An undeclared dependency works only some of the time.** `prior` **can** have
+collectors that a collector did not declare. A read of one of those works only
+when that collector finished first. Which collector finishes first can change
+from one run to the next, and nothing warns about it. Declare what you read.
 
-**A default run does not include the large collectors, and says nothing.**
-`DefaultEnabled` returns false for ssh host keys, the full package inventory and
-the full service list. A consumer who expects one of those in a default run gets
-no value and no error. Those collectors did not run, so they have no status.
+**A default run has 21 of the 64 collectors, and says nothing about the
+others.** `DefaultEnabled` returns false for the other 43, such as ssh host
+keys, the full package inventory, the full service list and each cloud
+collector. A consumer who expects one of those in a default run gets no value
+and no error. Those collectors did not run, so they have no status.
 
 **`schemas/gohai.schema.json` is generated.** The next run of `schemas/gen`
 removes a change that you make by hand.
