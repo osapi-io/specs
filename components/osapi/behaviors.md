@@ -137,6 +137,7 @@ the tags for authors. This page records why the design is as it is.
 | `.Sudo`, `.Runs` on a method         | A program that only this method runs. A host needs it only where the method runs                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `behavior.Writes("...")`             | The paths the provider writes, removes or changes the mode of, as `path.Match` patterns; `"*"` is any path                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `behavior.KeepsState`                | The provider keeps a record in the `file-state` bucket                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `behavior.JobWait(d)`                | How long the controller waits for the answer of a write of the behavior, and of each behavior that requires it, when `d` is more than the 30 s of the job client. netplan declares 90 s, because `netplan try` waits up to 60 s for the agent                                                                                                                                                                                                                                                                    |
 | `behavior.Validator(...)`            | A `validate` tag of the behavior's own: its check, its schema and its message                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 The permission prefix is the name of the behavior. A group does not change it.
@@ -1255,6 +1256,21 @@ puts the file back with the mark, so a retry deletes it and runs the command
 again. The record keeps the metadata of a file that osapi stopped managing, and
 `managedfile get` gives its `object_sha256`. Thus the file comes back with the
 record that it had, and `file stale list` does not change.
+
+netplan applies a change with `netplan try --timeout 60`, not `netplan apply`,
+when the agent gives `h.Reach`, a request to its NATS server. After netplan
+applies the change, the agent calls `h.Reach` for 45 s at most. It confirms the
+change only when NATS answers. Otherwise `netplan try` reverts the files and the
+network at its timeout, and the job returns `netplan reverted the change: ...`.
+The record of the file goes back with the file, so a retry tries the change
+again. `netplan try` runs with a context that the job does not end: a change
+that cuts NATS makes the agent restart its consumers, and that ended the job. On
+the lab, the exec layer then killed `netplan try` before it reverted, and the
+change stayed (osapi-io/osapi#1670). A stop of the agent's service still stops
+`netplan try`, because systemd stops each process of the service. A change that
+`netplan try` cannot revert, such as a bond with parameters of its own, goes
+through `netplan apply`. The tests give no `h.Reach`, so the examples use
+`netplan apply`.
 
 The mark keeps the file that the caller asked for. A rollback would also make a
 retry apply. But `netplan apply` can fail after it applied a part of the file.
