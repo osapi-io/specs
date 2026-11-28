@@ -149,7 +149,10 @@ The agent does these steps one time, at its first start:
 6. The agent saves the key as `enrolled-controller.pub`, and the user and the
    server's certificate in `nats-join.json` (mode 0600), in `agent.pki.key_dir`.
    It connects again with its own user. Each later start reads `nats-join.json`
-   and does not join again.
+   and does not join again. The agent writes `nats-join.json` last. If a write
+   fails, the agent removes the files that it wrote, and stops with a message to
+   join again with a new token: the controller has already taken the use of the
+   token.
 
 A token that does not admit gets a reply that says why, and admits nothing. The
 agent stops with the reason.
