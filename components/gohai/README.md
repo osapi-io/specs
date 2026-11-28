@@ -117,12 +117,20 @@ topological levels. The order comes from `Dependencies`. It never comes from the
 order of registration or of the request. Thus a caller cannot put work in order
 with the order of a list. `expandWithDeps` and `topoLevels` do this.
 
-`pkg/gohai/gohai.go` registers each collector package, in one location.
+The `Facts` struct in `pkg/gohai/facts.go` is the one list of the collectors.
+`pkg/gohai/gen` reads it and writes `pkg/gohai/builtins.gen.go`, which holds the
+registration of each collector package and the cases of `Facts.set`. Thus a
+registration, a `Facts` field and a `set` case cannot disagree. To add a
+collector, add its field to `Facts` and run `just generate`. Do not edit
+`builtins.gen.go`, because the next `go generate` writes over it.
+
 `registerBuiltins` returns the error of a collector that does not register, and
 `gohai.New` and `gohai.NewRegistry` return it. `TestBuiltinCollectors` in
-`pkg/gohai` fails when the lists of a collector do not agree: its registration,
-its `Facts` field and the case of `Facts.set`, its description in
-`Collectors()`, its schema property and its page under `docs/collectors`.
+`pkg/gohai` checks the lists that the generator does not write. It fails when a
+collector has no `Facts` field that `Facts.set` fills, when a field of `Facts`
+has no collector, or when a collector has no description in `Collectors()`, no
+schema property or no page under `docs/collectors`. It also fails when a source
+field of a collector does not get the source that the caller gave.
 
 ## The SDK API (`pkg/gohai`)
 
