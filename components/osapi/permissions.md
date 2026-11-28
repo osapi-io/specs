@@ -129,15 +129,16 @@ unit file and cannot restart it.
 A permission is admin only when its verb is `shell` or `exec`, or when a method
 that needs it is marked `AdminOnly()`:
 
-| Admin only                                     | Why                                                    |
-| ---------------------------------------------- | ------------------------------------------------------ |
-| `command:shell`                                | a shell                                                |
-| `command:execute`                              | `AdminOnly()` on command exec: any command on the host |
-| `docker:exec`                                  | its verb: docker exec runs any command in a container  |
-| `user:write`                                   | an account or an SSH key reaches root                  |
-| `schedule:write`                               | a cron entry runs a command as any user                |
-| `admission:write`, `agent:write`, `audit:read` | `AdminOnly()` on the endpoint groups                   |
-| `secret:reveal`                                | `AdminOnly()` on secret reveal: the value of a secret  |
+| Admin only                                     | Why                                                                                   |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `command:shell`                                | a shell                                                                               |
+| `command:execute`                              | `AdminOnly()` on command exec: any command on the host                                |
+| `docker:exec`                                  | its verb: docker exec runs any command in a container                                 |
+| `docker:write`                                 | `AdminOnly()` on docker create and delete: a container with a bind mount reaches root |
+| `user:write`                                   | an account or an SSH key reaches root                                                 |
+| `schedule:write`                               | a cron entry runs a command as any user                                               |
+| `admission:write`, `agent:write`, `audit:read` | `AdminOnly()` on the endpoint groups                                                  |
+| `secret:reveal`                                | `AdminOnly()` on secret reveal: the value of a secret                                 |
 
 `schedule:write` is admin only from `AdminOnly()` on the create, update and
 delete methods of the schedule behavior (osapi-io/osapi#1106). `command:execute`
@@ -163,6 +164,12 @@ or `types.VerbExec`. A verb that a different role gets, such as
 `types.VerbWrite`, does not need it, and `behavior validate` refuses it. Each
 verb is a `types.Verb` constant, so the roles know each verb. `authtoken` keeps
 the same verbs in `adminVerbs`.
+
+`docker:write` is admin only from `AdminOnly()` on the create and delete methods
+of the docker behavior (GHSA-5wjc-r9cp-cx5x). A container that mounts `/` and
+runs a command is a root shell on the host. A docker create that sets a command
+or a bind mount is also refused when `agent.command.enabled` is false, with
+`host.ErrCommandDisabled`, the same as docker exec.
 
 `file:write`, `package:write` and `sysctl:write` stay with `automation`. Each of
 them can reach root: a file can be a unit or a sudoers entry, a package runs
