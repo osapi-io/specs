@@ -164,6 +164,12 @@ An operation that runs longer than `AckWait` is **not** delivered again during
 the work, because the agent extends the deadline while the work runs. The
 keepalive in `internal/agent/handler.go` does that.
 
+A job runs for 15 minutes at most, which is longer than each limit of the work
+in it, such as the ten minutes of a command. At 15 minutes the agent records the
+job as failed, stops the keepalive, and takes the next job. A behavior that does
+not obey its context, such as a read of a mount that hangs, keeps running in the
+background, and the agent logs it (osapi-io/osapi#1790).
+
 ### An idle consumer goes away
 
 Each consumer of an agent is durable, and its name has the machine ID of the
