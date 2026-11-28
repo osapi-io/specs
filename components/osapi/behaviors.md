@@ -529,7 +529,10 @@ Inside, the same conventions apply:
   also changes when osapi deployed the path with other metadata: then only the
   record changes, as for a cron entry with a new schedule and the same content
   (osapi-io/osapi#1106). A file that has the content and no record, or an
-  undeployed record, does not change.
+  undeployed record, gets a record: a write manages the path from then on. Thus
+  a retry after a record that failed to write records the file
+  (osapi-io/osapi#1808). The time of a record is the host's clock,
+  `host.Host.Time`, so an example has one answer.
 
 Permissions and sudo also come from the definitions. `internal/authtoken` makes
 the known permissions, and those of each built-in role, from a short list in
