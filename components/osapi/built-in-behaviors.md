@@ -356,8 +356,11 @@ gohai: `/proc` on Linux and `ps` on macOS. `get` reads one process, not the
 list. `signal` is an action, so it needs `process:execute`. The `operator` role
 has it, and the `automation` role does not. It runs `kill -<SIG> <pid>` through
 sudo. It keeps the six signals of the hand-written domain, and refuses a PID
-below 1. A PID that the host does not have is not found, because `signal` reads
-the process first. Each row of a list is one process of one host.
+below 1 or above 4194304, the largest `pid_max` of Linux. The rule of the input
+and the provider both refuse it, because the provider converts the PID to an
+`int32`, and a larger value wraps to a different process (osapi-io/osapi#1806).
+A PID that the host does not have is not found, because `signal` reads the
+process first. Each row of a list is one process of one host.
 
 No method of `process` starts a process for the signal to stop. Thus the example
 of `signal` has `NotLive`, and the lab tests it by hand
