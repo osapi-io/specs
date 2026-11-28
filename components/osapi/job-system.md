@@ -173,10 +173,16 @@ background, and the agent logs it (osapi-io/osapi#1790).
 ### An idle consumer goes away
 
 Each consumer of an agent is durable, and its name has the machine ID of the
-agent: `query_direct_<id>`, `modify_label_group_web_<id>`. An agent has six or
-more. `agent.consumer.inactive_threshold` sets the `InactiveThreshold` of each,
-24h by default. NATS removes a consumer that has no fetch for that time. An
-agent that starts again in that time continues with the same consumers.
+agent: `query_direct_<id>`, `modify_label_group_web_<hash>_<id>`. An agent has
+six or more. The name of a label consumer has the label subject, such as
+`group.web`, with `_` in place of each character that is not a letter or a
+digit. `<hash>` is the first 8 hex digits of the SHA-256 of the subject. Thus
+two labels that give the same text, such as `group: web.dev` and
+`group: web-dev`, get different consumers. With one name, the `CreateOrUpdate`
+of one label replaces the filter of the other.
+`agent.consumer.inactive_threshold` sets the `InactiveThreshold` of each, 24h by
+default. NATS removes a consumer that has no fetch for that time. An agent that
+starts again in that time continues with the same consumers.
 
 Before osapi-io/osapi#1154 the consumers had no threshold. Thus a host that got
 a new machine ID, such as a rebuilt VM, kept its old consumers in `osapi-JOBS`.
