@@ -120,6 +120,13 @@ BSD `stat` does not have `-c` (osapi-io/osapi#1119).
 osapi deployed. These entries are not facts of the host, so gohai does not read
 them. A `create` refuses a file at a path that osapi did not deploy.
 
+For an entry with a cron expression, the object is the command. `schedule`
+writes the line of `/etc/cron.d/<name>` from the cron expression, the user
+(`root` when none is given) and the command. Thus an `update` that changes only
+the cron expression or the user writes the line again, and `list` and `get` give
+what cron runs (osapi-io/osapi#1807). An object of more than one line is
+refused. A script of an interval runs as root, so a user for it is refused.
+
 The writes are `AdminOnly()`, so only `admin` has `schedule:write`
 ([permissions](permissions.md#the-built-in-roles)). A template object reads the
 facts of the agent through `host.Host.Facts`. The CLI takes the vars as
