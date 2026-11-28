@@ -4,7 +4,7 @@ description: Pick up an open issue in an osapi-io repository and take it to a me
 compatibility: Requires the gh CLI authenticated against osapi-io, a checkout of the repository the issue belongs to, and mise for running the repository's recipes.
 allowed-tools:
   - Bash(gh pr create:*)
-  - Bash(gh pr merge:*)
+  - Bash(gh api -X PUT:*)
   - Bash(gh issue close:*)
   - Bash(gh issue comment:*)
 license: MIT
@@ -180,19 +180,25 @@ Before you push to a branch, make sure that nobody already squash-merged it. A
 squash writes the history again. Thus a commit that you push to a branch whose
 pull request already merged is lost, and nothing reports it.
 
+Two other agents review the pull request before it merges
+([pr-review-model](../pr-review-model/SKILL.md)). Add both queue labels when you
+open it. Do not merge it yourself. The merge loop of the lead merges it when it
+has `standards-reviewed` and `code-reviewed`, and each check is green.
+
 Each osapi-io repository permits squash and rebase, and forbids merge commits.
-This was verified on all eight. Thus a merge is:
+This was verified on all eight. Thus the merge loop makes a squash merge through
+REST:
 
 ```bash
-gh pr merge <pr> --squash --delete-branch
+gh api -X PUT "repos/osapi-io/$r/pulls/<pr>/merge" -f merge_method=squash
 ```
 
 Then make sure that the two halves occurred, because the second does not always
 come after the first:
 
 ```bash
-gh pr view <pr> --repo "osapi-io/$r" --json state,mergedAt
-gh issue view "$n" --repo "osapi-io/$r" --json state,stateReason
+gh api "repos/osapi-io/$r/pulls/<pr>" -q '{merged, merged_at}'
+gh api "repos/osapi-io/$r/issues/$n" -q '{state, state_reason}'
 ```
 
 If an issue is still open after its pull request merged, close it by hand, and
