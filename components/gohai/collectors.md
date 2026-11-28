@@ -36,14 +36,15 @@ filesystem with `/System/Library/CoreServices/SystemVersion.plist` and no
 family one time and gives it to each collector.
 
 Each collector has `NewWith(src)`. `NewWith` selects the variant from the family
-of `src`. `collector.Wire` gives the variant the `FS`, `Exec`, `Now` and
-`Resolver` of `src`. A variant field with one of those names and a different
-type makes `Wire` panic. Without the panic, the collector reads the real host
-under a fake host, and nothing tells the caller. A test in `pkg/gohai` checks
-that each field of each built-in collector that has a source type gets the
-source that the caller gave. `New()` is `NewWith(source.Sources{})`, the real
-host. `gohai.New(gohai.WithSources(src))` gives the same sources to each
-collector.
+of `src`. `collector.Wire` gives the variant the `FS`, `Exec`, `Now`, `Resolver`
+and `HTTP` of `src`. `Wire` does not set a variant field with one of those names
+and a different type. `CheckSources` finds that field, and `Registry.Register`
+refuses the collector, so `gohai.New` returns an error. Without this check, the
+collector reads the real host under a fake host, and nothing tells the caller. A
+test in `pkg/gohai` checks that each field of each built-in collector that has a
+source type gets the source that the caller gave. `New()` is
+`NewWith(source.Sources{})`, the real host. `gohai.New(gohai.WithSources(src))`
+gives the same sources to each collector.
 
 The cloud collectors read the metadata service of their provider, such as
 `http://169.254.169.254`, through the `HTTP` of `src`. A fake host gives a
@@ -115,14 +116,14 @@ container on a host is a fact for each caller of gohai, as a package is, not
 only state that osapi manages. One collector also gives one shape and one fake
 host for the tests, and the docker and image behaviors of osapi read it. The
 collector runs `docker version`, `docker ps -a --no-trunc`, one `docker inspect`
-for each container, and `docker images`. It returns the names of the environment
-variables of a container, never their values, because the values often hold
-secrets (osapi-io/gohai#327). A host without the `docker` command has no docker
-facts, with the status `absent`. A host where the daemon is stopped, or where
-`docker version` fails for a different reason, has no docker facts, with the
-status `failed`. When `docker version` works and `docker ps` or `docker images`
-fails, the collector keeps the version and the other list, with the status
-`partial`.
+for all the containers, and `docker images`. It returns the names of the
+environment variables of a container, never their values, because the values
+often hold secrets (osapi-io/gohai#327). A host without the `docker` command has
+no docker facts, with the status `absent`. A host where the daemon is stopped,
+or where `docker version` fails for a different reason, has no docker facts,
+with the status `failed`. When `docker version` works and `docker ps` or
+`docker images` fails, the collector keeps the version and the other list, with
+the status `partial`.
 
 ## What each collector is, from the binary
 
@@ -241,9 +242,9 @@ first tier that has a name for it.
 
 | Tier | Authority                                   | Fields | Share |
 | ---: | ------------------------------------------- | -----: | ----: |
-|    1 | OCSF                                        |    107 |   11% |
-|    2 | OpenTelemetry resource semantic conventions |     91 |   10% |
-|    3 | gohai convention                            |    752 |   79% |
+|    1 | OCSF                                        |    108 |   11% |
+|    2 | OpenTelemetry resource semantic conventions |     92 |   10% |
+|    3 | gohai convention                            |    764 |   79% |
 
 **Four fifths of the fields obey neither standard.** Know this number before you
 read the rules. The third tier is the usual case, and the first two are the
