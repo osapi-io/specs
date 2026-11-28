@@ -32,13 +32,16 @@ gh api repos/osapi-io/$r/pulls/$n -H 'Accept: application/vnd.github.diff'
 
 ## 3. Post the result
 
+`$sha8` is the first 8 characters of the head commit that you reviewed:
+`gh api repos/osapi-io/$r/pulls/$n -q '.head.sha[0:8]'`.
+
 When the pull request passes:
 
 ```bash
 gh api -X POST repos/osapi-io/$r/issues/$n/labels -f 'labels[]=code-reviewed'
 gh api -X DELETE repos/osapi-io/$r/issues/$n/labels/needs-code-review
 gh api -X POST repos/osapi-io/$r/issues/$n/comments \
-  -f body="Code review: approved. Checked: <what you checked>."
+  -f body="Code review: approved (head $sha8). Checked: <what you checked>."
 ```
 
 When it fails, write one comment that starts with "Code review: changes

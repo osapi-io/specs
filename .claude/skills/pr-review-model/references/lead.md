@@ -39,15 +39,24 @@ The loop merges a pull request when each of these is true:
 - It is not a draft.
 - `mergeable_state` is `clean`.
 - Each check run of its head commit is `completed`, with no `failure`,
-  `cancelled` or `timed_out`, and it has at least one check run.
-- Each pass label is current: its "Standards review: approved" or "Code review:
-  approved" comment is newer than the head commit.
+  `cancelled` or `timed_out`, and it has at least one check run. While CI has a
+  backlog, a "Local gate: passed (head <sha8>)" comment for the current head
+  can replace the checks that are still in the queue. A failed check always
+  stops the merge.
+- Each pass label is current: the newest "Standards review: approved (head
+  <sha8>)" and "Code review: approved (head <sha8>)" comments name the
+  current head commit.
 - When its description has `Specs: <url>`, that specs pull request merged. A
   specs pull request that closed without a merge does not count.
 - When its description has a line `Depends: osapi-io/<repo>#<n>`, that pull
   request merged.
 
-A pass label that is older than the head commit is stale. The loop removes it
+A security fix reverses the order of the specs pull request. Its code pull
+request has no `Specs:` line and merges first. Its specs pull request has
+`Depends:` on the code pull request.
+
+A pass label whose approval names a different head is stale. Do not compare
+dates: the date of a commit is the time of the commit, not of the push. The loop removes it
 and puts the pull request back in the queue of that review:
 
 ```bash
@@ -72,3 +81,6 @@ All the agents use one GitHub account, so they share its quota.
 - An API error is an unknown state. Try again in the next round. Never read an
   error as a merge, a pass or a failure.
 - Check the quota with `gh api rate_limit`.
+- GitHub also has a secondary limit on content, such as comments and labels. Do
+  not post many comments in a short time. Wait some seconds between two
+  comments, and wait one minute when GitHub refuses one.

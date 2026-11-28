@@ -21,6 +21,9 @@ gh api -X POST repos/osapi-io/$r/pulls \
   -f title="$title" -f head="$branch" -f base=main -f body="$body"
 ```
 
+- A security fix is the exception to the specs pull request first. The code
+  merges first, and its advisory is published. Then the specs pull request
+  merges, with `Depends:` on the code pull request.
 - When the change needs a pull request in a different repository to merge
   first, put a line `Depends: osapi-io/<repo>#<n>` in the description. The merge
   loop waits for that pull request.
@@ -48,8 +51,22 @@ gh api "repos/osapi-io/$r/issues/$n/comments?per_page=100" \
 A result that came before your last push is of an old head. Do not fix it
 again. Reply on the pull request with the commit that fixed each point.
 
-A reviewer that passes the pull request writes "Standards review: approved" or
-"Code review: approved".
+A reviewer that passes the pull request writes "Standards review: approved
+(head <sha8>)" or "Code review: approved (head <sha8>)". The SHA is the head
+commit that it reviewed.
+
+## When CI is slow
+
+This rule is temporary. It applies only while the lead says that CI has a
+backlog. Run the full gate of the repository on the head commit, then write:
+
+```bash
+gh api -X POST repos/osapi-io/$r/issues/$n/comments \
+  -f body="Local gate: passed (head $sha8). <the command that you ran>"
+```
+
+The merge loop can then merge without waiting for the checks in the queue. It
+never merges with a check that failed.
 
 ## 4. Fix the findings
 
@@ -57,8 +74,9 @@ Fix each point. Push only when the pull request is still open, because a squash
 merge orphans a commit that comes after it. Then put the pull request back in
 the queue of the review that failed.
 
-Each push makes the approvals before it stale. An approval counts only when its
-comment is newer than the head commit. Thus after a push, both reviews run
+Each push makes the approvals before it stale. An approval counts only when the
+SHA in its comment is the current head. The date of a commit does not help,
+because it is the time of the commit, not of the push. Thus after a push, both reviews run
 again, and the merge loop puts the pull request back in each queue. Put it back
 in the queue of the review that failed yourself:
 

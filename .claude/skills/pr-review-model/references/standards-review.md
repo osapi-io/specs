@@ -46,6 +46,9 @@ the same sections as `templates/CONTRIBUTING.md`.
 
 ## 4. Post the result
 
+`$sha8` is the first 8 characters of the head commit that you reviewed:
+`gh api repos/osapi-io/$r/pulls/$n -q '.head.sha[0:8]'`.
+
 When the pull request passes, add the pass label, remove the queue label, and
 write what you checked:
 
@@ -53,7 +56,7 @@ write what you checked:
 gh api -X POST repos/osapi-io/$r/issues/$n/labels -f 'labels[]=standards-reviewed'
 gh api -X DELETE repos/osapi-io/$r/issues/$n/labels/needs-standards-review
 gh api -X POST repos/osapi-io/$r/issues/$n/comments \
-  -f body="Standards review: approved. Checked: <the rules that apply>."
+  -f body="Standards review: approved (head $sha8). Checked: <the rules that apply>."
 ```
 
 When it fails, write one comment that starts with "Standards review: changes
