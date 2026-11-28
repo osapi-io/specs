@@ -178,10 +178,17 @@ counted the interfaces let the write through.
 
 `create` and `update` take `--type`: `ethernet`, the default, or `dummy`. An
 `ethernet` is an interface that the host has, and its config goes in the netplan
-section that `netplan status` gives for it. An interface that the host does not
-have is "not found". A `dummy` goes under `dummy-devices` in the file of osapi,
-such as `/etc/netplan/osapi-osapi0.yaml`, and `netplan apply` makes the link.
-Thus a `dummy` does not have to be on the host. A `create` of a dummy that osapi
+section that `netplan status` gives for it. `netplan status` does not list an
+interface that netplan does not manage, and an older netplan has no `status`.
+For such an interface, the section comes from the kind that gohai reads from
+sysfs: a bridge goes in `bridges`, a bond in `bonds`, a Wi-Fi card in `wifis`, a
+VLAN in `vlans`, and a VXLAN or a WireGuard link in `tunnels`. An interface of a
+different kind goes in `ethernets`. Thus netplan does not make a second
+definition of a bridge, a bond or a Wi-Fi card under `ethernets`
+(osapi-io/osapi#1647). An interface that the host does not have is "not found".
+A `dummy` goes under `dummy-devices` in the file of osapi, such as
+`/etc/netplan/osapi-osapi0.yaml`, and `netplan apply` makes the link. Thus a
+`dummy` does not have to be on the host. A `create` of a dummy that osapi
 configures gives `changed: false`. `netplan status` gives the type
 `dummy-device` for a dummy, and the `netplan` behavior puts it in
 `dummy-devices`. Thus dns and route write on a dummy under the same section. If
