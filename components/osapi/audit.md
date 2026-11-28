@@ -136,14 +136,30 @@ let JetStream filter with no full read. Nothing needs it yet.
 
 ## The write outlives the request
 
-The middleware writes the entry with `context.Background()`, not with the
-context of the request.
+The middleware puts each entry in a queue of 1024 entries. One writer takes the
+entries from the queue and writes them to the store. The writer uses
+`context.Background()` with a limit of 5 seconds for each write, not the context
+of the request.
 
 This is deliberate. Without it, a client that disconnects during a request
 cancels its own audit entry, and so does a request that times out. **A request
 that fails is the one that you most need a record of.** osapi logs a write
 failure and does not return it. Thus an audit failure never makes a successful
 request fail.
+
+When the queue is full, a request waits 1 second for space. After that, osapi
+drops the entry and logs the drop as an error. Thus a store that does not answer
+cannot stop the API, and the number of goroutines does not increase.
+
+`Stop` of the API server writes the entries in the queue until its context ends.
+A request that ends while the server drains writes its own entry.
+
+The entry has the status that the client gets. A handler that returns an error
+has not written its response yet, because the error handler of Echo runs after
+the middleware. Thus the middleware records the status of the error: the code of
+an `HTTPStatusCoder`, or 500. A handler that panics gets an entry with 500. The
+middleware logs the panic and its stack at the error level, and answers 500 with
+the message `internal error`. The answer has no text of the panic.
 
 ## One job ID per entry, the first one
 
