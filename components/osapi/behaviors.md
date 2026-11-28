@@ -475,7 +475,7 @@ the clock and the settings of the behavior. A provider gets the time from
 `h.Time()`, not from `time.Now`. Thus the fake host can give an example a fixed
 time, and an output that the time changes, such as uptime on macOS, is the same
 each run. If a behavior has no provider on the platform, or its builder returns
-`provider.ErrUnsupported`, its methods report `skipped`. The agent logs which
+`behavior.ErrUnsupported`, its methods report `skipped`. The agent logs which
 providers it built. The built providers go into the registry of the agent. A
 provider reads the facts of the agent from `h.Facts`.
 
@@ -1006,6 +1006,12 @@ On the fake host, each filesystem, command and store call fails in turn. Each
 store read also returns a damaged record in turn: not JSON, empty JSON, and a
 file state record with empty metadata.
 
+Each example also runs on a fake host that has no file state store and no object
+store. An agent is in this state when a bucket is not set or does not open. A
+provider that needs a store declines the host with `behavior.ErrUnsupported`. A
+provider that builds must return an error and must not panic. Five builders
+panicked on this host until the check found them (osapi-io/osapi#1802).
+
 When sysctl moved, its examples and refusals got to 150 of the 152 statements of
 its Debian provider. Its 1,820 lines of hand-written tests got to 152. The two
 that remained were a JSON encoding error that a struct of strings cannot make.
@@ -1069,9 +1075,11 @@ Behaviors that call outside APIs are osapi-io/osapi#1064.
   do on an agent.
 - **Unsupported spreads.** A required behavior can have no provider on a
   platform, or it can refuse the host. Then the requiring builder does not get
-  it. The builder answers `provider.ErrUnsupported`, and its methods report
-  `skipped`. If a required builder fails, the requiring builder fails too, with
-  the two names in the error.
+  it. The builder answers `behavior.ErrUnsupported`, and its methods report
+  `skipped`. A builder that also has a provider that only reads answers with
+  that provider. Thus service, certificate and the network behaviors read on a
+  host with no file state store, and refuse each write. If a required builder
+  fails, the requiring builder fails too, with the two names in the error.
 - **Internal.** `behavior.Internal` marks a behavior that only other behaviors
   use. It has no route, no command, no spec and no permissions.
   `behavior validate` fails an internal behavior that also declares `API` or
