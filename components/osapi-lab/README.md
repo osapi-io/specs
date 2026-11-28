@@ -473,17 +473,18 @@ token with the `kid` of `lab`.
 The controller keeps the signing keys in its vault, as an operator does, and
 `hub.yaml` refers to them as `secret://default/jwt-signing-key-<id>`. The
 controller resolves the references at its start. The controller role writes each
-key with `osapi client secret update`, from standard input, when the vault does
-not hold it. A record in the JetStream store, `jetstream/signing-keys.in-vault`,
-says that the vault holds them. The record is in the store because the vault is,
-and it counts only while the store's data, `jetstream/jetstream/`, is there.
-Thus the first run after a teardown, or after the store or only its data is
-removed, finds no record that counts. It starts the controller with the keys
-themselves, writes them, and then starts it again on the references
-(osapi-io/osapi-lab#54, #96). Both starts of the controller name the same list
-of files that it reads, so the next run does not start it again. A NATS password
-and the key of a vault cannot be a reference, because osapi needs them before it
-reads a vault.
+key with `osapi client secret create`, from standard input, when the vault does
+not hold it, and with `osapi client secret update` when the vault holds a
+different value. A record in the JetStream store,
+`jetstream/signing-keys.in-vault`, says that the vault holds them. The record is
+in the store because the vault is, and it counts only while the store's data,
+`jetstream/jetstream/`, is there. Thus the first run after a teardown, or after
+the store or only its data is removed, finds no record that counts. It starts
+the controller with the keys themselves, writes them, and then starts it again
+on the references (osapi-io/osapi-lab#54, #96). Both starts of the controller
+name the same list of files that it reads, so the next run does not start it
+again. A NATS password and the key of a vault cannot be a reference, because
+osapi needs them before it reads a vault.
 
 `cli.yaml` on your machine holds the keys themselves. Thus
 `osapi controller token generate` on your machine signs a token that the
