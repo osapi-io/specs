@@ -83,18 +83,25 @@ Each issue gets its labels when you open it. A reader finds work by label, and
 an issue without labels is found only by its title. Before 21 November 2026, 225
 of the 272 issues of the organization had no label.
 
-| Label              | When                                                                                       |
-| ------------------ | ------------------------------------------------------------------------------------------ |
-| `bug`              | The code does not do what its page or its contract says                                    |
-| `enhancement`      | New work: a feature, a migration, a new rule                                               |
-| `documentation`    | A page or a doc is incorrect or missing, and the code is correct                           |
-| `chore`            | A change that no caller sees: a refactor, a cleanup, a test, CI                            |
-| `tracker`          | An issue that groups others as sub-issues, such as osapi-io/osapi#964                      |
-| `decision`         | The owner must choose before work starts. The issue gives the choices and a recommendation |
-| `architecture`     | Long-term design of how the system fits together. Only the owner starts it                 |
-| `blocked`          | The work waits on a different issue                                                        |
-| `side-finding`     | Found during work on a different subject, and filed so that work stays its size            |
-| `component/<part>` | The part of the repository that the change goes in, such as `component/behavior-dsl`       |
+| Label                    | When                                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------ |
+| `bug`                    | The code does not do what its page or its contract says                                    |
+| `enhancement`            | New work: a feature, a migration, a new rule                                               |
+| `documentation`          | A page or a doc is incorrect or missing, and the code is correct                           |
+| `chore`                  | A change that no caller sees: a refactor, a cleanup, a test, CI                            |
+| `tracker`                | An issue that groups others as sub-issues, such as osapi-io/osapi#964                      |
+| `decision`               | The owner must choose before work starts. The issue gives the choices and a recommendation |
+| `architecture`           | Long-term design of how the system fits together. Only the owner starts it                 |
+| `blocked`                | The work waits on a different issue                                                        |
+| `side-finding`           | Found during work on a different subject, and filed so that work stays its size            |
+| `component/<part>`       | The part of the repository that the change goes in, such as `component/behavior-dsl`       |
+| `needs-standards-review` | A pull request waits for its standards review                                              |
+| `standards-reviewed`     | The standards reviewer passed the pull request                                             |
+| `needs-code-review`      | A pull request waits for its code review                                                   |
+| `code-reviewed`          | The code reviewer passed the pull request                                                  |
+
+The last four labels are for pull requests, not issues. Only a reviewer adds a
+passed label ([pr-review-model](.claude/skills/pr-review-model/SKILL.md)).
 
 Give each issue one of the first six labels: its type. Add `blocked` and
 `side-finding` when they apply. Add one or more `component/` labels in a

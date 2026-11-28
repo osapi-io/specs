@@ -122,6 +122,7 @@ incorrect after the next change, and nothing shows that change.
 | [build-a-behavior](.claude/skills/build-a-behavior/SKILL.md) | How to build an osapi behavior. A pointer: the osapi binary has the skill (`osapi skill get --name build-a-behavior`) |
 | [release](.claude/skills/release/README.md)                  | If a repository needs a tag, which number it gets, and if the tag will publish                                        |
 | [work-an-issue](.claude/skills/work-an-issue/README.md)      | How to take an issue to a merged pull request: if the problem still occurs, its size, the fix and its test            |
+| [pr-review-model](.claude/skills/pr-review-model/README.md)  | Who reviews a pull request, which labels it gets, and when it merges                                                  |
 | [ste-100](.claude/skills/ste-100/README.md)                  | How to write and check pages in ASD-STE100 Simplified Technical English, the sentence rules that each page here obeys |
 
 Each skill uses the [Agent Skills] format. A short `SKILL.md` sends the agent to

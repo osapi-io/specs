@@ -1,7 +1,11 @@
 ---
 name: pr-review-model
-description: The review model that every osapi-io pull request goes through before it merges. Each pull request gets two independent reviews, a standards review and a code review, tracked with labels, and merges only when both pass and its checks are green. Use when opening a pull request, when asked who reviews or merges a pull request, when acting as a standards or code reviewer, when a reviewer comment arrives on a pull request, when running a merge loop, and when briefing an agent that will open pull requests.
-compatibility: Requires the gh CLI authenticated against osapi-io. Uses the REST API through gh api.
+description: The review model of each osapi-io pull request. Two independent agents review a pull request, one for the standards of the project and one for the code, and it merges only when both pass and its checks are green. Use it when you open a pull request, when a reviewer comment arrives on one, when you are the standards reviewer or the code reviewer, when you run the merge loop or send review findings to their authors as the lead, when someone asks who reviews or merges a pull request, and when you write the brief of an agent that will open pull requests.
+compatibility: Requires the gh CLI, authenticated against osapi-io. All calls use the REST API through gh api.
+allowed-tools:
+  - Bash(gh api -X POST:*)
+  - Bash(gh api -X DELETE:*)
+  - Bash(gh api -X PUT:*)
 license: MIT
 metadata:
   author: osapi-io
@@ -10,69 +14,40 @@ metadata:
 
 # PR review model
 
-The author of a pull request never certifies it. Two other agents review it, and
-a pull request merges only when both pass.
+The author of a pull request never certifies it. A standards reviewer and a code
+reviewer, which are different agents from the author, review each pull request.
+Each review has a queue label and a pass label. The merge loop merges a pull
+request only when it has both pass labels, each approval names the current head
+commit, and its checks are green.
 
-| Review | Checks | Queue label | Pass label |
+| Review | It checks | Queue label | Pass label |
 | --- | --- | --- | --- |
-| Standards | the rules in CONTRIBUTING.md, AGENTS.md and the constitution | `needs-standards-review` | `standards-reviewed` |
-| Code | correctness, bugs, edge cases, error handling, concurrency, and that the change fixes its issue | `needs-code-review` | `code-reviewed` |
+| Standards | the rules of CONTRIBUTING.md, AGENTS.md and the constitution | `needs-standards-review` | `standards-reviewed` |
+| Code | that the change is correct and complete | `needs-code-review` | `code-reviewed` |
 
-A pull request merges when it has both pass labels, GitHub reports it as
-mergeable, each check is green, and its specs pull request merged first.
+## Route
 
-## Why
+| You are, or you ask | Read |
+| --- | --- |
+| The author: open a pull request, read a review, fix it | [author.md](references/author.md) |
+| The standards reviewer | [standards-review.md](references/standards-review.md) |
+| The code reviewer | [code-review.md](references/code-review.md) |
+| The lead: route findings, wake reviewers, run the merge loop | [lead.md](references/lead.md) |
 
-On 27 November 2026 the owner saw fixes merge with one-off test functions and
-with fixes that did not follow the standards. The agents that wrote them had
-also labelled them as checked. The owner asked: "who is verifying it's okay?"
-An author misses what it wrote, so a different agent reviews each change.
+## Rules
 
-## The author
+1. **Never certify your own pull request.** Only a reviewer adds a pass label.
+2. **A rule that no document states is not a finding.** Cite the file and the
+   section of each standards finding. Ask the lead to write a new rule first.
+3. **An exploitable finding never goes in a comment.** A comment is public. Send
+   it to the lead, who makes a private draft advisory.
+4. **An approval names its head.** It reads "Standards review: approved (head
+   <sha8>)" or "Code review: approved (head <sha8>)". After a push, it does not
+   count.
+5. **Use the REST API.** The `gh pr` commands use GraphQL, and all the agents
+   share one quota. Poll at most every 5 minutes. An API error is an unknown
+   state, not a result.
 
-1. Open the pull request ready, not as a draft. Its title is 50 characters or
-   fewer, because the squash merge makes the title the commit subject.
-2. Add both queue labels:
-
-   ```bash
-   gh api -X POST repos/osapi-io/$r/issues/$n/labels \
-     -f 'labels[]=needs-standards-review' -f 'labels[]=needs-code-review'
-   ```
-
-3. Watch the comments on the pull request. GitHub does not let an account
-   request changes on its own pull request. Thus a reviewer posts its findings
-   as a comment that starts with "Standards review" or "Code review".
-4. Fix each point, push, and add the queue label of that review again.
-
-Never add a pass label yourself.
-
-## The reviewer
-
-1. Read the rules first: the CONTRIBUTING.md, AGENTS.md and CLAUDE.md of the
-   repository, and the AGENTS.md and the constitution of specs.
-2. Read the whole diff. Read the files of the branch where you need context.
-3. If the pull request passes, add the pass label, remove the queue label, and
-   write a short comment that lists what you checked.
-4. If it fails, write one comment that starts with "Standards review" or "Code
-   review". Give each finding with its `file:line`, the rule or the defect, and
-   the fix. Remove the queue label, and tell the lead.
-
-Cite the source of each rule. A rule that no document states is not a finding.
-Ask the lead to add it to the documents first.
-
-## The lead
-
-- Send each finding to the agent that wrote the pull request.
-- A reviewer that cannot wait between rounds does not poll. Start it again
-  when pull requests are in the queue.
-- Run the merge loop. It merges only a pull request that has both pass labels.
-
-## The API quota
-
-All the agents use one GitHub account, so they share its API quota.
-
-- Use the REST API (`gh api`). The `gh pr` commands use GraphQL, and on 27
-  November 2026 the watchers of many agents used up its quota.
-- Poll at most every 5 minutes.
-- An API error is an unknown state. Try again in the next round. Do not read
-  the error as a merge, a pass or a failure.
+The owner made this model on 27 November 2026. Before that, fixes merged with
+one-off test functions and with changes that broke the standards. Their authors
+labelled them as checked. The owner asked: "who is verifying it's okay?"

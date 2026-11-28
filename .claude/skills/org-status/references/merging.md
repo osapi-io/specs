@@ -63,12 +63,20 @@ The other order rebases everything two times.
 
 ## Merge
 
+A pull request from an agent merges only when it has `standards-reviewed` and
+`code-reviewed`, and each check is green
+([pr-review-model](../../pr-review-model/SKILL.md)). The owner handles the
+Dependabot pull requests.
+
+Merge with a squash through REST, then delete the branch:
+
 ```bash
-gh pr merge <number> --repo "$repo" --squash --delete-branch
+gh api -X PUT "repos/$repo/pulls/<number>/merge" -f merge_method=squash
+gh api -X DELETE "repos/$repo/git/refs/heads/<branch>"
 ```
 
 Squash is the convention here. Each commit on a default branch reads
-`type: subject (#number)`. `--delete-branch` keeps [branches.md](branches.md)
+`type: subject (#number)`. The branch delete keeps [branches.md](branches.md)
 short.
 
 ## Rebase a Dependabot PR
