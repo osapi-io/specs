@@ -244,7 +244,7 @@ first tier that has a name for it.
 | ---: | ------------------------------------------- | -----: | ----: |
 |    1 | OCSF                                        |    108 |   11% |
 |    2 | OpenTelemetry resource semantic conventions |     92 |   10% |
-|    3 | gohai convention                            |    764 |   79% |
+|    3 | gohai convention                            |    765 |   79% |
 
 **Four fifths of the fields obey neither standard.** Know this number before you
 read the rules. The third tier is the usual case, and the first two are the
