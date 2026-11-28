@@ -326,6 +326,16 @@ reports a problem for the second.
   denied, the command exits with an error, or its output does not parse. The
   collector returns an error. The registry records it for that collector, and
   the other collectors still run.
+- **Some reads worked, and one failed.** The collector returns the fact of the
+  reads that worked, and the error. The registry keeps the fact, records the
+  error, and gives the collector the status `partial`. Thus one bad read, such
+  as one runtime of languages, does not remove the other facts.
+- **The platform has nothing to read.** The variant returns
+  `collector.ErrUnsupported`, such as the macOS variant of mdadm. The collector
+  gives no fact, with the status `unsupported`. This is not an error.
+
+The status of each collector is in `_status` of the output: `ok`, `absent`,
+`unsupported`, `failed` or `partial` ([the contract](README.md)).
 
 A collector never puts JSON `null` where the schema requires a list or an
 object. An empty result is `[]` or `{}`, or no fact (osapi-io/gohai#396).

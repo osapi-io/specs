@@ -42,9 +42,24 @@ type Collector interface {
 }
 ```
 
-`Collect` can return nil when a platform does not support what the collector
-reads. That is a normal result, not an error. Thus a caller that checks for nil
-handles the ordinary case.
+What `Collect` returns sets the status of the collector in the facts. The status
+is in `_status` of the output, and in `Facts.Status`:
+
+| `Collect` returns        | Status        |
+| ------------------------ | ------------- |
+| the fact and no error    | `ok`          |
+| nil and no error         | `absent`      |
+| nil and `ErrUnsupported` | `unsupported` |
+| nil and an error         | `failed`      |
+| the fact and an error    | `partial`     |
+
+`absent` means that the host has nothing to report. `unsupported` means that the
+platform has nothing to read, such as the macOS variant of a Linux-only
+collector. Neither is an error of the run, and neither goes into `_errors`. A
+`partial` collector keeps what it read before the error, and its error goes into
+`_errors`. Thus one failed read does not remove the other facts of a collector.
+`StatusOf` in `collector.go` makes this decision, and `Absent` tells a source
+that is not on the host from a read that failed.
 
 `DefaultEnabled` keeps large and privileged collectors off until a caller asks
 for them. The interface names the cases: ssh host keys, the full package
@@ -68,27 +83,66 @@ Do not give a new string.
 of the collectors that completed. The generic `GetDep[T]` gets one result with
 its type.
 
-The warning of the interface is more important than the mechanism. `prior`
-always has each collector that you declared, and it **can** have more upstream
-collectors. Thus a collector that reads an undeclared collector works until the
-schedule changes. Then it does not work. Declare what you read.
+`prior` has each declared collector that returned a fact, with the status `ok`
+or `partial`. A declared collector that is `absent` or `unsupported` is not in
+`prior`, and the dependent runs without it. A declared collector that `failed`
+stops the dependent: it does not run, its error wraps `ErrDependencyFailed`, and
+its status is `failed`.
+
+`prior` **can** also have upstream collectors that you did not declare. Thus a
+collector that reads an undeclared collector works until the schedule changes.
+Then it does not work. Declare what you read.
 
 ## The registry (`internal/collector/registry.go`)
 
-A caller uses eight exported functions, and nothing more.
+A caller uses seven exported functions, and nothing more.
 
 ```
-NewRegistry  Register  Get  Names  NamesInCategory  Selected  SelectedWith  Run
+NewRegistry  Register  Get  Names  NamesInCategory  SelectedWith  Run
 ```
+
+`Names` and `NamesInCategory` return sorted names. `Register` refuses a
+duplicate name, and a collector that `CheckSources` refuses: a field with a
+source name such as `FS` or `Exec`, and another type.
+
+`Run` takes `Hooks`, with three optional callbacks. `OnError` gets the error of
+each collector that failed or was partial. `OnComplete` gets the time of each
+collector. `OnStatus` gets the status and the error of each collector that ran,
+or that a failed dependency stopped. A collector that panics gives a
+`*PanicError`, which has the stack. Thus one collector does not stop the process
+that runs gohai.
 
 The registry adds the declared dependencies, and runs the collectors in
 topological levels. The order comes from `Dependencies`. It never comes from the
 order of registration or of the request. Thus a caller cannot put work in order
 with the order of a list. `expandWithDeps` and `topoLevels` do this.
 
-`pkg/gohai/gohai.go` registers each collector package, in one location. If a
-collector exists and is not registered there, nobody can use it, and nothing
-reports it.
+`pkg/gohai/gohai.go` registers each collector package, in one location.
+`registerBuiltins` returns the error of a collector that does not register, and
+`gohai.New` and `gohai.NewRegistry` return it. `TestBuiltinCollectors` in
+`pkg/gohai` fails when the lists of a collector do not agree: its registration,
+its `Facts` field and the case of `Facts.set`, its description in
+`Collectors()`, its schema property and its page under `docs/collectors`.
+
+## The SDK API (`pkg/gohai`)
+
+A program uses `New` with options such as `WithCollectors` and `WithSources`,
+then `Collect`, which returns `Facts`. `Facts` has a typed field for each
+collector, `Errors` (`_errors`), `Status` (`_status`) and, with `WithTimings`,
+`Timings`.
+
+`Collectors`, `CollectorSpec`, `Field` and `Reads` describe each collector: its
+fields, how a caller builds it and what it reads on each platform. osapi reads
+them, so they stay public. `NewRegistry` returns a `Registry` interface: the
+sorted names of the collectors and their categories. The CLI uses it for its
+flags.
+
+The rules of a collector are not in the SDK. `internal/spec` has them, and only
+`gohai collector validate` uses them.
+
+Each collector package exports a `Collector` interface that embeds the contract
+of `internal/collector`. Thus a public type names internal types. Nobody outside
+gohai builds a collector, and gohai#624 records the decision about this.
 
 ## Output
 
@@ -96,24 +150,24 @@ The collectors give facts as Go values. `FromFacts` in `pkg/gohai/ocsf` changes
 them to an OCSF form. It converts what gohai already collected. It is not a
 second collection path.
 
-`schemas/gohai.schema.json` describes the fact output. The code under
-`schemas/gen` generates it. Thus the next run removes a change that you make by
-hand.
+`schemas/gohai.schema.json` describes the fact output, with `_errors`, `_status`
+and `_timings`. The code under `schemas/gen` generates it. Thus the next run
+removes a change that you make by hand.
 
 ## Counting collectors
 
 There are two numbers. Each one is correct for a different question.
 
-**62 implemented.** `ls -d pkg/gohai/collectors/*/ | wc -l`.
+**64 implemented.** `ls -d pkg/gohai/collectors/*/ | wc -l`.
 
-**65 in the catalog.** These are the 62 implemented rows, each with a link to a
+**67 in the catalog.** These are the 64 implemented rows, each with a link to a
 page, and three entries that are deliberately not implemented: `rackspace`,
 `softlayer` and `eucalyptus`. They have no link, a tombstone marker and no
 package.
 
 ```sh
-grep -cE '^\| (\[|[a-z])' docs/collectors/README.md   # 65, both kinds of row
-grep -c '^| \[' docs/collectors/README.md             # 62, the linked ones
+grep -cE '^\| (\[|[a-z])' docs/collectors/README.md   # 67, both kinds of row
+grep -c '^| \[' docs/collectors/README.md             # 64, the linked ones
 ```
 
 That pair is in a code block, not in a table. A command with a regex alternation
@@ -124,9 +178,9 @@ apart after that.
 The move out of the table was not sufficient alone. The second command kept the
 escape of the table and read `'^\| \['`. Basic grep reads `\|` as the
 alternation operator, not as a pipe. Thus the pattern means "an empty string or
-a bracket", each line matches, and it returned 180, not 62. The fix is a pipe
-without the escape. A code block needs no escape, and the two conventions use
-the same two characters for opposite meanings.
+a bracket", each line matches, and it returned 180, not the count of the linked
+rows. The fix is a pipe without the escape. A code block needs no escape, and
+the two conventions use the same two characters for opposite meanings.
 
 A reader who compares `ls` with the catalog, and knows only one of the numbers,
 thinks that something is broken. Nothing is broken. The catalog gives the two
@@ -139,29 +193,31 @@ each family and its public test suite.
 
 ## Known limitations
 
-There are three. In the first two, nothing reports the error. A built-in
-collector that does not register makes `gohai.New` panic, and a test in
-`pkg/gohai` checks that each built-in collector has a `Facts` field that
-`Facts.set` fills.
+There are four.
 
-**An undeclared dependency works until it does not.** `prior` always has what a
-collector declared. It **can** also have upstream collectors that it did not
-declare. A read of one of those works now. It breaks when the schedule changes,
-and nothing warns before that. Declare what you read.
+**An undeclared dependency works until it does not.** `prior` **can** have
+upstream collectors that a collector did not declare. A read of one of those
+works now. It breaks when the schedule changes, and nothing warns before that.
+Declare what you read.
 
 **A default run does not include the large collectors, and says nothing.**
 `DefaultEnabled` returns false for ssh host keys, the full package inventory and
 the full service list. A consumer who expects one of those in a default run gets
-no value and no error. A collector that finds nothing gives the same result.
+no value and no error. Those collectors did not run, so they have no status.
 
 **`schemas/gohai.schema.json` is generated.** The next run of `schemas/gen`
 removes a change that you make by hand.
 
+**A program cannot add its own collectors.** The contract is in `internal/`, and
+`Facts` has a field only for each built-in collector. Extensions are planned,
+not built: gohai#391 asks for them, and gohai#566 records the design, a small
+public `Extension` interface that a program implements and registers.
+
 ## Not covered here
 
-What each collector reads. There are 62, and the catalog lists what each
-returns. [Its own document](collectors.md) has the rule that all 62 obey. This
-page does not describe the 62 instances.
+What each collector reads. There are 64, and the catalog lists what each
+returns. [Its own document](collectors.md) has the rule that all 64 obey. This
+page does not describe the 64 instances.
 
 The CLI flags, other than the `--collector.<name>` form that the catalog
 describes.
