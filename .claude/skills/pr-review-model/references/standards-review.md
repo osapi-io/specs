@@ -30,8 +30,8 @@ the same sections as `templates/CONTRIBUTING.md`.
 | A test file has the name of its production file. A `*_public_test.go` file has one `{Name}PublicTestSuite`. | Code standards, File names; Tests, Test file conventions |
 | No one-off test functions outside the suite. | Tests, Test file conventions |
 | No row that cannot fail, and no row that does not test what its name says. | Tests, Test file conventions |
-| No custom message on an assertion. The name of the row tells what failed. | Tests, Test file conventions, from specs#711 when it merges |
-| A replaced dependency has a `SetXFn` and a `ResetXFn`, reset in `TearDownSubTest`. | Tests, Test helpers |
+| No custom message on an assertion. The name of the row tells what failed. | Tests, Test file conventions |
+| A replaced dependency has a `SetXFn` and a `ResetXFn`, reset in `TearDownSubTest`. | Tests, Test helpers (osapi only) |
 | A test double of an interface of the organization is a mockgen mock in `mocks`. | Code standards, Test doubles |
 | Files go through avfs, also in the tools that run at build time. | Code standards, Go patterns |
 | No `panic` in code that is not a test. | Code standards, Go patterns |
@@ -41,7 +41,7 @@ the same sections as `templates/CONTRIBUTING.md`.
 | Each exported identifier has a doc comment. | Code style, Documentation |
 | No code that keeps backward compatibility. | specs AGENTS.md, Make a change |
 | No em dash, and no "MUST", in a page or a comment. | specs CONSTITUTION.md, The documents |
-| The title is 50 characters or fewer, and the body wraps at 72. | Commit messages |
+| The title is 50 characters or fewer, and the body wraps at 72. | Commit messages (specs: Branches and commits) |
 | A component change has its specs pull request, linked with `Specs:`. | specs AGENTS.md, Open a pull request |
 
 ## 4. Post the result

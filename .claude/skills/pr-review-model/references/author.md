@@ -8,7 +8,7 @@ review, and fix what the reviewers find. You never add a pass label.
 - Open it ready, not as a draft.
 - Give it a title of 50 characters or fewer. The squash merge makes the title
   the commit subject, and the subject has the 50/72 rule
-  ([CONTRIBUTING.md](../../../../CONTRIBUTING.md), Commit messages).
+  ([CONTRIBUTING.md](../../../../CONTRIBUTING.md), Branches and commits).
 - When the change has a specs pull request, open that one first, and put
   `Specs: <url>` in the description ([AGENTS.md](../../../../AGENTS.md), Open a
   pull request).
