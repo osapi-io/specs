@@ -40,7 +40,20 @@ The loop merges a pull request when each of these is true:
 - `mergeable_state` is `clean`.
 - Each check run of its head commit is `completed`, with no `failure`,
   `cancelled` or `timed_out`, and it has at least one check run.
-- When its description has `Specs: <url>`, that specs pull request is closed.
+- Each pass label is current: its "Standards review: approved" or "Code review:
+  approved" comment is newer than the head commit.
+- When its description has `Specs: <url>`, that specs pull request merged. A
+  specs pull request that closed without a merge does not count.
+- When its description has a line `Depends: osapi-io/<repo>#<n>`, that pull
+  request merged.
+
+A pass label that is older than the head commit is stale. The loop removes it
+and puts the pull request back in the queue of that review:
+
+```bash
+gh api -X DELETE repos/osapi-io/$r/issues/$n/labels/code-reviewed
+gh api -X POST repos/osapi-io/$r/issues/$n/labels -f 'labels[]=needs-code-review'
+```
 
 It merges with a squash through REST, then deletes the branch:
 

@@ -38,7 +38,7 @@ When the pull request passes:
 gh api -X POST repos/osapi-io/$r/issues/$n/labels -f 'labels[]=code-reviewed'
 gh api -X DELETE repos/osapi-io/$r/issues/$n/labels/needs-code-review
 gh api -X POST repos/osapi-io/$r/issues/$n/comments \
-  -f body="Code review: pass. Checked: <what you checked>."
+  -f body="Code review: approved. Checked: <what you checked>."
 ```
 
 When it fails, write one comment that starts with "Code review: changes

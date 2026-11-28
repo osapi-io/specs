@@ -17,7 +17,8 @@ metadata:
 The author of a pull request never certifies it. A standards reviewer and a code
 reviewer, which are different agents from the author, review each pull request.
 Each review has a queue label and a pass label. The merge loop merges a pull
-request only when it has both pass labels and its checks are green.
+request only when it has both pass labels, each approval is newer than its head
+commit, and its checks are green.
 
 | Review | It checks | Queue label | Pass label |
 | --- | --- | --- | --- |

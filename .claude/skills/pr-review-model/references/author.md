@@ -10,7 +10,8 @@ review, and fix what the reviewers find. You never add a pass label.
   the commit subject, and the subject has the 50/72 rule
   ([CONTRIBUTING.md](../../../../CONTRIBUTING.md), Branches and commits).
 - When the change has a specs pull request, open that one first, and put
-  `Specs: <url>` in the description ([AGENTS.md](../../../../AGENTS.md), Open a
+  `Specs: <url>` in the description. The component pull request merges only
+  after the specs pull request merged ([AGENTS.md](../../../../AGENTS.md), Open a
   pull request).
 
 Open it through REST:
@@ -19,6 +20,10 @@ Open it through REST:
 gh api -X POST repos/osapi-io/$r/pulls \
   -f title="$title" -f head="$branch" -f base=main -f body="$body"
 ```
+
+- When the change needs a pull request in a different repository to merge
+  first, put a line `Depends: osapi-io/<repo>#<n>` in the description. The merge
+  loop waits for that pull request.
 
 ## 2. Put it in both queues
 
@@ -43,11 +48,19 @@ gh api "repos/osapi-io/$r/issues/$n/comments?per_page=100" \
 A result that came before your last push is of an old head. Do not fix it
 again. Reply on the pull request with the commit that fixed each point.
 
+A reviewer that passes the pull request writes "Standards review: approved" or
+"Code review: approved".
+
 ## 4. Fix the findings
 
 Fix each point. Push only when the pull request is still open, because a squash
 merge orphans a commit that comes after it. Then put the pull request back in
-the queue of the review that failed, and only that one:
+the queue of the review that failed.
+
+Each push makes the approvals before it stale. An approval counts only when its
+comment is newer than the head commit. Thus after a push, both reviews run
+again, and the merge loop puts the pull request back in each queue. Put it back
+in the queue of the review that failed yourself:
 
 ```bash
 gh api -X POST repos/osapi-io/$r/issues/$n/labels \

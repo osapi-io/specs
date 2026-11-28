@@ -53,7 +53,7 @@ write what you checked:
 gh api -X POST repos/osapi-io/$r/issues/$n/labels -f 'labels[]=standards-reviewed'
 gh api -X DELETE repos/osapi-io/$r/issues/$n/labels/needs-standards-review
 gh api -X POST repos/osapi-io/$r/issues/$n/comments \
-  -f body="Standards review: pass. Checked: <the rules that apply>."
+  -f body="Standards review: approved. Checked: <the rules that apply>."
 ```
 
 When it fails, write one comment that starts with "Standards review: changes
